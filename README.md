@@ -152,6 +152,43 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - new_pipeline_functions: Allows user to set functions for the AutoProf pipeline analysis. See *Modifying Pipeline Functions* for more information (dict)
 - new_pipieline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
 
+# How Does AutoProf Work?
+
+More to come
+
+### Background
+
+Find peak of noise flux pedestal
+
+### PSF
+
+IRAF star finder, median fwhm
+
+### Star Masking
+
+IRAF star finder, block based on fwhm
+
+### Centering
+
+Follow hill climbing first fft coefficient for isophotal rings
+
+### Global Isophote Fitting
+
+Using circular ellipses, determine position angle using phase of 2nd fft coefficient. Fit ellipse which minimizes amplitude of 2nd fft coefficient relative to median flux on isophote
+
+### Isophotal Fitting
+
+Starting with global fit, randomly update isophotes and individually minimize relative 2nd fft coefficient amplitude, plus regularization term.
+
+### Isophotal Profile Extraction
+
+Using photutils, median filter flux values along isophote.
+
+### Checking Isophotal Solution
+
+Check for large flux variation along isophote. Check for large 2nd fft coefficient values despite minimization proceedure. Check for large disagreement in integrated curve of growth and pixel summed curve of growth.
+
+
 # Advanced Usage
 
 ### Modifying Pipeline Functions
@@ -167,3 +204,4 @@ This is done with the *new_pipeline_steps* argument, which is formatted as a lis
 In this way you can alter the order of operations used by AutoProf in it's pipeline.
 
 **This is hard to do right**
+
