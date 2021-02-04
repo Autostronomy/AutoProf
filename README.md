@@ -20,18 +20,16 @@ numpy, scipy, matplotlib, astropy, photutils
 ### Basic Install
 
 1. Download the package from: https://github.com/ConnorStoneAstro/AutoProf
-
 1. Set an environment variable and alias the autoprof function:
-```bash
-export AUTOPROF='/path/to/AutoProf/'
-alias autoprof='/path/to/AutoProf/autoprof.py'
-```
-
+    ```bash
+    export AUTOPROF='/path/to/AutoProf/'
+    alias autoprof='/path/to/AutoProf/autoprof.py'
+    ```
 1. Run the test case to see that all is well:
-```bash
-cd /path/to/AutoProf/
-autoprof test/test_config.py
-```
+    ```bash
+    cd /path/to/AutoProf/
+    autoprof test/test_config.py
+    ```
 
 ### Issues
 
