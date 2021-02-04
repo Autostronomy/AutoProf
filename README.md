@@ -17,10 +17,12 @@ very different from their neighbours.
 
 numpy, scipy, matplotlib, astropy, photutils
 
+If you have difficulty running AutoProf, it is possible that one of these dependencies is not in its latest (Python3) version and you should try updating.
+
 ### Basic Install
 
 1. Download the package from: https://github.com/ConnorStoneAstro/AutoProf
-1. Set an environment variable and alias the autoprof function:
+1. Set an environment variable and alias the autoprof function. To make this permanent, include these lines in your .bashrc file (or equivalend for your OS). 
     ```bash
     export AUTOPROF='/path/to/AutoProf/'
     alias autoprof='/path/to/AutoProf/autoprof.py'
@@ -38,9 +40,46 @@ tested on Linux Mint and Mac machines.
 
 # Using AutoProf
 
-### Getting Started
+### Getting Started On A Single Image
 
-### Optional Commands
+The fastest way to run AutoProf for yourself will be for a single image.
+The steps below describe how to get AutoProf to run on an image that you provide.
+To run in batch mode for many images there isn't much to change, but that will be described later.
+
+1. Copy the *config.py.example* script to the directory with your image. And remove the **.example** part from the filename.
+1. In the config file, edit the following lines:
+    ```python
+    pixscale = # your image scale in arcsec/pix
+    image_file = # filename of your image
+    ```
+1. Run AutoProf on the configuration file:
+    ```bash
+    autoprof config.py
+    ```
+1. Check the .prof file for the surface brightness profile.
+Check the .aux file for extra information, including checks on the success of the fit.
+Check the .log file for messages about the progress of the fit, which are updated throughout the fitting proceedure.
+Also, look at the diagnostic plots to see if the fit appears to have worked.
+
+### Running AutoProf In Batch Mode
+
+Running AutoProf in batch mode is relatively simple once you have applied it to a single image.
+You must modify the *process_mode* command to:
+```python
+process_mode = 'image list'
+```
+Then anything which you think should be specified for each galaxy should be a list, instead of a single value.
+For example, the *image_file* variable should now be a list of image files.
+If it doesn't need to be different for each galaxy, then simply leave the argument as a single value.
+For example, the *pixscale* variable can be left as a float value and AutoProf will use that same value for all images.
+
+Note that AutoProf has a list of arguments that it is expecting (see *List Of AutoProf Arguments* for a full list) and it only checks for those.
+You can therefore make any variables you need in the config file to construct your list of image files so long as they don't conflict with any of the expected AutoProf arguments.
+
+
+### List Of AutoProf Arguments
+
+
 - autodetectoverflow: Will try to guess the pixel saturation flux value from the mode
    		       in the image. In principle if all overflow pixels have the same
 		       value then it would show up as the mode, but this is not
