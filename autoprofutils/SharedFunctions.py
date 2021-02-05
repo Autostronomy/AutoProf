@@ -129,6 +129,35 @@ def muSB_to_ISB(mu, band, muE = None):
     else:
         return ISB, (np.log(10)/2.5) * ISB * muE
 
+def app_mag_to_abs_mag(m, D, me = 0., De = 0.):
+    """
+    Converts an apparent magnitude to an absolute magnitude
+    m: Apparent magnitude
+    D: Distance to object in parsecs
+    returns: Absolute magnitude at 10 parcecs
+    """
+
+    M = m - 5.0 * np.log10(D / 10.0)
+    if np.all(me == 0) and np.all(De == 0):
+        return M
+    else:
+        return M, np.sqrt(me**2 + (5. * De / (D * np.log(10)))**2)
+
+def abs_mag_to_app_mag(M, D, Me = 0., De = 0.):
+    """
+    Converts an absolute magnitude to an apparent magnitude
+    M: Absolute magnitude at 10 parcecs
+    D: Distance to object in parsecs
+    returns: Apparent magnitude
+    """
+
+    m = M + 5.0 * np.log10(D / 10.0)
+    if np.all(Me == 0) and np.all(De == 0):
+        return m
+    else:
+        return m, np.sqrt(Me**2 + (5. * De / (D * np.log(10)))**2)
+
+    
 def mag_to_L(mag, band, mage = None, zeropoint = None):
     """
     Returns the luminosity (in solar luminosities) given the absolute magnitude and reference point.

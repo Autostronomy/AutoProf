@@ -35,8 +35,13 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 
 ### Issues
 
-Contact connor.stone@queensu.ca if you experience issues. The code has been
-tested on Linux Mint and Mac machines.
+If you get *Permission Denied*, it is possible that the file is not listed as exicutable and you need to run:
+```bash
+cd /path/to/AutoProf/
+chmod 777 autoprof.py
+```
+
+For other issues contact connor.stone@queensu.ca for help. The code has been tested on Linux Mint and Mac machines.
 
 # Using AutoProf
 
@@ -122,11 +127,12 @@ In your config file, do not use any of these names unless you intend for AutoPro
 
 - pixscale: pixel scale in arcsec/pixel (float)
 - image_file: path to fits file with image data (string)
-- saveto: path where final profile should be saved (string)
+- saveto: path to directory where final profile should be saved (string)
 - name: name to use for the galaxy, this will be the name used in output files and in the log file (string)
 - process_mode: analysis mode for AutoProf to run in (string)
 - n_procs: number of processes to create when running in batch mode (int)
 - overflowval: flux value that corresponds to an overflow pixel, used to identify bad pixels and mask them (float)
+- mask_file: path to fits file which is a mask for the image. Must have the same dimensions as the main image (string)
 - savemask: indicates if the star mask should be saved after fitting (bool)
 - autodetectoverflow: Will try to guess the pixel saturation flux value from the mode
    		       in the image. In principle if all overflow pixels have the same
@@ -137,7 +143,10 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - doplot: Generate diagnostic plots during processing (bool).
 - hdulelement: index for hdul of fits file where image exists (int).
 - given_center: user provided center for isophote fitting. Center should be formatted as:
-		{'x':float, 'y': float}, where the floats are the center coordinates in pixels (dict)
+		{'x':float, 'y': float}, where the floats are the center coordinates in pixels. Also see *fit_center* (dict)
+- fit_center: indicates if AutoProf should attempt to find the center. It will start at the center of the image unless *given_center* is provided
+  	      in which case it will start there. This argument is ignored for forced photometry, in the event that a *given_center* is provided,
+	      AutoProf will automatically use that value, if not given then it will read from the .aux file (bool)
 - scale: growth scale when fitting isophotes, not the same as "sample---scale" (float)
 - samplegeometricscale: growth scale for isophotes when sampling for the final output profile.
                          Used when sampling geometrically (float)

@@ -63,11 +63,7 @@ class Isophote_Pipeline(object):
                     for full reproducability
         """
 
-        # Remove file type indicator from saveto path
-        if saveto[-4:] == '.txt' or saveto[-5:] == '.prof':
-            saveto = saveto[:saveto.rfind('.')]
-
-        with open(saveto + '.aux', 'w') as f:
+        with open(saveto + name + '.aux', 'w') as f:
             # write profile info
             f.write('name: %s\n' % str(name))
             f.write('pixel scale: %.3e arcsec/pix\n' % pixscale)
@@ -86,7 +82,7 @@ class Isophote_Pipeline(object):
                     f.write('settings %s: %s\n' % (k,str(kwargs[k])))
             
         # Write the profile
-        with open(saveto + '.prof', 'w') as f:
+        with open(saveto + name + '.prof', 'w') as f:
             # Write profile header
             f.write(','.join(results['isophoteextract']['header']) + '\n')
             f.write(','.join(results['isophoteextract']['units'][h] for h in results['isophoteextract']['header']) + '\n')
@@ -105,11 +101,11 @@ class Isophote_Pipeline(object):
             hdul = fits.HDUList([fits.PrimaryHDU(header=header),
                                  fits.ImageHDU(results['starmask']['mask'].astype(int)),
                                  fits.ImageHDU(results['starmask']['overflow mask'].astype(int))])
-            hdul.writeto(saveto + '_mask.fits', overwrite = True)
+            hdul.writeto(saveto + name + '_mask.fits', overwrite = True)
             sleep(1)
             # Zip the mask file because it can be large and take a lot of memory, but in principle
             # is very easy to compress
-            os.system('gzip -fq '+ saveto + '_mask.fits')
+            os.system('gzip -fq '+ saveto + name + '_mask.fits')
             
     def Process_Image(self, IMG, pixscale, saveto = None, name = None, kwargs_internal = {}, **kwargs):
         """
@@ -130,7 +126,7 @@ class Isophote_Pipeline(object):
         
         # use filename if no name is given
         if name is None:
-            name = IMG[(IMG.rfind('/') if '/' in IMG else 0):IMG.rfind('.')]
+            name = IMG[(IMG.rfind('/') if '/' in IMG else 0):IMG.find('.', (IMG.rfind('/') if '/' in IMG else 0))]
 
         # Read the primary image
         dat = Read_Image(IMG, **kwargs)
@@ -141,21 +137,20 @@ class Isophote_Pipeline(object):
             return 1
         # Save profile to the same folder as the image if no path is provided
         if saveto is None:
-            saveto = IMG[:IMG.rfind('.')] + '.prof'
+            saveto = './'
             
         # Track time to run analysis
         start = time()
         
         # Run the Pipeline
         results = {}
-        #try:
-        if True:
+        try:
             for step in range(len(self.pipeline_steps)):
                 logging.info('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 results[self.pipeline_steps[step]] = self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs)
-        # except Exception as e:
-        #     logging.error('%s: %s' % (name, str(e)))
-        #     return 1
+        except Exception as e:
+            logging.error('%s: %s' % (name, str(e)))
+            return 1
 
         # Save the profile
         logging.info('%s: saving at: %.1f sec' % (name, time() - start))

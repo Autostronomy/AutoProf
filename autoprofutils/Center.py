@@ -20,26 +20,33 @@ def Center_Null(IMG, pixscale, name, results, **kwargs):
     mask: output from mask calculations (dict)    
     """
 
-    return {'x': IMG.shape[0]/2.,
-            'y': IMG.shape[1]/2.}
+    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in kwargs:
+        current_center = kwargs['given_center']
+        
+    return current_center
 
 def Center_Forced(IMG, pixscale, name, results, **kwargs):
 
-    center = None
+    center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in kwargs:
+        return kwargs['given_center']
+    
     with open(kwargs['forcing_profile'][:-4] + 'aux', 'r') as f:
         for line in f.readlines():
             if line[:6] == 'center':
                 x_loc = line.find('x:')
                 y_loc = line.find('y:')
-                center = {'x': float(line[x_loc+3:x_loc+10]),
-                          'y': float(line[y_loc+3:y_loc+10])}
-                break
-    if center:
-        return center
-    else:
-        logging.info('%s: Forced center failed! Using image center.')
-        return {'x': IMG.shape[0]/2.,
-                'y': IMG.shape[1]/2.}
+                try:
+                    center = {'x': float(line[x_loc+3:x_loc+10]),
+                              'y': float(line[y_loc+3:y_loc+10])}
+                    break
+                except:
+                    pass
+        else:
+            logging.warning('%s: Forced center failed! Using image center.' % name)
+    return center
+
 
 def Center_Given(IMG, pixscale, name, results, **kwargs):
     """
@@ -58,8 +65,9 @@ def Center_Given(IMG, pixscale, name, results, **kwargs):
     """
 
     try:
-        return kwargs['center']
+        return kwargs['given_center']
     except:
+        logging.warning('%s: No center given! using image center.' % name)
         return {'x': IMG.shape[0]/2.,
                 'y': IMG.shape[1]/2.}
     
@@ -76,6 +84,12 @@ def Center_Centroid(IMG, pixscale, name, results, **kwargs):
     background: output from a image background signal calculation (dict)
     mask: output from mask calculations (dict)
     """
+    
+    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in kwargs:
+        current_center = kwargs['given_center']
+    if 'fit_center' in kwargs and not kwargs['fit_center']:
+        return current_center
     
     # Create mask to focus centering algorithm on the center of the image
     centralize_mask = np.ones(IMG.shape)
@@ -115,6 +129,12 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
     mask: output from mask calculations (dict)
     """
     
+    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in kwargs:
+        current_center = kwargs['given_center']
+    if 'fit_center' in kwargs and not kwargs['fit_center']:
+        return current_center
+    
     # mask image to focus algorithm on the center of the image
     centralize_mask = np.ones(IMG.shape, dtype = bool)
     centralize_mask[int(IMG.shape[0]/2 - 100 * results['psf']['median'] / pixscale):int(IMG.shape[0]/2 + 100 * results['psf']['median'] / pixscale),
@@ -147,6 +167,11 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
     mask: output from mask calculations (dict)
     """
     
+    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in kwargs:
+        current_center = kwargs['given_center']
+    if 'fit_center' in kwargs and not kwargs['fit_center']:
+        return current_center
     
     # mask image to focus algorithm on the center of the image
     centralize_mask = np.ones(IMG.shape)
@@ -169,6 +194,12 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
 
 def Center_Bright(IMG, pixscale, name, results, **kwargs):
 
+    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in kwargs:
+        current_center = kwargs['given_center']
+    if 'fit_center' in kwargs and not kwargs['fit_center']:
+        return current_center
+    
     subdat = IMG[int(IMG.shape[0]/2 - 20*results['psf']['median']):int(IMG.shape[0]/2 + 20*results['psf']['median']),
                  int(IMG.shape[1]/2 - 20*results['psf']['median']):int(IMG.shape[1]/2 + 20*results['psf']['median'])]
 
@@ -178,9 +209,14 @@ def Center_Bright(IMG, pixscale, name, results, **kwargs):
 
 def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
 
+    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in kwargs:
+        current_center = kwargs['given_center']
+    if 'fit_center' in kwargs and not kwargs['fit_center']:
+        return current_center
+
     dat = IMG - results['background']['median']
 
-    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     sampleradii = np.linspace(1,10,10) * results['psf']['median']
 
     small_update_count = 0
