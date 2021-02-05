@@ -1,0 +1,198 @@
+from photutils import DAOStarFinder, IRAFStarFinder
+import numpy as np
+import matplotlib.pyplot as plt
+from astropy.visualization import SqrtStretch, LogStretch
+from astropy.visualization.mpl_normalize import ImageNormalize
+from scipy.stats import mode
+import logging
+import sys
+import os
+sys.path.append(os.environ['CAstro'])
+from Photometry.SharedFunctions import Read_Image
+
+def Overflow_Mask(IMG, pixscale, name, results, **kwargs):
+    """
+    Identify parts of the image where the CCD has overflowed and maxed
+    out the sensor. These are characterized by large areas with high
+    and identical pixel values
+
+    IMG: numpy 2d array of pixel values
+    pixscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    background: output from a image background signal calculation (dict)
+    psf: point spread function statistics
+    overflowval: optional pixel flux value for overflowed pixels
+
+    returns: collection of mask information
+    """
+    
+    if 'autodetectoverflow' in kwargs and kwargs['autodetectoverflow']:
+        # Set the overflowval to the most common pixel value, since overflow
+        # pixels all have the same value with no noise.
+        overflowval = mode(IMG, axis = None, nan_policy = 'omit')
+        # If less than 10 pixels have the mode value, assume no pixels have
+        # overflowed and the value is just random.
+        if np.sum(IMG == overflowval) < 10:
+            return np.zeros(IMG.shape,dtype = bool)
+    if (not 'overflowval' in kwargs) or kwargs['overflowval'] is None:
+        logging.info('%s: not masking overflow %s' % name)
+        return np.zeros(IMG.shape)
+
+    Mask = np.logical_and(IMG > (kwargs['overflowval'] - 1e-6), IMG < (kwargs['overflowval'] + 1e-6)).astype(bool)
+    # dlate = int(10*results['psf']['median'])
+    # W = np.where(Mask)
+    # for Wy, Wx in zip(W[0],W[1]):
+    #     # Near the center of the image, don't dilate the overflow pixels
+    #     if (IMG.shape[0]/2 - 30*results['psf']['median']) < Wx < (IMG.shape[0]/2 + 30*results['psf']['median']) and \
+    #        (IMG.shape[1]/2 - 30*results['psf']['median']) < Wy < (IMG.shape[1]/2 + 30*results['psf']['median']):
+    #         continue
+    #     # Dilate/mask region around overflow pixels
+    #     Mask[max(Wy-dlate, 0):min(Wy+dlate+1,len(Mask)),
+    #          max(Wx-dlate, 0):min(Wx+dlate+1,len(Mask))] = True
+
+    # eliminate places where no data is recorded
+    Mask[IMG == 0] = True
+    logging.info('%s: masking %i overflow pixels' % (name, np.sum(Mask)))
+    return Mask
+
+def Star_Mask_Given(IMG, pixscale, name, results, **kwargs):
+
+    mask = np.zeros(IMG.shape) if kwargs['mask_file'] is None else Read_Image(kwargs['mask_file'], **kwargs)
+    # Run separate code to find overflow pixels from very bright stars
+    overflow_mask = Overflow_Mask(IMG, pixscale, name, results, **kwargs)
+
+    return {'mask': mask, 'overflow mask': overflow_mask}
+
+def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
+    """
+    Idenitfy the location of stars in the image and create a mask around
+    each star of pixels to be avoided in further processing.
+
+    fixme note: this can be optimized with slicing by only ever working
+    on a patch of sky around the star. So long as the paths is definately
+    larger than the circle to be masked.
+
+    IMG: numpy 2d array of pixel values
+    pixscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    background: output from a image background signal calculation (dict)
+    psf: point spread function statistics
+    overflowval: optional pixel flux value for overflowed pixels
+
+    returns: collection of mask information
+    """
+
+    fwhm = results['psf']['median']
+    
+    # Run photutils wrapper for IRAF star finder
+    iraffind = IRAFStarFinder(fwhm = fwhm, threshold = 20.*results['background']['iqr'])
+    irafsources = iraffind(IMG - results['background']['median'])
+
+    mask = np.zeros(IMG.shape, dtype = bool)
+    # Mask star pixels and area around proportionate to their total flux
+    XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]))
+    for x,y in zip(irafsources['xcentroid'], irafsources['ycentroid']):
+        # compute distance of every pixel to the identified star
+        R = np.sqrt((XX-x)**2 + (YY-y)**2)
+        # Compute the flux of the star
+        f = np.sum(IMG[R < 10*fwhm])
+        # Compute radius to reach background noise level, assuming gaussian
+        Rstar = 2.3*fwhm*np.sqrt(np.log(2.3*f/(np.sqrt(np.pi*fwhm)*results['background']['iqr']))) # fixme double check
+        # Check surrounding area to see if this is insize the galaxy
+        if np.mean(IMG[np.logical_and(R > Rstar, R < (Rstar + 5))]) > 3*results['background']['iqr']:
+            continue
+        mask[R < Rstar] = True 
+
+    # Include user defined mask if any
+    if 'mask_file' in kwargs and not kwargs['mask_file'] is None:
+        mask  = np.logical_or(mask, Read_Image(mask_file, **kwargs))
+        
+    # Run separate code to find overflow pixels from very bright stars
+    overflow_mask = Overflow_Mask(IMG, pixscale, name, results, **kwargs)
+    
+    # Plot star mask for diagnostic purposes
+    if 'doplot' in kwargs and kwargs['doplot']:
+        plt.imshow(np.clip(IMG,a_min = 0, a_max = None), origin = 'lower',
+                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        dat = np.logical_or(mask, overflow_mask).astype(float)
+        dat[dat == 0] = np.nan
+        plt.imshow(dat, origin = 'lower', cmap = 'Reds_r', alpha = 0.7)
+        plt.savefig('%sMask_%s.pdf' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.clf()
+    
+    return {'x': irafsources['xcentroid'], 'y': irafsources['ycentroid'],
+            'fwhm': fwhm, 'mask':mask,
+            'overflow mask': overflow_mask}
+    
+
+def Star_Mask_DAO(IMG, pixscale, name, results, **kwargs):
+    """
+    Idenitfy the location of stars in the image and create a mask around
+    each star of pixels to be avoided in further processing.
+
+    IMG: numpy 2d array of pixel values
+    pixscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    background: output from a image background signal calculation (dict)
+    psf: point spread function statistics
+    overflowval: optional pixel flux value for overflowed pixels
+
+    returns: empty collection of mask information
+    """
+
+    fwhm = results['psf']['median'] 
+    
+    # Run photutils wrapper for DAO star finder
+    daofind = DAOStarFinder(fwhm = fwhm, threshold = 20.*results['background']['iqr'])
+    sources = daofind(IMG - results['background']['median'])
+    
+    mask = np.zeros(IMG.shape, dtype = bool)
+    # Remove star pixels and area around them
+    XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]))
+    for x,y in zip(sources['xcentroid'], sources['ycentroid']):
+        # compute distance of every pixel to the identified star
+        R = np.sqrt((XX-x)**2 + (YY-y)**2)
+        # Check surrounding area to see if this is insize the galaxy
+        if np.median(IMG[np.logical_and(R > 20*fwhm, R < 25*fwhm)]) > 3*results['background']['iqr']:
+            continue
+        # Compute the flux of the star
+        f = np.sum(IMG[R < 20*fwhm])
+        # Compute radius to reach background noise level, assuming gaussian
+        Rstar = 2.3*fwhm*np.sqrt(2*np.log(2.3*f/(np.sqrt(np.pi*fwhm)*results['background']['iqr'])))
+        mask[R < Rstar] = True
+
+    # Include user defined mask if any
+    if 'mask_file' in kwargs and not kwargs['mask_file'] is None:
+        mask  = np.logical_or(mask, Read_Image(mask_file, **kwargs))
+        
+    # Run separate code to find overflow pixels from very bright stars
+    overflow_mask = Overflow_Mask(IMG, pixscale, name, results, **kwargs)
+    
+    # Plot star mask for diagnostic purposes
+    if 'doplot' in kwargs and kwargs['doplot']:
+        plt.imshow(np.clip(IMG,a_min = 0, a_max = None), origin = 'lower',
+                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        dat = np.logical_or(mask, overflow_mask).astype(float)
+        dat[dat == 0] = np.nan
+        plt.imshow(dat, origin = 'lower', cmap = 'Reds_r', alpha = 0.7)
+        plt.savefig('%sMask_%s.pdf' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.clf()
+    
+    return {'x': sources['xcentroid'], 'y': sources['ycentroid'],
+            'fwhm': fwhm, 'mask':mask,
+            'overflow mask': overflow_mask}
+
+
+def NoMask(IMG, pixscale, name, results, **kwargs):
+    """
+    Dont mask stars. Still mask overflowed values if given.
+    """
+    overflow_mask = Overflow_Mask(IMG, pixscale, name, results, **kwargs)
+
+    # Include user defined mask if any
+    if 'mask_file' in kwargs and not kwargs['mask_file'] is None:
+        mask = np.array(Read_Image(mask_file, **kwargs),dtype=bool)
+    else:
+        mask = np.zeros(IMG.shape,dtype = bool)
+        
+    return {'x': [], 'y': [], 'fwhm': results['psf']['median'],
+            'mask': mask,
+            'overflow mask': overflow_mask}
+    

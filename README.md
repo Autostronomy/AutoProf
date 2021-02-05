@@ -22,7 +22,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 ### Basic Install
 
 1. Download the package from: https://github.com/ConnorStoneAstro/AutoProf
-1. Set an environment variable and alias the autoprof function. To make this permanent, include these lines in your .bashrc file (or equivalend for your OS). 
+1. Set an environment variable and alias the autoprof function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). 
     ```bash
     export AUTOPROF='/path/to/AutoProf/'
     alias autoprof='/path/to/AutoProf/autoprof.py'
@@ -58,7 +58,7 @@ To run in batch mode for many images there isn't much to change, but that will b
     ```
 1. Check the .prof file for the surface brightness profile.
 Check the .aux file for extra information, including checks on the success of the fit.
-Check the .log file for messages about the progress of the fit, which are updated throughout the fitting proceedure.
+Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
 Also, look at the diagnostic plots to see if the fit appears to have worked.
 
 ### Other Processing Modes
@@ -78,7 +78,7 @@ For example, the *image_file* variable should now be a list of image files.
 If it doesn't need to be different for each galaxy, then simply leave the argument as a single value.
 For example, the *pixscale* variable can be left as a float value and AutoProf will use that same value for all images.
 Also unique to batch processing is the availability of parallel processing with the *n_procs* variable.
-Since image analysis is an "embarasingly parallel problem" AutoProf can analyze many images simultaneously.
+Since image analysis is an "embarrassingly parallel problem" AutoProf can analyze many images simultaneously.
 It is suggested that you set *n_procs* equal to the number of processors you have, although you may need to experiment.
 Especially if you don't have much ram, this may be the limiting factor.
 
@@ -108,7 +108,7 @@ Once you have that, you may follow these basic instructions to run forced photom
     ```
 1. Check the .prof file for the surface brightness profile.
 Check the .aux file for extra information, including checks on the success of the fit.
-Check the .log file for messages about the progress of the fit, which are updated throughout the fitting proceedure.
+Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
 Also, look at the diagnostic plots to see if the fit appears to have worked.
 
 To run forced photometry in batch mode is very similar to running image processing in batch mode.
@@ -117,7 +117,7 @@ And of course, any other arguments can be made into lists as well if appropriate
 
 ### List Of AutoProf Arguments
 
-This is a list of all aguments that AutoProf will check for and what they do.
+This is a list of all arguments that AutoProf will check for and what they do.
 In your config file, do not use any of these names unless you intend for AutoProf to interpret those values in it's image processing pipeline.
 
 - pixscale: pixel scale in arcsec/pixel (float)
@@ -127,7 +127,7 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - process_mode: analysis mode for AutoProf to run in (string)
 - n_procs: number of processes to create when running in batch mode (int)
 - overflowval: flux value that corresponds to an overflow pixel, used to identify bad pixels and mask them (float)
-- savemask: indicates if the star mask should be saved after fitting (boolean)
+- savemask: indicates if the star mask should be saved after fitting (bool)
 - autodetectoverflow: Will try to guess the pixel saturation flux value from the mode
    		       in the image. In principle if all overflow pixels have the same
 		       value then it would show up as the mode, but this is not
@@ -186,7 +186,7 @@ Using photutils, median filter flux values along isophote.
 
 ### Checking Isophotal Solution
 
-Check for large flux variation along isophote. Check for large 2nd fft coefficient values despite minimization proceedure. Check for large disagreement in integrated curve of growth and pixel summed curve of growth.
+Check for large flux variation along isophote. Check for large 2nd fft coefficient values despite minimization procedure. Check for large disagreement in integrated curve of growth and pixel summed curve of growth.
 
 
 # Advanced Usage

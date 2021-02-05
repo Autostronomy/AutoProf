@@ -1,0 +1,154 @@
+from photutils import make_source_mask
+from photutils.isophote import EllipseSample, Ellipse, EllipseGeometry, Isophote, IsophoteList
+from astropy.stats import sigma_clipped_stats
+from scipy.stats import iqr
+from scipy.optimize import minimize
+from time import time
+import logging
+import numpy as np
+
+def Background_Mode(IMG, pixscale, name, results, **kwargs):
+
+    # Mask main body of image so only outer 1/5th is used
+    # for background calculation.
+    edge_mask = np.ones(IMG.shape, dtype = bool)
+    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
+              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
+    values = IMG[edge_mask].ravel()
+    start = np.median(values)
+    scale = iqr(values,rng = [30,70])
+
+    res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
+
+    clip_above = 3*np.sqrt(np.mean(values - res.x[0])**2)
+    for i in range(10):
+        clip_above = 3*np.sqrt(np.mean(values[values < clip_above] - res.x[0])**2)
+    #logging.info('%s background peak start %.2e, res %.2e, clip_above %.2e, scale %.2e, iqr %.2e' % (name, start, res.x[0], clip_above, scale, iqr(values[values < clip_above])))
+    return {'median': res.x[0], 'iqr': iqr(values[values < clip_above])}
+
+def Background_Global(IMG, pixscale, name, results, **kwargs):
+    """
+    Compute a global background value for an image. Performed by
+    identifying pixels which are beyond 3 sigma above the average
+    signal and masking them, also further masking a boarder
+    of 20 pixels around the initial masked pixels. Returns a
+    dictionary of parameters describing the background level.
+
+    IMG: numpy 2d array of pixel values
+    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    """
+
+    # Mask main body of image so only outer 1/5th is used
+    # for background calculation.
+    edge_mask = np.zeros(IMG.shape)
+    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
+              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = 1
+
+    # Run photutils source mask to remove pixels with sources
+    # such as stars and galaxies, including a boarder
+    # around each source.
+    mask = make_source_mask(IMG,
+                            nsigma = 3,
+                            npixels = int(1./pixscale),
+                            dilate_size = 40,
+                            filter_fwhm = 1./pixscale,
+                            filter_size = int(3./pixscale),
+                            sigclip_iters = 5)
+    mask = np.logical_or(mask, edge_mask)
+
+    # Return statistics from background sky
+    return {'mean': np.mean(IMG[np.logical_not(mask)]),
+            'median': np.median(IMG[np.logical_not(mask)]),
+            'std': np.std(IMG[np.logical_not(mask)]),
+            'iqr': iqr(IMG[np.logical_not(mask)])}
+
+def Background_ByPatches(IMG, pixscale, name, results, **kwargs):
+    """
+    Compute a global background value for an image. Done by
+    evaluating statistics on various patches of sky near the
+    boarder of an image. Patches include corner squares and
+    edge bars.
+
+    IMG: numpy 2d array of pixel values
+    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    """
+
+    # Make the slicing commands to grab patches
+    patches = [[[None,int(IMG.shape[0]/5.)],[int(IMG.shape[1]/5.),int(4*IMG.shape[1]/5.)]],
+               [[int(4*IMG.shape[0]/5.),None],[int(IMG.shape[1]/5.),int(4*IMG.shape[1]/5.)]],
+               [[int(IMG.shape[0]/5.),int(4*IMG.shape[0]/5.)],[None,int(IMG.shape[1]/5.)]],
+               [[int(IMG.shape[0]/5.),int(4*IMG.shape[0]/5.)],[int(4*IMG.shape[1]/5.),None]],
+               [[None,int(IMG.shape[0]/4.)],[None,int(IMG.shape[1]/4.)]],
+               [[int(3*IMG.shape[0]/4.),None],[None,int(IMG.shape[1]/4.)]],
+               [[None,int(IMG.shape[0]/4.)],[int(3*IMG.shape[1]/4.),None]],
+               [[int(3*IMG.shape[0]/4.), None],[int(3*IMG.shape[1]/4.),None]]]
+    clip_at = 4 * iqr(IMG)
+
+    # Loop through the patches and compute statistics on each
+    stats = {'mean':[], 'median': [], 'std': [], 'iqr': []}
+    for p in patches:
+        vals = IMG[p[0][0]:p[0][1],
+                   p[1][0]:p[1][1]]
+        stats['mean'].append(np.mean(vals[vals < clip_at]))
+        stats['median'].append(np.median(vals[vals < clip_at]))
+        stats['std'].append(np.std(vals[vals < clip_at]))
+        stats['iqr'].append(iqr(vals[vals < clip_at]))
+
+    # Compute statistics on the patches, instead of on image
+    mean = np.median(stats['mean'])
+    median = np.median(stats['median'])
+    std = np.median(stats['std'])
+    img_iqr = np.median(stats['iqr'])
+
+    return {'mean': mean,
+            'median': median,
+            'std': std,
+            'iqr': img_iqr}
+    
+
+def Background_ByIsophote(IMG, pixscale, name, results, **kwargs):
+    """
+    Compute circular isophotes at large radii of the image. The
+    flux space surface brightness is used as a background measurement
+
+    IMG: numpy 2d array of pixel values
+    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    """
+    isophote_SBs = []
+
+    R = [1./pixscale]
+    
+    while R[-1] < IMG.shape[0]/2:
+        R.append(R[-1] * 1.5)
+        geo = EllipseGeometry(sma = R[-1],
+                              x0 = int(IMG.shape[0]/2), y0 = int(IMG.shape[1]/2),
+                              eps = 0.,
+                              pa = 0.)
+        ES = EllipseSample(IMG,
+                           sma = R[-1],
+                           geometry = geo)
+        ES.extract()
+        isophote_SBs.append(np.median(ES.values[2]))
+    
+    return {'mean': np.mean(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):]),
+            'median': np.min(isophote_SBs),
+            'std': np.std(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):]),
+            'iqr': iqr(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):])}
+
+def Background_All(IMG, pixscale, name, results, **kwargs):
+    """
+    Run all the background calculation algorithms and compare the results
+
+    IMG: numpy 2d array of pixel values
+    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)    
+    """
+
+    byisophote = Background_ByIsophote(IMG, pixscale, name, results, **kwargs)
+    bypatches = Background_ByPatches(IMG, pixscale, name, results, **kwargs)
+    byglobal = Background_Global(IMG, pixscale, name, results, **kwargs)
+    start = time()
+    bymode = Background_Mode(IMG, pixscale, name, results, **kwargs)
+    
+    logging.info('BACKGROUNDTEST %s|%f|%f|%f|%f, %.2f' % (name, byisophote['median'], bypatches['median'], byglobal['median'], bymode['median'], time() - start))
+
+    return byglobal
