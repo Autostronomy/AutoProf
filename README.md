@@ -1,6 +1,3 @@
-Author: Connor Stone
-Date: 4 Feb 2021
-
 # Introduction
 
 This README explains basic use of the autoprof code for extracting photometry
