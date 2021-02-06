@@ -93,13 +93,13 @@ def Center_Centroid(IMG, pixscale, name, results, **kwargs):
     
     # Create mask to focus centering algorithm on the center of the image
     centralize_mask = np.ones(IMG.shape)
-    centralize_mask[int(IMG.shape[0]/2 - 30 * results['psf']['median'] / pixscale):int(IMG.shape[0]/2 + 30 * results['psf']['median'] / pixscale),
-                    int(IMG.shape[1]/2 - 30 * results['psf']['median'] / pixscale):int(IMG.shape[1]/2 + 30 * results['psf']['median'] / pixscale)] = 0
+    centralize_mask[int(IMG.shape[0]/2 - 30 * results['psf']['fwhm'] / pixscale):int(IMG.shape[0]/2 + 30 * results['psf']['fwhm'] / pixscale),
+                    int(IMG.shape[1]/2 - 30 * results['psf']['fwhm'] / pixscale):int(IMG.shape[1]/2 + 30 * results['psf']['fwhm'] / pixscale)] = 0
     decentralize_mask = np.ones(IMG.shape)
-    decentralize_mask[int(IMG.shape[0]/2 - 5 * results['psf']['median'] / pixscale):int(IMG.shape[0]/2 + 5 * results['psf']['median'] / pixscale),
-                      int(IMG.shape[1]/2 - 5 * results['psf']['median'] / pixscale):int(IMG.shape[1]/2 + 5 * results['psf']['median'] / pixscale)] = 0
+    decentralize_mask[int(IMG.shape[0]/2 - 5 * results['psf']['fwhm'] / pixscale):int(IMG.shape[0]/2 + 5 * results['psf']['fwhm'] / pixscale),
+                      int(IMG.shape[1]/2 - 5 * results['psf']['fwhm'] / pixscale):int(IMG.shape[1]/2 + 5 * results['psf']['fwhm'] / pixscale)] = 0
     
-    x, y = centroid_2dg(IMG - results['background']['median'],
+    x, y = centroid_2dg(IMG - results['background']['background'],
                         mask = np.logical_and(np.logical_or(np.logical_or(results['mask']['mask'],
                                                                           results['mask']['overflow mask']),
                                                             centralize_mask),
@@ -107,7 +107,7 @@ def Center_Centroid(IMG, pixscale, name, results, **kwargs):
 
     # Plot center value for diagnostic purposes
     if 'doplot' in kwargs and kwargs['doplot']:    
-        plt.imshow(np.clip(IMG - results['background']['median'],a_min = 0, a_max = None),
+        plt.imshow(np.clip(IMG - results['background']['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
         plt.savefig('%scenter_vis_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
@@ -137,15 +137,15 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
     
     # mask image to focus algorithm on the center of the image
     centralize_mask = np.ones(IMG.shape, dtype = bool)
-    centralize_mask[int(IMG.shape[0]/2 - 100 * results['psf']['median'] / pixscale):int(IMG.shape[0]/2 + 100 * results['psf']['median'] / pixscale),
-                    int(IMG.shape[1]/2 - 100 * results['psf']['median'] / pixscale):int(IMG.shape[1]/2 + 100 * results['psf']['median'] / pixscale)] = False
+    centralize_mask[int(IMG.shape[0]/2 - 100 * results['psf']['fwhm'] / pixscale):int(IMG.shape[0]/2 + 100 * results['psf']['fwhm'] / pixscale),
+                    int(IMG.shape[1]/2 - 100 * results['psf']['fwhm'] / pixscale):int(IMG.shape[1]/2 + 100 * results['psf']['fwhm'] / pixscale)] = False
     
-    x, y = centroid_1dg(IMG - results['background']['median'],
+    x, y = centroid_1dg(IMG - results['background']['background'],
                         mask = centralize_mask) # np.logical_or(mask['mask'], centralize_mask)
     
     # Plot center value for diagnostic purposes
     if 'doplot' in kwargs and kwargs['doplot']:    
-        plt.imshow(np.clip(IMG - results['background']['median'],a_min = 0, a_max = None),
+        plt.imshow(np.clip(IMG - results['background']['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
         plt.savefig('%scenter_vis_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
@@ -175,15 +175,15 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
     
     # mask image to focus algorithm on the center of the image
     centralize_mask = np.ones(IMG.shape)
-    centralize_mask[int(IMG.shape[0]/2 - 50 * results['psf']['median'] / pixscale):int(IMG.shape[0]/2 + 50 * results['psf']['median'] / pixscale),
-                    int(IMG.shape[1]/2 - 50 * results['psf']['median'] / pixscale):int(IMG.shape[1]/2 + 50 * results['psf']['median'] / pixscale)] = 0
+    centralize_mask[int(IMG.shape[0]/2 - 50 * results['psf']['fwhm'] / pixscale):int(IMG.shape[0]/2 + 50 * results['psf']['fwhm'] / pixscale),
+                    int(IMG.shape[1]/2 - 50 * results['psf']['fwhm'] / pixscale):int(IMG.shape[1]/2 + 50 * results['psf']['fwhm'] / pixscale)] = 0
     
-    x, y = centroid_com(IMG - results['background']['median'],
+    x, y = centroid_com(IMG - results['background']['background'],
                         mask = centralize_mask) # np.logical_or(mask['mask'], centralize_mask)
     
     # Plot center value for diagnostic purposes
     if 'doplot' in kwargs and kwargs['doplot']:    
-        plt.imshow(np.clip(IMG - results['background']['median'],a_min = 0, a_max = None),
+        plt.imshow(np.clip(IMG - results['background']['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
         plt.savefig('%scenter_vis_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
@@ -200,12 +200,12 @@ def Center_Bright(IMG, pixscale, name, results, **kwargs):
     if 'fit_center' in kwargs and not kwargs['fit_center']:
         return current_center
     
-    subdat = IMG[int(IMG.shape[0]/2 - 20*results['psf']['median']):int(IMG.shape[0]/2 + 20*results['psf']['median']),
-                 int(IMG.shape[1]/2 - 20*results['psf']['median']):int(IMG.shape[1]/2 + 20*results['psf']['median'])]
+    subdat = IMG[int(IMG.shape[0]/2 - 20*results['psf']['fwhm']):int(IMG.shape[0]/2 + 20*results['psf']['fwhm']),
+                 int(IMG.shape[1]/2 - 20*results['psf']['fwhm']):int(IMG.shape[1]/2 + 20*results['psf']['fwhm'])]
 
     locmax = np.unravel_index(np.argmax(subdat), subdat.shape)
 
-    return {'x': locmax[0] + IMG.shape[0]/2 - 20*results['psf']['median'], 'y': locmax[1] + IMG.shape[1]/2 - 20*results['psf']['median']}
+    return {'x': locmax[0] + IMG.shape[0]/2 - 20*results['psf']['fwhm'], 'y': locmax[1] + IMG.shape[1]/2 - 20*results['psf']['fwhm']}
 
 def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
 
@@ -215,9 +215,9 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
     if 'fit_center' in kwargs and not kwargs['fit_center']:
         return current_center
 
-    dat = IMG - results['background']['median']
+    dat = IMG - results['background']['background']
 
-    sampleradii = np.linspace(1,10,10) * results['psf']['median']
+    sampleradii = np.linspace(1,10,10) * results['psf']['fwhm']
 
     small_update_count = 0
     total_count = 0
@@ -238,10 +238,10 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
             floc = np.argmin(np.abs(isovals[i][1] - direction))
             rloc = np.argmin(np.abs(isovals[i][1] - ((direction+np.pi) % (2*np.pi))))
             smooth = np.abs(ifft(coefs[i][:min(10,len(coefs[i]))],n = len(coefs[i])))
-            if smooth[floc] > (3*results['background']['iqr']):
+            if smooth[floc] > (3*results['background']['noise']):
                 levels.append(smooth[floc])
                 level_locs.append(r)
-            if smooth[rloc] > (3*results['background']['iqr']):
+            if smooth[rloc] > (3*results['background']['noise']):
                 levels.insert(0,smooth[rloc])
                 level_locs.insert(0,-r)
         try:
@@ -254,7 +254,7 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
             dist = 1.
         current_center['x'] += dist*np.cos(direction)
         current_center['y'] += dist*np.sin(direction)
-        if abs(dist) < (0.5*results['psf']['median']):
+        if abs(dist) < (0.5*results['psf']['fwhm']):
             small_update_count += 1
         else:
             small_update_count = 0
@@ -302,7 +302,7 @@ def Center_Multi_Method(IMG, pixscale, name, results, **kwargs):
         # Evaluate relative pixel locations to center
         R = np.sqrt((XX - cent['x'])**2 + (YY - cent['y'])**2)
         # Check how the algorithm center brightness compares to the image center brightness
-        if np.sqrt((cent['x'] - IMG.shape[0]/2)**2 + (cent['y'] - IMG.shape[1]/2)**2) < 50*results['psf']['median']:
+        if np.sqrt((cent['x'] - IMG.shape[0]/2)**2 + (cent['y'] - IMG.shape[1]/2)**2) < 50*results['psf']['fwhm']:
             # Plot center for diagnostic purposes
             if 'doplot' in kwargs and kwargs['doplot']:    
                 plt.imshow(np.clip(IMG,a_min = 0, a_max = None), origin = 'lower',

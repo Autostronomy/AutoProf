@@ -32,15 +32,15 @@ class Isophote_Pipeline(object):
         loggername: String to use for logging messages
         """
 
-        self.pipeline_functions = {'background': Background_Global,
+        self.pipeline_functions = {'background': Background_Mode,
                                    'psf': Calculate_PSF,
-                                   'starmask': NoMask,
                                    'center': Center_HillClimb,
                                    'isophoteinit': Isophote_Initialize_CircFit,
                                    'isophotefit': Isophote_Fit_FFT_Robust,
+                                   'starmask': Star_Mask_IRAF,
                                    'isophoteextract': Isophote_Extract,
                                    'checkfit': Check_Fit_IQR}
-        self.pipeline_steps = ['background', 'psf', 'starmask', 'center', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit']
+        self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 
         # Start the logger
         logging.basicConfig(level=logging.INFO, filename = 'AutoProf.log' if loggername is None else loggername, filemode = 'w')
@@ -69,8 +69,8 @@ class Isophote_Pipeline(object):
             f.write('pixel scale: %.3e arcsec/pix\n' % pixscale)
             for k in results['checkfit'].keys():
                 f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
-            f.write('psf median: %.3f pix, iqr: %.2e pix\n' % (results['psf']['median'], results['psf']['iqr']))
-            f.write('background median: %.3e flux, iqr: %.3e flux\n' % (results['background']['median'], results['background']['iqr']))
+            f.write('psf median: %.3f pix, iqr: %.2e pix\n' % (results['psf']['fwhm'], results['psf']['iqr']))
+            f.write('background median: %.3e flux, iqr: %.3e flux\n' % (results['background']['background'], results['background']['noise']))
             if 'center' in results['isophotefit']:
                 use_center = results['isophotefit']['center']
             else:
@@ -144,13 +144,14 @@ class Isophote_Pipeline(object):
         
         # Run the Pipeline
         results = {}
-        try:
+        # try:
+        if True:
             for step in range(len(self.pipeline_steps)):
                 logging.info('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 results[self.pipeline_steps[step]] = self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs)
-        except Exception as e:
-            logging.error('%s: %s' % (name, str(e)))
-            return 1
+        # except Exception as e:
+        #     logging.error('%s: %s' % (name, str(e)))
+        #     return 1
 
         # Save the profile
         logging.info('%s: saving at: %.1f sec' % (name, time() - start))

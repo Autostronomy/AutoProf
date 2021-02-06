@@ -24,11 +24,11 @@ def Isophote_Initialize_GridSearch(IMG, pixscale, name, results, **kwargs):
     # Initial attempt to find size of galaxy in image
     # based on when isophotes SB values start to get
     # close to the background noise level
-    circ_ellipse_radii = [results['psf']['median']]
+    circ_ellipse_radii = [results['psf']['fwhm']]
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.3))
         # Stop when at 10 time background noise
-        if np.quantile(_iso_extract(IMG - results['background']['median'],circ_ellipse_radii[-1],0.,0.,results['center']), 0.6) < (3*results['background']['iqr']) and len(circ_ellipse_radii) > 4:
+        if np.quantile(_iso_extract(IMG - results['background']['background'],circ_ellipse_radii[-1],0.,0.,results['center']), 0.6) < (3*results['background']['noise']) and len(circ_ellipse_radii) > 4:
             break
     logging.info('%s: init scale: %f' % (name, circ_ellipse_radii[-1]))
     circ_ellipse_radii = np.array(circ_ellipse_radii)
@@ -88,10 +88,10 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
     # Initial attempt to find size of galaxy in image
     # based on when isophotes SB values start to get
     # close to the background noise level
-    circ_ellipse_radii = [results['psf']['median']]
+    circ_ellipse_radii = [results['psf']['fwhm']]
     phasekeep = []
     allphase = []
-    dat = IMG - results['background']['median']
+    dat = IMG - results['background']['background']
 
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.2))
@@ -100,31 +100,8 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
         allphase.append(coefs[2])
         if np.abs(coefs[2]) > np.abs(coefs[1]) and np.abs(coefs[2]) > np.abs(coefs[3]):
             phasekeep.append(coefs[2])
-        # plt.plot(isovals[1], isovals[0], label = '%.2f' % circ_ellipse_radii[-1])
-        # print(len(isovals[0]), len(ifft(coefs)), len(ifft(coefs[:5], n = len(isovals[0]))))
-        # print(coefs[:5])
-        # print('start angle: ', isovals[1][0], np.angle(coefs[2]), np.angle(coefs[2]) % np.pi, np.angle(coefs[2]) % (2*np.pi), np.abs(np.angle(coefs[2]))/2)
-        # plt.plot(isovals[1], ifft(coefs[:5], n = len(isovals[0])), label = 'FFT 5')
-        # test_point = np.zeros(len(coefs), dtype = np.csingle)
-        # test_point[0] = coefs[0]
-        # test_angle = np.angle(coefs[2])
-        # test_point[2] = np.max(np.abs(coefs[1:]))*(np.cos(test_angle) + np.sin(test_angle)*1j)
-        # print('test ', test_point[:5], np.angle(test_point[:5]))
-        # plt.plot(isovals[1], ifft(test_point), label = 'testpoint')
-        # plt.axvline(( - np.angle(coefs[2])/2) % np.pi)
-        # # plt.plot(isovals[1], ifft(coefs[:4], n = len(isovals[0])), label = 'FFT 4')
-        # # plt.plot(isovals[1], ifft(coefs[:3], n = len(isovals[0])), label = 'FFT 3')
-        # plt.title('Pass test: %s' % str(np.abs(coefs[2]) > np.abs(coefs[1]) and np.abs(coefs[2]) > np.abs(coefs[3])))
-        # plt.xlabel('angle')
-        # plt.ylabel('flux')
-        # plt.legend()
-        # plt.savefig('%sinitialize_test_%s_%.2i.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name, len(circ_ellipse_radii)))
-        # plt.clf()
-        # plt.plot(range(1,len(coefs)), np.abs(coefs[1:]))
-        # plt.savefig('%sinitializefft_coefs_%s_%.2i.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name, len(circ_ellipse_radii)))
-        # plt.clf()
         # Stop when at 3 time background noise
-        if np.quantile(isovals[0], 0.8) < (3*results['background']['iqr']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background']['median'],circ_ellipse_radii[-1],0.,0.,results['center'])
+        if np.quantile(isovals[0], 0.8) < (3*results['background']['noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background']['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
             break
     logging.info('%s: init scale: %f' % (name, circ_ellipse_radii[-1]))
     if len(phasekeep) >= 5:

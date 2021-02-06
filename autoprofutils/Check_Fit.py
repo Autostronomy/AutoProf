@@ -11,7 +11,7 @@ from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _in
 def Check_Fit_Simple(IMG, pixscale, name, results, **kwargs):
     tests = {}
     # subtract background from image during processing
-    dat = IMG - results['background']['median']
+    dat = IMG - results['background']['background']
     
     # Compare integrated total magnitude with summed total magnitude
     try:
@@ -20,7 +20,7 @@ def Check_Fit_Simple(IMG, pixscale, name, results, **kwargs):
         Mint = np.array(results['isophoteextract']['data']['totmag'])
         Msum = np.array(results['isophoteextract']['data']['totmag_direct'])
         CHOOSE = np.logical_and(SB < 99, SBe < 0.1)
-        if np.sum(np.abs(Mint[CHOOSE][-4:] - Msum[CHOOSE][-4:]) > 0.3) > 2:
+        if np.sum(np.abs(Mint[CHOOSE][-4:] - Msum[CHOOSE][-4:]) > 0.2) > 2:
             logging.warning('%s: Possible failed fit! Inconsistent results for curve of growth, bad fit or foreground star' % name)
             tests['curve of growth consistency'] = False
         else:
@@ -33,7 +33,7 @@ def Check_Fit_IQR(IMG, pixscale, name, results, **kwargs):
 
     tests = {}
     # subtract background from image during processing
-    dat = IMG - results['background']['median']
+    dat = IMG - results['background']['background']
 
     # Compare variability of flux values along isophotes
     ######################################################################
@@ -48,9 +48,9 @@ def Check_Fit_IQR(IMG, pixscale, name, results, **kwargs):
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
 
         #logging.info('%s: check median %.3e iqr %.3e. Check fft coefs %s' % (name, np.median(isovals), iqr(isovals), str(list(np.abs(coefs[:7])))))
-        if np.median(isovals) < (iqr(isovals)-results['background']['iqr']):
+        if np.median(isovals) < (iqr(isovals)-results['background']['noise']):
             count_variable += 1
-        if ((iqr(isovals) - results['background']['iqr'])/(np.median(isovals)+results['background']['iqr'])) > (iqr(init_isovals)/(np.median(init_isovals)+results['background']['iqr'])):
+        if ((iqr(isovals) - results['background']['noise'])/(np.median(isovals)+results['background']['noise'])) > (iqr(init_isovals)/(np.median(init_isovals)+results['background']['noise'])):
             count_initrelative += 1
         f2_compare.append(np.sum(np.abs(coefs[[2,4]]))/np.abs(coefs[0]))
         #logging.info('%s: checkfit fft mod 2 coefs: %.3f, coef 0: %.3f, ratio: %.3f' % (name, np.sum(np.abs(coefs[[2,4,6]])), np.abs(coefs[0]), np.sum(np.abs(coefs[[2,4,6]]))/np.abs(coefs[0])))
@@ -78,7 +78,7 @@ def Check_Fit_IQR(IMG, pixscale, name, results, **kwargs):
         Mint = np.array(results['isophoteextract']['data']['totmag'])
         Msum = np.array(results['isophoteextract']['data']['totmag_direct'])
         CHOOSE = np.logical_and(SB < 99, SBe < 0.1)
-        if np.sum(np.abs(Mint[CHOOSE][-4:] - Msum[CHOOSE][-4:]) > 0.3) > 2:
+        if np.sum(np.abs(Mint[CHOOSE][-4:] - Msum[CHOOSE][-4:]) > 0.2) > 2:
             logging.warning('%s: Possible failed fit! Inconsistent results for curve of growth, bad fit or foreground star' % name)
             tests['curve of growth consistency'] = False
         else:

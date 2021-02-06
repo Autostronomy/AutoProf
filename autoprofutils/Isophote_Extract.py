@@ -43,7 +43,7 @@ def Simple_Isophote_Extract(IMG, mask, background_level, center, R, E, PA, name 
         
     return IsophoteList(iso_list)
 
-def Generate_Profile(IMG, pixscale, mask, background, center, R, E, PA, name):    
+def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, R, E, PA, name, **kwargs):    
 
     isolist =  Simple_Isophote_Extract(IMG, mask, background,
                                        center, R, E, PA, name)
@@ -97,6 +97,20 @@ def Generate_Profile(IMG, pixscale, mask, background, center, R, E, PA, name):
         # SBprof_data['x0'].append(isolist.x0[i])
         # SBprof_data['y0'].append(isolist.y0[i])
 
+    if 'doplot' in kwargs and kwargs['doplot']:
+        CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
+        plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = np.array(SBprof_data['SB_e'])[CHOOSE],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'purple', label = 'SB')
+        plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'COG')
+        plt.xlabel('Radius [arcsec]')
+        plt.ylabel('Brightness [mag, mag/arcsec^2]')
+        plt.axhline(-2.5*np.log10(background_noise/2) + 22.5 + 2.5*np.log10(pixscale**2), color = 'purple', linewidth = 0.5, linestyle = '--', label = 'Sky noise')
+        plt.gca().invert_yaxis()
+        plt.legend()
+        plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.clf()                
+        
     return {'header': params, 'units': SBprof_units, 'data': SBprof_data, 'format': SBprof_format}
 
 def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
@@ -115,8 +129,8 @@ def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
 
     
     return Generate_Profile(IMG, pixscale, np.logical_or(results['starmask']['overflow mask'],results['starmask']['mask']),
-                            results['background']['median'], results['center'], np.array(force['R'])/pixscale, force['ellip'],
-                            np.array(force['pa'])*np.pi/180, name)
+                            results['background']['background'], results['background']['noise'], results['center'], np.array(force['R'])/pixscale, force['ellip'],
+                            np.array(force['pa'])*np.pi/180, name, **kwargs)
 
 def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     """
@@ -134,15 +148,15 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
         use_center = results['center']
         
     # Radius values to evaluate isophotes
-    R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf']['median']/2)]
+    R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf']['fwhm']/2)]
     while ((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 2*results['isophotefit']['R'][-1] and R[-1] < min(IMG.shape)/2) or (kwargs['extractfull'] if 'extractfull' in kwargs else False):
         if 'samplestyle' in kwargs and kwargs['samplestyle'] == 'geometric-linear':
-            if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf']['median']):
-                R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf']['median']))
+            if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf']['fwhm']):
+                R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf']['fwhm']))
             else:
                 R.append(R[-1]*(1. + (kwargs['samplegeometricscale'] if 'samplegeometricscale' in kwargs else 0.1)))
         elif 'samplestyle' in kwargs and kwargs['samplestyle'] == 'linear':
-            R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 0.5*results['psf']['median']))
+            R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 0.5*results['psf']['fwhm']))
         else:
             R.append(R[-1]*(1. + (kwargs['samplegeometricscale'] if 'samplegeometricscale' in kwargs else 0.1)))
     R = np.array(R)
@@ -159,12 +173,13 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     PA[R > results['isophotefit']['R'][-1]] = _x_to_pa(results['isophotefit']['pa'][-1])
 
     # Stop from masking anything at the center
-    results['starmask']['mask'][int(use_center['x'] - 10*results['psf']['median']):int(use_center['x'] + 10*results['psf']['median']),
-                            int(use_center['y'] - 10*results['psf']['median']):int(use_center['y'] + 10*results['psf']['median'])] = False
+    results['starmask']['mask'][int(use_center['x'] - 10*results['psf']['fwhm']):int(use_center['x'] + 10*results['psf']['fwhm']),
+                            int(use_center['y'] - 10*results['psf']['fwhm']):int(use_center['y'] + 10*results['psf']['fwhm'])] = False
     compund_Mask = np.logical_or(results['starmask']['overflow mask'],results['starmask']['mask'])
 
     # Extract SB profile
     return Generate_Profile(IMG,pixscale,compund_Mask,
-                            results['background']['median'],
+                            results['background']['background'],
+                            results['background']['noise'],
                             use_center,
-                            R, E, PA, name)
+                            R, E, PA, name, **kwargs)

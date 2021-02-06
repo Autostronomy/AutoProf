@@ -38,7 +38,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 If you get *Permission Denied*, it is possible that the file is not listed as exicutable and you need to run:
 ```bash
 cd /path/to/AutoProf/
-chmod 777 autoprof.py
+chmod 755 autoprof.py
 ```
 
 For other issues contact connor.stone@queensu.ca for help. The code has been tested on Linux Mint and Mac machines.
@@ -159,44 +159,174 @@ In your config file, do not use any of these names unless you intend for AutoPro
    		a starting radius of zero is not advised. (float)
 - sampleendR: End radius (in pixels) for isophote sampling from the image (float)
 - new_pipeline_functions: Allows user to set functions for the AutoProf pipeline analysis. See *Modifying Pipeline Functions* for more information (dict)
-- new_pipieline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
+- new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
 
 # How Does AutoProf Work?
 
-More to come
+At it's core AutoProf is a simple pipeline object that loads in an image, blindly runs a list of functions, and saves the resulting information.
+It is equipped with a powerful default set of functions which can fit an isophotal solution to most galaxies, even with relatively complex features.
+Below is a high level description for each function, in case something goes wrong this may help you troubleshoot the issue.
 
 ### Background
 
-Find peak of noise flux pedestal
+**pipeline label: background**
+
+The default background calculation is done by searching for the "mode" of the pixel flux values.
+First, the method extracts the boarder of the image, taking all pixels that are within 1/5th the image width of the edge.
+Then it constructs a density profile in flux space and finds the peak.
+This peak is used as the background level, a few rounds of sigma clipping are applied to remove bright signals before taking the background noise level (measured as an interquartile range).
+
+Output format:
+```python
+{'background': , # flux value representing the background level
+'noise': # measure of scatter around the background level
+}
+```
 
 ### PSF
 
-IRAF star finder, median fwhm
+**pipeline label: psf**
 
-### Star Masking
+Using the IRAF star finder wrapper from photutils, most stars in the image are identified.
+The wrapper also reports the Full Width at Half Maximum (FWHM) for the stars, a median is used to determine the average FWHM for the image.
 
-IRAF star finder, block based on fwhm
+Output format:
+```python
+{'fwhm': # estimate of the fwhm of the PSF
+}
+```
 
 ### Centering
 
-Follow hill climbing first fft coefficient for isophotal rings
+**pipeline label: center**
+
+Depending on the specified parameters, this function will start at the center of the image or at a user specified center.
+From the starting point, the function will create 10 circular isophotes out to 10 times the PSF size and sample flux values around each isophote.
+An FFT is taken for the flux values around each circular isophote and the phase of the first FFT coefficient is used to determine a direction on the image.
+Taking the average direction, flux values are sampled from the current center out to 10 times the PSF.
+A parabola is fit to the flux values and the center is then updated to the maximum of the parabola.
+This is repeated until the update steps become negligible.
+
+Output format:
+```python
+{'x': , # x coordinate of the center (pix)
+'y': # y coordinate of the center (pix)
+}
+```
 
 ### Global Isophote Fitting
 
-Using circular ellipses, determine position angle using phase of 2nd fft coefficient. Fit ellipse which minimizes amplitude of 2nd fft coefficient relative to median flux on isophote
+**pipeline label: isophoteinit**
+
+A global position angle and ellipticity are fit in a two step process.
+First, a series of circular isophotes are geometrically sampled until they approach the background level of the image.
+An FFT is taken for the flux values around each isophote and the phase of the second coefficient is used to determine a direction.
+The average direction for the outer isophotes is taken as the position angle of the galaxy.
+Second, with fixed position angle the ellipticity is optimized to minimize the amplitude of the second FFT coefficient relative to the median flux in an isophote.
+
+To compute the error on position angle we use the standard deviation of the outer values from step one.
+For ellipticity the error is computed by optimizing the ellipticity for multiple isohptes within 1 PSF length of each other.
+
+Output format:
+```python
+{'ellip': , # Ellipticity of the global fit (float)
+ 'pa': # Position angle of the global fit (float)
+}
+```
 
 ### Isophotal Fitting
 
-Starting with global fit, randomly update isophotes and individually minimize relative 2nd fft coefficient amplitude, plus regularization term.
+**pipeline label: isophotefit**
+
+A series of isophotes are constructed which grow goemetrically until they begin to reach the background level.
+Then the algorithm iteratively updates the position angle and ellipticity of each isophote individually for many rounds.
+Each round updates every isophote in a random order.
+Each round cycles between three options: optimizing position angle, ellipticity, or both.
+To optimize the parameters, 4 values (pa, ellip, or both) are randomly sampled and the "loss" is computed.
+The loss is a combination of the relative amplitude of the second FFT coefficient (compared to the median flux), and a regularization term.
+The regularization term penalizes adjacent isophotes for having different position angle or ellipticity (using the l1 norm).
+Thus, all the isophotes are coupled and tend to fit smoothly varying isophotes.
+
+Every 5 rounds of optimization, the isophotes are scanned for an area where two isophotes have a large separation despite the regularization term.
+This indicates some sort of non-trivial structure such as a bar or large bulge.
+In this case the index where the strain occurs is identified and the regularization term is not computed for that isophote.
+
+When the optimization has completed three rounds without any isophotes updating the profile is assumed to have converged.
+At that point the position angle and ellipticity profiles are smoothed using a robust cubic fit (see HuberRegressor in Sci-kit learn).
+
+Output format:
+```python
+{'R': , # Semi-major axis for ellip and pa profile (list)
+'ellip': , # Ellipticity values at each corresponding R value (list)
+'pa': , # Position angle values at each corresponding R value (list)
+'center': # Optional, new center value updated durng fitting (dict)
+}
+```
+
+### Star Masking
+
+**pipeline label: starmask**
+
+A cutout of the full image is identified which encloses the full isophotal solution.
+The IRAF star finder wrapper from photutils is used to identify stars in the cutout.
+The stars are then masked with a variable size circle based on the brightness of the stars.
+This routine also identifies saturated pixels if the user provides an *overflowval* as an argument.
+
+Output format:
+```python
+{'mask': , # 2D array with same dimensions as the image indicating which pixels should be masked (ndarray)
+'overflow mask': # 2D array with same dimensions as the image indicating which pixels were saturated (ndarray)
+}
+```
 
 ### Isophotal Profile Extraction
 
-Using photutils, median filter flux values along isophote.
+**pipeline label: isophoteextract**
+
+The user may specify a variety of sampling arguments for the photometry extraction.
+For example, a start or end radius in pixels, or whether to sample geometrically or linearly in radius.
+Geometric sampling is the default as it is faster.
+Once the sampling profile of semi-major axis values has been chosen, the function interpolates (spline) the position angle and ellipticity profiles at the requested values.
+For any sampling beyond the outer radius from the *Isophotal Fitting* step, a constant value is used.
+Within 1 PSF, a circular isophote is used.
+
+Output format:
+```python
+{'header': , # List of strings indicating the order to write the .prof file data (list)
+'units': , # Dictionary with keys from header, values are strings that give the units for each variable (dict)
+'data': , # Dictionary with keys from header, values are lists with the data (dict)
+'format': # Dictionary with keys from header, values are format strings for precision of writing the data (dict)
+}
+```
 
 ### Checking Isophotal Solution
 
-Check for large flux variation along isophote. Check for large 2nd fft coefficient values despite minimization procedure. Check for large disagreement in integrated curve of growth and pixel summed curve of growth.
+**pipeline label: checkfit**
 
+A variety of checks are applied to ensure that the fit has converged to a reasonable solution.
+If a fit passes all of these checks then it is typically an acceptable fit.
+However if it fails one or more of the checks then the fit likely either failed or the galaxy has strong non-axisymmetric features (and the fit itself may be acceptable).
+
+One check samples the fitted isophotes and looks for cases with high variability of flux values along the isophote.
+This is done by comparing the interquartile range to the median flux, if the interquartile range is larger then that isophote is flagged.
+If enough isophotes are flagged then the fit may have failed.
+
+A second check operates similarly, checking the second and fourth FFT coefficient amplitudes relative to the median flux.
+If many of the isophotes have large FFT coefficients, or if a few of the isophotes have very large FFT coefficients then the fit is flagged as potentially failed.
+
+A third check is similar to the first, except that it compares the interquartile range from the fitted isophotes to those using just the global position angle and ellipticity values.
+
+Finally, the fourth check compares the total magnitude of the galaxy based on integrating the surface brightness profile against a simple sum of the flux within the isophotes (with a star mask applied).
+
+Output format:
+```python
+{'anything': , # True if the test was passed, False if the test failed (bool)
+'you': , # True if the test was passed, False if the test failed (bool)
+'want': , # True if the test was passed, False if the test failed (bool)
+'to': , # True if the test was passed, False if the test failed (bool)
+'put': # True if the test was passed, False if the test failed (bool)
+}
+```
 
 # Advanced Usage
 
@@ -207,6 +337,22 @@ In this way you can alter the functions used by AutoProf in it's pipeline.
 
 **This is hard to do right**
 
+Each of the functions in *How Does AutoProf Work?* has a pipeline label, this is how the code identifies the functions and their outputs.
+Thus, one can create their own version of any function and modify the pipeline by assigning the function to that label.
+For example, if you wrote a new center finding function, you could update the pipeline by including:
+```python
+new_pipeline_functions = {'center': My_Center_Finding_Function}
+```
+in the *config* file.
+You can also make up any other functions and add them to the pipeline functions list, asigning whatever key you like.
+However, AutoProf will only look for functions that are in the pipeline steps object, so see *Modifying Pipieline Steps* for how to add/remove/reorder steps in the pipeline.
+
+The output of every function in the pipeline is a dictionary with strings for keys.
+If you wish to replace a function, make sure to have the output follow the same format.
+So long as your output dictionary has the same keys/value format, it should be able to seamlesly replace that step in the pipeline.
+If you wish to include more information, you can include as many other entries in the dictionary as you like, the default pipeline functions will ignore them.
+See *How Does AutoProf Work?* for the expected outputs from each function.
+
 ### Modifying Pipeline Steps
 
 This is done with the *new_pipeline_steps* argument, which is formatted as a list of strings which tells AutoProf what order to run it's pipeline functions.
@@ -214,3 +360,17 @@ In this way you can alter the order of operations used by AutoProf in it's pipel
 
 **This is hard to do right**
 
+Each function must be run in a specific order as they often rely on the output from another step.
+The basic pipeline step order is:
+```python
+['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
+```
+You can create your own order, or add in new functions by supplying a new list.
+For example, if you had your own function to run after the centering function you could do so by including:
+```python
+new_pipeline_functions = {'myfunction': My_New_Function}
+new_pipeline_steps = ['background', 'psf', 'center', 'myfunction', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
+```
+in the *config* file.
+Note that for *new_pipeline_functions* you need only include the new function, while for *new_pipeline_steps* you must write out the full pipeline steps.
+If you wish to skip a step, it is generally better to write your own "null" version of the function (and change *new_pipeline_functions*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash. 

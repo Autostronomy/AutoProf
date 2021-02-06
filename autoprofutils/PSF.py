@@ -20,13 +20,15 @@ def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
     fwhm_guess = max(1. / pixscale, 1)
 
     # photutils wrapper for IRAF star finder
-    iraffind = IRAFStarFinder(fwhm = fwhm_guess, threshold = 20.*results['background']['iqr'])
-    irafsources = iraffind(IMG - results['background']['median'])
-
+    for i in range(3):
+        iraffind = IRAFStarFinder(fwhm = fwhm_guess, threshold = 10.*results['background']['noise'], brightest = 50)
+        irafsources = iraffind(IMG - results['background']['background'])
+        fwhm_guess = 2*np.median(irafsources['fwhm'])
+        
     logging.info('%s: found psf: %f' % (name,np.median(irafsources['fwhm'])))
     
     # Return PSF statistics
-    return {'median': np.median(irafsources['fwhm']),
+    return {'fwhm': np.median(irafsources['fwhm']),
             'mean': np.mean(irafsources['fwhm']),
             'std': np.std(irafsources['fwhm']),
             'iqr': iqr(irafsources['fwhm'])}

@@ -23,8 +23,8 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     clip_above = 3*np.sqrt(np.mean(values - res.x[0])**2)
     for i in range(10):
         clip_above = 3*np.sqrt(np.mean(values[values < clip_above] - res.x[0])**2)
-    #logging.info('%s background peak start %.2e, res %.2e, clip_above %.2e, scale %.2e, iqr %.2e' % (name, start, res.x[0], clip_above, scale, iqr(values[values < clip_above])))
-    return {'median': res.x[0], 'iqr': iqr(values[values < clip_above])}
+
+    return {'background': res.x[0], 'noise': iqr(values[values < clip_above], rng = [16,84])/2}
 
 def Background_Global(IMG, pixscale, name, results, **kwargs):
     """
@@ -58,9 +58,9 @@ def Background_Global(IMG, pixscale, name, results, **kwargs):
 
     # Return statistics from background sky
     return {'mean': np.mean(IMG[np.logical_not(mask)]),
-            'median': np.median(IMG[np.logical_not(mask)]),
+            'background': np.median(IMG[np.logical_not(mask)]),
             'std': np.std(IMG[np.logical_not(mask)]),
-            'iqr': iqr(IMG[np.logical_not(mask)])}
+            'noise': iqr(IMG[np.logical_not(mask)],rng = [16,84])/2}
 
 def Background_ByPatches(IMG, pixscale, name, results, **kwargs):
     """
@@ -92,7 +92,7 @@ def Background_ByPatches(IMG, pixscale, name, results, **kwargs):
         stats['mean'].append(np.mean(vals[vals < clip_at]))
         stats['median'].append(np.median(vals[vals < clip_at]))
         stats['std'].append(np.std(vals[vals < clip_at]))
-        stats['iqr'].append(iqr(vals[vals < clip_at]))
+        stats['iqr'].append(iqr(vals[vals < clip_at],rng=[16,84])/2)
 
     # Compute statistics on the patches, instead of on image
     mean = np.median(stats['mean'])
@@ -101,9 +101,9 @@ def Background_ByPatches(IMG, pixscale, name, results, **kwargs):
     img_iqr = np.median(stats['iqr'])
 
     return {'mean': mean,
-            'median': median,
+            'background': median,
             'std': std,
-            'iqr': img_iqr}
+            'noise': img_iqr}
     
 
 def Background_ByIsophote(IMG, pixscale, name, results, **kwargs):
@@ -131,9 +131,9 @@ def Background_ByIsophote(IMG, pixscale, name, results, **kwargs):
         isophote_SBs.append(np.median(ES.values[2]))
     
     return {'mean': np.mean(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):]),
-            'median': np.min(isophote_SBs),
+            'background': np.min(isophote_SBs),
             'std': np.std(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):]),
-            'iqr': iqr(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):])}
+            'noise': iqr(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):],rng=[16,84])/2}
 
 def Background_All(IMG, pixscale, name, results, **kwargs):
     """
@@ -149,6 +149,6 @@ def Background_All(IMG, pixscale, name, results, **kwargs):
     start = time()
     bymode = Background_Mode(IMG, pixscale, name, results, **kwargs)
     
-    logging.info('BACKGROUNDTEST %s|%f|%f|%f|%f, %.2f' % (name, byisophote['median'], bypatches['median'], byglobal['median'], bymode['median'], time() - start))
+    logging.info('BACKGROUNDTEST %s|%f|%f|%f|%f, %.2f' % (name, byisophote['background'], bypatches['background'], byglobal['background'], bymode['background'], time() - start))
 
-    return byglobal
+    return bymode

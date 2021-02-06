@@ -39,7 +39,7 @@ def _pa_smooth(R, PA, deg):
 
 def _FFT_center_loss(dat, R, E, PA, C, noise, name = ''):
     fft_loss = 0
-    for i in range(int(len(R)/2),len(R)):
+    for i in range(len(R)):
         isovals = _iso_extract(dat,R[i],E[i],PA[i],C)
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
         fft_loss += np.abs(coefs[1])/(len(isovals)*(abs(np.median(isovals)) + noise))
@@ -59,20 +59,20 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, reg_scale = 1., break_index = 0
 
     if i == 0:
         reg_loss = abs((E[0] - E[1])/0.2)
-        reg_loss += abs((PA[0] - PA[1])/0.3)
+        reg_loss += abs(np.arccos(np.sin(2*PA[0])*np.sin(2*PA[1]) + np.cos(2*PA[0])*np.cos(2*PA[1]))/(2*0.3)) #abs((PA[0] - PA[1])/0.3)
         reg_loss *= 2
     elif i == (len(R)-1):
         reg_loss = abs((E[-1] - E[-2])/0.2)
-        reg_loss += abs((PA[-1] - PA[-2])/0.3)
+        reg_loss += abs(np.arccos(np.sin(2*PA[-1])*np.sin(2*PA[-2]) + np.cos(2*PA[-1])*np.cos(2*PA[-2]))/(2*0.3)) #abs((PA[-1] - PA[-2])/0.3)
         reg_loss *= 2
     else:
         reg_loss = 0
         if break_index != i:
             reg_loss += abs((E[i] - E[i+1])/0.2)
-            reg_loss += abs((PA[i] - PA[i+1])/0.3)
+            reg_loss += abs(np.arccos(np.sin(2*PA[i])*np.sin(2*PA[i+1]) + np.cos(2*PA[i])*np.cos(2*PA[i+1]))/(2*0.3)) #abs((PA[i] - PA[i+1])/0.3)
         if break_index != i-1:
             reg_loss += abs((E[i] - E[i-1])/0.2)
-            reg_loss += abs((PA[i] - PA[i-1])/0.3)
+            reg_loss += abs(np.arccos(np.sin(2*PA[i])*np.sin(2*PA[i-1]) + np.cos(2*PA[i])*np.cos(2*PA[i-1]))/(2*0.3)) #abs((PA[i] - PA[i-1])/0.3)
 
     #logging.info('%s: f2 loss %.4f, f2 components %.4f %.4f, median %.4f, mean %.4f, noise %.4f, reg loss %.4f, iqr %.4f' % (name, f2_loss, np.abs(coefs[2]), np.abs(coefs[0]), np.median(isovals), np.sum(isovals), noise, reg_loss, iqr(isovals)))
     return f2_loss + (np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
@@ -87,17 +87,17 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         scale = 0.2
 
     # subtract background from image during processing
-    dat = IMG - results['background']['median']
+    dat = IMG - results['background']['background']
 
     # Determine sampling radii
     ######################################################################
     shrink = 0
     while shrink < 5:
-        sample_radii = [2*results['psf']['median']/(1.+shrink)]
+        sample_radii = [2*results['psf']['fwhm']/(1.+shrink)]
         while sample_radii[-1] < (max(IMG.shape)/2):
             isovals = _iso_extract(dat,sample_radii[-1],results['isophoteinit']['ellip'],
                                    results['isophoteinit']['pa'],results['center'], more = True)
-            if np.median(isovals[0]) < 2*results['background']['iqr']:
+            if np.median(isovals[0]) < 2*results['background']['noise']:
                 break
             sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
         if len(sample_radii) < 15:
@@ -118,9 +118,9 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
 
     count = 0
 
-    current_loss = []
-    for i in range(len(sample_radii)):
-        current_loss.append(_FFT_Robust_loss(dat, sample_radii, ellip, pa, i, results['center'], results['background']['iqr'], 0., name))
+    # current_loss = []
+    # for i in range(len(sample_radii)):
+    #     current_loss.append(_FFT_Robust_loss(dat, sample_radii, ellip, pa, i, results['center'], results['background']['noise'], 0., name))
     
     count_nochange = 0
     use_center = copy(results['center'])
@@ -131,29 +131,30 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             logging.debug('%s: count: %i' % (name,count))
         count += 1
 
-        if (count % 10) == 0:
-            update_center = True
-            count_centerupdate = 0
-            while update_center:
-                perturbations = []
-                perturbations.append({'x': use_center['x'], 'y': use_center['y']})
-                perturbations[-1]['loss'] = _FFT_center_loss(dat, sample_radii, ellip, pa, perturbations[-1], results['background']['iqr'], name)
-                for n in range(N_perturb):
-                    perturbations.append({'x': use_center['x'] + np.random.normal(loc = 0, scale = 2*results['psf']['median']),
-                                          'y': use_center['y'] + np.random.normal(loc = 0, scale = 2*results['psf']['median'])})
-                    perturbations[-1]['loss'] = _FFT_center_loss(dat, sample_radii, ellip, pa, perturbations[-1], results['background']['iqr'], name)
+        # Recentering seems to take up time and not improve the central regions, if anything they get worse
+        # if (count % 10) == 0:
+        #     update_center = True
+        #     count_centerupdate = 0
+        #     while update_center:
+        #         perturbations = []
+        #         perturbations.append({'x': use_center['x'], 'y': use_center['y']})
+        #         perturbations[-1]['loss'] = _FFT_center_loss(dat, sample_radii, ellip, pa, perturbations[-1], results['background']['noise'], name)
+        #         for n in range(N_perturb):
+        #             perturbations.append({'x': use_center['x'] + np.random.normal(loc = 0, scale = 2*results['psf']['fwhm']),
+        #                                   'y': use_center['y'] + np.random.normal(loc = 0, scale = 2*results['psf']['fwhm'])})
+        #             perturbations[-1]['loss'] = _FFT_center_loss(dat, sample_radii, ellip, pa, perturbations[-1], results['background']['noise'], name)
 
-                best = np.argmin(list(p['loss'] for p in perturbations))
-                if best == 0:
-                    update_center = False
-                else:
-                    count_centerupdate += 1
-                    use_center['x'] = copy(perturbations[best]['x'])
-                    use_center['y'] = copy(perturbations[best]['y'])
-            if count_centerupdate > 0:
-                logging.info('%s: Center updated with %i itterations of center migration' % (name, count_centerupdate))
-            else:
-                logging.info('%s: Center not updated' % (name))
+        #         best = np.argmin(list(p['loss'] for p in perturbations))
+        #         if best == 0:
+        #             update_center = False
+        #         else:
+        #             count_centerupdate += 1
+        #             use_center['x'] = copy(perturbations[best]['x'])
+        #             use_center['y'] = copy(perturbations[best]['y'])
+        #     if count_centerupdate > 0:
+        #         logging.info('%s: Center updated with %i itterations of center migration' % (name, count_centerupdate))
+        #     else:
+        #         logging.info('%s: Center not updated' % (name))
 
         if count % 5 == 0:
             smooth_ellip = np.array(list(np.mean(ellip[i:i+3]) for i in range(len(sample_radii)-3)))
@@ -166,19 +167,22 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         np.random.shuffle(I)
         for i in I:
             perturbations = []
+            perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
+            perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
+                                                         use_center, results['background']['noise'], count/150, break_index = break_index, name = name)
             for n in range(N_perturb):
                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
                 if count % 3 in [0,1]:
-                    perturbations[-1]['ellip'][i] = np.clip(perturbations[-1]['ellip'][i] + np.random.normal(loc = 0, scale = perturb_scale[0]), a_min = 0.04, a_max = 0.96) #_x_to_eps(_inv_x_to_eps(perturbations[-1]['ellip'][i]) + np.random.normal(loc = 0, scale = perturb_scale[0]))
+                    perturbations[-1]['ellip'][i] = np.clip(perturbations[-1]['ellip'][i] + np.random.normal(loc = 0, scale = perturb_scale[0]), a_min = 0.04, a_max = 0.96)
                 if count % 3 in [1,2]:
                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
-                perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i, use_center, results['background']['iqr'], count/150, break_index = break_index, name = name)
+                perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
+                                                             use_center, results['background']['noise'], count/150, break_index = break_index, name = name)
                 
             best = np.argmin(p['loss'] for p in perturbations)
-            if perturbations[best]['loss'] < current_loss[i]:
+            if best > 0:
                 ellip = perturbations[best]['ellip']
                 pa = perturbations[best]['pa']
-                current_loss[i] = perturbations[best]['loss']
                 count_nochange = 0
             else:
                 count_nochange += 1
@@ -250,19 +254,19 @@ def Isophote_Fit_FFT(IMG, pixscale, name, results, **kwargs):
         scale = 0.3
 
     # subtract background from image during processing
-    dat = IMG - results['background']['median']
+    dat = IMG - results['background']['background']
 
     # Determine sampling radii
     ######################################################################
     shrink = 0
     while shrink < 5:
-        sample_radii = [2*results['psf']['median']/(1.+shrink)]
+        sample_radii = [2*results['psf']['fwhm']/(1.+shrink)]
         floor_count = 0
         while sample_radii[-1] < (max(IMG.shape)/2) and floor_count < 2:
             sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
             isovals = _iso_extract(dat,sample_radii[-1],results['isophoteinit']['ellip'],
                                    results['isophoteinit']['pa'],results['center'], more = True)
-            if np.median(isovals[0]) <= results['background']['iqr']:
+            if np.median(isovals[0]) <= results['background']['noise']:
                 floor_count += 1
         if len(sample_radii) < 10:
             shrink += 1
@@ -277,7 +281,7 @@ def Isophote_Fit_FFT(IMG, pixscale, name, results, **kwargs):
     ellip = []
     pa = []
     for i in range(len(sample_radii)):
-        res = minimize(lambda x,d,r,c,n: _FFT_loss([_x_to_eps(x[0]),_x_to_pa(x[1])],d,r,c,n), x0 = [_inv_x_to_eps(results['isophoteinit']['ellip']), _x_to_pa(results['isophoteinit']['pa'])], args = (dat, sample_radii[i], results['center'], results['background']['iqr']), method = 'Nelder-Mead')
+        res = minimize(lambda x,d,r,c,n: _FFT_loss([_x_to_eps(x[0]),_x_to_pa(x[1])],d,r,c,n), x0 = [_inv_x_to_eps(results['isophoteinit']['ellip']), _x_to_pa(results['isophoteinit']['pa'])], args = (dat, sample_radii[i], results['center'], results['background']['noise']), method = 'Nelder-Mead')
         ellip.append(_x_to_eps(res.x[0]))
         pa.append(_x_to_pa(res.x[1]))
     
@@ -304,7 +308,7 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
                 force[h].append(float(d.strip()))
                 
     if 'doplot' in kwargs and kwargs['doplot']:
-        dat = IMG - results['background']['median']
+        dat = IMG - results['background']['background']
         plt.imshow(np.clip(dat[max(0,int(results['center']['y']-(np.array(force['R'])[-1]/pixscale)*1.2)): min(dat.shape[0],int(results['center']['y']+(np.array(force['R'])[-1]/pixscale)*1.2)),
                                max(0,int(results['center']['x']-(np.array(force['R'])[-1]/pixscale)*1.2)): min(dat.shape[1],int(results['center']['x']+(np.array(force['R'])[-1]/pixscale)*1.2))],
                            a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
