@@ -148,6 +148,7 @@ class Isophote_Pipeline(object):
         if True:
             for step in range(len(self.pipeline_steps)):
                 logging.info('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
+                print('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 results[self.pipeline_steps[step]] = self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs)
         # except Exception as e:
         #     logging.error('%s: %s' % (name, str(e)))

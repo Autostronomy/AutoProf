@@ -26,8 +26,8 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     ```
 1. Run the test case to see that all is well:
     ```bash
-    cd /path/to/AutoProf/
-    autoprof test/test_config.py
+    cd /path/to/AutoProf/test/
+    autoprof test_config.py
     ```
 
 ### Issues

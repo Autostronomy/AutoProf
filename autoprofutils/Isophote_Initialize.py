@@ -141,6 +141,6 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
         plt.gca().add_patch(Ellipse((results['center']['x'],results['center']['y']), 2*circ_ellipse_radii[-1], 2*circ_ellipse_radii[-1]*(1. - ellip),
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x']],[results['center']['y']], marker = 'x', markersize = 3, color = 'y')
-        plt.savefig('%sinitialize_ellipse_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
     return {'ellip': ellip, 'pa': phase}

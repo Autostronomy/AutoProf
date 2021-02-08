@@ -110,7 +110,7 @@ def Center_Centroid(IMG, pixscale, name, results, **kwargs):
         plt.imshow(np.clip(IMG - results['background']['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
     logging.info('%s Center found: x %.1f, y %.1f' % (name, x, y))    
     return {'x': x,
@@ -148,7 +148,7 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
         plt.imshow(np.clip(IMG - results['background']['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
     logging.info('%s Center found: x %.1f, y %.1f' % (name, x, y))    
     return {'x': x,
@@ -186,7 +186,7 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
         plt.imshow(np.clip(IMG - results['background']['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
     logging.info('%s Center found: x %.1f, y %.1f' % (name, x, y))    
     return {'x': x,
@@ -262,7 +262,7 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([IMG.shape[0]/2],[IMG.shape[1]/2], marker = 'x', markersize = 2, color = 'y')
         plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
-        plt.savefig('%stest_center_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
         
     return current_center
@@ -310,7 +310,7 @@ def Center_Multi_Method(IMG, pixscale, name, results, **kwargs):
                 for vi,v in enumerate(cent_vals):
                     plt.plot([v['x']],[v['y']], marker = 'x', markersize = 10, color = x_colours[vi], label = cents[vi])
                 plt.legend()
-                plt.savefig('%scenter_vis_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+                plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
                 plt.clf()
             return cent
     
