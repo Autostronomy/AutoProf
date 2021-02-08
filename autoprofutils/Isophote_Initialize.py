@@ -122,6 +122,20 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
     if res.success:
         logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (name, _x_to_eps(res.x[0]), ellip))
         ellip = _x_to_eps(res.x[0])
+
+    # Compute the error on the parameters
+    ######################################################################
+    res_multi = map(lambda RR: minimize(lambda e,d,r,p,c: _CircfitEllip_loss(_x_to_eps(e[0]),d,r,p,c),
+                                        x0 = _inv_x_to_eps(ellip), args = (dat, RR,
+                                                                           phase, results['center']),
+                                        method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]}), np.linspace(circ_ellipse_radii[-2] - results['psf']['fwhm'], circ_ellipse_radii[-2] + results['psf']['fwhm'], 10))
+    ellip_err = iqr(list(_x_to_eps(rm.x[0]) for rm in res_multi),rng = [16,84])/2
+    for RR in np.linspace(circ_ellipse_radii[-2] - results['psf']['fwhm'], circ_ellipse_radii[-2] + results['psf']['fwhm'], 10):
+        isovals = _iso_extract(dat,RR,0.,0.,results['center'], more = True)
+        coefs = fft(np.clip(isovals[0], a_max = np.quantile(isovals[0],0.85), a_min = None))
+        allphase.append(coefs[2])
+        
+    pa_err = iqr((-np.angle(allphase[int(len(allphase)/2):])/2) % np.pi, rng = [16,84])/2
     # logging.info('%s: ellipticity time: %f' % (name, time() - start))
     # plt.plot(test_ellip, np.array(test_iqr) - np.mean(test_iqr) , label = 'iqr', color = 'r')
     # plt.plot(test_ellip, np.array(test_f2) - np.mean(test_f2), label = 'f2', color = 'b')
@@ -143,4 +157,4 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
         plt.plot([results['center']['x']],[results['center']['y']], marker = 'x', markersize = 3, color = 'y')
         plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
-    return {'ellip': ellip, 'pa': phase}
+    return {'ellip': ellip, 'ellip_err': ellip_err, 'pa': phase, 'pa_err': pa_err}

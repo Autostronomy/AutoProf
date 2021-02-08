@@ -76,7 +76,11 @@ class Isophote_Pipeline(object):
             else:
                 use_center = results['center']
             f.write('center x: %.2f pix, y: %.2f pix\n' % (use_center['x'], use_center['y']))
-            f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['isophoteinit']['ellip'], results['isophoteinit']['pa']*180/np.pi))
+            if 'ellip_err' in results['isophoteinit'] and 'pa_err' in results['isophoteinit']:
+                f.write('global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg\n' % (results['isophoteinit']['ellip'], results['isophoteinit']['ellip_err'],
+                                                                                      results['isophoteinit']['pa']*180/np.pi, results['isophoteinit']['pa_err']*180/np.pi))
+            else:
+                f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['isophoteinit']['ellip'], results['isophoteinit']['pa']*180/np.pi))
             if len(kwargs) > 0:
                 for k in kwargs.keys():
                     f.write('settings %s: %s\n' % (k,str(kwargs[k])))

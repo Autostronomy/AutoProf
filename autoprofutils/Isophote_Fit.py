@@ -191,7 +191,6 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
     else:
         ellip = _ellip_smooth(sample_radii, ellip, 4)
         pa = _pa_smooth(sample_radii, pa, 4)
-
     
     if 'doplot' in kwargs and kwargs['doplot']:    
         plt.imshow(np.clip(dat[max(0,int(use_center['y']-sample_radii[-1]*1.2)): min(dat.shape[0],int(use_center['y']+sample_radii[-1]*1.2)),
@@ -202,8 +201,11 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
                                         pa[i]*180/np.pi, fill = False, linewidth = 0.5, color = 'y' if i == break_index else 'r'))
         plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.clf()                
-    
-    return {'ellip': ellip, 'pa': pa, 'R': sample_radii}
+
+    res = {'ellip': ellip, 'pa': pa, 'R': sample_radii}
+    if break_index < len(sample_radii):
+        res['break radius'] = sample_radii[break_index]
+    return res
 
 
 def _FFT_loss(x, dat, R, C, noise, name = ''):
