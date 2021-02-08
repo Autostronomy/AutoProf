@@ -49,9 +49,9 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
                                        center, R, E, PA, name)
     
     # Compute surface brightness in mag arcsec^-2 from flux
-
+    zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
     sb = np.array(list((-2.5*np.log10(np.median(isolist.sample[i].values[2]))\
-                        + 22.5 + 2.5*np.log10(pixscale**2)) \
+                        + zeropoint + 2.5*np.log10(pixscale**2)) \
                        for i in range(len(isolist.sma))))
     sb[np.logical_not(np.isfinite(sb))] = 99.999
 
@@ -92,7 +92,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
         SBprof_data['ellip_e'].append(isolist.ellip_err[i])
         SBprof_data['pa'].append(isolist.pa[i]*180/np.pi)
         SBprof_data['pa_e'].append(isolist.pa_err[i]*180/np.pi)
-        SBprof_data['totmag_direct'].append(22.5 - 2.5*np.log10(isolist.tflux_e[i]))
+        SBprof_data['totmag_direct'].append(zeropoint - 2.5*np.log10(isolist.tflux_e[i]))
         SBprof_data['totmag_direct_e'].append(np.abs(2.5*tflux_e_err/(isolist.tflux_e[i] * np.log(10))))
         # SBprof_data['x0'].append(isolist.x0[i])
         # SBprof_data['y0'].append(isolist.y0[i])
@@ -105,7 +105,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
                      elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'COG')
         plt.xlabel('Radius [arcsec]')
         plt.ylabel('Brightness [mag, mag/arcsec^2]')
-        plt.axhline(-2.5*np.log10(background_noise/2) + 22.5 + 2.5*np.log10(pixscale**2), color = 'purple', linewidth = 0.5, linestyle = '--', label = 'Sky noise')
+        plt.axhline(-2.5*np.log10(background_noise/2) + zeropoint + 2.5*np.log10(pixscale**2), color = 'purple', linewidth = 0.5, linestyle = '--', label = 'Sky noise')
         plt.gca().invert_yaxis()
         plt.legend()
         plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))

@@ -155,8 +155,16 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - sampleinitR: Starting radius (in pixels) for isophote sampling from the image. Note that
    		a starting radius of zero is not advised. (float)
 - sampleendR: End radius (in pixels) for isophote sampling from the image (float)
+- zeropoint: Photometric zero point, AB magnitude is assumed if none given, corresponding to a zero point of 22.5 (float)
 - new_pipeline_functions: Allows user to set functions for the AutoProf pipeline analysis. See *Modifying Pipeline Functions* for more information (dict)
 - new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
+
+There is one argument that AutoProf can take in the command line, which is the name of the log file.
+The log file stores information about everything that AutoProf is doing, this is useful for diagnostic purposes.
+By default, AutoProf will name the log file *AutoProf.log*, if you wish to make it a different filename then add the filename when running AutoProf:
+```bash
+autoprof config.py newlogfilename.log
+```
 
 # How Does AutoProf Work?
 
