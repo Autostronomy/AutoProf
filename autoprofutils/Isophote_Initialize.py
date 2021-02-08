@@ -88,7 +88,7 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
     # Initial attempt to find size of galaxy in image
     # based on when isophotes SB values start to get
     # close to the background noise level
-    circ_ellipse_radii = [results['psf']['fwhm']]
+    circ_ellipse_radii = [results['psf']['fwhm']/2]
     phasekeep = []
     allphase = []
     dat = IMG - results['background']['background']

@@ -254,7 +254,7 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
             dist = 1.
         current_center['x'] += dist*np.cos(direction)
         current_center['y'] += dist*np.sin(direction)
-        if abs(dist) < (0.5*results['psf']['fwhm']):
+        if abs(dist) < (0.25*results['psf']['fwhm']):
             small_update_count += 1
         else:
             small_update_count = 0

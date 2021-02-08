@@ -246,10 +246,10 @@ Thus, all the isophotes are coupled and tend to fit smoothly varying isophotes.
 
 Every 5 rounds of optimization, the isophotes are scanned for an area where two isophotes have a large separation despite the regularization term.
 This indicates some sort of non-trivial structure such as a bar or large bulge.
-In this case the index where the strain occurs is identified and the regularization term is not computed for that isophote.
+In this case the index where the strain occurs is identified and the regularization term is not computed for that isophote, allowing the isophotes inside/outside that index to evolve independently.
 
-When the optimization has completed three rounds without any isophotes updating the profile is assumed to have converged.
-At that point the position angle and ellipticity profiles are smoothed using a robust cubic fit (see HuberRegressor in Sci-kit learn).
+When the optimization has completed three rounds without any isophotes updating, the profile is assumed to have converged.
+At that point the position angle and ellipticity profiles are smoothed using a robust polynomial fit (see HuberRegressor in Sci-kit learn).
 
 Output format:
 ```python
@@ -344,6 +344,15 @@ in the *config* file.
 You can also make up any other functions and add them to the pipeline functions list, asigning whatever key you like.
 However, AutoProf will only look for functions that are in the pipeline steps object, so see *Modifying Pipieline Steps* for how to add/remove/reorder steps in the pipeline.
 
+Every function in the pipeline has the same template.
+To add a new function, or replace an existing one, you must format it as:
+```python
+def My_New_Function(IMG, pixscale, name, results, **kwargs):
+    pass
+    # Code here
+    return {'results': of, 'the': calculations}
+```
+where *IMG* is the unaltered input image, *pixscale* is the pixel scale in arcsec/pix, *name* is a string that identifies the galaxy, *results* is a dictionary containing the output of all previous pipeline steps, and *kwargs* is a dictionary with all user specified arguments from *List Of AutoProf Arguments* if they have non-default values.
 The output of every function in the pipeline is a dictionary with strings for keys.
 If you wish to replace a function, make sure to have the output follow the same format.
 So long as your output dictionary has the same keys/value format, it should be able to seamlesly replace that step in the pipeline.
