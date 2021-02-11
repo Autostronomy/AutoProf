@@ -6,7 +6,6 @@ from autoprofutils.Center import Center_Centroid, Center_OfMass, Center_Multi_Me
 from autoprofutils.PSF import Calculate_PSF, PSF_2DGaussFit
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Overflow_Mask, Star_Mask_Given
 from autoprofutils.Isophote_Initialize import Isophote_Initialize_GridSearch, Isophote_Initialize_CircFit
-from autoprofutils.Elliptical_Isophotes import Fit_Isophotes
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_FFT, Isophote_Fit_Forced
 from autoprofutils.Check_Fit import Check_Fit_IQR, Check_Fit_Simple
 from autoprofutils.Isophote_Extract import Isophote_Extract, Generate_Profile, Isophote_Extract_Forced
