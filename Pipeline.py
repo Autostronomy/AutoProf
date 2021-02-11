@@ -3,7 +3,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.Background import Background_Global, Background_ByPatches, Background_ByIsophote, Background_Mode
 from autoprofutils.Center import Center_Centroid, Center_OfMass, Center_Multi_Method, Center_1DGaussian, Center_Null, Center_HillClimb, Center_Forced
-from autoprofutils.PSF import Calculate_PSF
+from autoprofutils.PSF import Calculate_PSF, PSF_2DGaussFit
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Overflow_Mask, Star_Mask_Given
 from autoprofutils.Isophote_Initialize import Isophote_Initialize_GridSearch, Isophote_Initialize_CircFit
 from autoprofutils.Elliptical_Isophotes import Fit_Isophotes
@@ -33,7 +33,7 @@ class Isophote_Pipeline(object):
         """
 
         self.pipeline_functions = {'background': Background_Mode,
-                                   'psf': Calculate_PSF,
+                                   'psf': PSF_2DGaussFit,
                                    'center': Center_HillClimb,
                                    'isophoteinit': Isophote_Initialize_CircFit,
                                    'isophotefit': Isophote_Fit_FFT_Robust,
@@ -69,7 +69,7 @@ class Isophote_Pipeline(object):
             f.write('pixel scale: %.3e arcsec/pix\n' % pixscale)
             for k in results['checkfit'].keys():
                 f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
-            f.write('psf median: %.3f pix, iqr: %.2e pix\n' % (results['psf']['fwhm'], results['psf']['iqr']))
+            f.write('psf median: %.3f pix\n' % (results['psf']['fwhm']))
             f.write('background median: %.3e flux, iqr: %.3e flux\n' % (results['background']['background'], results['background']['noise']))
             if 'center' in results['isophotefit']:
                 use_center = results['isophotefit']['center']
@@ -147,13 +147,16 @@ class Isophote_Pipeline(object):
         start = time()
         
         # Run the Pipeline
+        timers = {}
         results = {}
         # try:
         if True:
             for step in range(len(self.pipeline_steps)):
+                step_start = time()
                 logging.info('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 print('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 results[self.pipeline_steps[step]] = self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs)
+                timers[self.pipeline_steps[step]] = time() - step_start
         # except Exception as e:
         #     logging.error('%s: %s' % (name, str(e)))
         #     return 1
@@ -163,7 +166,7 @@ class Isophote_Pipeline(object):
         self.WriteProf(results, saveto, pixscale, name = name, **kwargs)
                 
         logging.info('%s: Processing Complete! (at %.1f sec)' % (name, time() - start))
-        return 0
+        return timers
     
     def Process_List(self, IMG, pixscale, n_procs = 4, saveto = None, name = None, **kwargs):
         """
@@ -219,6 +222,17 @@ class Isophote_Pipeline(object):
             
         # Report completed processing, and track time used
         logging.info('All Images Finished Processing at %.1f' % (time() - start))
+        timers = dict((s,0) for s in self.pipeline_steps)
+        count_success = 0.
+        for r in res:
+            if r == 1:
+                continue
+            count_success += 1.
+            for s in self.pipeline_steps:
+                timers[s] += r[s]
+        for s in self.pipeline_steps:
+            timers[s] /= count_success
+            logging.info('%s took %.3f seconds on average' % (s, timers[s]))
         
         # Return the success/fail indicators for every Process_Image excecution
         return res

@@ -99,14 +99,14 @@ def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
     XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]))
     if irafsources:
         for x,y,f in zip(irafsources['xcentroid'], irafsources['ycentroid'], irafsources['flux']):
-            if np.sqrt((x - (xbounds[1] - xbounds[0])/2)**2 + (y - (ybounds[1] - ybounds[0])/2)**2) < 20*results['psf']['fwhm']:
+            if np.sqrt((x - (xbounds[1] - xbounds[0])/2)**2 + (y - (ybounds[1] - ybounds[0])/2)**2) < 10*results['psf']['fwhm']:
                 continue
             # compute distance of every pixel to the identified star
             R = np.sqrt((XX-(x + xbounds[0]))**2 + (YY-(y + ybounds[0]))**2)
             # Compute the flux of the star
             #f = np.sum(IMG[R < 10*fwhm])
             # Compute radius to reach background noise level, assuming gaussian
-            Rstar = 2.3*fwhm*np.sqrt(np.log(2.3*f/(np.sqrt(np.pi*fwhm)*results['background']['noise']))) # fixme double check
+            Rstar = (fwhm/2.355)*np.sqrt(2*np.log(f/(np.sqrt(2*np.pi*fwhm/2.355)*results['background']['noise']))) # fixme double check
             mask[R < Rstar] = True 
 
     # Include user defined mask if any
