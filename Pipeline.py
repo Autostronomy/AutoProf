@@ -149,17 +149,16 @@ class Isophote_Pipeline(object):
         # Run the Pipeline
         timers = {}
         results = {}
-        # try:
-        if True:
+        try:
             for step in range(len(self.pipeline_steps)):
                 step_start = time()
                 logging.info('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 print('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 results[self.pipeline_steps[step]] = self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs)
                 timers[self.pipeline_steps[step]] = time() - step_start
-        # except Exception as e:
-        #     logging.error('%s: %s' % (name, str(e)))
-        #     return 1
+        except Exception as e:
+            logging.error('%s: %s' % (name, str(e)))
+            return 1
 
         # Save the profile
         logging.info('%s: saving at: %.1f sec' % (name, time() - start))
