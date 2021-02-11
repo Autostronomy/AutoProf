@@ -7,8 +7,8 @@ from scipy.stats import mode
 import logging
 import sys
 import os
-sys.path.append(os.environ['CAstro'])
-from Photometry.SharedFunctions import Read_Image
+sys.path.append(os.environ['AUTOPROF'])
+from autoprofutils.SharedFunctions import Read_Image
 
 def Overflow_Mask(IMG, pixscale, name, results, **kwargs):
     """
