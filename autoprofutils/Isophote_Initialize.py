@@ -5,7 +5,6 @@ from scipy.stats import iqr
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.Elliptical_Isophotes import _Fit_Isophotes_Loss
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps
 import logging
 from copy import copy
