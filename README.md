@@ -33,7 +33,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 
 ### Issues
 
-If you get *Permission Denied*, it is possible that the file is not listed as exicutable and you need to run:
+If you get *Permission Denied*, it is possible that the file is not listed as executable and you need to run:
 ```bash
 cd /path/to/AutoProf/
 chmod 755 autoprof.py
@@ -91,7 +91,7 @@ You can therefore make any variables you need in the config file to construct yo
 #### Forced Photometry
 
 Forced photometry allows one to take an isophotal solution from one image and apply it (kind of) blindly to another image.
-This can be used for multiband images from the same telescope, or between telescopes.
+This can be used for multi-band images from the same telescope, or between telescopes.
 One may need to adjust for different pixel scales, or have to re-center between images, but the ultimate goal is to apply the same ellipticity and position angle profile to the galaxy in each band.
 Running forced photometry is very similar to image processing.
 You will, however, need the .prof and .aux files from an AutoProf run in order to try out the forced photometry.
@@ -231,7 +231,7 @@ The average direction for the outer isophotes is taken as the position angle of 
 Second, with fixed position angle the ellipticity is optimized to minimize the amplitude of the second FFT coefficient relative to the median flux in an isophote.
 
 To compute the error on position angle we use the standard deviation of the outer values from step one.
-For ellipticity the error is computed by optimizing the ellipticity for multiple isohptes within 1 PSF length of each other.
+For ellipticity the error is computed by optimizing the ellipticity for multiple isophotes within 1 PSF length of each other.
 
 Output format:
 ```python
@@ -244,7 +244,7 @@ Output format:
 
 **pipeline label: isophotefit**
 
-A series of isophotes are constructed which grow goemetrically until they begin to reach the background level.
+A series of isophotes are constructed which grow geometrically until they begin to reach the background level.
 Then the algorithm iteratively updates the position angle and ellipticity of each isophote individually for many rounds.
 Each round updates every isophote in a random order.
 Each round cycles between three options: optimizing position angle, ellipticity, or both.
@@ -260,6 +260,9 @@ In this case the index where the strain occurs is identified and the regularizat
 When the optimization has completed three rounds without any isophotes updating, the profile is assumed to have converged.
 At that point the position angle and ellipticity profiles are smoothed using a robust polynomial fit (see HuberRegressor in Sci-kit learn).
 
+An uncertainty for each ellipticity and position angle value is determined by taking the RMS between the fitted values and the smoothed polynomial fit values for 4 points.
+This is a very rough estimate of the uncertainty, but works sufficiently well in the outskirts.
+
 Output format:
 ```python
 {'R': , # Semi-major axis for ellip and pa profile (list)
@@ -267,7 +270,7 @@ Output format:
 'ellip_err': , # Optional, uncertainty on ellipticity values (list)
 'pa': , # Position angle values at each corresponding R value (list)
 'pa_err': , # Optional, uncertainty on position angle values (list)
-'center': # Optional, new center value updated durng fitting (dict)
+'center': # Optional, new center value updated during fitting (dict)
 }
 ```
 
@@ -352,8 +355,8 @@ For example, if you wrote a new center finding function, you could update the pi
 new_pipeline_functions = {'center': My_Center_Finding_Function}
 ```
 in the *config* file.
-You can also make up any other functions and add them to the pipeline functions list, asigning whatever key you like.
-However, AutoProf will only look for functions that are in the pipeline steps object, so see *Modifying Pipieline Steps* for how to add/remove/reorder steps in the pipeline.
+You can also make up any other functions and add them to the pipeline functions list, assigning whatever key you like.
+However, AutoProf will only look for functions that are in the pipeline steps object, so see *Modifying Pipeline Steps* for how to add/remove/reorder steps in the pipeline.
 
 Every function in the pipeline has the same template.
 To add a new function, or replace an existing one, you must format it as:
@@ -366,7 +369,7 @@ def My_New_Function(IMG, pixscale, name, results, **kwargs):
 where *IMG* is the unaltered input image, *pixscale* is the pixel scale in arcsec/pix, *name* is a string that identifies the galaxy, *results* is a dictionary containing the output of all previous pipeline steps, and *kwargs* is a dictionary with all user specified arguments from *List Of AutoProf Arguments* if they have non-default values.
 The output of every function in the pipeline is a dictionary with strings for keys.
 If you wish to replace a function, make sure to have the output follow the same format.
-So long as your output dictionary has the same keys/value format, it should be able to seamlesly replace that step in the pipeline.
+So long as your output dictionary has the same keys/value format, it should be able to seamlessly replace that step in the pipeline.
 If you wish to include more information, you can include as many other entries in the dictionary as you like, the default pipeline functions will ignore them.
 See *How Does AutoProf Work?* for the expected outputs from each function.
 
