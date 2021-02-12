@@ -24,10 +24,11 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     export AUTOPROF='/path/to/AutoProf/'
     alias autoprof='/path/to/AutoProf/autoprof.py'
     ```
-1. Run the test case to see that all is well:
+1. Run the test cases to see that all is well:
     ```bash
     cd /path/to/AutoProf/test/
     autoprof test_config.py
+    autoprof test_forced_config.py Forced.log
     ```
 
 ### Issues
@@ -263,7 +264,9 @@ Output format:
 ```python
 {'R': , # Semi-major axis for ellip and pa profile (list)
 'ellip': , # Ellipticity values at each corresponding R value (list)
+'ellip_err': , # Optional, uncertainty on ellipticity values (list)
 'pa': , # Position angle values at each corresponding R value (list)
+'pa_err': , # Optional, uncertainty on position angle values (list)
 'center': # Optional, new center value updated durng fitting (dict)
 }
 ```
