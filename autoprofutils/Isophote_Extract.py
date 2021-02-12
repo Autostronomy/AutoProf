@@ -43,7 +43,7 @@ def Simple_Isophote_Extract(IMG, mask, background_level, center, R, E, PA, name 
         
     return IsophoteList(iso_list)
 
-def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, R, E, PA, name, **kwargs):    
+def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, R, E, Ee, PA, PAe, name, **kwargs):    
 
     isolist =  Simple_Isophote_Extract(IMG, mask, background,
                                        center, R, E, PA, name)
@@ -74,8 +74,11 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
         return
 
     # For each radius evaluation, write the profile parameters
-    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'totmag_direct_e'] # , 'x0', 'y0'
-    
+    if Ee is None or PAe is None:
+        params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'pa', 'totmag_direct', 'totmag_direct_e'] # , 'x0', 'y0'
+    else:
+        params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'totmag_direct_e'] # , 'x0', 'y0'
+        
     SBprof_data = dict((h,[]) for h in params)
     SBprof_units = {'R': 'arcsec', 'SB': 'mag arcsec^-2', 'SB_e': 'mag arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
                     'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'totmag_direct': 'mag', 'totmag_direct_e': 'mag'}#,'x0': 'pix', 'y0': 'pix'
@@ -89,13 +92,13 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
         SBprof_data['totmag'].append(cog[i])
         SBprof_data['totmag_e'].append(cogE[i])
         SBprof_data['ellip'].append(isolist.eps[i])
-        SBprof_data['ellip_e'].append(isolist.ellip_err[i])
+        if not (Ee is None or PAe is None):
+            SBprof_data['ellip_e'].append(Ee[i])
         SBprof_data['pa'].append(isolist.pa[i]*180/np.pi)
-        SBprof_data['pa_e'].append(isolist.pa_err[i]*180/np.pi)
+        if not (Ee is None or PAe is None):
+            SBprof_data['pa_e'].append(PAe[i]*180/np.pi)
         SBprof_data['totmag_direct'].append(zeropoint - 2.5*np.log10(isolist.tflux_e[i]))
         SBprof_data['totmag_direct_e'].append(np.abs(2.5*tflux_e_err/(isolist.tflux_e[i] * np.log(10))))
-        # SBprof_data['x0'].append(isolist.x0[i])
-        # SBprof_data['y0'].append(isolist.y0[i])
 
     if 'doplot' in kwargs and kwargs['doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
@@ -115,22 +118,15 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
 
 def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
 
-    with open(kwargs['forcing_profile'], 'r') as f:
-        raw = f.readlines()
-        for i,l in enumerate(raw):
-            if l[0] != '#':
-                readfrom = i
-                break
-        header = list(h.strip() for h in raw[readfrom].split(','))
-        force = dict((h,[]) for h in header)
-        for l in raw[readfrom+2:]:
-            for d, h in zip(l.split(','), header):
-                force[h].append(float(d.strip()))
-
-    
+    if 'ellip_err' in results['isophotefit'] and (not results['isophotefit']['ellip_err'] is None) and 'pa_err' in results['isophotefit'] and (not results['isophotefit']['pa_err'] is None):
+        Ee = results['isophotefit']['ellip_err']
+        PAe = results['isophotefit']['pa_err']
+    else:
+        Ee = None
+        PAe = None
     return Generate_Profile(IMG, pixscale, np.logical_or(results['starmask']['overflow mask'],results['starmask']['mask']),
-                            results['background']['background'], results['background']['noise'], results['center'], np.array(force['R'])/pixscale, force['ellip'],
-                            np.array(force['pa'])*np.pi/180, name, **kwargs)
+                            results['background']['background'], results['background']['noise'], results['center'], results['isophotefit']['R'],
+                            results['isophotefit']['ellip'], Ee, results['isophotefit']['pa'], PAe, name, **kwargs)
 
 def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     """
@@ -172,6 +168,18 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     PA[R < results['isophotefit']['R'][0]] = _x_to_pa(results['isophotefit']['pa'][0])
     PA[R > results['isophotefit']['R'][-1]] = _x_to_pa(results['isophotefit']['pa'][-1])
 
+    # Get errors for pa and ellip
+    if 'ellip_err' in results['isophotefit'] and (not results['isophotefit']['ellip_err'] is None) and 'pa_err' in results['isophotefit'] and (not results['isophotefit']['pa_err'] is None):
+        Ee = np.clip(np.interp(R, results['isophotefit']['R'], results['isophotefit']['ellip_err']), a_min = 1e-3, a_max = None)
+        Ee[R < results['isophotefit']['R'][0]] = results['isophotefit']['ellip_err'][0]
+        Ee[R > results['isophotefit']['R'][-1]] = results['isophotefit']['ellip_err'][-1]
+        PAe = np.clip(np.interp(R, results['isophotefit']['R'], results['isophotefit']['pa_err']), a_min = 1e-3, a_max = None)
+        PAe[R < results['isophotefit']['R'][0]] = results['isophotefit']['pa_err'][0]
+        PAe[R > results['isophotefit']['R'][-1]] = results['isophotefit']['pa_err'][-1]
+    else:
+        Ee = None
+        PAe = None
+    
     # Stop from masking anything at the center
     results['starmask']['mask'][int(use_center['x'] - 10*results['psf']['fwhm']):int(use_center['x'] + 10*results['psf']['fwhm']),
                             int(use_center['y'] - 10*results['psf']['fwhm']):int(use_center['y'] + 10*results['psf']['fwhm'])] = False
@@ -181,5 +189,4 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     return Generate_Profile(IMG,pixscale,compund_Mask,
                             results['background']['background'],
                             results['background']['noise'],
-                            use_center,
-                            R, E, PA, name, **kwargs)
+                            use_center, R, E, Ee, PA, PAe, name, **kwargs)

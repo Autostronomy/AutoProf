@@ -159,29 +159,31 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             else:
                 count_nochange += 1
 
-        # if count % 10 == 0:
-        #     plt.scatter(sample_radii, _inv_x_to_eps(ellip), color = 'r', label = 'ellip')
-        #     plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa')
-        #     if break_index < len(sample_radii):
-        #         show_ellip = np.zeros(len(sample_radii))
-        #         show_pa = np.zeros(len(sample_radii))
-        #         show_ellip[:break_index+1] = _ellip_smooth(sample_radii[:break_index+1], ellip[:break_index+1], deg = 3)
-        #         show_ellip[break_index+1:] = _ellip_smooth(sample_radii[break_index+1:], ellip[break_index+1:], deg = 3)
-        #         show_pa[:break_index+1] = _pa_smooth(sample_radii[:break_index+1], pa[:break_index+1], deg = 3)
-        #         show_pa[break_index+1:] = _pa_smooth(sample_radii[break_index+1:], pa[break_index+1:], deg = 3)
-        #     else:
-        #         show_ellip = _ellip_smooth(sample_radii, ellip, deg = 4)
-        #         show_pa = _pa_smooth(sample_radii, pa, deg = 4)
-        #     plt.plot(sample_radii, _inv_x_to_eps(show_ellip), color = 'orange', linewidth = 2, linestyle='--', label = 'huber ellip')
-        #     plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'huber pa')
-        #     #plt.xscale('log')
-        #     plt.legend()
-        #     plt.savefig('plots/isoprof_%s_%i.jpg' % (name, count))
-        #     plt.clf()
+        if count % 10 == 0:
+            plt.scatter(sample_radii, _inv_x_to_eps(ellip), color = 'r', label = 'ellip')
+            plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa')
+            if break_index < len(sample_radii):
+                show_ellip = np.zeros(len(sample_radii))
+                show_pa = np.zeros(len(sample_radii))
+                show_ellip[:break_index+1] = _ellip_smooth(sample_radii[:break_index+1], ellip[:break_index+1], deg = 3)
+                show_ellip[break_index+1:] = _ellip_smooth(sample_radii[break_index+1:], ellip[break_index+1:], deg = 3)
+                show_pa[:break_index+1] = _pa_smooth(sample_radii[:break_index+1], pa[:break_index+1], deg = 3)
+                show_pa[break_index+1:] = _pa_smooth(sample_radii[break_index+1:], pa[break_index+1:], deg = 3)
+            else:
+                show_ellip = _ellip_smooth(sample_radii, ellip, deg = 4)
+                show_pa = _pa_smooth(sample_radii, pa, deg = 4)
+            plt.plot(sample_radii, _inv_x_to_eps(show_ellip), color = 'orange', linewidth = 2, linestyle='--', label = 'huber ellip')
+            plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'huber pa')
+            #plt.xscale('log')
+            plt.legend()
+            plt.savefig('plots/isoprof_%s_%i.jpg' % (name, count))
+            plt.clf()
                 
     logging.info('%s: Completed isohpote fit in %i itterations' % (name, count))
     # Smooth ellip and pa profile
     ######################################################################
+    old_ellip = copy(ellip)
+    old_pa = copy(pa)
     ellip[:3] = min(ellip[:3])
     if break_index < len(sample_radii):
         ellip[:break_index+1] = _ellip_smooth(sample_radii[:break_index+1], ellip[:break_index+1], deg = 3)
@@ -202,7 +204,19 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.clf()                
 
-    res = {'ellip': ellip, 'pa': pa, 'R': sample_radii}
+    # Compute errors
+    ######################################################################
+    ellip_err = np.zeros(len(ellip))
+    ellip_err[:2] = np.sqrt(np.sum((ellip[:4] - old_ellip[:4])**2)/4)
+    ellip_err[-1] = np.sqrt(np.sum((ellip[-4:] - old_ellip[-4:])**2)/4)
+    pa_err = np.zeros(len(pa))
+    pa_err[:2] = np.sqrt(np.sum((pa[:4] - old_pa[:4])**2)/4)
+    pa_err[-1] = np.sqrt(np.sum((pa[-4:] - old_pa[-4:])**2)/4)
+    for i in range(2,len(pa)-1):
+        ellip_err[i] = np.sqrt(np.sum((ellip[i-2:i+2] - old_ellip[i-2:i+2])**2)/4)
+        pa_err[i] = np.sqrt(np.sum((pa[i-2:i+2] - old_pa[i-2:i+2])**2)/4)
+
+    res = {'ellip': ellip, 'pa': pa, 'R': sample_radii, 'ellip_err': ellip_err, 'pa_err': pa_err}
     if break_index < len(sample_radii):
         res['break radius'] = sample_radii[break_index]
     return res
