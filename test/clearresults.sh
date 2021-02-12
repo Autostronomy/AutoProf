@@ -1,5 +1,5 @@
 rm *.jpg
-rm AutoProf.log
-rm testimage.prof
-rm testimage.aux
+rm *.log
+rm *.prof
+rm *.aux
 rm -r __pycache__

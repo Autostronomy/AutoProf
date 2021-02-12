@@ -159,25 +159,25 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             else:
                 count_nochange += 1
 
-        if count % 10 == 0:
-            plt.scatter(sample_radii, _inv_x_to_eps(ellip), color = 'r', label = 'ellip')
-            plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa')
-            if break_index < len(sample_radii):
-                show_ellip = np.zeros(len(sample_radii))
-                show_pa = np.zeros(len(sample_radii))
-                show_ellip[:break_index+1] = _ellip_smooth(sample_radii[:break_index+1], ellip[:break_index+1], deg = 3)
-                show_ellip[break_index+1:] = _ellip_smooth(sample_radii[break_index+1:], ellip[break_index+1:], deg = 3)
-                show_pa[:break_index+1] = _pa_smooth(sample_radii[:break_index+1], pa[:break_index+1], deg = 3)
-                show_pa[break_index+1:] = _pa_smooth(sample_radii[break_index+1:], pa[break_index+1:], deg = 3)
-            else:
-                show_ellip = _ellip_smooth(sample_radii, ellip, deg = 4)
-                show_pa = _pa_smooth(sample_radii, pa, deg = 4)
-            plt.plot(sample_radii, _inv_x_to_eps(show_ellip), color = 'orange', linewidth = 2, linestyle='--', label = 'huber ellip')
-            plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'huber pa')
-            #plt.xscale('log')
-            plt.legend()
-            plt.savefig('plots/isoprof_%s_%i.jpg' % (name, count))
-            plt.clf()
+        # if count % 10 == 0:
+        #     plt.scatter(sample_radii, _inv_x_to_eps(ellip), color = 'r', label = 'ellip')
+        #     plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa')
+        #     if break_index < len(sample_radii):
+        #         show_ellip = np.zeros(len(sample_radii))
+        #         show_pa = np.zeros(len(sample_radii))
+        #         show_ellip[:break_index+1] = _ellip_smooth(sample_radii[:break_index+1], ellip[:break_index+1], deg = 3)
+        #         show_ellip[break_index+1:] = _ellip_smooth(sample_radii[break_index+1:], ellip[break_index+1:], deg = 3)
+        #         show_pa[:break_index+1] = _pa_smooth(sample_radii[:break_index+1], pa[:break_index+1], deg = 3)
+        #         show_pa[break_index+1:] = _pa_smooth(sample_radii[break_index+1:], pa[break_index+1:], deg = 3)
+        #     else:
+        #         show_ellip = _ellip_smooth(sample_radii, ellip, deg = 4)
+        #         show_pa = _pa_smooth(sample_radii, pa, deg = 4)
+        #     plt.plot(sample_radii, _inv_x_to_eps(show_ellip), color = 'orange', linewidth = 2, linestyle='--', label = 'huber ellip')
+        #     plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'huber pa')
+        #     #plt.xscale('log')
+        #     plt.legend()
+        #     plt.savefig('plots/isoprof_%s_%i.jpg' % (name, count))
+        #     plt.clf()
                 
     logging.info('%s: Completed isohpote fit in %i itterations' % (name, count))
     # Smooth ellip and pa profile
@@ -306,6 +306,10 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
                                         force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
         plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.clf()                
-    return {'ellip': np.array(force['ellip']),
-            'pa': np.array(force['pa'])*np.pi/180,
-            'R': list(np.array(force['R'])/pixscale)}
+    res = {'ellip': np.array(force['ellip']),
+           'pa': np.array(force['pa'])*np.pi/180,
+           'R': list(np.array(force['R'])/pixscale)}
+    if 'ellip_e' in force and 'pa_e' in force:
+        res['ellip_err'] = np.array(force['ellip_e'])
+        res['pa_err'] = np.array(force['pa_e'])*np.pi/180
+    return res
