@@ -2,9 +2,14 @@ import numpy as np
 from scipy.stats import iqr
 from scipy.fftpack import fft, ifft
 from scipy.optimize import minimize
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import RANSACRegressor, HuberRegressor
 from time import time
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
+from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, IsophoteList
+from photutils.isophote import Ellipse as Photutils_Ellipse
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from copy import copy
@@ -16,9 +21,29 @@ from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _in
 from autoprofutils.Isophote_Initialize import Isophote_Initialize_CircFit
 from autoprofutils.Check_Fit import Check_Fit_IQR
 
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import RANSACRegressor, HuberRegressor
+def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
+    """
+    Function to run the photutils automated isophote analysis on an image.
+
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """    
+
+    dat = IMG - results['background']['background']
+    geo = EllipseGeometry(x0 = results['center']['x'],
+                          y0 = results['center']['y'],
+                          sma = results['isophoteinit']['R']/2,
+                          eps = results['isophoteinit']['ellip'],
+                          pa = results['isophoteinit']['pa'])
+    ellipse = Photutils_Ellipse(dat, geometry = geo)
+
+    isolist = ellipse.fit_image(fix_center = True, linear = False)
+
+    return {'R': isolist.sma, 'ellip': isolist.eps, 'ellip_err': isolist.ellip_err, 'pa': isolist.pa, 'pa_err': isolist.pa_err}
+
 
 def _ellip_smooth(R, E, deg):
     model = make_pipeline(PolynomialFeatures(deg), HuberRegressor(epsilon=2.))
