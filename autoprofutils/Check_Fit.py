@@ -9,6 +9,16 @@ from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _in
 
 
 def Check_Fit_Simple(IMG, pixscale, name, results, **kwargs):
+    """
+    Check for failed fit by comparing total magnitude from SB integral and flux summing.
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
+
     tests = {}
     # subtract background from image during processing
     dat = IMG - results['background']['background']
@@ -30,7 +40,20 @@ def Check_Fit_Simple(IMG, pixscale, name, results, **kwargs):
     return tests
 
 def Check_Fit_IQR(IMG, pixscale, name, results, **kwargs):
-
+    """
+    Check for failed fit with various measures.
+    1) compare iqr of isophotes with that of a simple global fit
+    2) compare iqr of isophotes with median flux to check for high variability
+    3) measure signal in 2nd and 4th FFT coefficient which should be minimal
+    4) measure signal in 1st FFT coefficient which should be minimal
+    5) Compare integrated SB profile with simple flux summing for total magnitude
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
     tests = {}
     # subtract background from image during processing
     dat = IMG - results['background']['background']

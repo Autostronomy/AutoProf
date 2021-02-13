@@ -8,7 +8,16 @@ import logging
 import numpy as np
 
 def Background_Mode(IMG, pixscale, name, results, **kwargs):
-
+    """
+    Compute background by finding the peak in a smoothed histogram of flux values.
+    This should correspond to the peak of the noise floor.
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
     edge_mask = np.ones(IMG.shape, dtype = bool)
@@ -34,8 +43,11 @@ def Background_Global(IMG, pixscale, name, results, **kwargs):
     of 20 pixels around the initial masked pixels. Returns a
     dictionary of parameters describing the background level.
 
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     # Mask main body of image so only outer 1/5th is used
@@ -69,8 +81,11 @@ def Background_ByPatches(IMG, pixscale, name, results, **kwargs):
     boarder of an image. Patches include corner squares and
     edge bars.
 
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     # Make the slicing commands to grab patches
@@ -111,8 +126,11 @@ def Background_ByIsophote(IMG, pixscale, name, results, **kwargs):
     Compute circular isophotes at large radii of the image. The
     flux space surface brightness is used as a background measurement
 
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
     isophote_SBs = []
 
@@ -139,8 +157,11 @@ def Background_All(IMG, pixscale, name, results, **kwargs):
     """
     Run all the background calculation algorithms and compare the results
 
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     byisophote = Background_ByIsophote(IMG, pixscale, name, results, **kwargs)

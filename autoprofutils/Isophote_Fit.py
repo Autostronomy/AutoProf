@@ -58,26 +58,35 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, reg_scale = 1., break_index = 0
     f2_loss = np.abs(coefs[2]) / (len(isovals)*(abs(np.median(isovals))))
 
     if i == 0:
-        reg_loss = abs((E[0] - E[1])/0.1)
+        reg_loss = abs((_inv_x_to_eps(E[0]) - _inv_x_to_eps(E[1]))/0.2)
         reg_loss += abs(np.arccos(np.sin(2*PA[0])*np.sin(2*PA[1]) + np.cos(2*PA[0])*np.cos(2*PA[1]))/(2*0.3))
         reg_loss *= 2
     elif i == (len(R)-1):
-        reg_loss = abs((E[-1] - E[-2])/0.1)
+        reg_loss = abs((_inv_x_to_eps(E[-1]) - _inv_x_to_eps(E[-2]))/0.2)
         reg_loss += abs(np.arccos(np.sin(2*PA[-1])*np.sin(2*PA[-2]) + np.cos(2*PA[-1])*np.cos(2*PA[-2]))/(2*0.3))
         reg_loss *= 2
     else:
         reg_loss = 0
         # if break_index != i:
-        #     reg_loss += abs((E[i] - E[i+1])/0.1)
+        #     reg_loss += abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i+1]))/0.2)
         #     reg_loss += abs(np.arccos(np.sin(2*PA[i])*np.sin(2*PA[i+1]) + np.cos(2*PA[i])*np.cos(2*PA[i+1]))/(2*0.3))
         if break_index != i-1:
-            reg_loss += abs((E[i] - E[i-1])/0.1)
+            reg_loss += abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i-1]))/0.2)
             reg_loss += abs(np.arccos(np.sin(2*PA[i])*np.sin(2*PA[i-1]) + np.cos(2*PA[i])*np.cos(2*PA[i-1]))/(2*0.3))
 
     return f2_loss + (np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
 
 def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
     """
+    Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
+    Included is a regularization term which penalizes isophotes for having large differences between parameters
+    of adjacent isophotes.
+
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     if 'scale' in kwargs:
@@ -283,7 +292,15 @@ def Isophote_Fit_FFT(IMG, pixscale, name, results, **kwargs):
     return {'ellip': np.array(ellip), 'pa': np.array(pa), 'R': np.array(sample_radii)}
 
 def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
-
+    """
+    Take isophotal fit from a given profile.
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
     with open(kwargs['forcing_profile'], 'r') as f:
         raw = f.readlines()
         for i,l in enumerate(raw):

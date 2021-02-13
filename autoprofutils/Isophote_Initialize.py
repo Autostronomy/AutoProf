@@ -16,7 +16,14 @@ from time import time
 
 def Isophote_Initialize_GridSearch(IMG, pixscale, name, results, **kwargs):
     """
-    Determine the global pa and ellipticity for a galaxy
+    Determine the global pa and ellipticity for a galaxy by sampling a large number
+    of pa/ellip combinations.
+
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
     ######################################################################
     # Find global ellipticity and position angle.
@@ -79,7 +86,16 @@ def _CircfitEllip_loss(e, dat, r, p, c):
 
 def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
     """
-    Determine the global pa and ellipticity for a galaxy
+    Determine the global pa and ellipticity for a galaxy. First grow circular isophotes
+    until reaching near the noise floor, then evaluate the phase of the second FFT
+    coefficients and determine the average direction. Then fit an ellipticity for one
+    of the outer isophotes.
+
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     ######################################################################

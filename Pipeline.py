@@ -1,22 +1,22 @@
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.Background import Background_Global, Background_ByPatches, Background_ByIsophote, Background_Mode
-from autoprofutils.Center import Center_Centroid, Center_OfMass, Center_Multi_Method, Center_1DGaussian, Center_Null, Center_HillClimb, Center_Forced
-from autoprofutils.PSF import Calculate_PSF, PSF_2DGaussFit
-from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Overflow_Mask, Star_Mask_Given
-from autoprofutils.Isophote_Initialize import Isophote_Initialize_GridSearch, Isophote_Initialize_CircFit
-from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_FFT, Isophote_Fit_Forced
+from autoprofutils.Background import Background_Mode
+from autoprofutils.PSF import PSF_2DGaussFit
+from autoprofutils.Center import Center_Null, Center_HillClimb, Center_Forced
+from autoprofutils.Isophote_Initialize import Isophote_Initialize_CircFit
+from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced
+from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Star_Mask_Given
+from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit_IQR, Check_Fit_Simple
-from autoprofutils.Isophote_Extract import Isophote_Extract, Generate_Profile, Isophote_Extract_Forced
 from autoprofutils.SharedFunctions import GetKwargs, Read_Image
 from multiprocessing import Pool
 from astropy.io import fits
 from scipy.stats import iqr
 from itertools import starmap
+import importlib
 import numpy as np
 from time import time, sleep
-import traceback
 import logging
 import warnings
 import traceback
@@ -46,6 +46,14 @@ class Isophote_Pipeline(object):
         logging.basicConfig(level=logging.INFO, filename = 'AutoProf.log' if loggername is None else loggername, filemode = 'w')
 
     def UpdatePipeline(self, new_pipeline_functions = None, new_pipeline_steps = None):
+        """
+        modify steps in the AutoProf pipeline.
+
+        new_pipeline_functions: update the dictionary of functions used by the pipeline. This can either add
+                                new functions or replace existing ones.
+        new_pipeline_steps: update the list of pipeline step strings. These strings refer to keys in
+                            pipeline_functions. It is posible to add/remove/rearrange steps here.
+        """
         if new_pipeline_functions:
             self.pipeline_functions.update(new_pipeline_functions)
         if new_pipeline_steps:
@@ -89,7 +97,8 @@ class Isophote_Pipeline(object):
         with open(saveto + name + '.prof', 'w') as f:
             # Write profile header
             f.write(','.join(results['isophoteextract']['header']) + '\n')
-            f.write(','.join(results['isophoteextract']['units'][h] for h in results['isophoteextract']['header']) + '\n')
+            if 'units' in results['isophoteextract']:
+                f.write(','.join(results['isophoteextract']['units'][h] for h in results['isophoteextract']['header']) + '\n')
             for i in range(len(results['isophoteextract']['data'][results['isophoteextract']['header'][0]])):
                 line = list((results['isophoteextract']['format'][h] % results['isophoteextract']['data'][h][i]) for h in results['isophoteextract']['header'])
                 f.write(','.join(line) + '\n')
@@ -121,9 +130,8 @@ class Isophote_Pipeline(object):
         pixscale: angular size of the pixels in arcsec/pixel
         saveto: string or list of strings indicating where to save profiles
         name: string name of galaxy in image, used for log files to make searching easier
-        overflowval: pixel flux value for oversaturated pixels
 
-        returns 0 for successful completion of processing
+        returns list of times for each pipeline step if successful. else returns 1
         """
 
         kwargs.update(kwargs_internal)
@@ -172,11 +180,11 @@ class Isophote_Pipeline(object):
         """
         Wrapper function to run "Process_Image" in parallel for many images.
         
-        filelist: list of strings or list of list of strings containing image file paths
+        IMG: list of strings containing image file paths
         pixscale: angular pixel size in arcsec/pixel
         n_procs: number of processors to use
-        saveto: list of strings or list of list of strings containing file paths to save profiles
-        names: names of the galaxies, used for logging
+        saveto: list of strings containing file paths to save profiles
+        name: names of the galaxies, used for logging
         """
         
         # Format the inputs so that they can be zipped with the images files
@@ -238,9 +246,17 @@ class Isophote_Pipeline(object):
         return res
         
     def Process_ConfigFile(self, config_file):
+        """
+        Reads in a configuration file and sets parameters for the pipeline. The configuration
+        file should have variables corresponding to the desired parameters to be set.
 
+        congif_file: string path to configuration file
+
+        returns: timing of each pipeline step if successful. Else returns 1
+        """
+
+        
         # Import the config file regardless of where it is from
-        import importlib
         use_config = config_file[:-3] if config_file[-3:] == '.py' else config_file
         if '/' in config_file:
             sys.path.append(config_file[:config_file.rfind('/')])

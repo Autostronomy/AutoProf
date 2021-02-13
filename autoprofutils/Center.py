@@ -12,12 +12,13 @@ import logging
 
 def Center_Null(IMG, pixscale, name, results, **kwargs):
     """
-    Simply returns the center of the image
+    Simply returns the center of the image.
 
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    mask: output from mask calculations (dict)    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
@@ -27,7 +28,15 @@ def Center_Null(IMG, pixscale, name, results, **kwargs):
     return current_center
 
 def Center_Forced(IMG, pixscale, name, results, **kwargs):
-
+    """
+    Takes the center from an aux file, or given value.
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
     center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
         return kwargs['given_center']
@@ -38,8 +47,8 @@ def Center_Forced(IMG, pixscale, name, results, **kwargs):
                 x_loc = line.find('x:')
                 y_loc = line.find('y:')
                 try:
-                    center = {'x': float(line[x_loc+3:x_loc+10]),
-                              'y': float(line[y_loc+3:y_loc+10])}
+                    center = {'x': float(line[x_loc+3:line.find('pix')]),
+                              'y': float(line[y_loc+3:line.rfind('pix')])}
                     break
                 except:
                     pass
@@ -50,18 +59,13 @@ def Center_Forced(IMG, pixscale, name, results, **kwargs):
 
 def Center_Given(IMG, pixscale, name, results, **kwargs):
     """
-    Uses the kwarg "given_centers" to return a user inputted center.
-    The given_centers object should be a dictionary where each key
-    is a galaxy name (As in the names given for each galaxy) and the
-    value is a dictionary structured as {'x': float, 'y': float}
-    where the floats are the center coordinates in pixels. If the
-    galaxy name is not in the given_centers dictionary it will return
-    the center of the image.
+    Uses the kwarg "given_center" to return a user inputted center.
 
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    mask: output from mask calculations (dict)        
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     try:
@@ -79,10 +83,11 @@ def Center_Centroid(IMG, pixscale, name, results, **kwargs):
     should already be mostly centered), finds the galaxy center by fitting
     a 2d Gaussian.
     
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    mask: output from mask calculations (dict)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
@@ -123,10 +128,11 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
     should already be mostly centered), finds the galaxy center by fitting
     several 1d Gaussians.
     
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    mask: output from mask calculations (dict)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
@@ -161,10 +167,11 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
     image (images should already be mostly centered), finds the average
     light weighted center of the image.
     
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    mask: output from mask calculations (dict)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
@@ -193,7 +200,15 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
             'y': y}
 
 def Center_Bright(IMG, pixscale, name, results, **kwargs):
-
+    """
+    simply takes the brightest pixel within a region around the center of the image.
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
         current_center = kwargs['given_center']
@@ -208,7 +223,18 @@ def Center_Bright(IMG, pixscale, name, results, **kwargs):
     return {'x': locmax[0] + IMG.shape[0]/2 - 20*results['psf']['fwhm'], 'y': locmax[1] + IMG.shape[1]/2 - 20*results['psf']['fwhm']}
 
 def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
-
+    """
+    Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
+    phases are averaged to find the direction of increasing flux. Flux values are sampled
+    along this direction and a quadratic fit gives the maximum. This is iteratively
+    repeated until the step size becomes very small.
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
         current_center = kwargs['given_center']
@@ -272,10 +298,11 @@ def Center_Multi_Method(IMG, pixscale, name, results, **kwargs):
     Compute the pixel location of the galaxy center using the other methods
     included here, determines the best one to use.
     
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    mask: output from mask calculations (dict)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     # Centering algorithm order for multi-method

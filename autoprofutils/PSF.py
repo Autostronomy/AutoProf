@@ -27,7 +27,16 @@ def _GaussFit(x, dat, xx, yy, noise, fwhm_guess):
     return np.mean(sorted(loss)[:-5])
 
 def PSF_2DGaussFit(IMG, pixscale, name, results, **kwargs):
-
+    """
+    Identify 20 bright stars and simultaneously fit a 2D gaussian to all of the stars.
+    The standard deivation of the fitted gaussian is then turned into a FWHM.
+    
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
+    """
     fwhm_guess = max(1. / pixscale, 1)
     edge_mask = np.zeros(IMG.shape, dtype = bool)
     edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
@@ -62,8 +71,11 @@ def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
     Idenitfy the location of stars in the image and calculate
     their average PSF.
 
-    IMG: numpy 2d array of pixel values
-    pixscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
     
     # Guess for PSF based on user provided seeing value
@@ -103,16 +115,12 @@ def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
 def Given_PSF(IMG, pixscale, name, results, **kwargs):
     """
     Uses the kwarg "given_psf" to return a user inputted psf.
-    The given_psf object should be a float representing all images or
-    a dictionary where each key is a galaxy name (as in the names
-    given for each galaxy) and the value is a dictionary structured
-    as {'median': float, 'mean': float, 'std': float, 'iqr': float}
-    where the values give psf statistics in pixel units. If the
-    galaxy name is not in the given_psf dictionary it will return
-    the standard "Calculate_PSF" result.
 
-    IMG: numpy 2d array of pixel values
-    pixelscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
+    IMG: 2d ndarray with flux values for the image
+    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
+    name: string name of galaxy in image, used for log files to make searching easier
+    results: dictionary contianing results from past steps in the pipeline
+    kwargs: user specified arguments
     """
 
     try:
