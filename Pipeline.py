@@ -186,6 +186,8 @@ class Isophote_Pipeline(object):
         saveto: list of strings containing file paths to save profiles
         name: names of the galaxies, used for logging
         """
+
+        assert type(IMG) == list
         
         # Format the inputs so that they can be zipped with the images files
         # and passed to the Process_Image function.
@@ -195,8 +197,12 @@ class Isophote_Pipeline(object):
             use_pixscale = pixscale
         if saveto is None:
             use_saveto = [None]*len(IMG)
-        else:
+        elif type(saveto) == list:
             use_saveto = saveto
+        elif type(saveto) == str:
+            use_saveto = [saveto]*len(IMG)
+        else:
+            raise TypeError('saveto should be a list or string')
         if name is None:
             use_name = [None]*len(IMG)
         else:
