@@ -145,7 +145,7 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
         isovals = _iso_extract(dat,rr,0.,0.,results['center'], more = True)
         coefs = fft(np.clip(isovals[0], a_max = np.quantile(isovals[0],0.85), a_min = None))
         allphase.append(coefs[2])
-    sample_pas = (-np.angle(allphase)/2) % np.pi
+    sample_pas = (-np.angle(1j*np.array(allphase)/np.mean(allphase))/2) % np.pi
     pa_err = iqr(sample_pas, rng = [16,84])/2
     res_multi = map(lambda rrp: minimize(lambda e,d,r,p,c: _CircfitEllip_loss(_x_to_eps(e[0]),d,r,p,c),
                                         x0 = _inv_x_to_eps(ellip), args = (dat, rrp[0], rrp[1], results['center']),

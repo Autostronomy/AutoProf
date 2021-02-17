@@ -275,11 +275,11 @@ class Isophote_Pipeline(object):
                                                           'checkfit': Check_Fit_Simple})
             
         try:
-            self.UpdatePipeline(new_pipeline_functions = c.pipeline_functions)
+            self.UpdatePipeline(new_pipeline_functions = c.new_pipeline_functions)
         except:
             pass
         try:
-            self.UpdatePipeline(new_pipeline_steps = c.pipeline_steps)
+            self.UpdatePipeline(new_pipeline_steps = c.new_pipeline_steps)
         except:
             pass
             

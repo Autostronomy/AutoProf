@@ -19,6 +19,10 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 ### Basic Install
 
 1. Download the package from: https://github.com/ConnorStoneAstro/AutoProf
+    ```bash
+    cd /where/you/want/AutoProf/to/live/
+    git clone git@github.com:ConnorStoneAstro/AutoProf.git
+    ```
 1. Set an environment variable and alias the autoprof function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). 
     ```bash
     export AUTOPROF='/path/to/AutoProf/'

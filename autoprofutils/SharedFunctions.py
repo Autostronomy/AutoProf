@@ -1,6 +1,7 @@
 import sys
 import os
 from scipy.integrate import trapz
+from scipy.stats import iqr
 import matplotlib.pyplot as plt
 from astropy.io import fits
 import numpy as np
@@ -266,7 +267,24 @@ def Read_Image(filename, **kwargs):
         dat = np.load(filename)
             
     return dat
-        
+
+def Angle_Average(a):
+    """
+    Compute the average for a list of angles, which may wrap around a cyclic boundary.
+
+    a: list of angles in the range [0,2pi]
+    """
+    i = np.cos(a) + 1j*np.sin(a)
+    return np.angle(np.mean(i))
+
+def Angle_Scatter(a):
+    """
+    Compute the average for a list of angles, which may wrap around a cyclic boundary.
+
+    a: list of angles in the range [0,2pi]
+    """
+    i = np.cos(a) + 1j*np.sin(a)
+    return iqr(np.angle(1j*i/np.mean(i)),rng = [16,84])
 
 
 def GetKwargs(c):
@@ -347,6 +365,10 @@ def GetKwargs(c):
         pass
     try:
         newkwargs['sampleerrorlim'] = c.sampleerrorlim
+    except:
+        pass
+    try:
+        newkwargs['zeropoint'] = c.zeropoint
     except:
         pass
     return newkwargs

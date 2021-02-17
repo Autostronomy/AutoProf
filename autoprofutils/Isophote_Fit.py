@@ -41,8 +41,19 @@ def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
     ellipse = Photutils_Ellipse(dat, geometry = geo)
 
     isolist = ellipse.fit_image(fix_center = True, linear = False)
-
-    return {'R': isolist.sma, 'ellip': isolist.eps, 'ellip_err': isolist.ellip_err, 'pa': isolist.pa, 'pa_err': isolist.pa_err}
+    res = {'R': isolist.sma[1:], 'ellip': isolist.eps[1:], 'ellip_err': isolist.ellip_err[1:], 'pa': isolist.pa[1:], 'pa_err': isolist.pa_err[1:]}
+    
+    if 'doplot' in kwargs and kwargs['doplot']:    
+        plt.imshow(np.clip(dat[max(0,int(results['center']['y']-res['R'][-1]*1.2)): min(dat.shape[0],int(results['center']['y']+res['R'][-1]*1.2)),
+                               max(0,int(results['center']['x']-res['R'][-1]*1.2)): min(dat.shape[1],int(results['center']['x']+res['R'][-1]*1.2))],
+                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
+        for i in range(len(res['R'])):
+            plt.gca().add_patch(Ellipse((int(res['R'][-1]*1.2),int(res['R'][-1]*1.2)), 2*res['R'][i], 2*res['R'][i]*(1. - res['ellip'][i]),
+                                        res['pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
+        plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        plt.clf()                
+    
+    return res
 
 
 def _ellip_smooth(R, E, deg):
