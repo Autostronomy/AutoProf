@@ -211,7 +211,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
                        sma = sma,
                        geometry = geo,
                        integrmode = 'bilinear' if sma < 50 else 'nearest_neighbor')
-    ES.extract()
+    ES.extract(max_samples = 100)
     # Return the desited vlaues, either just SB values,
     # or SB values and angles
     if more:
@@ -238,13 +238,13 @@ def _x_to_eps(x):
     Internal, function to map the reals to the range (0.05,0.95)
     as the range of reasonable ellipticity values.
     """
-    return 0.03 + 0.97/(1. + np.exp(-(x - 0.5))) #return 0.01 + 0.98/(1. + np.exp(-(x - 0.5)))
+    return 0.02 + 0.96*(0.5 + np.arctan(x-0.5)/np.pi) #0.02 + 0.96/(1. + np.exp(-(x - 0.5))) 
 #
 def _inv_x_to_eps(eps):
     """
     Internal, inverse of _x_to_eps function
     """
-    return 0.5 - np.log(0.97/(eps - 0.03) - 1.) # return 0.5 - np.log(0.98/(eps - 0.01) - 1.)
+    return 0.5 + np.tan(np.pi*((eps - 0.02)/0.96 - 0.5)) #0.5 - np.log(0.96/(eps - 0.02) - 1.) 
 
 
 def Read_Image(filename, **kwargs):
@@ -267,6 +267,14 @@ def Read_Image(filename, **kwargs):
         dat = np.load(filename)
             
     return dat
+
+def Angle_TwoAngles(a1, a2):
+    """
+    Compute the angle between two vectors at angles a1 and a2
+    """
+
+    return np.arccos(np.sin(a1)*np.sin(a2) + np.cos(a1)*np.cos(a2))
+    
 
 def Angle_Average(a):
     """

@@ -2,10 +2,10 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.Background import Background_Mode
-from autoprofutils.PSF import PSF_2DGaussFit
+from autoprofutils.PSF import PSF_2DGaussFit, PSF_GaussFit
 from autoprofutils.Center import Center_Null, Center_HillClimb, Center_Forced
 from autoprofutils.Isophote_Initialize import Isophote_Initialize_CircFit
-from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced
+from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Star_Mask_Given
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit_IQR, Check_Fit_Simple
@@ -31,14 +31,19 @@ class Isophote_Pipeline(object):
 
         loggername: String to use for logging messages
         """
-
+        
         self.pipeline_functions = {'background': Background_Mode,
-                                   'psf': PSF_2DGaussFit,
+                                   'psf': PSF_GaussFit, 
                                    'center': Center_HillClimb,
+                                   'center forced': Center_Forced,
                                    'isophoteinit': Isophote_Initialize_CircFit,
                                    'isophotefit': Isophote_Fit_FFT_Robust,
+                                   'isophotefit forced': Isophote_Fit_Forced,
+                                   'isophotefit photutils': Photutils_Fit,
                                    'starmask': Star_Mask_IRAF,
+                                   'starmask forced': Star_Mask_Given,
                                    'isophoteextract': Isophote_Extract,
+                                   'isophoteextract forced': Isophote_Extract_Forced,
                                    'checkfit': Check_Fit_IQR}
         self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 
@@ -52,12 +57,21 @@ class Isophote_Pipeline(object):
         new_pipeline_functions: update the dictionary of functions used by the pipeline. This can either add
                                 new functions or replace existing ones.
         new_pipeline_steps: update the list of pipeline step strings. These strings refer to keys in
-                            pipeline_functions. It is posible to add/remove/rearrange steps here.
+                            pipeline_functions. It is posible to add/remove/rearrange steps here. Alternatively
+                            one can supply a dictionary with current pipeline steps as keys and new pipeline
+                            steps as values, the corresponding steps will be replaced.
         """
         if new_pipeline_functions:
+            logging.info('PIPELINE updating these pipeline functions: %s' % str(new_pipeline_functions.keys()))
             self.pipeline_functions.update(new_pipeline_functions)
         if new_pipeline_steps:
-            self.pipeline_steps = new_pipeline_steps
+            if type(new_pipeline_steps) == list:
+                logging.info('PIPELINE new steps: %s' % str(new_pipeline_steps))
+                self.pipeline_steps = new_pipeline_steps
+            elif type(new_pipeline_steps) == dict:
+                for k in new_pipeline_steps.keys():
+                    logging.info('PIPELINE replacing "%s" pipeline step with "%s"' % (k, new_pipeline_steps[k]))
+                    self.pipeline_steps[self.pipeline_steps.index(k)] = new_pipeline_steps[k]
 
     def WriteProf(self, results, saveto, pixscale, name = None, **kwargs):
         """
@@ -75,20 +89,18 @@ class Isophote_Pipeline(object):
             # write profile info
             f.write('name: %s\n' % str(name))
             f.write('pixel scale: %.3e arcsec/pix\n' % pixscale)
-            for k in results['checkfit'].keys():
-                f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
-            f.write('psf median: %.3f pix\n' % (results['psf']['fwhm']))
-            f.write('background median: %.3e flux, iqr: %.3e flux\n' % (results['background']['background'], results['background']['noise']))
-            if 'center' in results['isophotefit']:
-                use_center = results['isophotefit']['center']
-            else:
-                use_center = results['center']
+            if 'checkfit' in results:
+                for k in results['checkfit'].keys():
+                    f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
+            f.write('psf fwhm: %.3f pix\n' % (results['psf fwhm']))
+            f.write('background: %.3e flux, noise: %.3e flux\n' % (results['background'], results['background noise']))
+            use_center = results['center']
             f.write('center x: %.2f pix, y: %.2f pix\n' % (use_center['x'], use_center['y']))
-            if 'ellip_err' in results['isophoteinit'] and 'pa_err' in results['isophoteinit']:
-                f.write('global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg\n' % (results['isophoteinit']['ellip'], results['isophoteinit']['ellip_err'],
-                                                                                      results['isophoteinit']['pa']*180/np.pi, results['isophoteinit']['pa_err']*180/np.pi))
+            if 'init ellip_err' in results and 'init pa_err' in results:
+                f.write('global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg\n' % (results['init ellip'], results['init ellip_err'],
+                                                                                      results['init pa']*180/np.pi, results['init pa_err']*180/np.pi))
             else:
-                f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['isophoteinit']['ellip'], results['isophoteinit']['pa']*180/np.pi))
+                f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['init ellip'], results['init pa']*180/np.pi))
             if len(kwargs) > 0:
                 for k in kwargs.keys():
                     f.write('settings %s: %s\n' % (k,str(kwargs[k])))
@@ -96,24 +108,21 @@ class Isophote_Pipeline(object):
         # Write the profile
         with open(saveto + name + '.prof', 'w') as f:
             # Write profile header
-            f.write(','.join(results['isophoteextract']['header']) + '\n')
-            if 'units' in results['isophoteextract']:
-                f.write(','.join(results['isophoteextract']['units'][h] for h in results['isophoteextract']['header']) + '\n')
-            for i in range(len(results['isophoteextract']['data'][results['isophoteextract']['header'][0]])):
-                line = list((results['isophoteextract']['format'][h] % results['isophoteextract']['data'][h][i]) for h in results['isophoteextract']['header'])
+            f.write(','.join(results['prof header']) + '\n')
+            if 'prof units' in results:
+                 f.write(','.join(results['prof units'][h] for h in results['prof header']) + '\n')
+            for i in range(len(results['prof data'][results['prof header'][0]])):
+                line = list((results['prof format'][h] % results['prof data'][h][i]) for h in results['prof header'])
                 f.write(','.join(line) + '\n')
                 
         # Write the mask data, if provided
-        if not results['starmask'] is None and 'savemask' in kwargs and kwargs['savemask']:
+        if not results['mask'] is None and 'savemask' in kwargs and kwargs['savemask']:
             header = fits.Header()
             header['IMAGE 1'] = 'star mask'
             header['IMAGE 2'] = 'overflow values mask'
-            if not results['background'] is None:
-                for key in results['background'].keys():
-                    header['bk %s' % key] = str(results['background'][key])
             hdul = fits.HDUList([fits.PrimaryHDU(header=header),
-                                 fits.ImageHDU(results['starmask']['mask'].astype(int)),
-                                 fits.ImageHDU(results['starmask']['overflow mask'].astype(int))])
+                                 fits.ImageHDU(results['mask'].astype(int)),
+                                 fits.ImageHDU(results['overflow mask'].astype(int))])
             hdul.writeto(saveto + name + '_mask.fits', overwrite = True)
             sleep(1)
             # Zip the mask file because it can be large and take a lot of memory, but in principle
@@ -141,7 +150,11 @@ class Isophote_Pipeline(object):
             name = IMG[(IMG.rfind('/') if '/' in IMG else 0):IMG.find('.', (IMG.rfind('/') if '/' in IMG else 0))]
 
         # Read the primary image
-        dat = Read_Image(IMG, **kwargs)
+        try:
+            dat = Read_Image(IMG, **kwargs)
+        except:
+            logging.error('%s: could not read image %s' % (name, str(IMG)))
+            return 1
             
         # Check that image data exists and is not corrupted
         if dat is None or np.all(dat[int(len(dat)/2.)-10:int(len(dat)/2.)+10, int(len(dat[0])/2.)-10:int(len(dat[0])/2.)+10] == 0):
@@ -162,7 +175,7 @@ class Isophote_Pipeline(object):
                 step_start = time()
                 logging.info('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
                 print('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
-                results[self.pipeline_steps[step]] = self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs)
+                results.update(self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs))
                 timers[self.pipeline_steps[step]] = time() - step_start
             except Exception as e:
                 logging.error('%s: on step %s got error: %s' % (name, self.pipeline_steps[step], str(e)))
@@ -274,11 +287,8 @@ class Isophote_Pipeline(object):
             c = importlib.import_module(use_config)
 
         if 'forced' in c.process_mode:
-            self.UpdatePipeline(new_pipeline_functions = {'center': Center_Forced,
-                                                          'starmask': Star_Mask_Given,
-                                                          'isophotefit': Isophote_Fit_Forced,
-                                                          'isophoteextract': Isophote_Extract_Forced,
-                                                          'checkfit': Check_Fit_Simple})
+            self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit',
+                                                      'isophotefit forced', 'starmask forced', 'isophoteextract forced'])
             
         try:
             self.UpdatePipeline(new_pipeline_functions = c.new_pipeline_functions)

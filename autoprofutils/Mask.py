@@ -38,12 +38,12 @@ def Overflow_Mask(IMG, pixscale, name, results, **kwargs):
         return np.zeros(IMG.shape)
 
     Mask = np.logical_and(IMG > (kwargs['overflowval'] - 1e-3), IMG < (kwargs['overflowval'] + 1e-3)).astype(bool)
-    # dlate = int(10*results['psf']['fwhm'])
+    # dlate = int(10*results['psf fwhm'])
     # W = np.where(Mask)
     # for Wy, Wx in zip(W[0],W[1]):
     #     # Near the center of the image, don't dilate the overflow pixels
-    #     if (IMG.shape[0]/2 - 30*results['psf']['fwhm']) < Wx < (IMG.shape[0]/2 + 30*results['psf']['fwhm']) and \
-    #        (IMG.shape[1]/2 - 30*results['psf']['fwhm']) < Wy < (IMG.shape[1]/2 + 30*results['psf']['fwhm']):
+    #     if (IMG.shape[0]/2 - 30*results['psf fwhm']) < Wx < (IMG.shape[0]/2 + 30*results['psf fwhm']) and \
+    #        (IMG.shape[1]/2 - 30*results['psf fwhm']) < Wy < (IMG.shape[1]/2 + 30*results['psf fwhm']):
     #         continue
     #     # Dilate/mask region around overflow pixels
     #     Mask[max(Wy-dlate, 0):min(Wy+dlate+1,len(Mask)),
@@ -80,33 +80,33 @@ def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
     returns: collection of mask information
     """
 
-    fwhm = results['psf']['fwhm']
-    use_center = results['isophotefit']['center'] if 'center' in results['isophotefit'] else results['center']
+    fwhm = results['psf fwhm']
+    use_center = results['center']
 
     # Find scale of bounding box for galaxy. Stars will only be found within this box
-    smaj = results['isophotefit']['R'][-1]
+    smaj = results['fit R'][-1]
     xbox = int(1.5*smaj)
     ybox = int(1.5*smaj)
     xbounds = [max(0,int(use_center['x'] - xbox)),min(int(use_center['x'] + xbox),IMG.shape[1])]
     ybounds = [max(0,int(use_center['y'] - ybox)),min(int(use_center['y'] + ybox),IMG.shape[0])]    
     
     # Run photutils wrapper for IRAF star finder
-    iraffind = IRAFStarFinder(fwhm = 2*fwhm, threshold = 10.*results['background']['noise'], brightest = 50)
-    irafsources = iraffind((IMG - results['background']['background'])[ybounds[0]:ybounds[1],
+    iraffind = IRAFStarFinder(fwhm = 2*fwhm, threshold = 10.*results['background noise'], brightest = 50)
+    irafsources = iraffind((IMG - results['background'])[ybounds[0]:ybounds[1],
                                                                    xbounds[0]:xbounds[1]])
     mask = np.zeros(IMG.shape, dtype = bool)
     # Mask star pixels and area around proportionate to their total flux
     XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]))
     if irafsources:
         for x,y,f in zip(irafsources['xcentroid'], irafsources['ycentroid'], irafsources['flux']):
-            if np.sqrt((x - (xbounds[1] - xbounds[0])/2)**2 + (y - (ybounds[1] - ybounds[0])/2)**2) < 10*results['psf']['fwhm']:
+            if np.sqrt((x - (xbounds[1] - xbounds[0])/2)**2 + (y - (ybounds[1] - ybounds[0])/2)**2) < 10*results['psf fwhm']:
                 continue
             # compute distance of every pixel to the identified star
             R = np.sqrt((XX-(x + xbounds[0]))**2 + (YY-(y + ybounds[0]))**2)
             # Compute the flux of the star
             #f = np.sum(IMG[R < 10*fwhm])
             # Compute radius to reach background noise level, assuming gaussian
-            Rstar = (fwhm/2.355)*np.sqrt(2*np.log(f/(np.sqrt(2*np.pi*fwhm/2.355)*results['background']['noise']))) # fixme double check
+            Rstar = (fwhm/2.355)*np.sqrt(2*np.log(f/(np.sqrt(2*np.pi*fwhm/2.355)*results['background noise']))) # fixme double check
             mask[R < Rstar] = True 
 
     # Include user defined mask if any
@@ -129,8 +129,7 @@ def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sMask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
     
-    return {'x': irafsources['xcentroid'] if irafsources else [], 'y': irafsources['ycentroid'] if irafsources else [],
-            'fwhm': fwhm, 'mask':mask,
+    return {'mask':mask,
             'overflow mask': overflow_mask}
     
 
@@ -148,11 +147,11 @@ def Star_Mask_DAO(IMG, pixscale, name, results, **kwargs):
     returns: empty collection of mask information
     """
 
-    fwhm = results['psf']['fwhm'] 
+    fwhm = results['psf fwhm'] 
     
     # Run photutils wrapper for DAO star finder
-    daofind = DAOStarFinder(fwhm = fwhm, threshold = 20.*results['background']['noise'])
-    sources = daofind(IMG - results['background']['background'])
+    daofind = DAOStarFinder(fwhm = fwhm, threshold = 20.*results['background noise'])
+    sources = daofind(IMG - results['background'])
     
     mask = np.zeros(IMG.shape, dtype = bool)
     # Remove star pixels and area around them
@@ -161,12 +160,12 @@ def Star_Mask_DAO(IMG, pixscale, name, results, **kwargs):
         # compute distance of every pixel to the identified star
         R = np.sqrt((XX-x)**2 + (YY-y)**2)
         # Check surrounding area to see if this is insize the galaxy
-        if np.median(IMG[np.logical_and(R > 20*fwhm, R < 25*fwhm)]) > 3*results['background']['noise']:
+        if np.median(IMG[np.logical_and(R > 20*fwhm, R < 25*fwhm)]) > 3*results['background noise']:
             continue
         # Compute the flux of the star
         f = np.sum(IMG[R < 20*fwhm])
         # Compute radius to reach background noise level, assuming gaussian
-        Rstar = 2.3*fwhm*np.sqrt(2*np.log(2.3*f/(np.sqrt(np.pi*fwhm)*results['background']['noise'])))
+        Rstar = 2.3*fwhm*np.sqrt(2*np.log(2.3*f/(np.sqrt(np.pi*fwhm)*results['background noise'])))
         mask[R < Rstar] = True
 
     # Include user defined mask if any
@@ -186,8 +185,7 @@ def Star_Mask_DAO(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sMask_%s.pdf' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
     
-    return {'x': sources['xcentroid'], 'y': sources['ycentroid'],
-            'fwhm': fwhm, 'mask':mask,
+    return {'mask':mask,
             'overflow mask': overflow_mask}
 
 
@@ -203,7 +201,6 @@ def NoMask(IMG, pixscale, name, results, **kwargs):
     else:
         mask = np.zeros(IMG.shape,dtype = bool)
         
-    return {'x': [], 'y': [], 'fwhm': results['psf']['fwhm'],
-            'mask': mask,
+    return {'mask': mask,
             'overflow mask': overflow_mask}
     

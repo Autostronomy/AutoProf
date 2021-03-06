@@ -30,11 +30,11 @@ def Isophote_Initialize_GridSearch(IMG, pixscale, name, results, **kwargs):
     # Initial attempt to find size of galaxy in image
     # based on when isophotes SB values start to get
     # close to the background noise level
-    circ_ellipse_radii = [results['psf']['fwhm']]
+    circ_ellipse_radii = [results['psf fwhm']]
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.3))
         # Stop when at 10 time background noise
-        if np.quantile(_iso_extract(IMG - results['background']['background'],circ_ellipse_radii[-1],0.,0.,results['center']), 0.6) < (3*results['background']['noise']) and len(circ_ellipse_radii) > 4:
+        if np.quantile(_iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center']), 0.6) < (3*results['background noise']) and len(circ_ellipse_radii) > 4:
             break
     logging.info('%s: init scale: %f' % (name, circ_ellipse_radii[-1]))
     circ_ellipse_radii = np.array(circ_ellipse_radii)
@@ -76,13 +76,12 @@ def Isophote_Initialize_GridSearch(IMG, pixscale, name, results, **kwargs):
         plt.clf()
 
     logging.info('%s: best initialization: %s' % (name, str(best[2][0])))
-    return {'ellip': best[2][0], 'pa': best[2][1]}
+    return {'init ellip': best[2][0], 'init pa': best[2][1]}
 
-def _CircfitEllip_loss(e, dat, r, p, c):
+def _CircfitEllip_loss(e, dat, r, p, c, n):
     isovals = _iso_extract(dat,r,e,p,c)
     coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
-    return np.abs(coefs[2]) / (len(isovals)*np.abs(np.median(isovals)))
-
+    return np.abs(coefs[2]) / (len(isovals)*(np.abs(np.median(isovals))+n))
 
 def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
     """
@@ -103,10 +102,10 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
     # Initial attempt to find size of galaxy in image
     # based on when isophotes SB values start to get
     # close to the background noise level
-    circ_ellipse_radii = [results['psf']['fwhm']/2]
+    circ_ellipse_radii = [results['psf fwhm']/2]
     phasekeep = []
     allphase = []
-    dat = IMG - results['background']['background']
+    dat = IMG - results['background']
 
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.2))
@@ -116,23 +115,23 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
         if np.abs(coefs[2]) > np.abs(coefs[1]) and np.abs(coefs[2]) > np.abs(coefs[3]):
             phasekeep.append(coefs[2])
         # Stop when at 3 time background noise
-        if np.quantile(isovals[0], 0.8) < (3*results['background']['noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background']['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
+        if np.quantile(isovals[0], 0.8) < (3*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
             break
     logging.info('%s: init scale: %f' % (name, circ_ellipse_radii[-1]))
     if len(phasekeep) >= 5:
         phase = (-np.angle(np.mean(phasekeep[-5:]))/2) % np.pi
     else:
         phase = (-np.angle(np.mean(allphase[int(len(allphase)/2):]))/2) % np.pi
-
+    logging.info('%s: circ ellipse radii %i, allphase %i' % (name, len(circ_ellipse_radii), len(allphase)))
     start = time()
     test_ellip = np.linspace(0.05,0.95,15)
     test_f2 = []
     for e in test_ellip:
-        test_f2.append(_CircfitEllip_loss(e, dat, circ_ellipse_radii[-2], phase, results['center']))
+        test_f2.append(sum(list(_CircfitEllip_loss(e, dat, circ_ellipse_radii[-2]*m, phase, results['center'], results['background noise']) for m in np.linspace(0.7,1.2,6))))
     ellip = test_ellip[np.argmin(test_f2)]
-    res = minimize(lambda e,d,r,p,c: _CircfitEllip_loss(_x_to_eps(e[0]),d,r,p,c),
+    res = minimize(lambda e,d,r,p,c,n: sum(list(_CircfitEllip_loss(_x_to_eps(e[0]),d,r*m,p,c,n) for m in np.linspace(0.7,1.2,6))),
                    x0 = _inv_x_to_eps(ellip), args = (dat, circ_ellipse_radii[-2],
-                                                      phase, results['center']),
+                                                      phase, results['center'],results['background noise']),
                    method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]})
     if res.success:
         logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (name, _x_to_eps(res.x[0]), ellip))
@@ -140,15 +139,16 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
 
     # Compute the error on the parameters
     ######################################################################
-    RR = np.linspace(circ_ellipse_radii[-2] - results['psf']['fwhm'], circ_ellipse_radii[-2] + results['psf']['fwhm'], 10)
+    RR = np.linspace(circ_ellipse_radii[-2] - results['psf fwhm'], circ_ellipse_radii[-2] + results['psf fwhm'], 10)
+    errallphase = []
     for rr in RR:
         isovals = _iso_extract(dat,rr,0.,0.,results['center'], more = True)
         coefs = fft(np.clip(isovals[0], a_max = np.quantile(isovals[0],0.85), a_min = None))
-        allphase.append(coefs[2])
-    sample_pas = (-np.angle(1j*np.array(allphase)/np.mean(allphase))/2) % np.pi
+        errallphase.append(coefs[2])
+    sample_pas = (-np.angle(1j*np.array(errallphase)/np.mean(errallphase))/2) % np.pi
     pa_err = iqr(sample_pas, rng = [16,84])/2
-    res_multi = map(lambda rrp: minimize(lambda e,d,r,p,c: _CircfitEllip_loss(_x_to_eps(e[0]),d,r,p,c),
-                                        x0 = _inv_x_to_eps(ellip), args = (dat, rrp[0], rrp[1], results['center']),
+    res_multi = map(lambda rrp: minimize(lambda e,d,r,p,c,n: _CircfitEllip_loss(_x_to_eps(e[0]),d,r,p,c,n),
+                                        x0 = _inv_x_to_eps(ellip), args = (dat, rrp[0], rrp[1], results['center'],results['background noise']),
                                          method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]}), zip(RR,sample_pas))
     ellip_err = iqr(list(_x_to_eps(rm.x[0]) for rm in res_multi),rng = [16,84])/2
     # logging.info('%s: ellipticity time: %f' % (name, time() - start))
@@ -166,10 +166,34 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
         
     circ_ellipse_radii = np.array(circ_ellipse_radii)
     if name != '' and 'doplot' in kwargs and kwargs['doplot']:
-        plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
-        plt.gca().add_patch(Ellipse((results['center']['x'],results['center']['y']), 2*circ_ellipse_radii[-1], 2*circ_ellipse_radii[-1]*(1. - ellip),
+
+        ranges = [[max(0,int(results['center']['x']-circ_ellipse_radii[-1]*2)), min(dat.shape[1],int(results['center']['x']+circ_ellipse_radii[-1]*2))],
+                  [max(0,int(results['center']['y']-circ_ellipse_radii[-1]*2)), min(dat.shape[0],int(results['center']['y']+circ_ellipse_radii[-1]*2))]]
+        
+        plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
+                   origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
+        plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*circ_ellipse_radii[-1], 2*circ_ellipse_radii[-1]*(1. - ellip),
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
-        plt.plot([results['center']['x']],[results['center']['y']], marker = 'x', markersize = 3, color = 'y')
+        plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = 'r')
         plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()
-    return {'ellip': ellip, 'ellip_err': ellip_err, 'pa': phase, 'pa_err': pa_err, 'R': circ_ellipse_radii[-2]}
+
+        # paper plot
+        # fig, ax = plt.subplots(2,1)
+        # ax[0].plot(circ_ellipse_radii[:-1], ((-np.angle(allphase)/2) % np.pi)*180/np.pi, color = 'k')
+        # ax[0].axhline(phase*180/np.pi, color = 'r')
+        # ax[0].axhline((phase+pa_err)*180/np.pi, color = 'r', linestyle = '--')
+        # ax[0].axhline((phase-pa_err)*180/np.pi, color = 'r', linestyle = '--')
+        # ax[0].set_xlabel('Radius [pix]')
+        # ax[0].set_ylabel('FFT$_{1}$ phase [deg]')
+        # ax[1].plot(test_ellip, test_f2, color = 'k')
+        # ax[1].axvline(ellip, color = 'r')
+        # ax[1].axvline(ellip + ellip_err, color = 'r', linestyle = '--')
+        # ax[1].axvline(ellip - ellip_err, color = 'r', linestyle = '--')
+        # ax[1].set_xlabel('Ellipticity [1 - b/a]')
+        # ax[1].set_ylabel('Loss [FFT$_{2}$/med(flux)]')
+        # plt.tight_layout()
+        # plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        # plt.clf()
+        
+    return {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}

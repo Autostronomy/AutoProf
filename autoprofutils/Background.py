@@ -6,6 +6,10 @@ from scipy.optimize import minimize
 from time import time
 import logging
 import numpy as np
+import matplotlib.pyplot as plt
+from astropy.visualization import SqrtStretch, LogStretch
+from astropy.visualization.mpl_normalize import ImageNormalize
+
 
 def Background_Mode(IMG, pixscale, name, results, **kwargs):
     """
@@ -25,7 +29,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
               int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
     values = IMG[edge_mask].ravel()
     start = np.median(values)
-    scale = iqr(values,rng = [30,70])
+    scale = iqr(values,rng = [30,70])/40
 
     res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
 
@@ -33,7 +37,30 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     for i in range(10):
         clip_above = 3*np.sqrt(np.mean(values[values < clip_above] - res.x[0])**2)
 
-    return {'background': res.x[0], 'noise': iqr(values[values < clip_above], rng = [16,84])/2}
+    # paper plot
+    # if 'doplot' in kwargs and kwargs['doplot']:    
+    #     plt.imshow(np.clip(IMG, a_min = 0, a_max = None), origin = 'lower',
+    #                cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+    #     dat = np.ones(IMG.shape)
+    #     dat[IMG < clip_above] = np.nan
+    #     plt.imshow(dat, origin = 'lower', cmap = 'autumn', alpha = 0.7)
+    #     plt.savefig('%sBackground_mask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+    #     plt.clf()
+    #     hist, bins = np.histogram(values[np.logical_and(values < 20*clip_above, values > -3*clip_above)], bins = 1000)
+    #     plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
+    #     plt.axvline(res.x[0], color = 'r', label = 'background level')
+    #     noise = iqr(values[values < clip_above], rng = [16,84])/2
+    #     plt.axvline(res.x[0] - noise, color = 'r', linestyle = '--', label = 'noise')
+    #     plt.axvline(res.x[0] + noise, color = 'r', linestyle = '--')
+    #     plt.legend()
+    #     plt.xlabel('flux')
+    #     plt.ylabel('log$_{10}$(count)')
+    #     plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+    #     plt.clf()
+
+        
+    return {'background': res.x[0],
+            'background noise': iqr(values[values < clip_above], rng = [16,84])/2}
 
 def Background_Global(IMG, pixscale, name, results, **kwargs):
     """
@@ -69,10 +96,8 @@ def Background_Global(IMG, pixscale, name, results, **kwargs):
     mask = np.logical_or(mask, edge_mask)
 
     # Return statistics from background sky
-    return {'mean': np.mean(IMG[np.logical_not(mask)]),
-            'background': np.median(IMG[np.logical_not(mask)]),
-            'std': np.std(IMG[np.logical_not(mask)]),
-            'noise': iqr(IMG[np.logical_not(mask)],rng = [16,84])/2}
+    return {'background': np.median(IMG[np.logical_not(mask)]),
+            'background noise': iqr(IMG[np.logical_not(mask)],rng = [16,84])/2}
 
 def Background_ByPatches(IMG, pixscale, name, results, **kwargs):
     """
@@ -115,10 +140,8 @@ def Background_ByPatches(IMG, pixscale, name, results, **kwargs):
     std = np.median(stats['std'])
     img_iqr = np.median(stats['iqr'])
 
-    return {'mean': mean,
-            'background': median,
-            'std': std,
-            'noise': img_iqr}
+    return {'background': median,
+            'background noise': img_iqr}
     
 
 def Background_ByIsophote(IMG, pixscale, name, results, **kwargs):
@@ -148,10 +171,8 @@ def Background_ByIsophote(IMG, pixscale, name, results, **kwargs):
         ES.extract()
         isophote_SBs.append(np.median(ES.values[2]))
     
-    return {'mean': np.mean(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):]),
-            'background': np.min(isophote_SBs),
-            'std': np.std(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):]),
-            'noise': iqr(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):],rng=[16,84])/2}
+    return {'background': np.min(isophote_SBs),
+            'background noise': iqr(isophote_SBs[min(np.argmin(isophote_SBs), len(isophote_SBs)-2):],rng=[16,84])/2}
 
 def Background_All(IMG, pixscale, name, results, **kwargs):
     """

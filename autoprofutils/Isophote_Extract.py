@@ -38,7 +38,7 @@ def Simple_Isophote_Extract(IMG, mask, background_level, center, R, E, PA, name 
                               eps = E[i], pa = PA[i])
         # Extract the isophote information
         ES = EllipseSample(dat, sma = R[i], geometry = geo)
-        ES.extract()
+        ES.extract(max_samples = 100)
         iso_list.append(Isophote(ES, niter = 30, valid = True, stop_code = 0))
         
     return IsophoteList(iso_list)
@@ -136,7 +136,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
         plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.clf()                
         
-    return {'header': params, 'units': SBprof_units, 'data': SBprof_data, 'format': SBprof_format}
+    return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
 
 def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
     """
@@ -148,15 +148,15 @@ def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
     results: dictionary contianing results from past steps in the pipeline
     kwargs: user specified arguments
     """
-    if 'ellip_err' in results['isophotefit'] and (not results['isophotefit']['ellip_err'] is None) and 'pa_err' in results['isophotefit'] and (not results['isophotefit']['pa_err'] is None):
-        Ee = results['isophotefit']['ellip_err']
-        PAe = results['isophotefit']['pa_err']
+    if 'fit ellip_err' in results and (not results['fit ellip_err'] is None) and 'fit pa_err' in results and (not results['fit pa_err'] is None):
+        Ee = results['fit ellip_err']
+        PAe = results['fit pa_err']
     else:
-        Ee = np.zeros(len(results['isophotefit']['R']))
-        PAe = np.zeros(len(results['isophotefit']['R']))
-    return Generate_Profile(IMG, pixscale, np.logical_or(results['starmask']['overflow mask'],results['starmask']['mask']),
-                            results['background']['background'], results['background']['noise'], results['center'], results['isophotefit']['R'],
-                            results['isophotefit']['ellip'], Ee, results['isophotefit']['pa'], PAe, results['isophoteinit'], name, **kwargs)
+        Ee = np.zeros(len(results['fit R']))
+        PAe = np.zeros(len(results['fit R']))
+    return Generate_Profile(IMG, pixscale, np.logical_or(results['overflow mask'],results['mask']),
+                            results['background'], results['background noise'], results['center'], results['fit R'],
+                            results['fit ellip'], Ee, results['fit pa'], PAe, {'ellip': results['init ellip'], 'pa': results['init pa']}, name, **kwargs)
 
 def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     """
@@ -174,55 +174,55 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     kwargs: user specified arguments
     """
 
-    if 'center' in results['isophotefit']:
-        use_center = results['isophotefit']['center']
-    else:
-        use_center = results['center']
+    use_center = results['center']
         
     # Radius values to evaluate isophotes
-    R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf']['fwhm']/2)]
-    while ((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 2*results['isophotefit']['R'][-1] and R[-1] < min(IMG.shape)/2) or (kwargs['extractfull'] if 'extractfull' in kwargs else False):
+    R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf fwhm']/2)]
+    while ((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 2*results['fit R'][-1] and R[-1] < min(IMG.shape)/2) or (kwargs['extractfull'] if 'extractfull' in kwargs else False):
         if 'samplestyle' in kwargs and kwargs['samplestyle'] == 'geometric-linear':
-            if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf']['fwhm']):
-                R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf']['fwhm']))
+            if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf fwhm']):
+                R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf fwhm']))
             else:
                 R.append(R[-1]*(1. + (kwargs['samplegeometricscale'] if 'samplegeometricscale' in kwargs else 0.1)))
         elif 'samplestyle' in kwargs and kwargs['samplestyle'] == 'linear':
-            R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 0.5*results['psf']['fwhm']))
+            R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 0.5*results['psf fwhm']))
         else:
             R.append(R[-1]*(1. + (kwargs['samplegeometricscale'] if 'samplegeometricscale' in kwargs else 0.1)))
     R = np.array(R)
     logging.info('%s: R complete in range [%.1f,%.1f]' % (name,R[0],R[-1]))
     
     # Interpolate profile values, when extrapolating just take last point
-    E = _x_to_eps(np.interp(R, results['isophotefit']['R'], _inv_x_to_eps(results['isophotefit']['ellip'])))
-    E[R < results['isophotefit']['R'][0]] = R[R < results['isophotefit']['R'][0]] * results['isophotefit']['ellip'][0] / results['isophotefit']['R'][0]
-    E[R > results['isophotefit']['R'][-1]] = results['isophotefit']['ellip'][-1]
-    tmp_pa_s = np.interp(R, results['isophotefit']['R'], np.sin(2*results['isophotefit']['pa']))
-    tmp_pa_c = np.interp(R, results['isophotefit']['R'], np.cos(2*results['isophotefit']['pa']))
-    PA = _x_to_pa(((np.arctan(tmp_pa_s/tmp_pa_c) + (np.pi*(tmp_pa_c < 0))) % (2*np.pi))/2)#_x_to_pa(np.interp(R, results['isophotefit']['R'], results['isophotefit']['pa']))
-    PA[R < results['isophotefit']['R'][0]] = _x_to_pa(results['isophotefit']['pa'][0])
-    PA[R > results['isophotefit']['R'][-1]] = _x_to_pa(results['isophotefit']['pa'][-1])
+    E = _x_to_eps(np.interp(R, results['fit R'], _inv_x_to_eps(results['fit ellip'])))
+    E[R < results['fit R'][0]] = results['fit ellip'][0] #R[R < results['fit R'][0]] * results['fit ellip'][0] / results['fit R'][0]
+    E[R < results['psf fwhm']] = R[R < results['psf fwhm']] * results['fit ellip'][0] / results['psf fwhm']
+    E[R > results['fit R'][-1]] = results['fit ellip'][-1]
+    tmp_pa_s = np.interp(R, results['fit R'], np.sin(2*results['fit pa']))
+    tmp_pa_c = np.interp(R, results['fit R'], np.cos(2*results['fit pa']))
+    PA = _x_to_pa(((np.arctan(tmp_pa_s/tmp_pa_c) + (np.pi*(tmp_pa_c < 0))) % (2*np.pi))/2)#_x_to_pa(np.interp(R, results['fit R'], results['fit pa']))
+    PA[R < results['fit R'][0]] = _x_to_pa(results['fit pa'][0])
+    PA[R > results['fit R'][-1]] = _x_to_pa(results['fit pa'][-1])
 
     # Get errors for pa and ellip
-    if 'ellip_err' in results['isophotefit'] and (not results['isophotefit']['ellip_err'] is None) and 'pa_err' in results['isophotefit'] and (not results['isophotefit']['pa_err'] is None):
-        Ee = np.clip(np.interp(R, results['isophotefit']['R'], results['isophotefit']['ellip_err']), a_min = 1e-3, a_max = None)
-        Ee[R < results['isophotefit']['R'][0]] = results['isophotefit']['ellip_err'][0]
-        Ee[R > results['isophotefit']['R'][-1]] = results['isophotefit']['ellip_err'][-1]
-        PAe = np.clip(np.interp(R, results['isophotefit']['R'], results['isophotefit']['pa_err']), a_min = 1e-3, a_max = None)
-        PAe[R < results['isophotefit']['R'][0]] = results['isophotefit']['pa_err'][0]
-        PAe[R > results['isophotefit']['R'][-1]] = results['isophotefit']['pa_err'][-1]
+    if 'fit ellip_err' in results and (not results['fit ellip_err'] is None) and 'fit pa_err' in results and (not results['fit pa_err'] is None):
+        Ee = np.clip(np.interp(R, results['fit R'], results['fit ellip_err']), a_min = 1e-3, a_max = None)
+        Ee[R < results['fit R'][0]] = results['fit ellip_err'][0]
+        Ee[R > results['fit R'][-1]] = results['fit ellip_err'][-1]
+        PAe = np.clip(np.interp(R, results['fit R'], results['fit pa_err']), a_min = 1e-3, a_max = None)
+        PAe[R < results['fit R'][0]] = results['fit pa_err'][0]
+        PAe[R > results['fit R'][-1]] = results['fit pa_err'][-1]
     else:
-        Ee = np.zeros(len(results['isophotefit']['R']))
-        PAe = np.zeros(len(results['isophotefit']['R']))
+        Ee = np.zeros(len(results['fit R']))
+        PAe = np.zeros(len(results['fit R']))
     
     # Stop from masking anything at the center
-    results['starmask']['mask'][int(use_center['x'] - 10*results['psf']['fwhm']):int(use_center['x'] + 10*results['psf']['fwhm']),
-                            int(use_center['y'] - 10*results['psf']['fwhm']):int(use_center['y'] + 10*results['psf']['fwhm'])] = False
-    compund_Mask = np.logical_or(results['starmask']['overflow mask'],results['starmask']['mask'])
+    results['mask'][int(use_center['x'] - 10*results['psf fwhm']):int(use_center['x'] + 10*results['psf fwhm']),
+                            int(use_center['y'] - 10*results['psf fwhm']):int(use_center['y'] + 10*results['psf fwhm'])] = False
+    compund_Mask = np.logical_or(results['overflow mask'],results['mask'])
 
     # Extract SB profile
     return Generate_Profile(IMG,pixscale,compund_Mask,
-                            results['background']['background'],
-                            results['background']['noise'],
-                            use_center, R, E, Ee, PA, PAe, results['isophoteinit'], name, **kwargs)
+                            results['background'],
+                            results['background noise'],
+                            use_center, R, E, Ee, PA, PAe,
+                            {'ellip': results['init ellip'], 'pa': results['init pa']},
+                            name, **kwargs)
