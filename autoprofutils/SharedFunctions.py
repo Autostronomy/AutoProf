@@ -211,7 +211,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
                        sma = sma,
                        geometry = geo,
                        integrmode = 'bilinear' if sma < 50 else 'nearest_neighbor')
-    ES.extract(max_samples = 100)
+    ES.extract() # (max_samples = 100) fixme
     # Return the desited vlaues, either just SB values,
     # or SB values and angles
     if more:

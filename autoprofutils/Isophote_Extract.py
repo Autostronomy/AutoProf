@@ -38,7 +38,7 @@ def Simple_Isophote_Extract(IMG, mask, background_level, center, R, E, PA, name 
                               eps = E[i], pa = PA[i])
         # Extract the isophote information
         ES = EllipseSample(dat, sma = R[i], geometry = geo)
-        ES.extract(max_samples = 100)
+        ES.extract()
         iso_list.append(Isophote(ES, niter = 30, valid = True, stop_code = 0))
         
     return IsophoteList(iso_list)
