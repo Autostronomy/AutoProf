@@ -23,6 +23,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     cd /where/you/want/AutoProf/to/live/
     git clone git@github.com:ConnorStoneAstro/AutoProf.git
     ```
+    If you are having difficulty cloning the package, it is also possible to download a zip file of the package from the github page.
 1. Set an environment variable and alias the autoprof function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). 
     ```bash
     export AUTOPROF='/path/to/AutoProf/'
@@ -37,11 +38,23 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 
 ### Issues
 
-If you get *Permission Denied*, it is possible that the file is not listed as executable and you need to run:
-```bash
-cd /path/to/AutoProf/
-chmod 755 autoprof.py
-```
+* If you get *Permission Denied*, it is possible that the file is not listed as executable and you need to run:
+    ```bash
+    cd /path/to/AutoProf/
+    chmod 755 autoprof.py
+    ```
+* If you have everything set up, but are getting strange errors such as *ImportError: No module named photutils* even when photutils is already installed it is possible that your python3 installation lives somewhere unusual. Try executing:
+    ```bash
+    which python3
+    ```
+    to see where your python3 installation lives. If the result is something other than */usr/bin/python3* then you need to make a small edit to the *autoprof.py* file. In the first line make the change from:
+    ```python
+    #!/bin/bash/python3
+    ```
+    to instead be:
+    ```python
+    #!/wherever/your/python3/is/installed
+    ```
 
 For other issues contact connor.stone@queensu.ca for help. The code has been tested on Linux Mint and Mac machines.
 
