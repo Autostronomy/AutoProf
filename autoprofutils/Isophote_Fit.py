@@ -255,8 +255,11 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
                 
     if 'doplot' in kwargs and kwargs['doplot']:
         dat = IMG - results['background']
-        ranges = [[max(0,int(results['center']['y']-(np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[0],int(results['center']['y']+(np.array(force['R'])[-1]/pixscale)*1.2)),]
-                  [max(0,int(results['center']['x']-(np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[1],int(results['center']['x']+(np.array(force['R'])[-1]/pixscale)*1.2))]]
+        logging.info(results['center'])
+        logging.info(force.keys())
+        logging.info(force['R'])
+        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/pixscale)*1.2))],
+                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/pixscale)*1.2))]]
         plt.imshow(np.clip(dat[ranges[0][0]: ranges[0][1], ranges[1][0]: ranges[1][1]],
                            a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(0,len(np.array(force['R'])),2):
