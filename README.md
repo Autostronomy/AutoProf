@@ -34,6 +34,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     cd /path/to/AutoProf/test/
     autoprof test_config.py
     autoprof test_forced_config.py Forced.log
+    autoprof test_batch_config.py Batch.log
     ```
 
 ### Issues
