@@ -36,6 +36,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     autoprof test_forced_config.py Forced.log
     autoprof test_batch_config.py Batch.log
     ```
+    This will test a basic AutoProf run on a single galaxy, forced photometry of the galaxy on itself, and batch photometry for multiple images (which are actually the same in this case) respectively.
 
 ### Issues
 
@@ -203,7 +204,7 @@ This peak is used as the background level, a few rounds of sigma clipping are ap
 Output format:
 ```python
 {'background': , # flux value representing the background level
-'noise': # measure of scatter around the background level
+'background noise': # measure of scatter around the background level
 }
 ```
 
@@ -211,12 +212,15 @@ Output format:
 
 **pipeline label: psf**
 
-Using the IRAF star finder wrapper from photutils, most stars in the image are identified.
-The wrapper also reports the Full Width at Half Maximum (FWHM) for the stars, a median is used to determine the average FWHM for the image.
+Using the IRAF star finder wrapper from photutils, bright stars in the image are identified (at most 30).
+An FFT is used to identify non-circular stars or artifacts which may have been picked up by IRAF.
+Circular appertures are placed around the star until the background brightness is nearly reached.
+The brightness of these apertures as a function of radius are fit with a Gaussian and the sigma is converted into a fwhm.
+
 
 Output format:
 ```python
-{'fwhm': # estimate of the fwhm of the PSF
+{'psf fwhm': # estimate of the fwhm of the PSF
 }
 ```
 
@@ -226,15 +230,17 @@ Output format:
 
 Depending on the specified parameters, this function will start at the center of the image or at a user specified center.
 From the starting point, the function will create 10 circular isophotes out to 10 times the PSF size and sample flux values around each isophote.
-An FFT is taken for the flux values around each circular isophote and the phase of the first FFT coefficient is used to determine a direction on the image.
+An FFT is taken for the flux values around each circular isophote and the phase of the first FFT coefficient is used to determine a direction on the image of increasing brightness.
 Taking the average direction, flux values are sampled from the current center out to 10 times the PSF.
 A parabola is fit to the flux values and the center is then updated to the maximum of the parabola.
 This is repeated until the update steps become negligible.
+At this point, tiny random perturbations are used to fine tune the center.
+The random perturbations continue until a minimum is found in FFT first coefficient magnitude.
 
 Output format:
 ```python
-{'x': , # x coordinate of the center (pix)
-'y': # y coordinate of the center (pix)
+{'center': {'x': , # x coordinate of the center (pix)
+	    'y': } # y coordinate of the center (pix)
 }
 ```
 
@@ -253,8 +259,8 @@ For ellipticity the error is computed by optimizing the ellipticity for multiple
 
 Output format:
 ```python
-{'ellip': , # Ellipticity of the global fit (float)
- 'pa': # Position angle of the global fit (float)
+{'init ellip': , # Ellipticity of the global fit (float)
+ 'init pa': # Position angle of the global fit (float)
 }
 ```
 
@@ -266,29 +272,22 @@ A series of isophotes are constructed which grow geometrically until they begin 
 Then the algorithm iteratively updates the position angle and ellipticity of each isophote individually for many rounds.
 Each round updates every isophote in a random order.
 Each round cycles between three options: optimizing position angle, ellipticity, or both.
-To optimize the parameters, 4 values (pa, ellip, or both) are randomly sampled and the "loss" is computed.
+To optimize the parameters, 5 values (pa, ellip, or both) are randomly sampled and the "loss" is computed.
 The loss is a combination of the relative amplitude of the second FFT coefficient (compared to the median flux), and a regularization term.
 The regularization term penalizes adjacent isophotes for having different position angle or ellipticity (using the l1 norm).
 Thus, all the isophotes are coupled and tend to fit smoothly varying isophotes.
-
-Every 5 rounds of optimization, the isophotes are scanned for an area where two isophotes have a large separation despite the regularization term.
-This indicates some sort of non-trivial structure such as a bar or large bulge.
-In this case the index where the strain occurs is identified and the regularization term is not computed for that isophote, allowing the isophotes inside/outside that index to evolve independently.
-
 When the optimization has completed three rounds without any isophotes updating, the profile is assumed to have converged.
-At that point the position angle and ellipticity profiles are smoothed using a robust polynomial fit (see HuberRegressor in Sci-kit learn).
 
-An uncertainty for each ellipticity and position angle value is determined by taking the RMS between the fitted values and the smoothed polynomial fit values for 4 points.
+An uncertainty for each ellipticity and position angle value is determined by taking the RMS between the fitted values and a smoothed polynomial fit values for 4 points.
 This is a very rough estimate of the uncertainty, but works sufficiently well in the outskirts.
 
 Output format:
 ```python
-{'R': , # Semi-major axis for ellip and pa profile (list)
-'ellip': , # Ellipticity values at each corresponding R value (list)
-'ellip_err': , # Optional, uncertainty on ellipticity values (list)
-'pa': , # Position angle values at each corresponding R value (list)
-'pa_err': , # Optional, uncertainty on position angle values (list)
-'center': # Optional, new center value updated during fitting (dict)
+{'fit R': , # Semi-major axis for ellip and pa profile (list)
+'fit ellip': , # Ellipticity values at each corresponding R value (list)
+'fit ellip_err': , # Optional, uncertainty on ellipticity values (list)
+'fit pa': , # Position angle values at each corresponding R value (list)
+'fit pa_err': , # Optional, uncertainty on position angle values (list)
 }
 ```
 
@@ -321,10 +320,10 @@ Within 1 PSF, a circular isophote is used.
 
 Output format:
 ```python
-{'header': , # List of strings indicating the order to write the .prof file data (list)
-'units': , # Dictionary with keys from header, values are strings that give the units for each variable (dict)
-'data': , # Dictionary with keys from header, values are lists with the data (dict)
-'format': # Dictionary with keys from header, values are format strings for precision of writing the data (dict)
+{'prof header': , # List of strings indicating the order to write the .prof file data (list)
+'prof units': , # Dictionary with keys from header, values are strings that give the units for each variable (dict)
+'prof data': , # Dictionary with keys from header, values are lists with the data (dict)
+'prof format': # Dictionary with keys from header, values are format strings for precision of writing the data (dict)
 }
 ```
 
@@ -349,11 +348,11 @@ Finally, the fourth check compares the total magnitude of the galaxy based on in
 
 Output format:
 ```python
-{'anything': , # True if the test was passed, False if the test failed (bool)
-'you': , # True if the test was passed, False if the test failed (bool)
-'want': , # True if the test was passed, False if the test failed (bool)
-'to': , # True if the test was passed, False if the test failed (bool)
-'put': # True if the test was passed, False if the test failed (bool)
+{'checkfit': {'anything': , # True if the test was passed, False if the test failed (bool)
+	      'you': , # True if the test was passed, False if the test failed (bool)
+	      'want': , # True if the test was passed, False if the test failed (bool)
+	      'to': , # True if the test was passed, False if the test failed (bool)
+	      'put': } # True if the test was passed, False if the test failed (bool)
 }
 ```
 
@@ -372,7 +371,7 @@ For example, if you wrote a new center finding function, you could update the pi
 ```python
 new_pipeline_functions = {'center': My_Center_Finding_Function}
 ```
-in the *config* file.
+in your config file.
 You can also make up any other functions and add them to the pipeline functions list, assigning whatever key you like.
 However, AutoProf will only look for functions that are in the pipeline steps object, so see *Modifying Pipeline Steps* for how to add/remove/reorder steps in the pipeline.
 
@@ -380,7 +379,6 @@ Every function in the pipeline has the same template.
 To add a new function, or replace an existing one, you must format it as:
 ```python
 def My_New_Function(IMG, pixscale, name, results, **kwargs):
-    pass
     # Code here
     return {'results': of, 'the': calculations}
 ```
@@ -403,12 +401,20 @@ The basic pipeline step order is:
 ```python
 ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 ```
+For forced photomettry the pipeline step order is:
+```python
+['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced', 'starmask forced', 'isophoteextract forced']
+```
+So the background, psf, and global ellip/pa are always fit directly to the image, but for forced photometry the center, isophote parameter, and star mask are fixed.
+If you would like to change this behaviour, just provide a new pipeline steps list.
+For example if you wished to re-fit the center for an image you can change *center forced* back to *center*.
+
 You can create your own order, or add in new functions by supplying a new list.
 For example, if you had your own function to run after the centering function you could do so by including:
 ```python
 new_pipeline_functions = {'myfunction': My_New_Function}
 new_pipeline_steps = ['background', 'psf', 'center', 'myfunction', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 ```
-in the *config* file.
+in your config file.
 Note that for *new_pipeline_functions* you need only include the new function, while for *new_pipeline_steps* you must write out the full pipeline steps.
-If you wish to skip a step, it is generally better to write your own "null" version of the function (and change *new_pipeline_functions*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash. 
+If you wish to skip a step, it is sometimes better to write your own "null" version of the function (and change *new_pipeline_functions*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash. 
