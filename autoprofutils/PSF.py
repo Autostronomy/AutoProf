@@ -87,9 +87,13 @@ def PSF_GaussFit(IMG, pixscale, name, results, **kwargs):
     """
     fwhm_guess = max(1. / pixscale, 1)
     edge_mask = np.zeros(IMG.shape, dtype = bool)
-    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
-              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = True
-
+    edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
+              int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
+    edge_mask[:,:33] = True
+    edge_mask[:,-33:] = True
+    edge_mask[:33,:] = True
+    edge_mask[-33:,:] = True
+    
     dat = IMG - results['background']
     # photutils wrapper for IRAF star finder
     count = 0

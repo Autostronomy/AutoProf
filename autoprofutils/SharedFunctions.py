@@ -2,11 +2,13 @@ import sys
 import os
 from scipy.integrate import trapz
 from scipy.stats import iqr
+from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariateSpline
 import matplotlib.pyplot as plt
 from astropy.io import fits
 import numpy as np
 from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, IsophoteList
 from photutils.isophote import Ellipse as Photutils_Ellipse
+import logging
 
 Abs_Mag_Sun = {'u': 6.39,
                'g': 5.11,
@@ -195,29 +197,61 @@ def L_to_mag(L, band, Le = None, zeropoint = None):
         mage = np.abs(2.5 * Le / (L * np.log(10)))
         return mag, mage
 
-
 def _iso_extract(IMG, sma, eps, pa, c, more = False):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
+    
+    if type(sma) == list:
+        box = [[max(0,int(c['x']-max(sma)-2)), min(IMG.shape[0],int(c['x']+max(sma)+2))],
+               [max(0,int(c['y']-max(sma)-2)), min(IMG.shape[1],int(c['y']+max(sma)+2))]]
+        f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
+                                       np.arange(box[0][1] - box[0][0], dtype = np.float32),
+                                       IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
+        
+        N = list(int(np.clip(7*s, a_min = 13, a_max = 50)) for s in sma)
+        # points along ellipse to evaluate
+        theta = list(np.linspace(0, 2*np.pi - 1./n, n) for n in N)
+        # Define ellipse
+        X = list(sma[i]*np.cos(theta[i]) for i in range(len(sma)))
+        Y = list(sma[i]*(1-eps)*np.sin(theta[i]) for i in range(len(sma)))
+        # rotate ellipse by PA
+        for i in range(len(sma)):
+            X[i],Y[i] = (X[i]*np.cos(pa) - Y[i]*np.sin(pa), X[i]*np.sin(pa) + Y[i]*np.cos(pa))
+        theta = list((theta[i] + pa) % (2*np.pi) for i in range(len(sma)))
+        flux = list(f_interp(Y[i] + c['y'] - box[1][0],
+                             X[i] + c['x'] - box[0][0], grid = False) for i in range(len(sma)))
+        if more:
+            return flux, theta
+        else:
+            return flux
 
-    # Geometry of the isophote
-    geo = EllipseGeometry(x0 = c['x'], y0 = c['y'],
-                          sma = sma,
-                          eps = eps,
-                          pa = pa)
-    # Extract the isophote information
-    ES = EllipseSample(IMG,
-                       sma = sma,
-                       geometry = geo,
-                       integrmode = 'bilinear' if sma < 50 else 'nearest_neighbor')
-    ES.extract() # (max_samples = 100) fixme
-    # Return the desited vlaues, either just SB values,
-    # or SB values and angles
-    if more:
-        return ES.values[2], ES.values[0]
+    N = int(np.clip(7*sma, a_min = 13, a_max = 50)) if sma < 20 else 200
+    # points along ellipse to evaluate
+    theta = np.linspace(0, 2*np.pi - 1./N, N)
+    # Define ellipse
+    X = sma*np.cos(theta)
+    Y = sma*(1-eps)*np.sin(theta)
+    # rotate ellipse by PA
+    X,Y = (X*np.cos(pa) - Y*np.sin(pa), X*np.sin(pa) + Y*np.cos(pa))
+    theta = (theta + pa) % (2*np.pi)
+    
+    if sma < 30: 
+        box = [[max(0,int(c['x']-sma-2)), min(IMG.shape[0],int(c['x']+sma+2))],
+               [max(0,int(c['y']-sma-2)), min(IMG.shape[1],int(c['y']+sma+2))]]
+        f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
+                                       np.arange(box[0][1] - box[0][0], dtype = np.float32),
+                                       IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
+        flux = f_interp(Y + c['y'] - box[1][0],
+                        X + c['x'] - box[0][0], grid = False)
     else:
-        return ES.values[2]
+        # note uses values at edge when past image boundary, possible fixme?
+        flux = IMG[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
+                   np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)]
+    if more:
+        return flux, theta
+    else:
+        return flux
 
 
 def _x_to_pa(x):

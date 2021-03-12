@@ -2,6 +2,7 @@ import numpy as np
 from photutils.isophote import EllipseSample, Ellipse, EllipseGeometry, Isophote, IsophoteList
 from scipy.optimize import minimize
 from scipy.stats import iqr
+from scipy.fftpack import fft, ifft
 from time import time
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -53,12 +54,13 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
     
     # Compute surface brightness in mag arcsec^-2 from flux
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
+    clippedflux = list(np.clip(isolist.sample[i].values[2], a_min = None, a_max = np.quantile(isolist.sample[i].values[2],0.9)) for i in range(len(isolist.sample)))
     sb = np.array(list((-2.5*np.log10(np.median(isolist.sample[i].values[2]))\
                         + zeropoint + 2.5*np.log10(pixscale**2)) \
                        for i in range(len(isolist.sma))))
     sb[np.logical_not(np.isfinite(sb))] = 99.999
 
-    sbE = list((iqr(isolist.sample[i].values[2],
+    sbE = list((iqr(clippedflux[i] - ifft(fft(clippedflux[i])[:int(len(clippedflux[i])/2)], n = len(clippedflux[i])),
                     rng = (31.7310507863/2,
                            100 - 31.7310507863/2)) / (2*np.sqrt(len(isolist.sample[i].values[2])))) \
                for i in range(len(isolist.sma)))
