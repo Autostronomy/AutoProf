@@ -60,7 +60,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
                        for i in range(len(isolist.sma))))
     sb[np.logical_not(np.isfinite(sb))] = 99.999
 
-    sbE = list((iqr(clippedflux[i] - ifft(fft(clippedflux[i])[:int(len(clippedflux[i])/2)], n = len(clippedflux[i])),
+    sbE = list((iqr(clippedflux[i], #  - ifft(fft(clippedflux[i])[:int(len(clippedflux[i])/2)], n = len(clippedflux[i]))
                     rng = (31.7310507863/2,
                            100 - 31.7310507863/2)) / (2*np.sqrt(len(isolist.sample[i].values[2])))) \
                for i in range(len(isolist.sma)))
@@ -69,7 +69,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
                         for i in range(len(isolist.sma))))
 
     sb[np.logical_not(np.isfinite(sbE))] = 99.999
-    sbE[np.logical_not(np.isfinite(sbE))] = 99.999
+    sbE[np.logical_or(np.logical_not(np.isfinite(sbE)), sb > 90)] = 99.999
 
     # Compute Curve of Growth from SB profile
     cog, cogE = SBprof_to_COG_errorprop(isolist.sma * pixscale, sb, sbE, 1. - isolist.eps,
@@ -90,22 +90,22 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
                             for i in range(len(isolistglob.sma))))
 
     sbglob[np.logical_not(np.isfinite(sbglobE))] = 99.999
-    sbglobE[np.logical_not(np.isfinite(sbglobE))] = 99.999
+    sbglobE[np.logical_or(np.logical_not(np.isfinite(sbglobE)), sbglob > 90)] = 99.999
 
     # Compute Curve of Growth from SB profile
     cogglob, cogglobE = SBprof_to_COG_errorprop(isolistglob.sma * pixscale, sbglob, sbglobE, 1. - isolistglob.eps,
                                                 isolistglob.ellip_err, N = 100, method = 0, symmetric_error = True)
     
     # For each radius evaluation, write the profile parameters
-    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'totmag_direct_e', 'SB_glob', 'SB_glob_e', 'totmag_glob', 'totmag_glob_e'] # , 'x0', 'y0'
+    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'totmag_direct_e', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e'] # , 'x0', 'y0'
         
     SBprof_data = dict((h,[]) for h in params)
     SBprof_units = {'R': 'arcsec', 'SB': 'mag arcsec^-2', 'SB_e': 'mag arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
                     'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'totmag_direct': 'mag', 'totmag_direct_e': 'mag',
-                    'SB_glob': 'mag arcsec^-2', 'SB_glob_e': 'mag arcsec^-2', 'totmag_glob': 'mag', 'totmag_glob_e': 'mag'}
+                    'SB_fix': 'mag arcsec^-2', 'SB_fix_e': 'mag arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
     SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f', 'totmag_direct_e': '%.4f',
-                     'SB_glob': '%.4f', 'SB_glob_e': '%.4f', 'totmag_glob': '%.4f', 'totmag_glob_e': '%.4f'}
+                     'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
     for i in range(len(isolist.sma)):
         tflux_e_err = isolist.rms[i] / (np.sqrt(isolist.npix_e[i]))
         SBprof_data['R'].append(isolist.sma[i] * pixscale)
@@ -119,10 +119,10 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
         SBprof_data['pa_e'].append(PAe[i]*180/np.pi)
         SBprof_data['totmag_direct'].append(zeropoint - 2.5*np.log10(isolist.tflux_e[i]))
         SBprof_data['totmag_direct_e'].append(np.abs(2.5*tflux_e_err/(isolist.tflux_e[i] * np.log(10))))
-        SBprof_data['SB_glob'].append(sbglob[i])
-        SBprof_data['SB_glob_e'].append(sbglobE[i])
-        SBprof_data['totmag_glob'].append(cogglob[i])
-        SBprof_data['totmag_glob_e'].append(cogglobE[i])
+        SBprof_data['SB_fix'].append(sbglob[i])
+        SBprof_data['SB_fix_e'].append(sbglobE[i])
+        SBprof_data['totmag_fix'].append(cogglob[i])
+        SBprof_data['totmag_fix_e'].append(cogglobE[i])
 
     if 'doplot' in kwargs and kwargs['doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
