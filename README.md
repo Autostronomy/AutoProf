@@ -12,7 +12,7 @@ very different from their neighbours.
 
 ### Requirements
 
-numpy, scipy, matplotlib, astropy, photutils
+numpy, scipy, matplotlib, astropy, photutils, scikit-learn
 
 If you have difficulty running AutoProf, it is possible that one of these dependencies is not in its latest (Python3) version and you should try updating.
 

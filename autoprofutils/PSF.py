@@ -98,15 +98,20 @@ def PSF_GaussFit(IMG, pixscale, name, results, **kwargs):
     # photutils wrapper for IRAF star finder
     count = 0
     sources = 0
-    while count < 5 and sources < 20:
-        iraffind = IRAFStarFinder(fwhm = fwhm_guess, threshold = 6.*results['background noise'], brightest = 50)
-        irafsources = iraffind.find_stars(dat, edge_mask)
-        fwhm_guess = np.median(irafsources['fwhm'])
-        if np.median(irafsources['sharpness']) >= 0.95:
-            break
-        count += 1
-        sources = len(irafsources['fwhm'])
-        
+    try:
+        while count < 5 and sources < 20:
+            iraffind = IRAFStarFinder(fwhm = fwhm_guess, threshold = 6.*results['background noise'], brightest = 50)
+            irafsources = iraffind.find_stars(dat, edge_mask)
+            fwhm_guess = np.median(irafsources['fwhm'])
+            if np.median(irafsources['sharpness']) >= 0.95:
+                break
+            count += 1
+            sources = len(irafsources['fwhm'])
+    except:
+        return {'psf fwhm': fwhm_guess}
+    if len(irafsources) < 5:
+        return {'psf fwhm': fwhm_guess}
+    
     if 'doplot' in kwargs and kwargs['doplot']:    
         plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
                    cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))

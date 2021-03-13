@@ -96,7 +96,7 @@ def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
                                                                    xbounds[0]:xbounds[1]])
     mask = np.zeros(IMG.shape, dtype = bool)
     # Mask star pixels and area around proportionate to their total flux
-    XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]))
+    XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]), indexing = 'ij')
     if irafsources:
         for x,y,f in zip(irafsources['xcentroid'], irafsources['ycentroid'], irafsources['flux']):
             if np.sqrt((x - (xbounds[1] - xbounds[0])/2)**2 + (y - (ybounds[1] - ybounds[0])/2)**2) < 10*results['psf fwhm']:

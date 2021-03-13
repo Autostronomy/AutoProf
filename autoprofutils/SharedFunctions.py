@@ -3,6 +3,8 @@ import os
 from scipy.integrate import trapz
 from scipy.stats import iqr
 from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariateSpline
+from scipy.fftpack import fft, ifft
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from astropy.io import fits
 import numpy as np
@@ -253,6 +255,63 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
     else:
         return flux
 
+def _GaussFit(x, sr, sf):
+    return np.mean((sf - x[1]*norm.pdf(sr, loc = 0, scale = x[0]))**2)
+
+def StarFind(IMG, fwhm_guess, background_noise):
+    zz = np.ones((9,9))*-1
+    zz[3:6,3:6] = 8
+    new = convolve2d(IMG, zz)
+
+    centers = []
+    fwhms = []
+    peaks = []
+    highpixels = np.argwhere(new > 20*iqr(new))
+
+    N = 9
+    xx, yy = np.meshgrid(np.arange(N,dtype=float), np.arange(N,dtype=float))
+    xx -= (N-1)/2.
+    yy -= (N-1)/2.
+    for i in range(len(highpixels)):
+        if len(centers) != 0 and np.any(np.sqrt(np.sum((highpixels[i] - centers)**2,axis = 1)) < 3*4):
+            continue
+        if np.any(highpixels[i] < 20) or np.any(highpixels[i] > 3000-21):
+            continue
+        newcenter = deepcopy(highpixels[i])
+        count = 0
+
+        while count < 20:
+            count += 1
+
+            chunk = IMG[int(newcenter[0]-N/2):int(newcenter[0]+N/2),int(newcenter[1]-N/2):int(newcenter[1]+N/2)]
+
+            M = np.sum(chunk)
+            newx = newcenter[0] + np.sum(chunk*yy)/M
+            newy = newcenter[1] + np.sum(chunk*xx)/M
+            if abs(newx - newcenter[0]) < 0.3 and abs(newy - newcenter[1]) < 0.3:
+                break
+            newcenter = np.array([newx,newy])
+        if count >= 20:
+            continue
+        isovals = _iso_extract(IMG, fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
+        coefs = fft(isovals)
+        if np.abs(coefs[1]) > np.sqrt(coefs[0]) or np.abs(coefs[2]) > np.sqrt(coefs[0]):
+            continue
+        if len(centers) == 0:
+            centers = np.array([deepcopy(newcenter)])
+        else:
+            centers = np.concatenate((centers,[newcenter]),axis = 0)
+        flux = [np.median(_iso_extract(IMG, 1, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
+        R = [1.]
+        while len(R) < 50 and flux[-1] > background_noise:
+            R.append(R[-1] + fwhm_guess/4)
+            flux.apppend(np.median(_iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})))
+        res = minimize(_GaussFit, x0 = [fwhm_guess/2.355, flux[0]/norm.pdf(0,loc = 0,scale = fwhm_guess/2.355)], args = (np.array(R), np.array(flux)), method = 'Nelder-Mead')
+        fwhms.append(res.x[0]*2.355)
+        peaks.append(res.x[1] / norm.pdf(0,loc = 0,scale = res.x[0]))
+    return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks)}
+
+
 
 def _x_to_pa(x):
     """
@@ -354,6 +413,14 @@ def GetKwargs(c):
     except:
         pass
     try:
+        newkwargs['psf_guess'] = c.psf_guess
+    except:
+        pass
+    try:
+        newkwargs['psf_set'] = c.psf_set
+    except:
+        pass
+    try:
         newkwargs['autodetectoverflow'] = c.autodetectoverflow
     except:
         pass
@@ -378,7 +445,7 @@ def GetKwargs(c):
     except:
         pass
     try:
-        newkwargs['given_centers'] = c.given_centers
+        newkwargs['given_center'] = c.given_center
     except:
         pass
     try:

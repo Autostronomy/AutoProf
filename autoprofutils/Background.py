@@ -28,39 +28,41 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
               int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
     values = IMG[edge_mask].ravel()
+    values = values[np.isfinite(values)]
     start = np.median(values)
     scale = iqr(values,rng = [30,70])/40
 
     res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
-
+    print(res, start, scale)
     clip_above = 3*np.sqrt(np.mean(values - res.x[0])**2)
     for i in range(10):
-        clip_above = 3*np.sqrt(np.mean(values[values < clip_above] - res.x[0])**2)
+        clip_above = 3*np.sqrt(np.mean(values[(values - res.x[0]) < clip_above] - res.x[0])**2)
 
+    noise = iqr(values[(values-res.x[0]) < clip_above], rng = [16,84])/2
+    print('noise: ', noise)
     # paper plot
-    # if 'doplot' in kwargs and kwargs['doplot']:    
-    #     plt.imshow(np.clip(IMG, a_min = 0, a_max = None), origin = 'lower',
-    #                cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-    #     dat = np.ones(IMG.shape)
-    #     dat[IMG < clip_above] = np.nan
-    #     plt.imshow(dat, origin = 'lower', cmap = 'autumn', alpha = 0.7)
-    #     plt.savefig('%sBackground_mask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-    #     plt.clf()
-    #     hist, bins = np.histogram(values[np.logical_and(values < 20*clip_above, values > -3*clip_above)], bins = 1000)
-    #     plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
-    #     plt.axvline(res.x[0], color = 'r', label = 'background level')
-    #     noise = iqr(values[values < clip_above], rng = [16,84])/2
-    #     plt.axvline(res.x[0] - noise, color = 'r', linestyle = '--', label = 'noise')
-    #     plt.axvline(res.x[0] + noise, color = 'r', linestyle = '--')
-    #     plt.legend()
-    #     plt.xlabel('flux')
-    #     plt.ylabel('log$_{10}$(count)')
-    #     plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-    #     plt.clf()
+    if 'doplot' in kwargs and kwargs['doplot']:    
+        plt.imshow(np.clip(IMG - res.x[0], a_min = 0, a_max = None), origin = 'lower',
+                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        dat = np.ones(IMG.shape)
+        dat[(IMG-res.x[0]) < clip_above] = np.nan
+        plt.imshow(dat, origin = 'lower', cmap = 'autumn', alpha = 0.7)
+        plt.savefig('%sBackground_mask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.clf()
+        hist, bins = np.histogram(values[np.logical_and((values-res.x[0]) < 20*noise, (values-res.x[0]) > -3*noise)], bins = 1000)
+        plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
+        plt.axvline(res.x[0], color = 'r', label = 'background level')
+        plt.axvline(res.x[0] - noise, color = 'r', linestyle = '--', label = 'noise')
+        plt.axvline(res.x[0] + noise, color = 'r', linestyle = '--')
+        plt.legend()
+        plt.xlabel('flux')
+        plt.ylabel('log$_{10}$(count)')
+        plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.clf()
 
         
     return {'background': res.x[0],
-            'background noise': iqr(values[values < clip_above], rng = [16,84])/2}
+            'background noise': noise}
 
 def Background_Global(IMG, pixscale, name, results, **kwargs):
     """
