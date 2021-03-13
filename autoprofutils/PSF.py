@@ -157,6 +157,8 @@ def PSF_GaussFit(IMG, pixscale, name, results, **kwargs):
     return {'psf fwhm': np.median(psf_estimates) if len(psf_estimates) >= 5 else fwhm_guess}
 
 
+
+
 def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
     """
     Idenitfy the location of stars in the image and calculate

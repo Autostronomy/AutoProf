@@ -228,7 +228,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
         else:
             return flux
 
-    N = int(np.clip(7*sma, a_min = 13, a_max = 50)) if sma < 20 else 200
+    N = int(np.clip(7*sma, a_min = 13, a_max = 50)) if sma < 20 else int(sma*0.5 + 40)
     # points along ellipse to evaluate
     theta = np.linspace(0, 2*np.pi - 1./N, N)
     # Define ellipse
@@ -258,7 +258,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
 def _GaussFit(x, sr, sf):
     return np.mean((sf - x[1]*norm.pdf(sr, loc = 0, scale = x[0]))**2)
 
-def StarFind(IMG, fwhm_guess, background_noise):
+def StarFind(IMG, fwhm_guess, background_noise, mask = None):
     zz = np.ones((9,9))*-1
     zz[3:6,3:6] = 8
     new = convolve2d(IMG, zz)
@@ -275,14 +275,14 @@ def StarFind(IMG, fwhm_guess, background_noise):
     for i in range(len(highpixels)):
         if len(centers) != 0 and np.any(np.sqrt(np.sum((highpixels[i] - centers)**2,axis = 1)) < 3*4):
             continue
-        if np.any(highpixels[i] < 20) or np.any(highpixels[i] > 3000-21):
+        if (not mask is None) and mask[tuple(highpixels[i])]:
+            continue
+        if np.any(highpixels[i] < 10*fwhm_guess) or np.any(highpixels[i] > (IMG.shape - 10*fwhm_guess)):
             continue
         newcenter = deepcopy(highpixels[i])
         count = 0
-
         while count < 20:
             count += 1
-
             chunk = IMG[int(newcenter[0]-N/2):int(newcenter[0]+N/2),int(newcenter[1]-N/2):int(newcenter[1]+N/2)]
 
             M = np.sum(chunk)
@@ -295,7 +295,7 @@ def StarFind(IMG, fwhm_guess, background_noise):
             continue
         isovals = _iso_extract(IMG, fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
         coefs = fft(isovals)
-        if np.abs(coefs[1]) > np.sqrt(coefs[0]) or np.abs(coefs[2]) > np.sqrt(coefs[0]):
+        if np.any(np.abs(coefs[1:]) > np.sqrt(np.abs(coefs[0]))):
             continue
         if len(centers) == 0:
             centers = np.array([deepcopy(newcenter)])
@@ -303,10 +303,10 @@ def StarFind(IMG, fwhm_guess, background_noise):
             centers = np.concatenate((centers,[newcenter]),axis = 0)
         flux = [np.median(_iso_extract(IMG, 1, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
         R = [1.]
-        while len(R) < 50 and flux[-1] > background_noise:
+        while len(R) < 40 and (flux[-1] > 5*background_noise or len(R) <= 5):
             R.append(R[-1] + fwhm_guess/4)
             flux.apppend(np.median(_iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})))
-        res = minimize(_GaussFit, x0 = [fwhm_guess/2.355, flux[0]/norm.pdf(0,loc = 0,scale = fwhm_guess/2.355)], args = (np.array(R), np.array(flux)), method = 'Nelder-Mead')
+        res = minimize(_GaussFit, x0 = [fwhm_guess/2.355, flux[0]/norm.pdf(0,loc = 0,scale = fwhm_guess/2.355)], args = (np.array(R), np.array(flux))) # , method = 'Nelder-Mead'
         fwhms.append(res.x[0]*2.355)
         peaks.append(res.x[1] / norm.pdf(0,loc = 0,scale = res.x[0]))
     return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks)}
