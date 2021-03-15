@@ -1,16 +1,18 @@
 import sys
 import os
 from scipy.integrate import trapz
-from scipy.stats import iqr
+from scipy.stats import iqr, norm
 from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariateSpline
 from scipy.fftpack import fft, ifft
 from scipy.optimize import minimize
+from scipy.signal import convolve2d
 import matplotlib.pyplot as plt
 from astropy.io import fits
 import numpy as np
 from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, IsophoteList
 from photutils.isophote import Ellipse as Photutils_Ellipse
 import logging
+from copy import deepcopy
 
 Abs_Mag_Sun = {'u': 6.39,
                'g': 5.11,
@@ -258,57 +260,100 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
 def _GaussFit(x, sr, sf):
     return np.mean((sf - x[1]*norm.pdf(sr, loc = 0, scale = x[0]))**2)
 
-def StarFind(IMG, fwhm_guess, background_noise, mask = None):
+def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10.):
+    """
+    Find stars in an image, determine their fwhm and peak flux values.
+
+    IMG: image data as numpy 2D array
+    fwhm_guess: A guess at the PSF fwhm, can be within a factor of 2 and everything should work
+    background_noise: image background flux noise
+    mask: masked pixels as numpy 2D array with same dimensions as IMG
+    peakmax: maximum allowed peak flux value for a star, used to remove saturated pixels
+    detect_threshold: threshold (in units of sigma) value for convolved image to consider a pixel as a star candidate.
+    minsep: minimum allowed separation between stars, in units of fwhm_guess
+    reject_size: reject stars with fitted FWHM greater than this times the fwhm_guess
+    """
+
+    # Convolve edge detector with image
     zz = np.ones((9,9))*-1
     zz[3:6,3:6] = 8
-    new = convolve2d(IMG, zz)
+    new = convolve2d(IMG, zz, mode = 'same')
 
     centers = []
     fwhms = []
     peaks = []
-    highpixels = np.argwhere(new > 20*iqr(new))
 
-    N = 9
-    xx, yy = np.meshgrid(np.arange(N,dtype=float), np.arange(N,dtype=float))
+    # Select pixels which edge detector identifies
+    if mask is None:
+        highpixels = np.argwhere(new > detect_threshold*iqr(new))
+    else:
+        highpixels = np.argwhere(np.logical_and(new > detect_threshold*iqr(new),
+                                                np.logical_not(mask)))
+
+    # Meshgrid for performing flux center-of-mass calculation
+    N = 5
+    xx, yy = np.meshgrid(np.arange(N,dtype=float), np.arange(N,dtype=float), indexing = 'ij')
     xx -= (N-1)/2.
     yy -= (N-1)/2.
+    
     for i in range(len(highpixels)):
-        if len(centers) != 0 and np.any(np.sqrt(np.sum((highpixels[i] - centers)**2,axis = 1)) < 3*4):
+        # reject if near an existing center
+        if len(centers) != 0 and np.any(np.sqrt(np.sum((highpixels[i] - centers)**2,axis = 1)) < minsep*fwhm_guess):
             continue
-        if (not mask is None) and mask[tuple(highpixels[i])]:
+        # reject if near edge
+        if np.any(highpixels[i] < minsep*fwhm_guess) or np.any(highpixels[i] > (np.array(IMG.shape) - minsep*fwhm_guess)):
             continue
-        if np.any(highpixels[i] < 10*fwhm_guess) or np.any(highpixels[i] > (IMG.shape - 10*fwhm_guess)):
-            continue
-        newcenter = deepcopy(highpixels[i])
+        newcenter = np.array([highpixels[i][1],highpixels[i][0]])
         count = 0
         while count < 20:
             count += 1
-            chunk = IMG[int(newcenter[0]-N/2):int(newcenter[0]+N/2),int(newcenter[1]-N/2):int(newcenter[1]+N/2)]
-
+            chunk = IMG[int(newcenter[1]-N/2):int(newcenter[1]+N/2),int(newcenter[0]-N/2):int(newcenter[0]+N/2)]
             M = np.sum(chunk)
             newx = newcenter[0] + np.sum(chunk*yy)/M
             newy = newcenter[1] + np.sum(chunk*xx)/M
-            if abs(newx - newcenter[0]) < 0.3 and abs(newy - newcenter[1]) < 0.3:
+            if abs(newx - newcenter[0]) < 0.1 and abs(newy - newcenter[1]) < 0.1:
                 break
             newcenter = np.array([newx,newy])
+            if np.any(newcenter < minsep*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - minsep*fwhm_guess)):
+                count = 40
+                break
         if count >= 20:
+            continue
+        if (not peakmax is None) and np.any(IMG[int(newcenter[1]-minsep*fwhm_guess):int(newcenter[1]+minsep*fwhm_guess),
+                                                int(newcenter[0]-minsep*fwhm_guess):int(newcenter[0]+minsep*fwhm_guess)] >= peakmax):
+            continue
+        if len(centers) != 0 and np.any(np.sqrt(np.sum((newcenter - centers)**2,axis = 1)) < minsep*fwhm_guess):
             continue
         isovals = _iso_extract(IMG, fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
         coefs = fft(isovals)
-        if np.any(np.abs(coefs[1:]) > np.sqrt(np.abs(coefs[0]))):
+        if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
+            continue
+        flux = [np.median(_iso_extract(IMG, 0.5, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
+        R = [0.5]
+        badcount = 0
+        while len(R) < 40 and (flux[-1] > 5*background_noise or len(R) <= 5):
+            R.append(R[-1] + fwhm_guess/4)
+            isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
+            coefs = fft(isovals)
+            if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
+                badcount += 1
+            flux.append(np.median(isovals))
+        if badcount > 1:
+            continue
+        res = minimize(_GaussFit, x0 = [fwhm_guess/2.355, flux[0]/norm.pdf(0,loc = 0,scale = fwhm_guess/2.355)], args = (np.array(R), np.array(flux)), method = 'Nelder-Mead')
+        if not res.success or res.x[0]*2.355 > reject_size*fwhm_guess:
             continue
         if len(centers) == 0:
             centers = np.array([deepcopy(newcenter)])
         else:
             centers = np.concatenate((centers,[newcenter]),axis = 0)
-        flux = [np.median(_iso_extract(IMG, 1, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
-        R = [1.]
-        while len(R) < 40 and (flux[-1] > 5*background_noise or len(R) <= 5):
-            R.append(R[-1] + fwhm_guess/4)
-            flux.apppend(np.median(_iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})))
-        res = minimize(_GaussFit, x0 = [fwhm_guess/2.355, flux[0]/norm.pdf(0,loc = 0,scale = fwhm_guess/2.355)], args = (np.array(R), np.array(flux))) # , method = 'Nelder-Mead'
         fwhms.append(res.x[0]*2.355)
         peaks.append(res.x[1] / norm.pdf(0,loc = 0,scale = res.x[0]))
+        plt.scatter(R, flux)
+        plt.plot(R, res.x[1]*norm.pdf(R,loc = 0, scale = res.x[0]))
+        plt.savefig('test/PSF_test_%i.jpg' % np.random.randint(10000))
+        plt.clf()
+    logging.info('fwhm mean %f, median %f, std %f, len %i' % (np.mean(fwhms), np.median(fwhms), np.std(fwhms), len(fwhms)))
     return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks)}
 
 
