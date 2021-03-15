@@ -209,7 +209,7 @@ Below is a high level description for each function, in case something goes wron
 **pipeline label: background**
 
 The default background calculation is done by searching for the "mode" of the pixel flux values.
-First, the method extracts the boarder of the image, taking all pixels that are within 1/5th the image width of the edge.
+First, the method extracts the border of the image, taking all pixels that are within 1/5th the image width of the edge.
 Then it constructs a density profile in flux space and finds the peak.
 This peak is used as the background level, a few rounds of sigma clipping are applied to remove bright signals before taking the background noise level (measured as an interquartile range).
 
