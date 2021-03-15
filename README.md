@@ -1,6 +1,17 @@
+# AutoProf
+
+This pipeline for non-parametric Galaxy image analysis was written with the goal
+of making a tool that is easy for anyone to get started with, yet flexible
+enough to prototype new ideas and accommodate advanced users. It was written
+by [Connor Stone](https://connorjstone.com/) along with lots of testing/help from
+[Nikhil Arora](https://orcid.org/0000-0002-3929-9316),
+[Stephane Courteau](https://www.physics.queensu.ca/facultysites/courteau/),
+[Simon Diaz Garcia](https://orcid.org/0000-0002-4662-1289),
+[Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/).
+
 # Introduction
 
-This README explains basic use of the autoprof code for extracting photometry
+This README explains basic use of the AutoProf code for extracting photometry
 from galaxy images. The photometry is extracted via elliptical isophotes which
 are fit with variable position angle and ellipticity, but a fixed center. The
 isophotes are found by minimizing low order Fourier coefficients along

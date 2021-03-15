@@ -60,7 +60,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
                        for i in range(len(isolist.sma))))
     sb[np.logical_not(np.isfinite(sb))] = 99.999
 
-    sbE = list((iqr(clippedflux[i], #  - ifft(fft(clippedflux[i])[:int(len(clippedflux[i])/2)], n = len(clippedflux[i]))
+    sbE = list((iqr(isolist.sample[i].values[2], #  - ifft(fft(clippedflux[i])[:int(len(clippedflux[i])/2)], n = len(clippedflux[i]))
                     rng = (31.7310507863/2,
                            100 - 31.7310507863/2)) / (2*np.sqrt(len(isolist.sample[i].values[2])))) \
                for i in range(len(isolist.sma)))
