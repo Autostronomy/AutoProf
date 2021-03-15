@@ -7,7 +7,7 @@ by [Connor Stone](https://connorjstone.com/) along with lots of testing/help fro
 [Nikhil Arora](https://orcid.org/0000-0002-3929-9316),
 [Stephane Courteau](https://www.physics.queensu.ca/facultysites/courteau/),
 [Simon Diaz Garcia](https://orcid.org/0000-0002-4662-1289),
-[Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/).
+and [Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/).
 
 # Introduction
 
