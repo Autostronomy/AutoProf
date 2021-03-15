@@ -185,8 +185,8 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
         plt.clf()
 
-    logging.info('%s: found psf: %f' % (name,np.median(stars['fwhm'])))
-    return {'psf fwhm': np.median(stars['fwhm'])}
+    logging.info('%s: found psf: %f' % (name,np.median(stars['fwhm'][stars['peak'] > np.median(stars['peak'])])))
+    return {'psf fwhm': np.median(stars['fwhm'][stars['peak'] > np.median(stars['peak'])])}
 
 def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
     """
