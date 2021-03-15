@@ -100,9 +100,9 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
     params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'totmag_direct_e', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e'] # , 'x0', 'y0'
         
     SBprof_data = dict((h,[]) for h in params)
-    SBprof_units = {'R': 'arcsec', 'SB': 'mag arcsec^-2', 'SB_e': 'mag arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
+    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
                     'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'totmag_direct': 'mag', 'totmag_direct_e': 'mag',
-                    'SB_fix': 'mag arcsec^-2', 'SB_fix_e': 'mag arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
+                    'SB_fix': 'mag*arcsec^-2', 'SB_fix_e': 'mag*arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
     SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f', 'totmag_direct_e': '%.4f',
                      'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}

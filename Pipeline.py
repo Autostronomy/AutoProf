@@ -106,14 +106,15 @@ class Isophote_Pipeline(object):
                     f.write('settings %s: %s\n' % (k,str(kwargs[k])))
             
         # Write the profile
+        delim = kwargs['delimiter'] if 'delimiter' in kwargs else ','
         with open(saveto + name + '.prof', 'w') as f:
             # Write profile header
-            f.write(','.join(results['prof header']) + '\n')
+            f.write(delim.join(results['prof header']) + '\n')
             if 'prof units' in results:
-                 f.write(','.join(results['prof units'][h] for h in results['prof header']) + '\n')
+                 f.write(delim.join(results['prof units'][h] for h in results['prof header']) + '\n')
             for i in range(len(results['prof data'][results['prof header'][0]])):
                 line = list((results['prof format'][h] % results['prof data'][h][i]) for h in results['prof header'])
-                f.write(','.join(line) + '\n')
+                f.write(delim.join(line) + '\n')
                 
         # Write the mask data, if provided
         if not results['mask'] is None and 'savemask' in kwargs and kwargs['savemask']:

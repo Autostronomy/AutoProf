@@ -480,6 +480,11 @@ def GetKwargs(c):
         newkwargs['zeropoint'] = c.zeropoint
     except:
         pass
+    try:
+        newkwargs['delimiter'] = c.delimiter
+    except:
+        pass
+    
     return newkwargs
 
 

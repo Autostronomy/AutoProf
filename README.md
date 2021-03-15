@@ -187,6 +187,7 @@ In your config file, do not use any of these names unless you intend for AutoPro
    		a starting radius of zero is not advised. (float)
 - sampleendR: End radius (in pixels) for isophote sampling from the image (float)
 - zeropoint: Photometric zero point, AB magnitude is assumed if none given, corresponding to a zero point of 22.5 (float)
+- delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
 - new_pipeline_functions: Allows user to set functions for the AutoProf pipeline analysis. See *Modifying Pipeline Functions* for more information (dict)
 - new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
 
