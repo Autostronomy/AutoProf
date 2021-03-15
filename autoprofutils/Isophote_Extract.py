@@ -132,7 +132,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
                      elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'COG')
         plt.xlabel('Radius [arcsec]')
         plt.ylabel('Brightness [mag, mag/arcsec^2]')
-        plt.axhline(-2.5*np.log10(background_noise/2) + zeropoint + 2.5*np.log10(pixscale**2), color = 'purple', linewidth = 0.5, linestyle = '--', label = 'Sky noise')
+        plt.axhline(-2.5*np.log10(background_noise) + zeropoint + 2.5*np.log10(pixscale**2), color = 'purple', linewidth = 0.5, linestyle = '--', label = 'Sky noise')
         plt.gca().invert_yaxis()
         plt.legend()
         plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))

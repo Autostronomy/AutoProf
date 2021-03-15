@@ -33,22 +33,15 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     scale = iqr(values,rng = [30,70])/40
 
     res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
-    print(res, start, scale)
-    clip_above = 3*np.sqrt(np.mean(values - res.x[0])**2)
-    for i in range(10):
-        clip_above = 3*np.sqrt(np.mean(values[(values - res.x[0]) < clip_above] - res.x[0])**2)
+    # print(res, start, scale)
+    # clip_above = 3*np.sqrt(np.mean(values - res.x[0])**2)
+    # for i in range(10):
+    #     clip_above = 3*np.sqrt(np.mean(values[(values - res.x[0]) < clip_above] - res.x[0])**2)
 
-    noise = iqr(values[(values-res.x[0]) < clip_above], rng = [16,84])/2
-    print('noise: ', noise)
+    noise = iqr(values[(values-res.x[0]) < 0], rng = [100 - 68.2689492137,100])
+    # print('noise: ', noise)
     # paper plot
     if 'doplot' in kwargs and kwargs['doplot']:    
-        plt.imshow(np.clip(IMG - res.x[0], a_min = 0, a_max = None), origin = 'lower',
-                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        dat = np.ones(IMG.shape)
-        dat[(IMG-res.x[0]) < clip_above] = np.nan
-        plt.imshow(dat, origin = 'lower', cmap = 'autumn', alpha = 0.7)
-        plt.savefig('%sBackground_mask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
         hist, bins = np.histogram(values[np.logical_and((values-res.x[0]) < 20*noise, (values-res.x[0]) > -3*noise)], bins = 1000)
         plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
         plt.axvline(res.x[0], color = 'r', label = 'background level')
