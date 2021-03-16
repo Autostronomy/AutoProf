@@ -31,7 +31,8 @@ class Isophote_Pipeline(object):
 
         loggername: String to use for logging messages
         """
-        
+
+        # Functions avaiable by default for building the pipeline
         self.pipeline_functions = {'background': Background_Mode,
                                    'psf': PSF_StarFind, 
                                    'center': Center_HillClimb,
@@ -45,8 +46,10 @@ class Isophote_Pipeline(object):
                                    'isophoteextract': Isophote_Extract,
                                    'isophoteextract forced': Isophote_Extract_Forced,
                                    'checkfit': Check_Fit_IQR}
+        # Default pipeline analysis order
         self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 
+        # Holder for any preprocessing function the user may want to apply
         self.preprocess = None
 
         # Start the logger
@@ -62,6 +65,7 @@ class Isophote_Pipeline(object):
                             pipeline_functions. It is posible to add/remove/rearrange steps here. Alternatively
                             one can supply a dictionary with current pipeline steps as keys and new pipeline
                             steps as values, the corresponding steps will be replaced.
+        preprocess: Function to process image before AutoProf analysis begins.
         """
         if new_pipeline_functions:
             logging.info('PIPELINE updating these pipeline functions: %s' % str(new_pipeline_functions.keys()))
