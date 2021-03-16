@@ -143,7 +143,10 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
 def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs):
     
     # Create image array with background and mask applied
-    mask = np.logical_or(results['overflow mask'],results['mask'])
+    try:
+        mask = np.logical_or(results['overflow mask'],results['mask'])
+    except:
+        mask = None
     if np.any(mask):
         logging.info('%s: is masked' % (name))
         dat = np.ma.masked_array(IMG - results['background'], mask)
@@ -221,7 +224,7 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         plt.legend()
         plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()                
-    print(SBprof_data)
+    
     return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
     
 

@@ -117,7 +117,7 @@ class Isophote_Pipeline(object):
                 f.write(delim.join(line) + '\n')
                 
         # Write the mask data, if provided
-        if not results['mask'] is None and 'savemask' in kwargs and kwargs['savemask']:
+        if 'mask' in results and (not results['mask'] is None) and 'savemask' in kwargs and kwargs['savemask']:
             header = fits.Header()
             header['IMAGE 1'] = 'star mask'
             header['IMAGE 2'] = 'overflow values mask'
