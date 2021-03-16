@@ -158,6 +158,8 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - saveto: path to directory where final profile should be saved (string)
 - name: name to use for the galaxy, this will be the name used in output files and in the log file (string)
 - process_mode: analysis mode for AutoProf to run in (string)
+- preprocess: A function that takes an image and returns an image. This is intended to address user specific concerns
+  	      such as clipping off the edges of an image that have low S/N due to dithering (function)
 - n_procs: number of processes to create when running in batch mode (int)
 - overflowval: flux value that corresponds to an overflow pixel, used to identify bad pixels and mask them (float)
 - mask_file: path to fits file which is a mask for the image. Must have the same dimensions as the main image (string)

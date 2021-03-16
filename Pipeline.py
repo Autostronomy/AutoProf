@@ -47,10 +47,12 @@ class Isophote_Pipeline(object):
                                    'checkfit': Check_Fit_IQR}
         self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 
+        self.preprocess = None
+
         # Start the logger
         logging.basicConfig(level=logging.INFO, filename = 'AutoProf.log' if loggername is None else loggername, filemode = 'w')
 
-    def UpdatePipeline(self, new_pipeline_functions = None, new_pipeline_steps = None):
+    def UpdatePipeline(self, new_pipeline_functions = None, new_pipeline_steps = None, preprocess = None):
         """
         modify steps in the AutoProf pipeline.
 
@@ -72,6 +74,8 @@ class Isophote_Pipeline(object):
                 for k in new_pipeline_steps.keys():
                     logging.info('PIPELINE replacing "%s" pipeline step with "%s"' % (k, new_pipeline_steps[k]))
                     self.pipeline_steps[self.pipeline_steps.index(k)] = new_pipeline_steps[k]
+        if preprocess:
+            self.preprocess = preprocess
 
     def WriteProf(self, results, saveto, pixscale, name = None, **kwargs):
         """
@@ -167,6 +171,10 @@ class Isophote_Pipeline(object):
         if dat is None or np.all(dat[int(len(dat)/2.)-10:int(len(dat)/2.)+10, int(len(dat[0])/2.)-10:int(len(dat[0])/2.)+10] == 0):
             logging.error('%s Large chunk of data missing, impossible to process image' % name)
             return 1
+        # Preprocess the image if needed
+        if self.preprocess:
+            dat = self.preprocess(dat)
+        
         # Save profile to the same folder as the image if no path is provided
         if saveto is None:
             saveto = './'
@@ -309,6 +317,10 @@ class Isophote_Pipeline(object):
             pass
         try:
             self.UpdatePipeline(new_pipeline_steps = c.new_pipeline_steps)
+        except:
+            pass
+        try:
+            self.UpdatePipeline(preprocess = c.preprocess)
         except:
             pass
             
