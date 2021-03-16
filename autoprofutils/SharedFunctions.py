@@ -15,6 +15,7 @@ from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, Isophot
 from photutils.isophote import Ellipse as Photutils_Ellipse
 import logging
 from copy import deepcopy
+from time import time
 
 Abs_Mag_Sun = {'u': 6.39,
                'g': 5.11,
@@ -284,11 +285,15 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
     """
 
     # Convolve edge detector with image
-    zz = np.ones((9,9))*-1
-    zz[3:6,3:6] = 8
+    S = 3**np.array([1,2,3,4,5])
+    S = int(S[np.argmin(np.abs(S/3 - fwhm_guess))])
+    zz = np.ones((S,S))*-1
+    zz[int(S/3):int(2*S/3),int(S/3):int(2*S/3)] = 8
+
     new = convolve2d(IMG, zz, mode = 'same')
 
     centers = []
+    deformities = []
     fwhms = []
     peaks = []
 
@@ -299,9 +304,11 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         highpixels = np.argwhere(np.logical_and(new > detect_threshold*iqr(new),
                                                 np.logical_not(mask)))
 
-    # Meshgrid for performing flux center-of-mass calculation
-    # N = 4
-    # xx, yy = np.meshgrid(np.arange(N,dtype=float), np.arange(N,dtype=float), indexing = 'ij')
+    # meshgrid for 2D polynomial fit (pre-built for efficiency)
+    xx,yy = np.meshgrid(np.arange(2*S/3), np.arange(2*S/3))
+    xx = xx.flatten()
+    yy = yy.flatten()
+    A = np.array([np.ones(xx.shape), xx, yy, xx**2, yy**2, xx*yy, xx*yy**2, yy*xx**2,xx**2 * yy**2]).T
     
     for i in range(len(highpixels)):
         # reject if near an existing center
@@ -314,78 +321,63 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         newcenter = np.array([highpixels[i][1],highpixels[i][0]])
         ranges = [[max(0,int(newcenter[0]-fwhm_guess*5)), min(IMG.shape[1],int(newcenter[0]+fwhm_guess*5))],
                   [max(0,int(newcenter[1]-fwhm_guess*5)), min(IMG.shape[0],int(newcenter[1]+fwhm_guess*5))]]
-        newcenter = np.unravel_index(np.argmax(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T),IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T.shape) + np.array([ranges[0][0],ranges[1][0]])
-        if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - 5*fwhm_guess)):
-            continue
-        # count = 0
-        # while count < 25:
-        #     count += 1
-        #     chunk = IMG[int(newcenter[1]-N/2):int(newcenter[1]+N/2),int(newcenter[0]-N/2):int(newcenter[0]+N/2)]
-        #     M = np.sum(chunk)
-        #     newx = int(newcenter[0]-N/2) + np.sum(chunk*yy)/M
-        #     newy = int(newcenter[1]-N/2) + np.sum(chunk*xx)/M
-        #     if abs(newx - newcenter[0]) < 0.1 and abs(newy - newcenter[1]) < 0.1:
-        #         break
-        #     newcenter = np.array([newx,newy])
-        #     if np.any(newcenter < minsep*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - minsep*fwhm_guess)):
-        #         count = 40
-        #         break
-        # if count >= 25:
-        #     continue
-        com_center = deepcopy(newcenter)
-        ranges = [[max(0,int(newcenter[0]-fwhm_guess)), min(IMG.shape[1],int(newcenter[0]+fwhm_guess))],
-                  [max(0,int(newcenter[1]-fwhm_guess)), min(IMG.shape[0],int(newcenter[1]+fwhm_guess))]]
-        chunk = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
-        f_interp = RectBivariateSpline(np.arange(chunk.shape[0], dtype = np.float32),
-                                       np.arange(chunk.shape[1], dtype = np.float32),
-                                       chunk)
-        newcenter = minimize(lambda x,d: -f_interp(x[1], x[0], grid = False), x0 = newcenter - np.array([ranges[0][0],ranges[1][0]]),
-                             args = (IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],)).x # , method = 'Nelder-Mead'
+        newcenter = np.unravel_index(np.argmax(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T),
+                                     IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T.shape)
         newcenter += np.array([ranges[0][0],ranges[1][0]])
-        #logging.info('bicubic update by: %s, from com %s, to bicubic %s, highpixel %s' % (str(com_center - newcenter), str(com_center), str(newcenter), str(highpixels[i])))
         if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - 5*fwhm_guess)):
             continue
+        # update star center with 2D polynomial fit
+        ranges = [[max(0,int(newcenter[0]-S/3)), min(IMG.shape[1],int(newcenter[0]+S/3))],
+                  [max(0,int(newcenter[1]-S/3)), min(IMG.shape[0],int(newcenter[1]+S/3))]]
+        chunk = np.clip(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T, a_min = background_noise/3, a_max = None)
+        poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()))
+        newcenter = np.array([-poly2dfit[0][2]/(2*poly2dfit[0][4]), -poly2dfit[0][1]/(2*poly2dfit[0][3])])
+        # reject if 2D polynomial maximum is outside the fitting region
+        if np.any(newcenter < 0) or np.any(newcenter > 5):
+            continue
+        newcenter += np.array([ranges[0][0],ranges[1][0]])
+
+        # reject centers that are outside the image
+        if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - 5*fwhm_guess)):
+            continue
+        # reject stars with too high flux
         if (not peakmax is None) and np.any(IMG[int(newcenter[1]-minsep*fwhm_guess):int(newcenter[1]+minsep*fwhm_guess),
                                                 int(newcenter[0]-minsep*fwhm_guess):int(newcenter[0]+minsep*fwhm_guess)] >= peakmax):
             continue
+        # reject if near existing center
         if len(centers) != 0 and np.any(np.sqrt(np.sum((newcenter - centers)**2,axis = 1)) < minsep*fwhm_guess):
             continue
 
-        isovals = _iso_extract(IMG, fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
-        coefs = fft(isovals)
-        if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
-            continue
+        # Extract flux as a function of radius
         flux = [np.median(_iso_extract(IMG, 0.0, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
         R = [0.5]
+        deformity = [1.]
         badcount = 0
-        while flux[-1] > (flux[0]/2): #len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
-            R.append(R[-1]*(1.1))
+        while flux[-1] > max(flux[0]/2, background_noise) or len(R) < 3: #len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
+            R.append(R[-1] + fwhm_guess/5)
             isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
             coefs = fft(isovals)
-            if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
-                badcount += 1
+            deformity.append(np.sum(np.abs(coefs[1:int(len(coefs)/2)])) / np.sqrt(np.abs(coefs[0])))
+            # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
+            #     badcount += 1
             flux.append(np.median(isovals))
-            #plt.scatter(R[-1]*np.ones(len(isovals)), isovals, color = 'r') # fixme
-        if badcount > 1:
-            #plt.clf() # fixme
+
+        fwhm_fit = np.interp(flux[0]/2, list(reversed(flux)), list(reversed(R)))*2
+        
+        # reject if fitted FWHM unrealistically large
+        if fwhm_fit > reject_size*fwhm_guess:
             continue
-        # res = minimize(_GaussFit, x0 = [fwhm_guess/2.355, flux[0]/norm.pdf(0,loc = 0,scale = fwhm_guess/2.355)], args = (np.array(R), np.array(flux)), method = 'Nelder-Mead')
-        # if not res.success or res.x[0]*2.355 > reject_size*fwhm_guess:
-        #     #plt.clf() # fixme
-        #     continue
+        # Add star to list
         if len(centers) == 0:
             centers = np.array([deepcopy(newcenter)])
         else:
             centers = np.concatenate((centers,[newcenter]),axis = 0)
-        fwhms.append(np.interp(flux[0]/2, flux[-3:], R[-3:])*2)#(res.x[0]*2.355)
-        peaks.append(flux[0])#(res.x[1] / norm.pdf(0,loc = 0,scale = res.x[0]))
+        deformities.append(deformity[-1])
+        fwhms.append(deepcopy(fwhm_fit))
+        peaks.append(flux[0])
+        # stop if max N stars reached
         if len(fwhms) >= maxstars:
             break
-        # randid = np.random.randint(10000)
-        # plt.scatter(R, flux, color = 'b')
-        # plt.plot(R, res.x[1]*norm.pdf(R,loc = 0, scale = res.x[0]), color = 'g')
-        # plt.savefig('test/PSF_test_%i_fit.jpg' % randid)
-        # plt.clf()
 
         # ranges = [[max(0,int(newcenter[0]-fwhm_guess*5)), min(IMG.shape[1],int(newcenter[0]+fwhm_guess*5))],
         #           [max(0,int(newcenter[1]-fwhm_guess*5)), min(IMG.shape[0],int(newcenter[1]+fwhm_guess*5))]]
@@ -393,12 +385,11 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         # plt.scatter([newcenter[0] - ranges[0][0]], [newcenter[1] - ranges[1][0]], color = 'r', marker = 'x')
         # plt.scatter([com_center[0] - ranges[0][0]], [com_center[1] - ranges[1][0]], color = 'b', marker = 'x')
-        # plt.scatter([highpixels[i][1] - ranges[0][0]], [highpixels[i][0] - ranges[1][0]], color = 'g', marker = 'x')
+        # #plt.scatter([highpixels[i][1] - ranges[0][0]], [highpixels[i][0] - ranges[1][0]], color = 'g', marker = 'x')
         # plt.savefig('test/PSF_test_%i_center.jpg' % randid)
         # plt.clf()
         
-    logging.info('fwhm mean %f, median %f, std %f, len %i' % (np.mean(fwhms), np.median(fwhms), np.std(fwhms), len(fwhms)))
-    return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks)}
+    return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks), 'deformity': np.array(deformities)}
 
 
 
