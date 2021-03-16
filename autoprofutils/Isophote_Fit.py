@@ -213,7 +213,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         for i in range(len(sample_radii)):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
                                         pa[i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
         
         plt.scatter(sample_radii, _inv_x_to_eps(ellip), color = 'r', label = 'ellip')

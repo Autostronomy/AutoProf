@@ -214,17 +214,32 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
     if 'doplot' in kwargs and kwargs['doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
         plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = np.array(SBprof_data['SB_e'])[CHOOSE],
-                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'purple', label = 'SB')
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'purple', label = 'Surface Brightness')
         plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
-                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'COG')
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
         plt.xlabel('Radius [arcsec]')
         plt.ylabel('Brightness [mag, mag/arcsec^2]')
-        plt.axhline(-2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2), color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise / pixel')
+        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2)
+        plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
         plt.gca().invert_yaxis()
-        plt.legend()
+        plt.legend(fontsize = 10)
         plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()                
-    
+
+        useR = np.array(SBprof_data['R'])[CHOOSE]
+        useE = np.array(SBprof_data['ellip'])[CHOOSE]
+        usePA = np.array(SBprof_data['pa'])[CHOOSE]
+        ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
+                  [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
+        plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
+                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
+        for i in range(len(useR)):
+            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
+                                        usePA[i], fill = False, linewidth = 0.3, color = 'r'))
+        plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        plt.close()
+
+        
     return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
     
 
@@ -271,7 +286,7 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
         
     # Radius values to evaluate isophotes
     R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf fwhm']/2)]
-    while (((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 3*results['fit R'][-1]) or (kwargs['extractfull'] if 'extractfull' in kwargs else False)) and R[-1] < max(IMG.shape)/2:
+    while (((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 3*results['fit R'][-1]) or (kwargs['extractfull'] if 'extractfull' in kwargs else False)) and R[-1] < max(IMG.shape)/np.sqrt(2):
         if 'samplestyle' in kwargs and kwargs['samplestyle'] == 'geometric-linear':
             if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf fwhm']):
                 R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf fwhm']))
