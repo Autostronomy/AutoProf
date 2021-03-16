@@ -545,6 +545,10 @@ def GetKwargs(c):
     except:
         pass
     try:
+        newkwargs['fit_center'] = c.fit_center
+    except:
+        pass
+    try:
         newkwargs['scale'] = c.scale
     except:
         pass
