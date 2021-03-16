@@ -93,7 +93,7 @@ class Isophote_Pipeline(object):
                 for k in results['checkfit'].keys():
                     f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
             f.write('psf fwhm: %.3f pix\n' % (results['psf fwhm']))
-            f.write('background: %.3e flux, noise: %.3e flux\n' % (results['background'], results['background noise']))
+            f.write('background: %.3e flux/pix, noise: %.3e flux/pix\n' % (results['background'], results['background noise']))
             use_center = results['center']
             f.write('center x: %.2f pix, y: %.2f pix\n' % (use_center['x'], use_center['y']))
             if 'init ellip_err' in results and 'init pa_err' in results:
