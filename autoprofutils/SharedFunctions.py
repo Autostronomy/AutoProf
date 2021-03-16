@@ -240,7 +240,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
     X = sma*np.cos(theta)
     Y = sma*(1-eps)*np.sin(theta)
     # rotate ellipse by PA
-    X,Y = (X*np.cos(-pa) - Y*np.sin(-pa), X*np.sin(-pa) + Y*np.cos(-pa))
+    X,Y = (X*np.cos(pa) - Y*np.sin(pa), X*np.sin(pa) + Y*np.cos(pa))
     theta = (theta + pa) % (2*np.pi)
     
     if sma < 30: 
@@ -580,7 +580,15 @@ def GetKwargs(c):
         newkwargs['delimiter'] = c.delimiter
     except:
         pass
-    
+    try:
+        newkwargs['isoband_width'] = c.isoband_width
+    except:
+        pass
+    try:
+        newkwargs['isoband_start'] = c.isoband_start
+    except:
+        pass
+        
     return newkwargs
 
 

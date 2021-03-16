@@ -186,6 +186,8 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - sampleinitR: Starting radius (in pixels) for isophote sampling from the image. Note that
    		a starting radius of zero is not advised. (float)
 - sampleendR: End radius (in pixels) for isophote sampling from the image (float)
+- isoband_start: The radius (in pixels) at which to begin sampling a band of pixels to compute SB instead of sampling a line of pixels near the isophote (float)
+- isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- isoband_width*R for each radius. default value is 0.025 (float)
 - zeropoint: Photometric zero point, AB magnitude is assumed if none given, corresponding to a zero point of 22.5 (float)
 - delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
 - new_pipeline_functions: Allows user to set functions for the AutoProf pipeline analysis. See *Modifying Pipeline Functions* for more information (dict)

@@ -44,15 +44,14 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     if 'doplot' in kwargs and kwargs['doplot']:    
         hist, bins = np.histogram(values[np.logical_and((values-res.x[0]) < 20*noise, (values-res.x[0]) > -3*noise)], bins = 1000)
         plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
-        plt.axvline(res.x[0], color = 'r', label = 'background level')
-        plt.axvline(res.x[0] - noise, color = 'r', linestyle = '--', label = 'noise')
+        plt.axvline(res.x[0], color = 'r', label = 'sky level: %.5e' % res.x[0])
+        plt.axvline(res.x[0] - noise, color = 'r', linestyle = '--', label = '1$\\sigma$ noise/pix: %.5e' % noise)
         plt.axvline(res.x[0] + noise, color = 'r', linestyle = '--')
         plt.legend()
         plt.xlabel('flux')
         plt.ylabel('log$_{10}$(count)')
         plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()
-
         
     return {'background': res.x[0],
             'background noise': noise}

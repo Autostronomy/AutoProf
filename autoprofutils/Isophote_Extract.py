@@ -159,10 +159,11 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
     sbfixE = []
 
     for i in range(len(R)):
-        if R[i] < 150:
+        if R[i] < (kwargs['isoband_start'] if 'isoband_start' in kwargs else 150):
             isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'])
         else:
-            isovals = _iso_between(dat, R[i]*0.975, R[i]*1.025, E[i], PA[i], results['center'])
+            isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)
+            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'])
         isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'])
         isotot = _iso_within(dat, R[i], E[i], PA[i], results['center'])
         medflux = np.median(isovals)
