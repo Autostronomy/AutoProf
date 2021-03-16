@@ -51,7 +51,7 @@ def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
                                         res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
         plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
-        plt.clf()                
+        plt.close()                
     
     return res
 
@@ -214,7 +214,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
                                         pa[i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
         plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
-        plt.clf()
+        plt.close()
         
         plt.scatter(sample_radii, _inv_x_to_eps(ellip), color = 'r', label = 'ellip')
         plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa')
@@ -225,7 +225,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         #plt.xscale('log')
         plt.legend()
         plt.savefig('%sisoprof_%s_fin.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
 
     # Compute errors
     ######################################################################
@@ -279,7 +279,7 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
                                         2*(np.array(force['R'])[i]/pixscale)*(1. - force['ellip'][i]),
                                         force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
         plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
-        plt.clf()                
+        plt.close()                
     res = {'fit ellip': np.array(force['ellip']),
            'fit pa': np.array(force['pa'])*np.pi/180,
            'fit R': list(np.array(force['R'])/pixscale)}

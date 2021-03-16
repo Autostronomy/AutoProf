@@ -136,7 +136,7 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
         plt.gca().invert_yaxis()
         plt.legend()
         plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()                
+        plt.close()                
         
     return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
 

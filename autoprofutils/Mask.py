@@ -127,7 +127,7 @@ def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
         dat[dat == 0] = np.nan
         plt.imshow(dat, origin = 'lower', cmap = 'Reds_r', alpha = 0.7)
         plt.savefig('%sMask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
     
     return {'mask':mask,
             'overflow mask': overflow_mask}
@@ -183,7 +183,7 @@ def Star_Mask_DAO(IMG, pixscale, name, results, **kwargs):
         dat[dat == 0] = np.nan
         plt.imshow(dat, origin = 'lower', cmap = 'Reds_r', alpha = 0.7)
         plt.savefig('%sMask_%s.pdf' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
     
     return {'mask':mask,
             'overflow mask': overflow_mask}

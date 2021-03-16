@@ -51,7 +51,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
         plt.xlabel('flux')
         plt.ylabel('log$_{10}$(count)')
         plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
 
         
     return {'background': res.x[0],

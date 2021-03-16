@@ -330,7 +330,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         ranges = [[max(0,int(newcenter[0]-S/3)), min(IMG.shape[1],int(newcenter[0]+S/3))],
                   [max(0,int(newcenter[1]-S/3)), min(IMG.shape[0],int(newcenter[1]+S/3))]]
         chunk = np.clip(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T, a_min = background_noise/3, a_max = None)
-        poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()))
+        poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()), rcond = None)
         newcenter = np.array([-poly2dfit[0][2]/(2*poly2dfit[0][4]), -poly2dfit[0][1]/(2*poly2dfit[0][3])])
         # reject if 2D polynomial maximum is outside the fitting region
         if np.any(newcenter < 0) or np.any(newcenter > 5):
@@ -387,7 +387,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         # plt.scatter([com_center[0] - ranges[0][0]], [com_center[1] - ranges[1][0]], color = 'b', marker = 'x')
         # #plt.scatter([highpixels[i][1] - ranges[0][0]], [highpixels[i][0] - ranges[1][0]], color = 'g', marker = 'x')
         # plt.savefig('test/PSF_test_%i_center.jpg' % randid)
-        # plt.clf()
+        # plt.close()
         
     return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks), 'deformity': np.array(deformities)}
 

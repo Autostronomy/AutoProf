@@ -65,7 +65,7 @@ def PSF_2DGaussFit(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((irafsources['xcentroid'][i],irafsources['ycentroid'][i]), 16/pixscale, 16/pixscale,
                                         0, fill = False, linewidth = 0.5, color = 'y'))
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
-        plt.clf()
+        plt.close()
 
     res = minimize(_2DGaussFit, x0 = [(fwhm_guess/2.355)**2], args = (IMG - results['background'], irafsources['xcentroid'], irafsources['ycentroid'], results['background noise'], fwhm_guess))
     logging.info('%s: found psf: %f' % (name,np.sqrt(res.x[0])*2.355))
@@ -119,7 +119,7 @@ def PSF_GaussFit(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((irafsources['xcentroid'][i],irafsources['ycentroid'][i]), 16/pixscale, 16/pixscale,
                                         0, fill = False, linewidth = 0.5, color = 'y'))
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
-        plt.clf()
+        plt.close()
 
     # Get set of stars
     psf_estimates = []
@@ -147,7 +147,7 @@ def PSF_GaussFit(IMG, pixscale, name, results, **kwargs):
                 # plt.xlabel('radius [pix]')
                 # plt.legend()
                 # plt.savefig('%sPSF_Fit_%s_%i.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name,i))
-                # plt.clf()
+                # plt.close()
                 psf_estimates.append(res.x[0]*2.355)
             if len(psf_estimates) > 30:
                 break
@@ -181,7 +181,7 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/pixscale, 16/pixscale,
                                         0, fill = False, linewidth = 0.5, color = 'y'))
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
-        plt.clf()
+        plt.close()
     logging.info('%s: found psf: %f' % (name,np.median(stars['fwhm'][stars['deformity'] < 0.8])))
     return {'psf fwhm': np.median(stars['fwhm'][stars['deformity'] < 0.8])}
 
@@ -213,7 +213,7 @@ def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
         hist,bins = np.histogram(irafsources['fwhm'], bins = 25)
         plt.bar(bins[:-1], hist, width = bins[1] - bins[0], align = 'edge')
         plt.savefig('plots/psftest_%s_%i.png' % (name,count))
-        plt.clf()
+        plt.close()
         if np.median(irafsources['sharpness']) >= 0.95:
             break
         count += 1
@@ -224,7 +224,7 @@ def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((irafsources['xcentroid'][i],irafsources['ycentroid'][i]), 16/pixscale, 16/pixscale,
                                     0, fill = False, linewidth = 0.5, color = 'y'))
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
-        plt.clf()                
+        plt.close()                
     
     logging.info('%s: found psf: %f' % (name,np.median(irafsources['fwhm'])))
     

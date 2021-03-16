@@ -10,7 +10,7 @@ from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Star_Mask_Given
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit_IQR, Check_Fit_Simple
 from autoprofutils.SharedFunctions import GetKwargs, Read_Image
-from multiprocessing import Pool
+from multiprocessing import Pool, current_process
 from astropy.io import fits
 from scipy.stats import iqr
 from itertools import starmap
@@ -145,6 +145,12 @@ class Isophote_Pipeline(object):
         """
 
         kwargs.update(kwargs_internal)
+
+        try:
+            sleep(0.01)
+            np.random.seed(int(np.random.randint(10000)*current_process().pid*(time() % 1) % 2**15))
+        except:
+            pass
         
         # use filename if no name is given
         if name is None:

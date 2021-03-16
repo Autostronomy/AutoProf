@@ -73,7 +73,7 @@ def Isophote_Initialize_GridSearch(IMG, pixscale, name, results, **kwargs):
                                     _x_to_pa(best[2][1])*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x']],[results['center']['y']], marker = 'x', markersize = 10, color = 'y')
         plt.savefig('%sinitialize_ellipse_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
 
     logging.info('%s: best initialization: %s' % (name, str(best[2][0])))
     return {'init ellip': best[2][0], 'init pa': best[2][1]}
@@ -162,7 +162,7 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
     # plt.ylabel('isovals')
     # plt.legend()
     # plt.savefig('%sinitialize_ellip_%s.png' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-    # plt.clf()
+    # plt.close()
         
     circ_ellipse_radii = np.array(circ_ellipse_radii)
     if name != '' and 'doplot' in kwargs and kwargs['doplot']:
@@ -176,7 +176,7 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = 'r')
         plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
 
         # paper plot
         # fig, ax = plt.subplots(2,1)
@@ -194,6 +194,6 @@ def Isophote_Initialize_CircFit(IMG, pixscale, name, results, **kwargs):
         # ax[1].set_ylabel('Loss [FFT$_{2}$/med(flux)]')
         # plt.tight_layout()
         # plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        # plt.clf()
+        # plt.close()
         
     return {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}

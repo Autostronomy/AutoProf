@@ -113,7 +113,7 @@ def Center_Centroid(IMG, pixscale, name, results, **kwargs):
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
         plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
     logging.info('%s Center found: x %.1f, y %.1f' % (name, x, y))    
     return {'center': {'x': x,
                        'y': y}}
@@ -152,7 +152,7 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
         plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
     logging.info('%s Center found: x %.1f, y %.1f' % (name, x, y))    
     return {'center': {'x': x,
                        'y': y}}
@@ -191,7 +191,7 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
         plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.clf()
+        plt.close()
     logging.info('%s Center found: x %.1f, y %.1f' % (name, x, y))    
     return {'center': {'x': x,
                        'y': y}}
@@ -317,14 +317,14 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
     #     plt.plot([IMG.shape[0]/2],[IMG.shape[1]/2], marker = 'x', markersize = 2, color = 'y')
     #     plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
     #     plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-    #     plt.clf()
+    #     plt.close()
 
     #     plt.plot(track_centers[:,0], track_centers[:,1], color = 'k')
     #     plt.scatter(track_centers[:,0], track_centers[:,1], c = range(len(track_centers)), cmap = 'Reds')
     #     plt.xlabel('x coordinate [pix]')
     #     plt.ylabel('y coordinate [pix]')
     #     plt.savefig('%sCenter_path_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-    #     plt.clf()
+    #     plt.close()
         
     return {'center': current_center}
 
@@ -373,7 +373,7 @@ def Center_Multi_Method(IMG, pixscale, name, results, **kwargs):
                     plt.plot([v['x']],[v['y']], marker = 'x', markersize = 10, color = x_colours[vi], label = cents[vi])
                 plt.legend()
                 plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-                plt.clf()
+                plt.close()
             return {'center': cent}
     
     logging.warning('%s Centering failed, using center of image' % name)
