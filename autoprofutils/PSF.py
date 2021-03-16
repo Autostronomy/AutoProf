@@ -162,7 +162,7 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
     if 'psf_set' in kwargs:
         return {'psf fwhm': kwargs['psf_set']}
     elif 'psf_guess' in kwargs:
-        fwhm_guess = psf_guess
+        fwhm_guess = kwargs['psf_guess']
     else:
         fwhm_guess = max(1., 1./pixscale)
 

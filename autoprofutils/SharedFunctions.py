@@ -305,7 +305,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
                                                 np.logical_not(mask)))
 
     # meshgrid for 2D polynomial fit (pre-built for efficiency)
-    xx,yy = np.meshgrid(np.arange(2*S/3), np.arange(2*S/3))
+    xx,yy = np.meshgrid(np.arange(6), np.arange(6))
     xx = xx.flatten()
     yy = yy.flatten()
     A = np.array([np.ones(xx.shape), xx, yy, xx**2, yy**2, xx*yy, xx*yy**2, yy*xx**2,xx**2 * yy**2]).T
@@ -327,8 +327,8 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - 5*fwhm_guess)):
             continue
         # update star center with 2D polynomial fit
-        ranges = [[max(0,int(newcenter[0]-S/3)), min(IMG.shape[1],int(newcenter[0]+S/3))],
-                  [max(0,int(newcenter[1]-S/3)), min(IMG.shape[0],int(newcenter[1]+S/3))]]
+        ranges = [[max(0,int(newcenter[0]-3)), min(IMG.shape[1],int(newcenter[0]+3))],
+                  [max(0,int(newcenter[1]-3)), min(IMG.shape[0],int(newcenter[1]+3))]]
         chunk = np.clip(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T, a_min = background_noise/3, a_max = None)
         poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()), rcond = None)
         newcenter = np.array([-poly2dfit[0][2]/(2*poly2dfit[0][4]), -poly2dfit[0][1]/(2*poly2dfit[0][3])])
