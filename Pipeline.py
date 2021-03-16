@@ -171,9 +171,6 @@ class Isophote_Pipeline(object):
         if dat is None or np.all(dat[int(len(dat)/2.)-10:int(len(dat)/2.)+10, int(len(dat[0])/2.)-10:int(len(dat[0])/2.)+10] == 0):
             logging.error('%s Large chunk of data missing, impossible to process image' % name)
             return 1
-        # Preprocess the image if needed
-        if self.preprocess:
-            dat = self.preprocess(dat)
         
         # Save profile to the same folder as the image if no path is provided
         if saveto is None:
@@ -185,6 +182,14 @@ class Isophote_Pipeline(object):
         # Run the Pipeline
         timers = {}
         results = {}
+
+        # Preprocess the image if needed
+        if self.preprocess:
+            logging.info('%s: Preprocessing Image' % name)
+            print('%s: Preprocessing Image' % name)
+            dat = self.preprocess(dat)
+            timers['preprocess'] = time() - start
+            
         for step in range(len(self.pipeline_steps)):
             try:
                 step_start = time()
