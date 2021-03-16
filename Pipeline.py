@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.Background import Background_Mode
-from autoprofutils.PSF import PSF_2DGaussFit, PSF_GaussFit
+from autoprofutils.PSF import PSF_2DGaussFit, PSF_GaussFit, PSF_StarFind
 from autoprofutils.Center import Center_Null, Center_HillClimb, Center_Forced
 from autoprofutils.Isophote_Initialize import Isophote_Initialize_CircFit
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit
@@ -33,7 +33,7 @@ class Isophote_Pipeline(object):
         """
         
         self.pipeline_functions = {'background': Background_Mode,
-                                   'psf': PSF_GaussFit, 
+                                   'psf': PSF_StarFind, 
                                    'center': Center_HillClimb,
                                    'center forced': Center_Forced,
                                    'isophoteinit': Isophote_Initialize_CircFit,
@@ -277,10 +277,16 @@ class Isophote_Pipeline(object):
 
         
         # Import the config file regardless of where it is from
-        use_config = config_file[:-3] if config_file[-3:] == '.py' else config_file
+        if '/' in config_file:
+            startat = config_file.rfind('/')+1
+        else:
+            startat = 0
+        if '.' in config_file:
+            use_config = config_file[startat:config_file.find('.', startat)]
+        else:
+            use_config = config_file[startat:] # config_file[:-3] if config_file[-3:] == '.py' else config_file
         if '/' in config_file:
             sys.path.append(config_file[:config_file.rfind('/')])
-            use_config = use_config[use_config.rfind('/')+1:]
         try:
             c = importlib.import_module(use_config)
         except:

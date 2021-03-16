@@ -13,7 +13,7 @@ from scipy.fftpack import fft, ifft
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract
+from autoprofutils.SharedFunctions import _iso_extract, StarFind
 from copy import deepcopy
 
 def _2DGaussFit(x, dat, xx, yy, noise, fwhm_guess):
@@ -157,7 +157,33 @@ def PSF_GaussFit(IMG, pixscale, name, results, **kwargs):
     return {'psf fwhm': np.median(psf_estimates) if len(psf_estimates) >= 5 else fwhm_guess}
 
 
+def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
 
+    if 'psf_set' in kwargs:
+        return {'psf fwhm': kwargs['psf_set']}
+    elif 'psf_guess' in kwargs:
+        fwhm_guess = psf_guess
+    else:
+        fwhm_guess = max(1., 1./pixscale)
+
+    edge_mask = np.zeros(IMG.shape, dtype = bool)
+    edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
+              int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
+    stars = StarFind(IMG - results['background'], fwhm_guess, results['background noise'],
+                     edge_mask, peakmax = (kwargs['overflowval']-results['background'])*0.95 if 'overflowval' in kwargs else None,
+                     maxstars = 100)
+    if 'doplot' in kwargs and kwargs['doplot']:
+        plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
+                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        for i in range(len(stars['fwhm'])):
+            if stars['deformity'][i] >= 0.8:
+                continue
+            plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/pixscale, 16/pixscale,
+                                        0, fill = False, linewidth = 0.5, color = 'y'))
+        plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
+        plt.clf()
+    logging.info('%s: found psf: %f' % (name,np.median(stars['fwhm'][stars['deformity'] < 0.8])))
+    return {'psf fwhm': np.median(stars['fwhm'][stars['deformity'] < 0.8])}
 
 def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
     """

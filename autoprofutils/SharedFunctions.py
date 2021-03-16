@@ -1,16 +1,21 @@
 import sys
 import os
 from scipy.integrate import trapz
-from scipy.stats import iqr
+from scipy.stats import iqr, norm
 from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariateSpline
 from scipy.fftpack import fft, ifft
 from scipy.optimize import minimize
+from scipy.signal import convolve2d
+from astropy.visualization import SqrtStretch, LogStretch
+from astropy.visualization.mpl_normalize import ImageNormalize
 import matplotlib.pyplot as plt
 from astropy.io import fits
 import numpy as np
 from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, IsophoteList
 from photutils.isophote import Ellipse as Photutils_Ellipse
 import logging
+from copy import deepcopy
+from time import time
 
 Abs_Mag_Sun = {'u': 6.39,
                'g': 5.11,
@@ -255,61 +260,136 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
     else:
         return flux
 
+def _sampleflux(x, dat):
+    f_interp = RectBivariateSpline(np.arange(dat.shape[0], dtype = np.float32),
+                                   np.arange(dat.shape[1], dtype = np.float32),
+                                   dat)
+    return f_interp(x[1], x[0], grid = False)
+    
 def _GaussFit(x, sr, sf):
-    return np.mean((sf - x[1]*norm.pdf(sr, loc = 0, scale = x[0]))**2)
+    return np.mean((sf - (x[1]*norm.pdf(sr, loc = 0, scale = x[0])))**2)
 
-def StarFind(IMG, fwhm_guess, background_noise, mask = None):
-    zz = np.ones((9,9))*-1
-    zz[3:6,3:6] = 8
-    new = convolve2d(IMG, zz)
+def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10., maxstars = np.inf):
+    """
+    Find stars in an image, determine their fwhm and peak flux values.
+
+    IMG: image data as numpy 2D array
+    fwhm_guess: A guess at the PSF fwhm, can be within a factor of 2 and everything should work
+    background_noise: image background flux noise
+    mask: masked pixels as numpy 2D array with same dimensions as IMG
+    peakmax: maximum allowed peak flux value for a star, used to remove saturated pixels
+    detect_threshold: threshold (in units of sigma) value for convolved image to consider a pixel as a star candidate.
+    minsep: minimum allowed separation between stars, in units of fwhm_guess
+    reject_size: reject stars with fitted FWHM greater than this times the fwhm_guess
+    maxstars: stop once this number of stars have been found, this is for speed purposes
+    """
+
+    # Convolve edge detector with image
+    S = 3**np.array([1,2,3,4,5])
+    S = int(S[np.argmin(np.abs(S/3 - fwhm_guess))])
+    zz = np.ones((S,S))*-1
+    zz[int(S/3):int(2*S/3),int(S/3):int(2*S/3)] = 8
+
+    new = convolve2d(IMG, zz, mode = 'same')
 
     centers = []
+    deformities = []
     fwhms = []
     peaks = []
-    highpixels = np.argwhere(new > 20*iqr(new))
 
-    N = 9
-    xx, yy = np.meshgrid(np.arange(N,dtype=float), np.arange(N,dtype=float))
-    xx -= (N-1)/2.
-    yy -= (N-1)/2.
+    # Select pixels which edge detector identifies
+    if mask is None:
+        highpixels = np.argwhere(new > detect_threshold*iqr(new))
+    else:
+        highpixels = np.argwhere(np.logical_and(new > detect_threshold*iqr(new),
+                                                np.logical_not(mask)))
+
+    # meshgrid for 2D polynomial fit (pre-built for efficiency)
+    xx,yy = np.meshgrid(np.arange(2*S/3), np.arange(2*S/3))
+    xx = xx.flatten()
+    yy = yy.flatten()
+    A = np.array([np.ones(xx.shape), xx, yy, xx**2, yy**2, xx*yy, xx*yy**2, yy*xx**2,xx**2 * yy**2]).T
+    
     for i in range(len(highpixels)):
-        if len(centers) != 0 and np.any(np.sqrt(np.sum((highpixels[i] - centers)**2,axis = 1)) < 3*4):
+        # reject if near an existing center
+        if len(centers) != 0 and np.any(np.sqrt(np.sum((highpixels[i] - centers)**2,axis = 1)) < minsep*fwhm_guess):
             continue
-        if (not mask is None) and mask[tuple(highpixels[i])]:
+        # reject if near edge
+        if np.any(highpixels[i] < 5*fwhm_guess) or np.any(highpixels[i] > (np.array(IMG.shape) - 5*fwhm_guess)):
             continue
-        if np.any(highpixels[i] < 10*fwhm_guess) or np.any(highpixels[i] > (IMG.shape - 10*fwhm_guess)):
+        # set starting point at local maximum pixel
+        newcenter = np.array([highpixels[i][1],highpixels[i][0]])
+        ranges = [[max(0,int(newcenter[0]-fwhm_guess*5)), min(IMG.shape[1],int(newcenter[0]+fwhm_guess*5))],
+                  [max(0,int(newcenter[1]-fwhm_guess*5)), min(IMG.shape[0],int(newcenter[1]+fwhm_guess*5))]]
+        newcenter = np.unravel_index(np.argmax(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T),
+                                     IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T.shape)
+        newcenter += np.array([ranges[0][0],ranges[1][0]])
+        if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - 5*fwhm_guess)):
             continue
-        newcenter = deepcopy(highpixels[i])
-        count = 0
-        while count < 20:
-            count += 1
-            chunk = IMG[int(newcenter[0]-N/2):int(newcenter[0]+N/2),int(newcenter[1]-N/2):int(newcenter[1]+N/2)]
+        # update star center with 2D polynomial fit
+        ranges = [[max(0,int(newcenter[0]-S/3)), min(IMG.shape[1],int(newcenter[0]+S/3))],
+                  [max(0,int(newcenter[1]-S/3)), min(IMG.shape[0],int(newcenter[1]+S/3))]]
+        chunk = np.clip(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].T, a_min = background_noise/3, a_max = None)
+        poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()))
+        newcenter = np.array([-poly2dfit[0][2]/(2*poly2dfit[0][4]), -poly2dfit[0][1]/(2*poly2dfit[0][3])])
+        # reject if 2D polynomial maximum is outside the fitting region
+        if np.any(newcenter < 0) or np.any(newcenter > 5):
+            continue
+        newcenter += np.array([ranges[0][0],ranges[1][0]])
 
-            M = np.sum(chunk)
-            newx = newcenter[0] + np.sum(chunk*yy)/M
-            newy = newcenter[1] + np.sum(chunk*xx)/M
-            if abs(newx - newcenter[0]) < 0.3 and abs(newy - newcenter[1]) < 0.3:
-                break
-            newcenter = np.array([newx,newy])
-        if count >= 20:
+        # reject centers that are outside the image
+        if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - 5*fwhm_guess)):
             continue
-        isovals = _iso_extract(IMG, fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
-        coefs = fft(isovals)
-        if np.any(np.abs(coefs[1:]) > np.sqrt(np.abs(coefs[0]))):
+        # reject stars with too high flux
+        if (not peakmax is None) and np.any(IMG[int(newcenter[1]-minsep*fwhm_guess):int(newcenter[1]+minsep*fwhm_guess),
+                                                int(newcenter[0]-minsep*fwhm_guess):int(newcenter[0]+minsep*fwhm_guess)] >= peakmax):
             continue
+        # reject if near existing center
+        if len(centers) != 0 and np.any(np.sqrt(np.sum((newcenter - centers)**2,axis = 1)) < minsep*fwhm_guess):
+            continue
+
+        # Extract flux as a function of radius
+        flux = [np.median(_iso_extract(IMG, 0.0, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
+        R = [0.5]
+        deformity = [1.]
+        badcount = 0
+        while flux[-1] > max(flux[0]/2, background_noise) or len(R) < 3: #len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
+            R.append(R[-1] + fwhm_guess/5)
+            isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
+            coefs = fft(isovals)
+            deformity.append(np.sum(np.abs(coefs[1:int(len(coefs)/2)])) / np.sqrt(np.abs(coefs[0])))
+            # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
+            #     badcount += 1
+            flux.append(np.median(isovals))
+
+        fwhm_fit = np.interp(flux[0]/2, list(reversed(flux)), list(reversed(R)))*2
+        
+        # reject if fitted FWHM unrealistically large
+        if fwhm_fit > reject_size*fwhm_guess:
+            continue
+        # Add star to list
         if len(centers) == 0:
             centers = np.array([deepcopy(newcenter)])
         else:
             centers = np.concatenate((centers,[newcenter]),axis = 0)
-        flux = [np.median(_iso_extract(IMG, 1, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
-        R = [1.]
-        while len(R) < 40 and (flux[-1] > 5*background_noise or len(R) <= 5):
-            R.append(R[-1] + fwhm_guess/4)
-            flux.apppend(np.median(_iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})))
-        res = minimize(_GaussFit, x0 = [fwhm_guess/2.355, flux[0]/norm.pdf(0,loc = 0,scale = fwhm_guess/2.355)], args = (np.array(R), np.array(flux))) # , method = 'Nelder-Mead'
-        fwhms.append(res.x[0]*2.355)
-        peaks.append(res.x[1] / norm.pdf(0,loc = 0,scale = res.x[0]))
-    return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks)}
+        deformities.append(deformity[-1])
+        fwhms.append(deepcopy(fwhm_fit))
+        peaks.append(flux[0])
+        # stop if max N stars reached
+        if len(fwhms) >= maxstars:
+            break
+
+        # ranges = [[max(0,int(newcenter[0]-fwhm_guess*5)), min(IMG.shape[1],int(newcenter[0]+fwhm_guess*5))],
+        #           [max(0,int(newcenter[1]-fwhm_guess*5)), min(IMG.shape[0],int(newcenter[1]+fwhm_guess*5))]]
+        # plt.imshow(np.clip(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
+        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        # plt.scatter([newcenter[0] - ranges[0][0]], [newcenter[1] - ranges[1][0]], color = 'r', marker = 'x')
+        # plt.scatter([com_center[0] - ranges[0][0]], [com_center[1] - ranges[1][0]], color = 'b', marker = 'x')
+        # #plt.scatter([highpixels[i][1] - ranges[0][0]], [highpixels[i][0] - ranges[1][0]], color = 'g', marker = 'x')
+        # plt.savefig('test/PSF_test_%i_center.jpg' % randid)
+        # plt.clf()
+        
+    return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks), 'deformity': np.array(deformities)}
 
 
 
