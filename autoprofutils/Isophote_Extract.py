@@ -226,7 +226,7 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()                
 
-        useR = np.array(SBprof_data['R'])[CHOOSE]
+        useR = np.array(SBprof_data['R'])[CHOOSE]/pixscale
         useE = np.array(SBprof_data['ellip'])[CHOOSE]
         usePA = np.array(SBprof_data['pa'])[CHOOSE]
         ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
