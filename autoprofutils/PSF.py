@@ -170,20 +170,23 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
     edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
               int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
     stars = StarFind(IMG - results['background'], fwhm_guess, results['background noise'],
-                     edge_mask, peakmax = (kwargs['overflowval']-results['background'])*0.95 if 'overflowval' in kwargs else None,
-                     maxstars = 100)
+                     edge_mask, peakmax = (kwargs['overflowval']-results['background'])*0.95 if 'overflowval' in kwargs else None)
+    if len(stars['fwhm']) <= 10:
+        return {'psf fwhm': fwhm_guess}
+    def_clip = 0.1
+    while np.sum(stars['deformity'] < def_clip) < max(10,2*len(stars['fwhm'])/3):
+        def_clip += 0.1
     if 'doplot' in kwargs and kwargs['doplot']:
         plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
                    cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         for i in range(len(stars['fwhm'])):
-            if stars['deformity'][i] >= 0.8:
-                continue
             plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/pixscale, 16/pixscale,
-                                        0, fill = False, linewidth = 0.5, color = 'y'))
+                                        0, fill = False, linewidth = 0.5, color = 'r' if stars['deformity'][i] >= def_clip else 'y'))
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
         plt.close()
-    logging.info('%s: found psf: %f' % (name,np.median(stars['fwhm'][stars['deformity'] < 0.8])))
-    return {'psf fwhm': np.median(stars['fwhm'][stars['deformity'] < 0.8])}
+
+    logging.info('%s: found psf: %f with deformity clip of: %f' % (name,np.median(stars['fwhm'][stars['deformity'] < def_clip]), def_clip))
+    return {'psf fwhm': np.median(stars['fwhm'][stars['deformity'] < def_clip])}
 
 def Calculate_PSF(IMG, pixscale, name, results, **kwargs):
     """

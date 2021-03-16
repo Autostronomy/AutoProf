@@ -27,7 +27,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     edge_mask = np.ones(IMG.shape, dtype = bool)
     edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
               int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
-    values = IMG[edge_mask].ravel()
+    values = IMG[edge_mask].flatten()[::2]
     values = values[np.isfinite(values)]
     start = np.median(values)
     scale = iqr(values,rng = [30,70])/40

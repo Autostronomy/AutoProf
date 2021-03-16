@@ -240,10 +240,13 @@ def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
     else:
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
-    return Generate_Profile(IMG, pixscale, np.logical_or(results['overflow mask'],results['mask']),
-                            results['background'], results['background noise'], results['center'], results['fit R'],
-                            results['fit ellip'], Ee, results['fit pa'], PAe, {'ellip': results['init ellip'], 'pa': results['init pa']}, name, **kwargs)
-
+        
+    # return Generate_Profile(IMG, pixscale, np.logical_or(results['overflow mask'],results['mask']),
+    #                         results['background'], results['background noise'], results['center'], results['fit R'],
+    #                         results['fit ellip'], Ee, results['fit pa'], PAe, {'ellip': results['init ellip'], 'pa': results['init pa']}, name, **kwargs)
+    return _Generate_Profile(IMG, pixscale, name, results, results['fit R'], results['fit ellip'], Ee, results['fit pa'], PAe, **kwargs)
+    
+    
 def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
     """
     Extract isophotes given output profile from Isophotes_Simultaneous_Fit which
@@ -264,7 +267,7 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
         
     # Radius values to evaluate isophotes
     R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf fwhm']/2)]
-    while ((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 3*results['fit R'][-1] and R[-1] < min(IMG.shape)/2) or (kwargs['extractfull'] if 'extractfull' in kwargs else False):
+    while (((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 3*results['fit R'][-1]) or (kwargs['extractfull'] if 'extractfull' in kwargs else False)) and R[-1] < min(IMG.shape)/2:
         if 'samplestyle' in kwargs and kwargs['samplestyle'] == 'geometric-linear':
             if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf fwhm']):
                 R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf fwhm']))

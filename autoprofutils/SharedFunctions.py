@@ -210,8 +210,8 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
     """
     
     if type(sma) == list:
-        box = [[max(0,int(c['x']-max(sma)-2)), min(IMG.shape[0],int(c['x']+max(sma)+2))],
-               [max(0,int(c['y']-max(sma)-2)), min(IMG.shape[1],int(c['y']+max(sma)+2))]]
+        box = [[max(0,int(c['x']-max(sma)-2)), min(IMG.shape[1],int(c['x']+max(sma)+2))],
+               [max(0,int(c['y']-max(sma)-2)), min(IMG.shape[0],int(c['y']+max(sma)+2))]]
         f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
                                        np.arange(box[0][1] - box[0][0], dtype = np.float32),
                                        IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
@@ -240,12 +240,12 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
     X = sma*np.cos(theta)
     Y = sma*(1-eps)*np.sin(theta)
     # rotate ellipse by PA
-    X,Y = (X*np.cos(pa) - Y*np.sin(pa), X*np.sin(pa) + Y*np.cos(pa))
+    X,Y = (X*np.cos(-pa) - Y*np.sin(-pa), X*np.sin(-pa) + Y*np.cos(-pa))
     theta = (theta + pa) % (2*np.pi)
     
     if sma < 30: 
-        box = [[max(0,int(c['x']-sma-2)), min(IMG.shape[0],int(c['x']+sma+2))],
-               [max(0,int(c['y']-sma-2)), min(IMG.shape[1],int(c['y']+sma+2))]]
+        box = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
+               [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
         f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
                                        np.arange(box[0][1] - box[0][0], dtype = np.float32),
                                        IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
@@ -262,20 +262,20 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
 
 def _iso_within(IMG, sma, eps, pa, c):
 
-    ranges = [[max(0,int(c['x']-sma-2)), min(IMG.shape[0],int(c['x']+sma+2))],
-              [max(0,int(c['y']-sma-2)), min(IMG.shape[1],int(c['y']+sma+2))]]
+    ranges = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
+              [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
     XX -= c['x'] - float(ranges[0][0])
     YY -= c['y'] - float(ranges[1][0])
-    XX, YY = (XX*np.cos(pa) - YY*np.sin(pa), XX*np.sin(pa) + YY*np.cos(pa))
+    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
     YY /= 1 - eps
     RR = (XX**2 + YY**2) < sma**2
     return np.sum(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][RR])
 
 def _iso_between(IMG, sma_low, sma_high, eps, pa, c):
 
-    ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[0],int(c['x']+sma_high+2))],
-              [max(0,int(c['y']-sma_high-2)), min(IMG.shape[1],int(c['y']+sma_high+2))]]
+    ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
+              [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
     XX -= c['x'] - float(ranges[0][0])
     YY -= c['y'] - float(ranges[1][0])
@@ -354,7 +354,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         newcenter += np.array([ranges[0][0],ranges[1][0]])
 
         # reject centers that are outside the image
-        if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(IMG.shape) - 5*fwhm_guess)):
+        if np.any(newcenter < 5*fwhm_guess) or np.any(newcenter > (np.array(list(reversed(IMG.shape))) - 5*fwhm_guess)):
             continue
         # reject stars with too high flux
         if (not peakmax is None) and np.any(IMG[int(newcenter[1]-minsep*fwhm_guess):int(newcenter[1]+minsep*fwhm_guess),
