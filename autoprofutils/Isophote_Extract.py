@@ -271,7 +271,7 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
         
     # Radius values to evaluate isophotes
     R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf fwhm']/2)]
-    while (((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 3*results['fit R'][-1]) or (kwargs['extractfull'] if 'extractfull' in kwargs else False)) and R[-1] < 2*max(IMG.shape):
+    while (((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 3*results['fit R'][-1]) or (kwargs['extractfull'] if 'extractfull' in kwargs else False)) and R[-1] < max(IMG.shape)/2:
         if 'samplestyle' in kwargs and kwargs['samplestyle'] == 'geometric-linear':
             if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf fwhm']):
                 R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf fwhm']))
