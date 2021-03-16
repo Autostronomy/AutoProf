@@ -260,15 +260,31 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
     else:
         return flux
 
-def _sampleflux(x, dat):
-    f_interp = RectBivariateSpline(np.arange(dat.shape[0], dtype = np.float32),
-                                   np.arange(dat.shape[1], dtype = np.float32),
-                                   dat)
-    return f_interp(x[1], x[0], grid = False)
-    
-def _GaussFit(x, sr, sf):
-    return np.mean((sf - (x[1]*norm.pdf(sr, loc = 0, scale = x[0])))**2)
+def _iso_within(IMG, sma, eps, pa, c):
 
+    ranges = [[max(0,int(c['x']-sma-2)), min(IMG.shape[0],int(c['x']+sma+2))],
+              [max(0,int(c['y']-sma-2)), min(IMG.shape[1],int(c['y']+sma+2))]]
+    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
+    XX -= c['x'] - float(ranges[0][0])
+    YY -= c['y'] - float(ranges[1][0])
+    XX, YY = (XX*np.cos(pa) - YY*np.sin(pa), XX*np.sin(pa) + YY*np.cos(pa))
+    YY /= 1 - eps
+    RR = (XX**2 + YY**2) < sma**2
+    return np.sum(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][RR])
+
+def _iso_between(IMG, sma_low, sma_high, eps, pa, c):
+
+    ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[0],int(c['x']+sma_high+2))],
+              [max(0,int(c['y']-sma_high-2)), min(IMG.shape[1],int(c['y']+sma_high+2))]]
+    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
+    XX -= c['x'] - float(ranges[0][0])
+    YY -= c['y'] - float(ranges[1][0])
+    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
+    YY /= 1 - eps
+    RR = XX**2 + YY**2
+    return IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][np.logical_and(RR < sma_high**2, RR > sma_low**2)]
+
+        
 def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10., maxstars = np.inf):
     """
     Find stars in an image, determine their fwhm and peak flux values.

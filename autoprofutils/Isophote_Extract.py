@@ -13,7 +13,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop
+from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_within, _iso_between
 
 def Simple_Isophote_Extract(IMG, mask, background_level, center, R, E, PA, name = ''):
     """
@@ -140,6 +140,90 @@ def Generate_Profile(IMG, pixscale, mask, background, background_noise, center, 
         
     return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
 
+def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs):
+    
+    # Create image array with background and mask applied
+    mask = np.logical_or(results['overflow mask'],results['mask'])
+    if np.any(mask):
+        logging.info('%s: is masked' % (name))
+        dat = np.ma.masked_array(IMG - results['background'], mask)
+    else:
+        logging.info('%s: is not masked' % (name))
+        dat = IMG - results['background']
+    zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
+
+    sb = []
+    sbE = []
+    cogdirect = []
+    sbfix = []
+    sbfixE = []
+
+    for i in range(len(R)):
+        if R[i] < 150:
+            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'])
+        else:
+            isovals = _iso_between(dat, R[i]*0.975, R[i]*1.025, E[i], PA[i], results['center'])
+        isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'])
+        isotot = _iso_within(dat, R[i], E[i], PA[i], results['center'])
+        medflux = np.median(isovals)
+        medfluxfix = np.median(isovalsfix)
+        sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
+        sbE.append((2.5*iqr(isovals, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
+        sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(pixscale)) if medfluxfix > 0 else 99.999)
+        sbfixE.append((2.5*iqr(isovalsfix, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovalsfix))*np.median(isovalsfix)*np.log(10))) if medfluxfix > 0 else 99.999)
+        cogdirect.append(-2.5*np.log10(isotot) + zeropoint)
+        
+    # Compute Curve of Growth from SB profile
+    cog, cogE = SBprof_to_COG_errorprop(R * pixscale, np.array(sb), np.array(sbE), 1. - E,
+                                        Ee, N = 100, method = 0, symmetric_error = True)
+    cogE[cog > 99] = 99.999
+    cogfix, cogfixE = SBprof_to_COG_errorprop(R * pixscale, np.array(sbfix), np.array(sbfixE), 1. - E,
+                                              Ee, N = 100, method = 0, symmetric_error = True)
+    cogfixE[cogfix > 99] = 99.999
+    
+    # For each radius evaluation, write the profile parameters
+    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
+        
+    SBprof_data = dict((h,None) for h in params)
+    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
+                    'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'totmag_direct': 'mag',
+                    'SB_fix': 'mag*arcsec^-2', 'SB_fix_e': 'mag*arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
+    SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
+                    'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f',
+                     'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
+    
+    SBprof_data['R'] = list(R * pixscale)
+    SBprof_data['SB'] = list(sb)
+    SBprof_data['SB_e'] = list(sbE)
+    SBprof_data['totmag'] = list(cog)
+    SBprof_data['totmag_e'] = list(cogE)
+    SBprof_data['ellip'] = list(E)
+    SBprof_data['ellip_e'] = list(Ee)
+    SBprof_data['pa'] = list(PA*180/np.pi)
+    SBprof_data['pa_e'] = list(PAe*180/np.pi)
+    SBprof_data['totmag_direct'] = list(cogdirect)
+    SBprof_data['SB_fix'] = list(sbfix)
+    SBprof_data['SB_fix_e'] = list(sbfixE)
+    SBprof_data['totmag_fix'] = list(cogfix)
+    SBprof_data['totmag_fix_e'] = list(cogfixE)
+
+    if 'doplot' in kwargs and kwargs['doplot']:
+        CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
+        plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = np.array(SBprof_data['SB_e'])[CHOOSE],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'purple', label = 'SB')
+        plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'COG')
+        plt.xlabel('Radius [arcsec]')
+        plt.ylabel('Brightness [mag, mag/arcsec^2]')
+        plt.axhline(-2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2), color = 'purple', linewidth = 0.5, linestyle = '--', label = 'Sky noise')
+        plt.gca().invert_yaxis()
+        plt.legend()
+        plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.close()                
+    print(SBprof_data)
+    return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
+    
+
 def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
     """
     Run isophote data extraction given exact specification for pa and ellip profiles.
@@ -216,15 +300,16 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
     
-    # Stop from masking anything at the center
-    results['mask'][int(use_center['x'] - 10*results['psf fwhm']):int(use_center['x'] + 10*results['psf fwhm']),
-                            int(use_center['y'] - 10*results['psf fwhm']):int(use_center['y'] + 10*results['psf fwhm'])] = False
-    compund_Mask = np.logical_or(results['overflow mask'],results['mask'])
+    # # Stop from masking anything at the center
+    # results['mask'][int(use_center['x'] - 10*results['psf fwhm']):int(use_center['x'] + 10*results['psf fwhm']),
+    #                         int(use_center['y'] - 10*results['psf fwhm']):int(use_center['y'] + 10*results['psf fwhm'])] = False
+    # compund_Mask = np.logical_or(results['overflow mask'],results['mask'])
 
     # Extract SB profile
-    return Generate_Profile(IMG,pixscale,compund_Mask,
-                            results['background'],
-                            results['background noise'],
-                            use_center, R, E, Ee, PA, PAe,
-                            {'ellip': results['init ellip'], 'pa': results['init pa']},
-                            name, **kwargs)
+    # return Generate_Profile(IMG,pixscale,compund_Mask,
+    #                         results['background'],
+    #                         results['background noise'],
+    #                         use_center, R, E, Ee, PA, PAe,
+    #                         {'ellip': results['init ellip'], 'pa': results['init pa']},
+    #                         name, **kwargs)
+    return _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
