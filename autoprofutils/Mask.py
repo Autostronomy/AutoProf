@@ -15,14 +15,6 @@ def Overflow_Mask(IMG, pixscale, name, results, **kwargs):
     Identify parts of the image where the CCD has overflowed and maxed
     out the sensor. These are characterized by large areas with high
     and identical pixel values
-
-    IMG: numpy 2d array of pixel values
-    pixscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    psf: point spread function statistics
-    overflowval: optional pixel flux value for overflowed pixels
-
-    returns: collection of mask information
     """
     
     if 'autodetectoverflow' in kwargs and kwargs['autodetectoverflow']:
@@ -38,16 +30,6 @@ def Overflow_Mask(IMG, pixscale, name, results, **kwargs):
         return np.zeros(IMG.shape)
 
     Mask = np.logical_and(IMG > (kwargs['overflowval'] - 1e-3), IMG < (kwargs['overflowval'] + 1e-3)).astype(bool)
-    # dlate = int(10*results['psf fwhm'])
-    # W = np.where(Mask)
-    # for Wy, Wx in zip(W[0],W[1]):
-    #     # Near the center of the image, don't dilate the overflow pixels
-    #     if (IMG.shape[0]/2 - 30*results['psf fwhm']) < Wx < (IMG.shape[0]/2 + 30*results['psf fwhm']) and \
-    #        (IMG.shape[1]/2 - 30*results['psf fwhm']) < Wy < (IMG.shape[1]/2 + 30*results['psf fwhm']):
-    #         continue
-    #     # Dilate/mask region around overflow pixels
-    #     Mask[max(Wy-dlate, 0):min(Wy+dlate+1,len(Mask)),
-    #          max(Wx-dlate, 0):min(Wx+dlate+1,len(Mask))] = True
 
     # eliminate places where no data is recorded
     Mask[IMG == 0] = True
@@ -131,63 +113,6 @@ def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
     
     return {'mask':mask,
             'overflow mask': overflow_mask}
-    
-
-def Star_Mask_DAO(IMG, pixscale, name, results, **kwargs):
-    """
-    Idenitfy the location of stars in the image and create a mask around
-    each star of pixels to be avoided in further processing.
-
-    IMG: numpy 2d array of pixel values
-    pixscale: conversion factor from pixels to arcsec (arcsec pixel^-1)
-    background: output from a image background signal calculation (dict)
-    psf: point spread function statistics
-    overflowval: optional pixel flux value for overflowed pixels
-
-    returns: empty collection of mask information
-    """
-
-    fwhm = results['psf fwhm'] 
-    
-    # Run photutils wrapper for DAO star finder
-    daofind = DAOStarFinder(fwhm = fwhm, threshold = 20.*results['background noise'])
-    sources = daofind(IMG - results['background'])
-    
-    mask = np.zeros(IMG.shape, dtype = bool)
-    # Remove star pixels and area around them
-    XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]))
-    for x,y in zip(sources['xcentroid'], sources['ycentroid']):
-        # compute distance of every pixel to the identified star
-        R = np.sqrt((XX-x)**2 + (YY-y)**2)
-        # Check surrounding area to see if this is insize the galaxy
-        if np.median(IMG[np.logical_and(R > 20*fwhm, R < 25*fwhm)]) > 3*results['background noise']:
-            continue
-        # Compute the flux of the star
-        f = np.sum(IMG[R < 20*fwhm])
-        # Compute radius to reach background noise level, assuming gaussian
-        Rstar = 2.3*fwhm*np.sqrt(2*np.log(2.3*f/(np.sqrt(np.pi*fwhm)*results['background noise'])))
-        mask[R < Rstar] = True
-
-    # Include user defined mask if any
-    if 'mask_file' in kwargs and not kwargs['mask_file'] is None:
-        mask  = np.logical_or(mask, Read_Image(mask_file, **kwargs))
-        
-    # Run separate code to find overflow pixels from very bright stars
-    overflow_mask = Overflow_Mask(IMG, pixscale, name, results, **kwargs)
-    
-    # Plot star mask for diagnostic purposes
-    if 'doplot' in kwargs and kwargs['doplot']:
-        plt.imshow(np.clip(IMG,a_min = 0, a_max = None), origin = 'lower',
-                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        dat = np.logical_or(mask, overflow_mask).astype(float)
-        dat[dat == 0] = np.nan
-        plt.imshow(dat, origin = 'lower', cmap = 'Reds_r', alpha = 0.7)
-        plt.savefig('%sMask_%s.pdf' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.close()
-    
-    return {'mask':mask,
-            'overflow mask': overflow_mask}
-
 
 def NoMask(IMG, pixscale, name, results, **kwargs):
     """

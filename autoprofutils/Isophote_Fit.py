@@ -18,8 +18,6 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles
-from autoprofutils.Isophote_Initialize import Isophote_Initialize_CircFit
-from autoprofutils.Check_Fit import Check_Fit_IQR
 
 def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
     """

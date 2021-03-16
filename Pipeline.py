@@ -1,14 +1,14 @@
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.Background import Background_Mode
-from autoprofutils.PSF import PSF_2DGaussFit, PSF_GaussFit, PSF_StarFind
-from autoprofutils.Center import Center_Null, Center_HillClimb, Center_Forced
-from autoprofutils.Isophote_Initialize import Isophote_Initialize_CircFit
+from autoprofutils.Background import Background_Mode, Background_DilatedSources
+from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
+from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced
+from autoprofutils.Isophote_Initialize import Isophote_Initialize
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Star_Mask_Given
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
-from autoprofutils.Check_Fit import Check_Fit_IQR, Check_Fit_Simple
+from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.SharedFunctions import GetKwargs, Read_Image
 from multiprocessing import Pool, current_process
 from astropy.io import fits
@@ -34,18 +34,24 @@ class Isophote_Pipeline(object):
 
         # Functions avaiable by default for building the pipeline
         self.pipeline_functions = {'background': Background_Mode,
-                                   'psf': PSF_StarFind, 
+                                   'background dilatedsources': Background_DilatedSources,
+                                   'psf': PSF_StarFind,
+                                   'psf IRAF': PSF_IRAF,
                                    'center': Center_HillClimb,
                                    'center forced': Center_Forced,
-                                   'isophoteinit': Isophote_Initialize_CircFit,
+                                   'center 2DGaussian': Center_2DGaussian,
+                                   'center 1DGaussian': Center_1DGaussian,
+                                   'center OfMass': Center_OfMass,
+                                   'isophoteinit': Isophote_Initialize,
                                    'isophotefit': Isophote_Fit_FFT_Robust,
                                    'isophotefit forced': Isophote_Fit_Forced,
                                    'isophotefit photutils': Photutils_Fit,
                                    'starmask': Star_Mask_IRAF,
+                                   'starmask overflowonly': NoMask,
                                    'starmask forced': Star_Mask_Given,
                                    'isophoteextract': Isophote_Extract,
                                    'isophoteextract forced': Isophote_Extract_Forced,
-                                   'checkfit': Check_Fit_IQR}
+                                   'checkfit': Check_Fit}
         # Default pipeline analysis order
         self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 

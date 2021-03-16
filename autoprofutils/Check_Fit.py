@@ -7,39 +7,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa
 
-
-def Check_Fit_Simple(IMG, pixscale, name, results, **kwargs):
-    """
-    Check for failed fit by comparing total magnitude from SB integral and flux summing.
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
-    """
-
-    tests = {}
-    # subtract background from image during processing
-    dat = IMG - results['background']
-    
-    # Compare integrated total magnitude with summed total magnitude
-    try:
-        SB = np.array(results['prof data']['SB'])
-        SBe = np.array(results['prof data']['SB_e'])
-        Mint = np.array(results['prof data']['totmag'])
-        Msum = np.array(results['prof data']['totmag_direct'])
-        CHOOSE = np.logical_and(SB < 99, SBe < 0.1)
-        if np.sum(np.abs(Mint[CHOOSE][-4:] - Msum[CHOOSE][-4:]) > 0.2) > 2:
-            logging.warning('%s: Possible failed fit! Inconsistent results for curve of growth, bad fit or foreground star' % name)
-            tests['curve of growth consistency'] = False
-        else:
-            tests['curve of growth consistency'] = True
-    except:
-        logging.info('%s: Check fit could not check SB profile consistency')
-    return {'checkfit': tests}
-
-def Check_Fit_IQR(IMG, pixscale, name, results, **kwargs):
+def Check_Fit(IMG, pixscale, name, results, **kwargs):
     """
     Check for failed fit with various measures.
     1) compare iqr of isophotes with that of a simple global fit
@@ -47,12 +15,6 @@ def Check_Fit_IQR(IMG, pixscale, name, results, **kwargs):
     3) measure signal in 2nd and 4th FFT coefficient which should be minimal
     4) measure signal in 1st FFT coefficient which should be minimal
     5) Compare integrated SB profile with simple flux summing for total magnitude
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
     """
     tests = {}
     # subtract background from image during processing
