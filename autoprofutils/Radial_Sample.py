@@ -59,22 +59,21 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
             sb[sa_i].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
             sbE[sa_i].append((2.5*iqr(isovals[0][aselect], rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(np.sum(aselect))*medflux*np.log(10))) if medflux > 0 else 99.999)
 
-    with open('%sradial_sample_%s.prof' % (kwargs['saveto'] if 'saveto' in kwargs else './', name), 'w') as f:
-        f.write('R')
-        for sa in spokeangles:
-            f.write(',sb[%.2f],sb_e[%.2f]' % (sa*180/np.pi,sa*180/np.pi))
-        f.write('\n')
-        f.write('arcsec')
-        for sa in spokeangles:
-            f.write(',mag*arcsec^-2,mag*arcsec^-2')
-        f.write('\n')
-
-        for i in range(len(R)):
-            f.write('%.4f' % (R[i]*pixscale))
-            for sa_i in range(len(spokeangles)):
-                f.write(',%.4f,%.4f' % (sb[sa_i][i],sbE[sa_i][i]))
-            f.write('\n')
-
+    newprofheader = results['prof header']
+    newprofunits = results['prof units']
+    newprofformat = results['prof format']
+    newprofdata = results['prof data']
+    for sa_i in range(len(spokeangles)):
+        p1, p2 = ('SB[%.1f]' % (spokeangles[sa_i]*180/np.pi), 'SB_e[%.1f]' % (spokeangles[sa_i]*180/np.pi))
+        newprofheader.append(p1)
+        newprofheader.append(p2)
+        newprofunits[p1] = 'mag*arcsec^-2'
+        newprofunits[p2] = 'mag*arcsec^-2'
+        newprofformat[p1] = '%.4f'
+        newprofformat[p2] = '%.4f'
+        newprofdata[p1] = sb[sa_i]
+        newprofdata[p2] = sbE[sa_i]
+        
     if 'doplot' in kwargs and kwargs['doplot']:
         cmap = matplotlib.cm.get_cmap('tab20' if nspokes <= 20 else 'viridis')
         colorind = np.linspace(0,1,nspokes)
@@ -107,6 +106,4 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sradial_sample_spokes_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()
         
-        
-
-    return {'radsample sb': sb, 'radsample sbE': sbE, 'radsample spokeangles': spokeangles}
+    return {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata, 'prof format': newprofformat}
