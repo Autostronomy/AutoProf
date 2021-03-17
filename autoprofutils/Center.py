@@ -11,23 +11,6 @@ import matplotlib.pyplot as plt
 import logging
 from copy import copy
 
-def Center_Null(IMG, pixscale, name, results, **kwargs):
-    """
-    Simply returns the center of the image.
-
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
-    """
-
-    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in kwargs:
-        current_center = kwargs['given_center']
-        
-    return {'center': current_center}
-
 def Center_Forced(IMG, pixscale, name, results, **kwargs):
     """
     Takes the center from an aux file, or given value.
@@ -41,6 +24,8 @@ def Center_Forced(IMG, pixscale, name, results, **kwargs):
     center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
         return {'center': kwargs['given_center']}
+    if 'fit_center' in kwargs and not kwargs['fit_center']:
+        return {'center': current_center}
     
     with open(kwargs['forcing_profile'][:-4] + 'aux', 'r') as f:
         for line in f.readlines():
@@ -48,47 +33,20 @@ def Center_Forced(IMG, pixscale, name, results, **kwargs):
                 x_loc = line.find('x:')
                 y_loc = line.find('y:')
                 try:
-                    center = {'x': float(line[x_loc+3:line.find('pix')]),
-                              'y': float(line[y_loc+3:line.rfind('pix')])}
+                    current_center = {'x': float(line[x_loc+3:line.find('pix')]),
+                                      'y': float(line[y_loc+3:line.rfind('pix')])}
                     break
                 except:
                     pass
         else:
             logging.warning('%s: Forced center failed! Using image center.' % name)
-    return {'center': center}
+    return {'center': current_center}
 
-
-def Center_Given(IMG, pixscale, name, results, **kwargs):
-    """
-    Uses the kwarg "given_center" to return a user inputted center.
-
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
-    """
-
-    try:
-        return {'center': kwargs['given_center']}
-    except:
-        logging.warning('%s: No center given! using image center.' % name)
-        return {'center': {'x': IMG.shape[0]/2.,
-                           'y': IMG.shape[1]/2.}}
     
-    
-def Center_Centroid(IMG, pixscale, name, results, **kwargs):
+def Center_2DGaussian(IMG, pixscale, name, results, **kwargs):
     """
-    Compute the pixel location of the galaxy center using a centroid method.
-    Looking at 50 seeing lengths around the center of the image (images
-    should already be mostly centered), finds the galaxy center by fitting
-    a 2d Gaussian.
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
+    Compute the pixel location of the galaxy center by fitting
+    a 2d Gaussian as implimented by the photutils package.
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
@@ -98,14 +56,13 @@ def Center_Centroid(IMG, pixscale, name, results, **kwargs):
         return {'center': current_center}
     
     # Create mask to focus centering algorithm on the center of the image
-    centralize_mask = np.ones(IMG.shape)
-    centralize_mask[int(IMG.shape[0]/2 - 30 * results['psf fwhm'] / pixscale):int(IMG.shape[0]/2 + 30 * results['psf fwhm'] / pixscale),
-                    int(IMG.shape[1]/2 - 30 * results['psf fwhm'] / pixscale):int(IMG.shape[1]/2 + 30 * results['psf fwhm'] / pixscale)] = 0
-    decentralize_mask = np.ones(IMG.shape)
-    decentralize_mask[int(IMG.shape[0]/2 - 5 * results['psf fwhm'] / pixscale):int(IMG.shape[0]/2 + 5 * results['psf fwhm'] / pixscale),
-                      int(IMG.shape[1]/2 - 5 * results['psf fwhm'] / pixscale):int(IMG.shape[1]/2 + 5 * results['psf fwhm'] / pixscale)] = 0
+    ranges = [[max(0,int(current_center['x'] - 50*results['psf fwhm'])), min(IMG.shape[1],int(current_center['x'] + 50*results['psf fwhm']))],
+              [max(0,int(current_center['y'] - 50*results['psf fwhm'])), min(IMG.shape[0],int(current_center['y'] + 50*results['psf fwhm']))]]
+    centralize_mask = np.ones(IMG.shape, dtype = bool)
+    centralize_mask[ranges[1][0]:ranges[1][1],
+                    ranges[0][0]:ranges[0][1]] = False
     
-    x, y = centroid_2dg(IMG - results['background'])
+    x, y = centroid_2dg(IMG - results['background'], mask = centralize_mask)
 
     # Plot center value for diagnostic purposes
     if 'doplot' in kwargs and kwargs['doplot']:    
@@ -138,13 +95,15 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
     if 'fit_center' in kwargs and not kwargs['fit_center']:
         return {'center': current_center}
     
-    # mask image to focus algorithm on the center of the image
+    # Create mask to focus centering algorithm on the center of the image
+    ranges = [[max(0,int(current_center['x'] - 50*results['psf fwhm'])), min(IMG.shape[1],int(current_center['x'] + 50*results['psf fwhm']))],
+              [max(0,int(current_center['y'] - 50*results['psf fwhm'])), min(IMG.shape[0],int(current_center['y'] + 50*results['psf fwhm']))]]
     centralize_mask = np.ones(IMG.shape, dtype = bool)
-    centralize_mask[int(IMG.shape[0]/2 - 100 * results['psf fwhm'] / pixscale):int(IMG.shape[0]/2 + 100 * results['psf fwhm'] / pixscale),
-                    int(IMG.shape[1]/2 - 100 * results['psf fwhm'] / pixscale):int(IMG.shape[1]/2 + 100 * results['psf fwhm'] / pixscale)] = False
+    centralize_mask[ranges[1][0]:ranges[1][1],
+                    ranges[0][0]:ranges[0][1]] = False
     
     x, y = centroid_1dg(IMG - results['background'],
-                        mask = centralize_mask) # np.logical_or(mask['mask'], centralize_mask)
+                        mask = centralize_mask) 
     
     # Plot center value for diagnostic purposes
     if 'doplot' in kwargs and kwargs['doplot']:    
@@ -160,15 +119,9 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
 def Center_OfMass(IMG, pixscale, name, results, **kwargs):
     """
     Compute the pixel location of the galaxy center using a light weighted
-    center of mass. Looking at 100 seeing lengths around the center of the
+    center of mass. Looking at 50 seeing lengths around the center of the
     image (images should already be mostly centered), finds the average
     light weighted center of the image.
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
@@ -177,10 +130,12 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
     if 'fit_center' in kwargs and not kwargs['fit_center']:
         return {'center': current_center}
     
-    # mask image to focus algorithm on the center of the image
-    centralize_mask = np.ones(IMG.shape)
-    centralize_mask[int(IMG.shape[0]/2 - 50 * results['psf fwhm'] / pixscale):int(IMG.shape[0]/2 + 50 * results['psf fwhm'] / pixscale),
-                    int(IMG.shape[1]/2 - 50 * results['psf fwhm'] / pixscale):int(IMG.shape[1]/2 + 50 * results['psf fwhm'] / pixscale)] = 0
+    # Create mask to focus centering algorithm on the center of the image
+    ranges = [[max(0,int(current_center['x'] - 50*results['psf fwhm'])), min(IMG.shape[1],int(current_center['x'] + 50*results['psf fwhm']))],
+              [max(0,int(current_center['y'] - 50*results['psf fwhm'])), min(IMG.shape[0],int(current_center['y'] + 50*results['psf fwhm']))]]
+    centralize_mask = np.ones(IMG.shape, dtype = bool)
+    centralize_mask[ranges[1][0]:ranges[1][1],
+                    ranges[0][0]:ranges[0][1]] = False
     
     x, y = centroid_com(IMG - results['background'],
                         mask = centralize_mask) # np.logical_or(mask['mask'], centralize_mask)
@@ -195,30 +150,6 @@ def Center_OfMass(IMG, pixscale, name, results, **kwargs):
     logging.info('%s Center found: x %.1f, y %.1f' % (name, x, y))    
     return {'center': {'x': x,
                        'y': y}}
-
-def Center_Bright(IMG, pixscale, name, results, **kwargs):
-    """
-    simply takes the brightest pixel within a region around the center of the image.
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
-    """
-    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in kwargs:
-        current_center = kwargs['given_center']
-    if 'fit_center' in kwargs and not kwargs['fit_center']:
-        return {'center': current_center}
-    
-    subdat = IMG[int(IMG.shape[0]/2 - 20*results['psf fwhm']):int(IMG.shape[0]/2 + 20*results['psf fwhm']),
-                 int(IMG.shape[1]/2 - 20*results['psf fwhm']):int(IMG.shape[1]/2 + 20*results['psf fwhm'])]
-
-    locmax = np.unravel_index(np.argmax(subdat), subdat.shape)
-
-    return {'center': {'x': locmax[0] + IMG.shape[0]/2 - 20*results['psf fwhm'],
-                       'y': locmax[1] + IMG.shape[1]/2 - 20*results['psf fwhm']}}
 
 def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
     """
@@ -327,56 +258,3 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
     #     plt.close()
         
     return {'center': current_center}
-
-def Center_Multi_Method(IMG, pixscale, name, results, **kwargs):
-    """
-    Compute the pixel location of the galaxy center using the other methods
-    included here, determines the best one to use.
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
-    """
-
-    # Centering algorithm order for multi-method
-    cents = ['Centroid', 'COM', '1D']
-    cent_fun = [Center_Centroid, Center_OfMass, Center_1DGaussian]
-    x_colours = ['y', 'cyan', 'magenta', 'lime']
-
-    # Meshgrid from relative pixel locations
-    XX, YY = np.meshgrid(range(IMG.shape[0]), range(IMG.shape[1]), indexing = 'xy')
-    CenterR = np.sqrt((XX - IMG.shape[0]/2)**2 + (YY - IMG.shape[1]/2)**2)
-    
-    cent_vals = []
-    for i in range(len(cents)):
-        # Run the centering algorithm
-        try:
-            cent = cent_fun[i](IMG, pixscale, name, results, **kwargs)
-        except:
-            cent = {'x': np.nan, 'y': np.nan}
-        cent_vals.append(cent)
-
-        # Check that the centering algorithm didn't crash
-        if not (np.isfinite(cent['x']) and np.isfinite(cent['y']) and 0 <= cent['x'] < IMG.shape[0] and 0 <= cent['y'] < IMG.shape[1]):
-            continue
-        # Evaluate relative pixel locations to center
-        R = np.sqrt((XX - cent['x'])**2 + (YY - cent['y'])**2)
-        # Check how the algorithm center brightness compares to the image center brightness
-        if np.sqrt((cent['x'] - IMG.shape[0]/2)**2 + (cent['y'] - IMG.shape[1]/2)**2) < 50*results['psf fwhm']:
-            # Plot center for diagnostic purposes
-            if 'doplot' in kwargs and kwargs['doplot']:    
-                plt.imshow(np.clip(IMG,a_min = 0, a_max = None), origin = 'lower',
-                           cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-                for vi,v in enumerate(cent_vals):
-                    plt.plot([v['x']],[v['y']], marker = 'x', markersize = 10, color = x_colours[vi], label = cents[vi])
-                plt.legend()
-                plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-                plt.close()
-            return {'center': cent}
-    
-    logging.warning('%s Centering failed, using center of image' % name)
-    return {'center': {'x':int(IMG.shape[0]/2.),
-                       'y': int(IMG.shape[1]/2.)}}
-
