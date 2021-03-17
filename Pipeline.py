@@ -9,6 +9,7 @@ from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_For
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Star_Mask_Given
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit_IQR, Check_Fit_Simple
+from autoprofutils.Ellipse_Model import EllipseModel_Fix
 from autoprofutils.SharedFunctions import GetKwargs, Read_Image
 from multiprocessing import Pool, current_process
 from astropy.io import fits
@@ -44,7 +45,8 @@ class Isophote_Pipeline(object):
                                    'starmask forced': Star_Mask_Given,
                                    'isophoteextract': Isophote_Extract,
                                    'isophoteextract forced': Isophote_Extract_Forced,
-                                   'checkfit': Check_Fit_IQR}
+                                   'checkfit': Check_Fit_IQR,
+                                   'ellipsemodel': EllipseModel_Fix}
         self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'starmask', 'isophoteextract', 'checkfit']
 
         self.preprocess = None
