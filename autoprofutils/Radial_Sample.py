@@ -27,6 +27,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
     eps = results['init ellip']
     R = np.array(results['prof data']['R'])/pixscale
     dat = IMG - results['background']
+    logging.info('dat shape ' + str(dat.shape))
     ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
               [max(0,int(results['center']['y']-R[-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[-1]+2))]]
     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
@@ -46,7 +47,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
             isovals[1] = (isovals[1] - pa)
         else:
             isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)            
-            rselect = np.logical_and(RR > R[i] - isobandwidth, RR < R[i] + isobandwidth)
+            rselect = np.logical_and(RR > (R[i] - isobandwidth), RR < (R[i] + isobandwidth))
             isovals = (dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect], theta[rselect])
 
         for sa_i in range(len(spokeangles)):
