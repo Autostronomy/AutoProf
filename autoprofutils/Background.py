@@ -39,6 +39,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
 
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise 
     noise = iqr(values[(values-res.x[0]) < 0], rng = [100 - 68.2689492137,100])
+    uncertainty = noise / np.sqrt(np.sum((values-res.x[0]) < 0))
     
     if 'doplot' in kwargs and kwargs['doplot']:    
         hist, bins = np.histogram(values[np.logical_and((values-res.x[0]) < 20*noise, (values-res.x[0]) > -3*noise)], bins = 1000)
@@ -53,7 +54,8 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
         plt.close()
         
     return {'background': res.x[0],
-            'background noise': noise}
+            'background noise': noise,
+            'background uncertainty': uncertainty}
 
 def Background_DilatedSources(IMG, pixscale, name, results, **kwargs):
     """
@@ -83,5 +85,7 @@ def Background_DilatedSources(IMG, pixscale, name, results, **kwargs):
     mask = np.logical_or(mask, edge_mask)
 
     # Return statistics from background sky
+    noise = iqr(IMG[np.logical_not(mask)],rng = [16,84])/2
     return {'background': np.median(IMG[np.logical_not(mask)]),
-            'background noise': iqr(IMG[np.logical_not(mask)],rng = [16,84])/2}
+            'background noise': noise,
+            'background uncertainty': noise/np.sqrt(np.sum(np.logical_not(mask)))}

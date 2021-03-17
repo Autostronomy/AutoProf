@@ -89,7 +89,11 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
     if 'doplot' in kwargs and kwargs['doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
         plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = np.array(SBprof_data['SB_e'])[CHOOSE],
-                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'purple', label = 'Surface Brightness')
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness')
+        plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     np.array(SBprof_data['SB'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     yerr = np.array(SBprof_data['SB_e'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'limegreen')
         plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
                      elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
         plt.xlabel('Radius [arcsec]')
@@ -110,7 +114,7 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
                            a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(len(useR)):
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
-                                        usePA[i], fill = False, linewidth = 0.3, color = 'r'))
+                                        usePA[i], fill = False, linewidth = 0.3, color = 'limegreen' if (i % 4 == 0) else 'r'))
         plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
 
