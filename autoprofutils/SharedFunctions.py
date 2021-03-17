@@ -204,7 +204,7 @@ def L_to_mag(L, band, Le = None, zeropoint = None):
         mage = np.abs(2.5 * Le / (L * np.log(10)))
         return mag, mage
 
-def _iso_extract(IMG, sma, eps, pa, c, more = False):
+def _iso_extract(IMG, sma, eps, pa, c, more = False, forceN = None):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
@@ -234,6 +234,8 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False):
             return flux
 
     N = int(np.clip(7*sma, a_min = 13, a_max = 50)) if sma < 20 else int(sma*0.5 + 40)
+    if not forceN is None:
+        N = forceN
     # points along ellipse to evaluate
     theta = np.linspace(0, 2*np.pi - 1./N, N)
     # Define ellipse

@@ -10,7 +10,7 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
     
     CHOOSE = np.array(results['prof data']['SB_e']) < 0.3
     R = np.array(results['prof data']['R'])[CHOOSE]/pixscale
-    SB = np.array(results['prof data']['SB'])
+    SB = np.array(results['prof data']['SB'])[CHOOSE]
 
     Model = np.zeros(IMG.shape, dtype = IMG.dtype)
     ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
