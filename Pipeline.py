@@ -10,7 +10,7 @@ from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Star_Mask_Given
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Ellipse_Model import EllipseModel_Fix
-from autoprofutils.Radial_Sample import Radial_Sample, Radial_Sample_ExpWidth
+from autoprofutils.Radial_Sample import Radial_Sample
 from autoprofutils.SharedFunctions import GetKwargs, Read_Image
 from multiprocessing import Pool, current_process
 from astropy.io import fits
