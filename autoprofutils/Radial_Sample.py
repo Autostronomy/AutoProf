@@ -15,46 +15,53 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
     nwedges = kwargs['radsample_nwedges'] if 'radsample_nwedges' in kwargs else 4
     wedgeangles = np.linspace(0, 2*np.pi*(1 - 1./nwedges), nwedges)
 
-    wedgewidth = kwargs['radsample_width'] if 'radsample_width' in kwargs else 10.
-    wedgewidth *= np.pi/180
-
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
-    
-    if wedgewidth*nwedges > 2*np.pi:
-        logging.warning('%s: Radial sampling wedges are overlapping! %i wedges with a width of %.3f rad' % (nwedges, wedgewidth))
 
-    pa = (kwargs['radsample_pa']*np.pi/180) if 'radsample_pa' in kwargs else results['init pa'] 
     R = np.array(results['prof data']['R'])/pixscale
+    if 'radsample_variable_pa' in kwargs and kwargs['radsample_variable_pa']:
+        pa = np.array(results['prof data']['pa'])*np.pi/180
+    else:
+        pa = np.ones(len(R))*((kwargs['radsample_pa']*np.pi/180) if 'radsample_pa' in kwargs else results['init pa'])
     dat = IMG - results['background']
 
+    maxwedgewidth = kwargs['radsample_width'] if 'radsample_width' in kwargs else 15.
+    maxwedgewidth *= np.pi/180
+    if 'radsample_expwidth' in kwargs and kwargs['radsample_expwidth']:
+        wedgewidth = maxwedgewidth*np.exp(R/R[-1] - 1)
+    else:
+        wedgewidth = np.ones(len(R)) * maxwedgewidth
+
+    if wedgewidth[-1]*nwedges > 2*np.pi:
+        logging.warning('%s: Radial sampling wedges are overlapping! %i wedges with a maximum width of %.3f rad' % (nwedges, wedgewidth[-1]))
+        
     ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
               [max(0,int(results['center']['y']-R[-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[-1]+2))]]
     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
     
     XX -= results['center']['x'] - float(ranges[0][0])
     YY -= results['center']['y'] - float(ranges[1][0])
-    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
     theta = (np.arctan(YY/XX) + np.pi*(XX < 0))
+    #XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
     RR = np.sqrt(XX**2 + YY**2)
 
     sb = list([] for i in wedgeangles)
     sbE = list([] for i in wedgeangles)
 
     for i in range(len(R)):
-        if R[i] < 150:
-            isovals = list(_iso_extract(dat, R[i], 0, 0, results['center'], more = True, minN = int(5*2*np.pi/wedgewidth)))
+        if R[i] < 100:
+            isovals = list(_iso_extract(dat, R[i], 0, 0, results['center'], more = True, minN = int(5*2*np.pi/wedgewidth[i])))
+            isovals[1] = isovals[1] - pa[i]
         else:
             isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)            
             rselect = np.logical_and(RR > (R[i] - isobandwidth), RR < (R[i] + isobandwidth))
-            isovals = (dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect], theta[rselect])
-
+            isovals = (dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect],
+                       theta[rselect] - pa[i])
         for sa_i in range(len(wedgeangles)):
-            aselect = np.abs(Angle_TwoAngles(wedgeangles[sa_i], isovals[1])) < (wedgewidth/2)
+            aselect = np.abs(Angle_TwoAngles(wedgeangles[sa_i], isovals[1])) < (wedgewidth[i]/2)
             if np.sum(aselect) == 0:
                 sb[sa_i].append(99.999)
                 sbE[sa_i].append(99.999)
                 continue
-
             medflux = np.median(isovals[0][aselect])
             sb[sa_i].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
             sbE[sa_i].append((2.5*iqr(isovals[0][aselect], rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(np.sum(aselect))*medflux*np.log(10))) if medflux > 0 else 99.999)
@@ -94,12 +101,12 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
                            a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         cx, cy = (results['center']['x'] - ranges[0][0], results['center']['y'] - ranges[1][0])
         for sa_i in range(len(wedgeangles)):
-            endx, endy = (R[-1]*np.cos(wedgeangles[sa_i]+pa), R[-1]*np.sin(wedgeangles[sa_i]+pa))
-            plt.plot([cx, endx + cx], [cy, endy + cy], color = cmap(colorind[sa_i]), linewidth = 0.7)
-            endx, endy = (R[-1]*np.cos(wedgeangles[sa_i]+pa + wedgewidth/2), R[-1]*np.sin(wedgeangles[sa_i]+pa + wedgewidth/2))
-            plt.plot([cx, endx + cx], [cy, endy + cy], color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
-            endx, endy = (R[-1]*np.cos(wedgeangles[sa_i]+pa - wedgewidth/2), R[-1]*np.sin(wedgeangles[sa_i]+pa - wedgewidth/2))
-            plt.plot([cx, endx + cx], [cy, endy + cy], color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
+            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa), R*np.sin(wedgeangles[sa_i]+pa))
+            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linewidth = 0.7)
+            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa + wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa + wedgewidth/2))
+            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
+            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa - wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa - wedgewidth/2))
+            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
             
         plt.xlim([0,ranges[0][1] - ranges[0][0]])
         plt.ylim([0,ranges[1][1] - ranges[1][0]])

@@ -233,7 +233,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None):
         else:
             return flux
 
-    N = int(np.clip(7*sma, a_min = 13, a_max = 50)) if sma < 20 else int(sma*0.5 + 40)
+    N = max(15,int(0.9*2*np.pi*sma))
     if not minN is None:
         N = max(minN,N)
     # points along ellipse to evaluate
@@ -611,6 +611,14 @@ def GetKwargs(c):
         pass
     try:
         newkwargs['radsample_pa'] = c.radsample_pa
+    except:
+        pass
+    try:
+        newkwargs['radsample_expwidth'] = c.radsample_expwidth
+    except:
+        pass
+    try:
+        newkwargs['radsample_variable_pa'] = c.radsample_variable_pa
     except:
         pass
         
