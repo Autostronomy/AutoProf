@@ -204,7 +204,7 @@ def L_to_mag(L, band, Le = None, zeropoint = None):
         mage = np.abs(2.5 * Le / (L * np.log(10)))
         return mag, mage
 
-def _iso_extract(IMG, sma, eps, pa, c, more = False, forceN = None):
+def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
@@ -234,8 +234,8 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, forceN = None):
             return flux
 
     N = int(np.clip(7*sma, a_min = 13, a_max = 50)) if sma < 20 else int(sma*0.5 + 40)
-    if not forceN is None:
-        N = forceN
+    if not minN is None:
+        N = max(minN,N)
     # points along ellipse to evaluate
     theta = np.linspace(0, 2*np.pi - 1./N, N)
     # Define ellipse
@@ -274,17 +274,24 @@ def _iso_within(IMG, sma, eps, pa, c):
     RR = (XX**2 + YY**2) < sma**2
     return np.sum(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][RR])
 
-def _iso_between(IMG, sma_low, sma_high, eps, pa, c):
+def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False):
 
     ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
               [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
     XX -= c['x'] - float(ranges[0][0])
     YY -= c['y'] - float(ranges[1][0])
+    if more:
+        theta = np.arctan(YY/XX) + np.pi*(XX < 0)
     XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
     YY /= 1 - eps
     RR = XX**2 + YY**2
-    return IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][np.logical_and(RR < sma_high**2, RR > sma_low**2)]
+    rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
+    fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
+    if more:
+        return fluxes, theta[rselect]
+    else:
+        return fluxes
 
         
 def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10., maxstars = np.inf):
@@ -592,6 +599,18 @@ def GetKwargs(c):
         pass
     try:
         newkwargs['isoband_start'] = c.isoband_start
+    except:
+        pass
+    try:
+        newkwargs['radsample_nwedges'] = c.radsample_nwedges
+    except:
+        pass
+    try:
+        newkwargs['radsample_width'] = c.radsample_width
+    except:
+        pass
+    try:
+        newkwargs['radsample_pa'] = c.radsample_pa
     except:
         pass
         
