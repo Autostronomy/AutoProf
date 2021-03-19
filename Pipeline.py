@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.Background import Background_Mode, Background_DilatedSources
+from autoprofutils.Background import Background_Mode, Background_DilatedSources, Background_Unsharp
 from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
 from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced
 from autoprofutils.Isophote_Initialize import Isophote_Initialize
@@ -37,6 +37,7 @@ class Isophote_Pipeline(object):
         # Functions avaiable by default for building the pipeline
         self.pipeline_functions = {'background': Background_Mode,
                                    'background dilatedsources': Background_DilatedSources,
+                                   'background unsharp': Background_Unsharp,
                                    'psf': PSF_StarFind,
                                    'psf IRAF': PSF_IRAF,
                                    'center': Center_HillClimb,
@@ -113,7 +114,10 @@ class Isophote_Pipeline(object):
                 for k in results['checkfit'].keys():
                     f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
             f.write('psf fwhm: %.3f pix\n' % (results['psf fwhm']))
-            f.write('background: %.3e +- %.2e flux/pix, noise: %.3e flux/pix\n' % (results['background'], results['background uncertainty'], results['background noise']))
+            try:
+                f.write('background: %.3e +- %.2e flux/pix, noise: %.3e flux/pix\n' % (results['background'], results['background uncertainty'], results['background noise']))
+            except:
+                pass
             use_center = results['center']
             f.write('center x: %.2f pix, y: %.2f pix\n' % (use_center['x'], use_center['y']))
             if 'init ellip_err' in results and 'init pa_err' in results:

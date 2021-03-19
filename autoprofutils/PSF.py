@@ -75,7 +75,8 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
     edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
               int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
     stars = StarFind(IMG - results['background'], fwhm_guess, results['background noise'],
-                     edge_mask, peakmax = (kwargs['overflowval']-results['background'])*0.95 if 'overflowval' in kwargs else None)
+                     edge_mask, # peakmax = (kwargs['overflowval']-results['background'])*0.95 if 'overflowval' in kwargs else None,
+                     maxstars = 50)
     if len(stars['fwhm']) <= 10:
         return {'psf fwhm': fwhm_guess}
     def_clip = 0.1

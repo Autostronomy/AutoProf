@@ -3,6 +3,7 @@ from photutils.isophote import EllipseSample, Ellipse, EllipseGeometry, Isophote
 from astropy.stats import sigma_clipped_stats
 from scipy.stats import iqr
 from scipy.optimize import minimize
+from scipy.fftpack import fft2, ifft2
 from time import time
 import logging
 import numpy as np
@@ -89,3 +90,18 @@ def Background_DilatedSources(IMG, pixscale, name, results, **kwargs):
     return {'background': np.median(IMG[np.logical_not(mask)]),
             'background noise': noise,
             'background uncertainty': noise/np.sqrt(np.sum(np.logical_not(mask)))}
+
+def Background_Unsharp(IMG, pixscale, name, results, **kwargs):
+
+    coefs = fft2(IMG)
+
+    unsharp = 3
+    coefs[unsharp:-unsharp] = 0
+    coefs[:,unsharp:-unsharp] = 0
+
+    stats = Background_Mode(IMG, pixscale, name, results, **kwargs)
+    stats.update({'background': ifft2(coefs).real})
+    return stats
+            
+
+    
