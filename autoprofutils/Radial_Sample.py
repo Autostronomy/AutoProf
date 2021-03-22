@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, Angle_TwoAngles
+from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -12,6 +12,7 @@ import logging
 
 def Radial_Sample(IMG, pixscale, name, results, **kwargs):
 
+    mask = results['mask'] if 'mask' in results else None
     nwedges = kwargs['radsample_nwedges'] if 'radsample_nwedges' in kwargs else 4
     wedgeangles = np.linspace(0, 2*np.pi*(1 - 1./nwedges), nwedges)
 
@@ -34,28 +35,17 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
     if wedgewidth[-1]*nwedges > 2*np.pi:
         logging.warning('%s: Radial sampling wedges are overlapping! %i wedges with a maximum width of %.3f rad' % (nwedges, wedgewidth[-1]))
         
-    ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
-              [max(0,int(results['center']['y']-R[-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[-1]+2))]]
-    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
-    
-    XX -= results['center']['x'] - float(ranges[0][0])
-    YY -= results['center']['y'] - float(ranges[1][0])
-    theta = (np.arctan(YY/XX) + np.pi*(XX < 0))
-    #XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
-    RR = np.sqrt(XX**2 + YY**2)
-
     sb = list([] for i in wedgeangles)
     sbE = list([] for i in wedgeangles)
 
     for i in range(len(R)):
         if R[i] < 100:
-            isovals = list(_iso_extract(dat, R[i], 0, 0, results['center'], more = True, minN = int(5*2*np.pi/wedgewidth[i])))
-            isovals[1] = isovals[1] - pa[i]
+            isovals = list(_iso_extract(dat, R[i], 0, 0, results['center'], more = True, minN = int(5*2*np.pi/wedgewidth[i]), mask = mask))
         else:
-            isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)            
-            rselect = np.logical_and(RR > (R[i] - isobandwidth), RR < (R[i] + isobandwidth))
-            isovals = (dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect],
-                       theta[rselect] - pa[i])
+            isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)
+            isovals = list(_iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, 0, 0, results['center'], more = True, mask = mask))
+        isovals[1] -= pa[i]
+        
         for sa_i in range(len(wedgeangles)):
             aselect = np.abs(Angle_TwoAngles(wedgeangles[sa_i], isovals[1])) < (wedgewidth[i]/2)
             if np.sum(aselect) == 0:
@@ -82,6 +72,8 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         newprofdata[p2] = sbE[sa_i]
         
     if 'doplot' in kwargs and kwargs['doplot']:
+        ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
+                  [max(0,int(results['center']['y']-R[-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[-1]+2))]]
         cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
         colorind = np.arange(nwedges)/10
         for sa_i in range(len(wedgeangles)):

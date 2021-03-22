@@ -19,15 +19,10 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
     
     # Create image array with background and mask applied
     try:
-        mask = np.logical_or(results['overflow mask'],results['mask'])
+        mask = results['mask']
     except:
         mask = None
-    if np.any(mask):
-        logging.info('%s: is masked' % (name))
-        dat = np.ma.masked_array(IMG - results['background'], mask)
-    else:
-        logging.info('%s: is not masked' % (name))
-        dat = IMG - results['background']
+    dat = IMG - results['background']
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
 
     sb = []
@@ -37,13 +32,14 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
     sbfixE = []
 
     for i in range(len(R)):
-        if R[i] < (kwargs['isoband_start'] if 'isoband_start' in kwargs else 150):
-            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'])
+        if R[i] < (kwargs['isoband_start'] if 'isoband_start' in kwargs else 100):
+            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask)
+            isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'], mask = mask)
         else:
             isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)
-            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'])
-        isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'])
-        isotot = _iso_within(dat, R[i], E[i], PA[i], results['center'])
+            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'], mask = mask)
+            isovalsfix = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, results['init ellip'], results['init pa'], results['center'], mask = mask)
+        isotot = _iso_within(dat, R[i], E[i], PA[i], results['center'], mask = mask)
         medflux = np.median(isovals)
         medfluxfix = np.median(isovalsfix)
         sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
@@ -127,13 +123,13 @@ def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
     Run isophote data extraction given exact specification for pa and ellip profiles.
     """
     if 'fit ellip_err' in results and (not results['fit ellip_err'] is None) and 'fit pa_err' in results and (not results['fit pa_err'] is None):
-        Ee = results['fit ellip_err']
-        PAe = results['fit pa_err']
+        Ee = np.array(results['fit ellip_err'])
+        PAe = np.array(results['fit pa_err'])
     else:
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
         
-    return _Generate_Profile(IMG, pixscale, name, results, results['fit R'], results['fit ellip'], Ee, results['fit pa'], PAe, **kwargs)
+    return _Generate_Profile(IMG, pixscale, name, results, np.array(results['fit R']), np.array(results['fit ellip']), Ee, np.array(results['fit pa']), PAe, **kwargs)
     
     
 def Isophote_Extract(IMG, pixscale, name, results, **kwargs):

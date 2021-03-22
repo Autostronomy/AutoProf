@@ -204,7 +204,7 @@ def L_to_mag(L, band, Le = None, zeropoint = None):
         mage = np.abs(2.5 * Le / (L * np.log(10)))
         return mag, mage
 
-def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None):
+def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
@@ -257,12 +257,20 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None):
         # note uses values at edge when past image boundary, possible fixme?
         flux = IMG[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
                    np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)]
+        if not mask is None:
+            CHOOSE = np.logical_not(mask[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
+                                         np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)])
+            if np.sum(CHOOSE) < 5:
+                logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
+            else:
+                flux = flux[CHOOSE]
+                theta = theta[CHOOSE]
     if more:
         return flux, theta
     else:
         return flux
 
-def _iso_within(IMG, sma, eps, pa, c):
+def _iso_within(IMG, sma, eps, pa, c, mask = None):
 
     ranges = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
               [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
@@ -272,9 +280,11 @@ def _iso_within(IMG, sma, eps, pa, c):
     XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
     YY /= 1 - eps
     RR = (XX**2 + YY**2) < sma**2
+    if not mask is None:
+        RR = np.logical_and(RR, np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]]))
     return np.sum(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][RR])
 
-def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False):
+def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None):
 
     ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
               [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
@@ -288,10 +298,21 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False):
     RR = XX**2 + YY**2
     rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
     fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
+    if not mask is None:
+        CHOOSE = np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect])
+        if np.sum(CHOOSE) < 5:
+            logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
+            CHOOSE = np.ones(CHOOSE.shape).astype(bool)
     if more:
-        return fluxes, theta[rselect]
+        if not mask is None:
+            return fluxes[CHOOSE], theta[rselect][CHOOSE]
+        else:
+            return fluxes, theta[rselect]
     else:
-        return fluxes
+        if not mask is None:
+            return fluxes[CHOOSE]
+        else:
+            return fluxes
 
         
 def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10., maxstars = np.inf):

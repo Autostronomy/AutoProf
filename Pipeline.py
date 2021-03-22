@@ -6,7 +6,7 @@ from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
 from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced
 from autoprofutils.Isophote_Initialize import Isophote_Initialize
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit
-from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Star_Mask_Given
+from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Mask_Segmentation_Map
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Ellipse_Model import EllipseModel_Fix
@@ -51,7 +51,7 @@ class Isophote_Pipeline(object):
                                    'isophotefit photutils': Photutils_Fit,
                                    'starmask': Star_Mask_IRAF,
                                    'starmask overflowonly': NoMask,
-                                   'starmask forced': Star_Mask_Given,
+                                   'mask segmentation map': Mask_Segmentation_Map,
                                    'isophoteextract': Isophote_Extract,
                                    'isophoteextract forced': Isophote_Extract_Forced,
                                    'checkfit': Check_Fit,
@@ -60,7 +60,7 @@ class Isophote_Pipeline(object):
         
         # Default pipeline analysis order
         self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit',
-                               'starmask', 'isophoteextract', 'checkfit', 'radsample', 'ellipsemodel']
+                               'mask segmentation map', 'isophoteextract', 'checkfit', 'radsample', 'ellipsemodel']
 
         # Holder for any preprocessing function the user may want to apply
         self.preprocess = None
@@ -309,11 +309,10 @@ class Isophote_Pipeline(object):
         Reads in a configuration file and sets parameters for the pipeline. The configuration
         file should have variables corresponding to the desired parameters to be set.
 
-        congif_file: string path to configuration file
+        congig_file: string path to configuration file
 
         returns: timing of each pipeline step if successful. Else returns 1
         """
-
         
         # Import the config file regardless of where it is from
         if '/' in config_file:
@@ -333,8 +332,8 @@ class Isophote_Pipeline(object):
             c = importlib.import_module(use_config)
 
         if 'forced' in c.process_mode:
-            self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit',
-                                                      'isophotefit forced', 'starmask forced', 'isophoteextract forced'])
+            self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced',
+                                                      'starmask forced', 'isophoteextract forced', 'checkfit', 'radsample', 'ellipsemodel'])
             
         try:
             self.UpdatePipeline(new_pipeline_functions = c.new_pipeline_functions)

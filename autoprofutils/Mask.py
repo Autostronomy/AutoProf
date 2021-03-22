@@ -36,13 +36,13 @@ def Overflow_Mask(IMG, pixscale, name, results, **kwargs):
     logging.info('%s: masking %i overflow pixels' % (name, np.sum(Mask)))
     return Mask
 
-def Star_Mask_Given(IMG, pixscale, name, results, **kwargs):
+def Mask_Segmentation_Map(IMG, pixscale, name, results, **kwargs):
 
     mask = np.zeros(IMG.shape) if kwargs['mask_file'] is None else Read_Image(kwargs['mask_file'], **kwargs)
-    # Run separate code to find overflow pixels from very bright stars
-    overflow_mask = Overflow_Mask(IMG, pixscale, name, results, **kwargs)
-
-    return {'mask': mask, 'overflow mask': overflow_mask}
+    if mask[int(results['center']['y']),int(results['center']['x'])] > 1.1:
+        mask[mask == mask[int(results['center']['y']),int(results['center']['x'])]] = 0
+        
+    return {'mask': mask.astype(bool)}
 
 def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
     """
@@ -111,8 +111,7 @@ def Star_Mask_IRAF(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sMask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()
     
-    return {'mask':mask,
-            'overflow mask': overflow_mask}
+    return {'mask': np.logical_or(mask, overflow_mask)}
 
 def NoMask(IMG, pixscale, name, results, **kwargs):
     """
@@ -126,6 +125,5 @@ def NoMask(IMG, pixscale, name, results, **kwargs):
     else:
         mask = np.zeros(IMG.shape,dtype = bool)
         
-    return {'mask': mask,
-            'overflow mask': overflow_mask}
+    return {'mask': np.logical_or(mask, overflow_mask)}
     
