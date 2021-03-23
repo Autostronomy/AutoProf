@@ -116,7 +116,7 @@ class Isophote_Pipeline(object):
                     f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
             f.write('psf fwhm: %.3f pix\n' % (results['psf fwhm']))
             try:
-                f.write('background: %.3e +- %.2e flux/pix, noise: %.3e flux/pix\n' % (results['background'], results['background uncertainty'], results['background noise']))
+                f.write('background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix\n' % (results['background'], results['background uncertainty'], results['background noise']))
             except:
                 pass
             use_center = results['center']
