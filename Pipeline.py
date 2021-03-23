@@ -208,6 +208,7 @@ class Isophote_Pipeline(object):
         if self.preprocess:
             logging.info('%s: Preprocessing Image' % name)
             print('%s: Preprocessing Image' % name)
+            kwargs.update({'preprocess': self.preprocess})
             dat = self.preprocess(dat)
             timers['preprocess'] = time() - start
             

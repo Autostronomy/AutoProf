@@ -540,6 +540,10 @@ def GetKwargs(c):
     except:
         pass
     try:
+        newkwargs['preprocess_all'] = c.preprocess_all
+    except:
+        pass
+    try:
         newkwargs['background'] = c.background
     except:
         pass
