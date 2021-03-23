@@ -25,10 +25,13 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     """
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
-    edge_mask = np.ones(IMG.shape, dtype = bool)
-    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
-              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
-    values = IMG[edge_mask].flatten()
+    if 'mask' in results and not results['mask'] is None:
+        mask = results['mask']
+    else:
+        mask = np.ones(IMG.shape, dtype = bool)
+        mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
+             int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
+    values = IMG[mask].flatten()
     values = values[np.isfinite(values)]
     # set the starting point for the sky level optimization at the median pixel flux
     start = np.median(values)
@@ -69,21 +72,24 @@ def Background_DilatedSources(IMG, pixscale, name, results, **kwargs):
 
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
-    edge_mask = np.zeros(IMG.shape)
-    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
-              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = 1
+    if 'mask' in results and not results['mask'] is None:
+        mask = results['mask']
+    else:
+        mask = np.zeros(IMG.shape)
+        mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
+             int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = 1
 
     # Run photutils source mask to remove pixels with sources
     # such as stars and galaxies, including a boarder
     # around each source.
-    mask = make_source_mask(IMG,
-                            nsigma = 3,
-                            npixels = int(1./pixscale),
-                            dilate_size = 40,
-                            filter_fwhm = 1./pixscale,
-                            filter_size = int(3./pixscale),
-                            sigclip_iters = 5)
-    mask = np.logical_or(mask, edge_mask)
+    source_mask = make_source_mask(IMG,
+                                   nsigma = 3,
+                                   npixels = int(1./pixscale),
+                                   dilate_size = 40,
+                                   filter_fwhm = 1./pixscale,
+                                   filter_size = int(3./pixscale),
+                                   sigclip_iters = 5)
+    mask = np.logical_or(mask, source_mask)
 
     # Return statistics from background sky
     noise = iqr(IMG[np.logical_not(mask)],rng = [16,84])/2

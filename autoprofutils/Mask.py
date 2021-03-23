@@ -39,8 +39,14 @@ def Overflow_Mask(IMG, pixscale, name, results, **kwargs):
 def Mask_Segmentation_Map(IMG, pixscale, name, results, **kwargs):
 
     mask = np.zeros(IMG.shape) if kwargs['mask_file'] is None else Read_Image(kwargs['mask_file'], **kwargs)
-    if mask[int(results['center']['y']),int(results['center']['x'])] > 1.1:
-        mask[mask == mask[int(results['center']['y']),int(results['center']['x'])]] = 0
+    if 'center' in results:
+        if mask[int(results['center']['y']),int(results['center']['x'])] > 1.1:
+            mask[mask == mask[int(results['center']['y']),int(results['center']['x'])]] = 0
+    elif 'given_center' in kwargs:
+        if mask[int(kwargs['given_center']['y']),int(kwargs['given_center']['x'])] > 1.1:
+            mask[mask == mask[int(kwargs['given_center']['y']),int(kwargs['given_center']['x'])]] = 0
+    elif mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)] > 1.1:
+        mask[mask == mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)]] = 0
         
     return {'mask': mask.astype(bool)}
 

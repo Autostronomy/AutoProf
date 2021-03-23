@@ -237,7 +237,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None):
     if not minN is None:
         N = max(minN,N)
     # points along ellipse to evaluate
-    theta = np.linspace(0, 2*np.pi - 1./N, N)
+    theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
     # Define ellipse
     X = sma*np.cos(theta)
     Y = sma*(1-eps)*np.sin(theta)

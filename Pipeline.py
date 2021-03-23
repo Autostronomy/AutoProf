@@ -9,7 +9,7 @@ from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_For
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Mask_Segmentation_Map
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit
-from autoprofutils.Ellipse_Model import EllipseModel_Fix
+from autoprofutils.Ellipse_Model import EllipseModel_Fix, EllipseModel_General
 from autoprofutils.Radial_Sample import Radial_Sample
 from autoprofutils.SharedFunctions import GetKwargs, Read_Image
 from multiprocessing import Pool, current_process
@@ -56,6 +56,7 @@ class Isophote_Pipeline(object):
                                    'isophoteextract forced': Isophote_Extract_Forced,
                                    'checkfit': Check_Fit,
                                    'ellipsemodel': EllipseModel_Fix,
+                                   'ellipsemodel general': EllipseModel_General,
                                    'radsample': Radial_Sample}
         
         # Default pipeline analysis order
