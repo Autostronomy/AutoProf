@@ -122,7 +122,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         while sample_radii[-1] < (max(IMG.shape)/2):
             isovals = _iso_extract(dat,sample_radii[-1],results['init ellip'],
                                    results['init pa'],results['center'], more = True)
-            if np.median(isovals[0]) < 2*results['background noise']:
+            if np.median(isovals[0]) < (kwargs['fit_limit'] if 'fit_limit' in kwargs else 1)*results['background noise']:
                 break
             sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
         if len(sample_radii) < 15:
@@ -184,17 +184,6 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             ellip[:i+1] = ellip[i+1]
             pa[:i+1] = pa[i+1]
 
-    # extend to noise floor
-    ######################################################################
-    while sample_radii[-1] < (max(IMG.shape)/2):
-        isovals = _iso_extract(dat,sample_radii[-1],ellip[-1],
-                               pa[-1],results['center'])
-        if np.median(isovals) < results['background noise']:
-            break
-        sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
-        ellip = np.concatenate((ellip,[ellip[-1]]))
-        pa = np.concatenate((pa,[pa[-1]]))
-    
     # Smooth ellip and pa profile
     ######################################################################
     smooth_ellip = copy(ellip)

@@ -588,6 +588,10 @@ def GetKwargs(c):
     except:
         pass
     try:
+        newkwargs['fit_limit'] = c.fit_limit
+    except:
+        pass
+    try:
         newkwargs['scale'] = c.scale
     except:
         pass
