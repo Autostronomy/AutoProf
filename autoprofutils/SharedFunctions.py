@@ -540,6 +540,14 @@ def GetKwargs(c):
     except:
         pass
     try:
+        newkwargs['background'] = c.background
+    except:
+        pass
+    try:
+        newkwargs['background_noise'] = c.background_noise
+    except:
+        pass
+    try:
         newkwargs['psf_guess'] = c.psf_guess
     except:
         pass

@@ -33,31 +33,38 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
     values = IMG[mask].flatten()
     values = values[np.isfinite(values)]
-    # set the starting point for the sky level optimization at the median pixel flux
-    start = np.median(values)
-    # set the smoothing scale equal to roughly 1% of the width of the data
-    scale = iqr(values,rng = [30,70])/40
 
-    # Fit the peak of the smoothed histogram
-    res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
-
-    # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise 
-    noise = iqr(values[(values-res.x[0]) < 0], rng = [100 - 68.2689492137,100])
-    uncertainty = noise / np.sqrt(np.sum((values-res.x[0]) < 0))
+    if 'background' in kwargs:
+        bkgrnd = kwargs['background']
+    else:
+        # set the starting point for the sky level optimization at the median pixel flux
+        start = np.median(values)
+        # set the smoothing scale equal to roughly 1% of the width of the data
+        scale = iqr(values,rng = [30,70])/40
+        
+        # Fit the peak of the smoothed histogram
+        res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
+        bkgrnd = res.x[0]
+    # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
+    if 'background_noise' in kwargs:
+        noise = kwargs['background_noise']
+    else:
+        noise = iqr(values[(values-bkgrnd) < 0], rng = [100 - 68.2689492137,100])
+    uncertainty = noise / np.sqrt(np.sum((values-bkgrnd) < 0))
     
     if 'doplot' in kwargs and kwargs['doplot']:    
-        hist, bins = np.histogram(values[np.logical_and((values-res.x[0]) < 20*noise, (values-res.x[0]) > -3*noise)], bins = 1000)
+        hist, bins = np.histogram(values[np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -3*noise)], bins = 1000)
         plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
-        plt.axvline(res.x[0], color = 'r', label = 'sky level: %.5e' % res.x[0])
-        plt.axvline(res.x[0] - noise, color = 'r', linestyle = '--', label = '1$\\sigma$ noise/pix: %.5e' % noise)
-        plt.axvline(res.x[0] + noise, color = 'r', linestyle = '--')
+        plt.axvline(bkgrnd, color = 'r', label = 'sky level: %.5e' % bkgrnd)
+        plt.axvline(bkgrnd - noise, color = 'r', linestyle = '--', label = '1$\\sigma$ noise/pix: %.5e' % noise)
+        plt.axvline(bkgrnd + noise, color = 'r', linestyle = '--')
         plt.legend()
         plt.xlabel('flux')
         plt.ylabel('log$_{10}$(count)')
         plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()
         
-    return {'background': res.x[0],
+    return {'background': bkgrnd,
             'background noise': noise,
             'background uncertainty': uncertainty}
 
