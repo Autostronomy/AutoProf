@@ -224,9 +224,11 @@ class Isophote_Pipeline(object):
                 return 1
 
         # Save the profile
+        print('%s: saving at: %.1f sec' % (name, time() - start))
         logging.info('%s: saving at: %.1f sec' % (name, time() - start))
         self.WriteProf(results, saveto, pixscale, name = name, **kwargs)
                 
+        print('%s: Processing Complete! (at %.1f sec)' % (name, time() - start))
         logging.info('%s: Processing Complete! (at %.1f sec)' % (name, time() - start))
         return timers
     
