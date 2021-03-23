@@ -26,7 +26,8 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
     if 'mask' in results and not results['mask'] is None:
-        mask = results['mask']
+        mask = np.logical_not(results['mask'])
+        logging.info('%s: Background using segmentation map mask. Masking %i pixels' % (name, np.sum(results['mask'])))
     else:
         mask = np.ones(IMG.shape, dtype = bool)
         mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
