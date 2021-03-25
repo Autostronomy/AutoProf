@@ -126,6 +126,7 @@ class Isophote_Pipeline(object):
                                                                                       results['init pa']*180/np.pi, results['init pa_err']*180/np.pi))
             else:
                 f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['init ellip'], results['init pa']*180/np.pi))
+            f.write('fit limit semi-major axis: %.2f pix\n' % results['fit R'][-1])
             if len(kwargs) > 0:
                 for k in kwargs.keys():
                     f.write('settings %s: %s\n' % (k,str(kwargs[k])))
