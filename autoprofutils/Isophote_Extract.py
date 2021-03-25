@@ -31,6 +31,7 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
     sbfix = []
     sbfixE = []
 
+    count_neg = 0
     for i in range(len(R)):
         if R[i] < (kwargs['isoband_start'] if 'isoband_start' in kwargs else 100):
             isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask)
@@ -47,6 +48,10 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(pixscale)) if medfluxfix > 0 else 99.999)
         sbfixE.append((2.5*iqr(isovalsfix, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovalsfix))*np.median(isovalsfix)*np.log(10))) if medfluxfix > 0 else 99.999)
         cogdirect.append(-2.5*np.log10(isotot) + zeropoint)
+        if medflux <= 0:
+            count_neg += 1
+        if 'truncate_evaluation' in kwargs and kwargs['truncate_evaluation'] and count_neg >= 2:
+            break
         
     # Compute Curve of Growth from SB profile
     cog, cogE = SBprof_to_COG_errorprop(R * pixscale, np.array(sb), np.array(sbE), 1. - E,
@@ -93,8 +98,8 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
                      np.array(SBprof_data['SB'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
                      yerr = np.array(SBprof_data['SB_e'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
                      elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'limegreen')
-        plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
-                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
+        # plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
+        #              elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
         plt.xlabel('Radius [arcsec]')
         plt.ylabel('Brightness [mag, mag/arcsec^2]')
         bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2)

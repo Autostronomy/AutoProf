@@ -204,7 +204,7 @@ def L_to_mag(L, band, Le = None, zeropoint = None):
         mage = np.abs(2.5 * Le / (L * np.log(10)))
         return mag, mage
 
-def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None):
+def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
@@ -262,6 +262,15 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None):
                                          np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)])
             if np.sum(CHOOSE) < 5:
                 logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
+            elif interp_mask:
+                #plt.scatter(theta,flux, color = 'b', label = 'pre interp')
+                flux[np.logical_not(CHOOSE)] = np.interp(theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period = 2*np.pi)
+                # plt.scatter(theta, flux, color = 'k', label = 'post interp')
+                # plt.scatter(theta[np.logical_not(CHOOSE)], flux[np.logical_not(CHOOSE)], color = 'r', label = 'interp')
+                # plt.legend()
+                # plt.ylim([-10, 500])
+                # plt.savefig('interpflux_%.1f.jpg' % sma)
+                # plt.close()
             else:
                 flux = flux[CHOOSE]
                 theta = theta[CHOOSE]
@@ -625,6 +634,10 @@ def GetKwargs(c):
         pass
     try:
         newkwargs['zeropoint'] = c.zeropoint
+    except:
+        pass
+    try:
+        newkwargs['truncate_evaluation'] = c.truncate_evaluation
     except:
         pass
     try:

@@ -44,7 +44,7 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         if np.abs(coefs[2]) > np.abs(coefs[1]) and np.abs(coefs[2]) > np.abs(coefs[3]):
             phasekeep.append(coefs[2])
         # Stop when at 3 time background noise
-        if np.quantile(isovals[0], 0.8) < (3*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
+        if np.quantile(isovals[0], 0.8) < (3*(kwargs['fit_limit'] if 'fit_limit' in kwargs else 1)*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
             break
     logging.info('%s: init scale: %f pix' % (name, circ_ellipse_radii[-1]))
     # Find global position angle.
