@@ -80,7 +80,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
     MM = np.zeros(XX.shape)
     for i in range(XX.shape[0]):
         CHOOSE = abs(Y - YY[i,int(YY.shape[1]/2)]) < (10*results['psf fwhm'])
-        K = -((XX[i,:].reshape(XX.shape[1],-1) - X[CHOOSE])**2 + (YY[i,:].reshape(XX.shape[1],-1) - Y[CHOOSE])**2)/(results['psf fwhm']/4)**2
+        K = -((XX[i,:].reshape(XX.shape[1],-1) - X[CHOOSE])**2 + (YY[i,:].reshape(XX.shape[1],-1) - Y[CHOOSE])**2)/((1+4*np.log(XY_R[CHOOSE]))*results['psf fwhm']/4)**2
         K = np.exp(K - (np.max(K,axis = 1)).reshape(K.shape[0],-1))
         MM[i,:] = np.sum(M[CHOOSE]*K,axis = 1) / np.sum(K,axis = 1)
         

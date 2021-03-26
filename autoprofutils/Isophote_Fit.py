@@ -82,7 +82,7 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
     if mask is None:
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
     else:
-        coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.95), a_min = None))
+        coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.9), a_min = None))
     
     f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise))
 
@@ -199,7 +199,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         ranges = [[max(0,int(use_center['x']-sample_radii[-1]*1.2)), min(dat.shape[1],int(use_center['x']+sample_radii[-1]*1.2))],
                   [max(0,int(use_center['y']-sample_radii[-1]*1.2)), min(dat.shape[0],int(use_center['y']+sample_radii[-1]*1.2))]]
         plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
-                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
+                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(len(sample_radii)):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
                                         pa[i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))

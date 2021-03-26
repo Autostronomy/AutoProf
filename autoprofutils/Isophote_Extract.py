@@ -117,7 +117,7 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
                   [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
         plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], a_min = 0, a_max = 3*results['background noise']),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        my_cmap = cm.Greys_r
+        my_cmap = cm.Greys
         my_cmap.set_under('k', alpha=0)
         plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 2*results['background noise'], a_max = None),
                    origin = 'lower', cmap = my_cmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
