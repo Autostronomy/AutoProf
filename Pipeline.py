@@ -338,7 +338,7 @@ class Isophote_Pipeline(object):
 
         if 'forced' in c.process_mode:
             self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced',
-                                                      'starmask forced', 'isophoteextract forced', 'checkfit', 'radsample', 'ellipsemodel'])
+                                                      'starmask forced', 'isophoteextract forced', 'radsample', 'ellipsemodel'])
             
         try:
             self.UpdatePipeline(new_pipeline_functions = c.new_pipeline_functions)
