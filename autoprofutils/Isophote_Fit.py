@@ -82,7 +82,7 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
     if mask is None:
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
     else:
-        coefs = fft(isovals)
+        coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.95), a_min = None))
     
     f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise))
 
