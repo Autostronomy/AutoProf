@@ -55,7 +55,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
     M = []
     M_e = []
     for i in range(len(R)):
-        N = max(4,int(R[i]))
+        N = max(4,int(2*np.pi*R[i]))
         theta = np.linspace(0, 2*np.pi*(1 - 1/N), N)
         x = R[i]*np.cos(theta)
         y = R[i]*(1 - ellip[i])*np.sin(theta)
@@ -80,7 +80,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
     MM = np.zeros(XX.shape)
     for i in range(XX.shape[0]):
         CHOOSE = abs(Y - YY[i,int(YY.shape[1]/2)]) < (10*results['psf fwhm'])
-        K = -((XX[i,:].reshape(XX.shape[1],-1) - X[CHOOSE])**2 + (YY[i,:].reshape(XX.shape[1],-1) - Y[CHOOSE])**2)/(results['psf fwhm'])**2
+        K = -((XX[i,:].reshape(XX.shape[1],-1) - X[CHOOSE])**2 + (YY[i,:].reshape(XX.shape[1],-1) - Y[CHOOSE])**2)/(results['psf fwhm']/4)**2
         K = np.exp(K - (np.max(K,axis = 1)).reshape(K.shape[0],-1))
         MM[i,:] = np.sum(M[CHOOSE]*K,axis = 1) / np.sum(K,axis = 1)
         

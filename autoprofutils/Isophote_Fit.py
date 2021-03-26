@@ -71,17 +71,20 @@ def _pa_smooth(R, PA, deg):
     return ((np.arctan(pred_pa_s/pred_pa_c) + (np.pi*(pred_pa_c < 0))) % (2*np.pi))/2
     
 
-def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, reg_scale = 1., name = ''):
+def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., name = ''):
 
-    isovals = _iso_extract(dat,R[i],E[i],PA[i],C)
+    isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True)
     
     if not np.all(np.isfinite(isovals)):
         logging.warning('Failed to evaluate isophotal flux values, skipping this ellip/pa combination')
         return np.inf
+
+    if mask is None:
+        coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
+    else:
+        coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.95), a_min = None))
     
-    coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
-    
-    f2_loss = np.abs(coefs[2]) / (len(isovals)*(abs(np.median(isovals)) + noise))
+    f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise))
 
     reg_loss = 0
     if i < (len(R)-1):
@@ -113,7 +116,8 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
 
     # subtract background from image during processing
     dat = IMG - results['background']
-
+    mask = results['mask'] if 'mask' in results else None
+    
     # Determine sampling radii
     ######################################################################
     shrink = 0
@@ -121,8 +125,8 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         sample_radii = [3*results['psf fwhm']/2]
         while sample_radii[-1] < (max(IMG.shape)/2):
             isovals = _iso_extract(dat,sample_radii[-1],results['init ellip'],
-                                   results['init pa'],results['center'], more = True)
-            if np.median(isovals[0]) < (kwargs['fit_limit'] if 'fit_limit' in kwargs else 1)*results['background noise']:
+                                   results['init pa'],results['center'], more = False, mask = mask)
+            if np.median(isovals) < (kwargs['fit_limit'] if 'fit_limit' in kwargs else 1)*results['background noise']:
                 break
             sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
         if len(sample_radii) < 15:
@@ -132,7 +136,6 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
     if shrink >= 5:
         raise Exception('Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.')
     ellip = np.ones(len(sample_radii))*results['init ellip']
-    #ellip[0] = 0.05
     pa = np.ones(len(sample_radii))*results['init pa']
     logging.debug('%s: sample radii: %s' % (name, str(sample_radii)))
     
@@ -158,7 +161,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             perturbations = []
             perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
             perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                         use_center, results['background noise'], 1., name = name)
+                                                         use_center, results['background noise'], mask = mask, name = name)
             for n in range(N_perturb):
                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
                 if count % 3 in [0,1]:
@@ -166,7 +169,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
                 if count % 3 in [1,2]:
                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
                 perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                             use_center, results['background noise'], 1., name = name)
+                                                             use_center, results['background noise'], mask = mask, name = name)
             
             best = np.argmin(list(p['loss'] for p in perturbations))
             if best > 0:
