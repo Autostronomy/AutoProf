@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles
+from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -19,6 +19,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
 
     R = np.array(results['prof data']['R'])/pixscale
+    SBE = np.array(results['prof data']['SB_e'])
     if 'radsample_variable_pa' in kwargs and kwargs['radsample_variable_pa']:
         pa = np.array(results['prof data']['pa'])*np.pi/180
     else:
@@ -72,8 +73,9 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         newprofdata[p2] = sbE[sa_i]
         
     if 'doplot' in kwargs and kwargs['doplot']:
-        ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
-                  [max(0,int(results['center']['y']-R[-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[-1]+2))]]
+        CHOOSE = SBE < 0.3
+        ranges = [[max(0,int(results['center']['x']-R[CHOOSE][-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[CHOOSE][-1]+2))],
+                  [max(0,int(results['center']['y']-R[CHOOSE][-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[CHOOSE][-1]+2))]]
         cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
         colorind = np.arange(nwedges)/10
         for sa_i in range(len(wedgeangles)):
@@ -89,8 +91,10 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sradial_sample_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 500)
         plt.close()
 
-        plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
-                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+
+        # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
+        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         cx, cy = (results['center']['x'] - ranges[0][0], results['center']['y'] - ranges[1][0])
         for sa_i in range(len(wedgeangles)):
             endx, endy = (R*np.cos(wedgeangles[sa_i]+pa), R*np.sin(wedgeangles[sa_i]+pa))

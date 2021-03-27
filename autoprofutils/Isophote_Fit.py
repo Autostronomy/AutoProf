@@ -17,7 +17,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage
 
 def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
     """
@@ -41,10 +41,13 @@ def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
     isolist = ellipse.fit_image(fix_center = True, linear = False)
     res = {'fit R': isolist.sma[1:], 'fit ellip': isolist.eps[1:], 'fit ellip_err': isolist.ellip_err[1:], 'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:]}
     
-    if 'doplot' in kwargs and kwargs['doplot']:    
-        plt.imshow(np.clip(dat[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)): min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2)),
-                               max(0,int(results['center']['x']-res['fit R'][-1]*1.2)): min(dat.shape[1],int(results['center']['x']+res['fit R'][-1]*1.2))],
-                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
+    if 'doplot' in kwargs and kwargs['doplot']:
+        ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2))],
+                  [max(0,int(results['center']['x']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['x']+res['fit R'][-1]*1.2))]]
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        # plt.imshow(np.clip(dat[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)): min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2)),
+        #                        max(0,int(results['center']['x']-res['fit R'][-1]*1.2)): min(dat.shape[1],int(results['center']['x']+res['fit R'][-1]*1.2))],
+        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(len(res['fit R'])):
             plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
                                         res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
@@ -198,23 +201,24 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
     if 'doplot' in kwargs and kwargs['doplot']:
         ranges = [[max(0,int(use_center['x']-sample_radii[-1]*1.2)), min(dat.shape[1],int(use_center['x']+sample_radii[-1]*1.2))],
                   [max(0,int(use_center['y']-sample_radii[-1]*1.2)), min(dat.shape[0],int(use_center['y']+sample_radii[-1]*1.2))]]
-        plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
-                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys', norm = ImageNormalize(stretch=LogStretch())) 
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
+        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(len(sample_radii)):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
-                                        pa[i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
+                                        pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = 'r'))
         plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
         
-        plt.scatter(sample_radii, _inv_x_to_eps(ellip), color = 'r', label = 'ellip')
-        plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa')
+        plt.scatter(sample_radii, ellip, color = 'r', label = 'ellip')
+        plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa/$np.pi$')
         show_ellip = _ellip_smooth(sample_radii, ellip, deg = 5)
         show_pa = _pa_smooth(sample_radii, pa, deg = 5)
-        plt.plot(sample_radii, _inv_x_to_eps(show_ellip), color = 'orange', linewidth = 2, linestyle='--', label = 'huber ellip')
-        plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'huber pa')
+        plt.plot(sample_radii, show_ellip, color = 'orange', linewidth = 2, linestyle='--', label = 'smooth ellip')
+        plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'smooth pa/$np.pi$')
         #plt.xscale('log')
         plt.legend()
-        plt.savefig('%sisoprof_%s_fin.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.savefig('%sphaseprofile_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
         plt.close()
 
     # Compute errors

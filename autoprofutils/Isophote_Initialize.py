@@ -5,7 +5,7 @@ from scipy.stats import iqr
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage
 import logging
 from copy import copy
 from astropy.visualization import SqrtStretch, LogStretch
@@ -89,8 +89,9 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         ranges = [[max(0,int(results['center']['x']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[1],int(results['center']['x']+circ_ellipse_radii[-1]*1.5))],
                   [max(0,int(results['center']['y']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[0],int(results['center']['y']+circ_ellipse_radii[-1]*1.5))]]
         
-        plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
-                   origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
+        #            origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*circ_ellipse_radii[-1], 2*circ_ellipse_radii[-1]*(1. - ellip),
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = 'r')

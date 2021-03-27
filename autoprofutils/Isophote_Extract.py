@@ -14,7 +14,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_within, _iso_between
+from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_within, _iso_between, LSBImage
 
 def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs):
     
@@ -115,16 +115,10 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         usePA = np.array(SBprof_data['pa'])[CHOOSE]
         ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
                   [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
-        plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], a_min = 0, a_max = 3*results['background noise']),
-                   origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        my_cmap = cm.Greys
-        my_cmap.set_under('k', alpha=0)
-        plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 2*results['background noise'], a_max = None),
-                   origin = 'lower', cmap = my_cmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
-                   interpolation = 'none', clim = [3*results['background noise'], None]) 
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         for i in range(len(useR)):
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
-                                        usePA[i], fill = False, linewidth = 0.3, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < results['fit R'][-1] else '--'))
+                                        usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < results['fit R'][-1] else '--'))
         plt.tight_layout()
         plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
         plt.close()

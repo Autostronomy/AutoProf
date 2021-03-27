@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.io import fits
-from scipy.interpolate import SmoothBivariateSpline
+from scipy.interpolate import SmoothBivariateSpline, interp2d, Rbf
 from copy import deepcopy
 import matplotlib.pyplot as plt
 
@@ -55,7 +55,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
     M = []
     M_e = []
     for i in range(len(R)):
-        N = max(4,int(2*np.pi*R[i]))
+        N = max(4,int(R[i]))
         theta = np.linspace(0, 2*np.pi*(1 - 1/N), N)
         x = R[i]*np.cos(theta)
         y = R[i]*(1 - ellip[i])*np.sin(theta)
@@ -65,6 +65,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
         Y += list(y)
         M += list(np.ones(len(x))*SB[i])
         M_e += list(np.ones(len(x))*SB_e[i])
+
     XY_R = np.array(XY_R)
     X = np.array(X)
     Y = np.array(Y)
@@ -77,19 +78,22 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
     XX -= results['center']['x'] - float(ranges[0][0])
     YY -= results['center']['y'] - float(ranges[1][0])
     
-    MM = np.zeros(XX.shape)
-    for i in range(XX.shape[0]):
-        CHOOSE = abs(Y - YY[i,int(YY.shape[1]/2)]) < (10*results['psf fwhm'])
-        K = -((XX[i,:].reshape(XX.shape[1],-1) - X[CHOOSE])**2 + (YY[i,:].reshape(XX.shape[1],-1) - Y[CHOOSE])**2)/((1+4*np.log(XY_R[CHOOSE]))*results['psf fwhm']/4)**2
-        K = np.exp(K - (np.max(K,axis = 1)).reshape(K.shape[0],-1))
-        MM[i,:] = np.sum(M[CHOOSE]*K,axis = 1) / np.sum(K,axis = 1)
-        
+    # MM = np.zeros(XX.shape)
+    # for i in range(XX.shape[0]):
+    #     CHOOSE = abs(Y - YY[i,int(YY.shape[1]/2)]) < (10*results['psf fwhm'])
+    #     K = -((XX[i,:].reshape(XX.shape[1],-1) - X[CHOOSE])**2 + (YY[i,:].reshape(XX.shape[1],-1) - Y[CHOOSE])**2)/((1+np.sqrt(XY_R[CHOOSE]))*results['psf fwhm']/4)**2
+    #     K = np.exp(K - (np.max(K,axis = 1)).reshape(K.shape[0],-1))
+    #     MM[i,:] = np.sum(M[CHOOSE]*K,axis = 1) / np.sum(K,axis = 1)
+
+    sp_interp = Rbf(X,Y,M, smooth = 1, function = 'linear') #interp2d(X,Y,M, fill_value = 0)
+    MM = sp_interp(XX,YY) #np.reshape(sp_interp(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float)), XX.shape)
+    
     MM = 10**(-(MM - zeropoint - 5*np.log10(pixscale))/2.5)
     
     XX, YY = (XX*np.cos(-PA[-1]) - YY*np.sin(-PA[-1]), XX*np.sin(-PA[-1]) + YY*np.cos(-PA[-1]))
     YY /= 1 - ellip[-1]
     RR = np.sqrt(XX**2 + YY**2)
-    MM[RR > R[-1]] = 0
+    MM[RR > R[-2]] = 0
     
     Model = np.zeros(IMG.shape, dtype = np.float32)
     Model[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]] = MM

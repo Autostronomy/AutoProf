@@ -16,6 +16,7 @@ from photutils.isophote import Ellipse as Photutils_Ellipse
 import logging
 from copy import deepcopy
 from time import time
+import matplotlib.cm as cm
 
 Abs_Mag_Sun = {'u': 6.39,
                'g': 5.11,
@@ -34,6 +35,17 @@ Abs_Mag_Sun = {'u': 6.39,
 Au_to_Pc    = 4.84814e-6         # pc au^-1
 Pc_to_m     = 3.086e16           # m pc^-1
 Pc_to_Au    = 206265.            # Au pc^-1
+
+def LSBImage(dat, noise):
+    plt.imshow(np.clip(dat, a_min = 1e-5*noise, a_max = 3*noise),
+               origin = 'lower', cmap = 'Greys',
+               norm = ImageNormalize(stretch=LogStretch())) 
+    my_cmap = cm.Greys_r
+    my_cmap.set_under('k', alpha=0)
+    plt.imshow(np.clip(dat,a_min = 2*noise, a_max = None),
+               origin = 'lower', cmap = my_cmap,
+               norm = ImageNormalize(stretch=LogStretch(), clip = False),
+               clim = [3*noise, None], vmin = 3*noise) 
 
 
 def magperarcsec2_to_mag(mu, a = None, b = None, A = None):
