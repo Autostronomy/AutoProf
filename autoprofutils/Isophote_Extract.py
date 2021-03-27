@@ -37,6 +37,7 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
 
     count_neg = 0
     medflux = np.inf
+    end_prof = None
     for i in range(len(R)):
         isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)
         if medflux > (results['background noise']*(kwargs['isoband_start'] if 'isoband_start' in kwargs else 2)) or isobandwidth < 0.5:
@@ -56,14 +57,15 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         if medflux <= 0:
             count_neg += 1
         if 'truncate_evaluation' in kwargs and kwargs['truncate_evaluation'] and count_neg >= 2:
+            end_prof = i+1
             break
         
     # Compute Curve of Growth from SB profile
-    cog, cogE = SBprof_to_COG_errorprop(R * pixscale, np.array(sb), np.array(sbE), 1. - E,
-                                        Ee, N = 100, method = 0, symmetric_error = True)
+    cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* pixscale, np.array(sb), np.array(sbE), 1. - E[:end_prof],
+                                        Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
     cogE[cog > 99] = 99.999
-    cogfix, cogfixE = SBprof_to_COG_errorprop(R * pixscale, np.array(sbfix), np.array(sbfixE), 1. - E,
-                                              Ee, N = 100, method = 0, symmetric_error = True)
+    cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * pixscale, np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
+                                              Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
     cogfixE[cogfix > 99] = 99.999
     
     # For each radius evaluation, write the profile parameters
@@ -77,15 +79,15 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f',
                      'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
     
-    SBprof_data['R'] = list(R * pixscale)
+    SBprof_data['R'] = list(R[:end_prof] * pixscale)
     SBprof_data['SB'] = list(sb)
     SBprof_data['SB_e'] = list(sbE)
     SBprof_data['totmag'] = list(cog)
     SBprof_data['totmag_e'] = list(cogE)
-    SBprof_data['ellip'] = list(E)
-    SBprof_data['ellip_e'] = list(Ee)
-    SBprof_data['pa'] = list(PA*180/np.pi)
-    SBprof_data['pa_e'] = list(PAe*180/np.pi)
+    SBprof_data['ellip'] = list(E[:end_prof])
+    SBprof_data['ellip_e'] = list(Ee[:end_prof])
+    SBprof_data['pa'] = list(PA[:end_prof]*180/np.pi)
+    SBprof_data['pa_e'] = list(PAe[:end_prof]*180/np.pi)
     SBprof_data['totmag_direct'] = list(cogdirect)
     SBprof_data['SB_fix'] = list(sbfix)
     SBprof_data['SB_fix_e'] = list(sbfixE)
