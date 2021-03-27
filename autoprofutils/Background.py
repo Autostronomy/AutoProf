@@ -37,11 +37,12 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
 
     if 'background' in kwargs:
         bkgrnd = kwargs['background']
+        logging.info('%s: Background set by user: %.4e' % (name, bkgrnd))
     else:
         # set the starting point for the sky level optimization at the median pixel flux
-        start = np.median(values)
-        # set the smoothing scale equal to roughly 1% of the width of the data
-        scale = iqr(values,rng = [30,70])/40
+        start = np.quantile(values, 0.30)
+        # set the smoothing scale equal to roughly 0.5% of the width of the data
+        scale = iqr(values,rng = [30,70])/80
         
         # Fit the peak of the smoothed histogram
         res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
@@ -49,6 +50,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
     if 'background_noise' in kwargs:
         noise = kwargs['background_noise']
+        logging.info('%s: Background Noise set by user: %.4e' % (name, noise))
     else:
         noise = iqr(values[(values-bkgrnd) < 0], rng = [100 - 68.2689492137,100])
     uncertainty = noise / np.sqrt(np.sum((values-bkgrnd) < 0))

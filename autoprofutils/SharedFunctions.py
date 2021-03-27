@@ -231,18 +231,18 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None):
     RR = XX**2 + YY**2
     rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
     fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
-    if not mask is None:
+    if not mask is None and sma_high > 5:
         CHOOSE = np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect])
         if np.sum(CHOOSE) < 5:
             logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, pa*180/np.pi, eps))
             CHOOSE = np.ones(CHOOSE.shape).astype(bool)
     if more:
-        if not mask is None:
+        if not mask is None and sma_high > 5:
             return fluxes[CHOOSE], theta[rselect][CHOOSE]
         else:
             return fluxes, theta[rselect]
     else:
-        if not mask is None:
+        if not mask is None and sma_high > 5:
             return fluxes[CHOOSE]
         else:
             return fluxes

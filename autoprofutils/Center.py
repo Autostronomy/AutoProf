@@ -9,7 +9,7 @@ from astropy.visualization.mpl_normalize import ImageNormalize
 from scipy.fftpack import fft, ifft
 import matplotlib.pyplot as plt
 import logging
-from copy import copy
+from copy import copy, deepcopy
 
 def Center_Forced(IMG, pixscale, name, results, **kwargs):
     """
@@ -23,7 +23,7 @@ def Center_Forced(IMG, pixscale, name, results, **kwargs):
     """
     center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
-        return {'center': kwargs['given_center']}
+        return {'center': deepcopy(kwargs['given_center'])}
     if 'fit_center' in kwargs and not kwargs['fit_center']:
         return {'center': current_center}
     
@@ -51,7 +51,7 @@ def Center_2DGaussian(IMG, pixscale, name, results, **kwargs):
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
-        current_center = kwargs['given_center']
+        current_center = deepcopy(kwargs['given_center'])
     if 'fit_center' in kwargs and not kwargs['fit_center']:
         return {'center': current_center}
     
@@ -91,7 +91,7 @@ def Center_1DGaussian(IMG, pixscale, name, results, **kwargs):
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
-        current_center = kwargs['given_center']
+        current_center = deepcopy(kwargs['given_center'])
     if 'fit_center' in kwargs and not kwargs['fit_center']:
         return {'center': current_center}
     
@@ -167,7 +167,9 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
     if 'given_center' in kwargs:
         current_center = kwargs['given_center']
+        logging.info('%s: Center initialized by user: %s' % (name, str(current_center)))
     if 'fit_center' in kwargs and not kwargs['fit_center']:
+        logging.info('%s: Center set by user: %s' % (name, str(current_center)))
         return {'center': current_center}
 
     dat = IMG - results['background']

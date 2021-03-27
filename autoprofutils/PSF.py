@@ -21,8 +21,10 @@ def PSF_IRAF(IMG, pixscale, name, results, **kwargs):
     Apply the photutils IRAF wrapper to the image to extract a PSF fwhm
     """
     if 'psf_set' in kwargs:
+        logging.info('%s: PSF set by user: %.4e' % (name, kwargs['psf_set']))
         return {'psf fwhm': kwargs['psf_set']}
     elif 'psf_guess' in kwargs:
+        logging.info('%s: PSF initialized by user: %.4e' % (name, kwargs['psf_guess']))
         fwhm_guess = kwargs['psf_guess']
     else:
         fwhm_guess = max(1., 1./pixscale)
