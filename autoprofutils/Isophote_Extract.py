@@ -14,13 +14,16 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_within, _iso_between, LSBImage
+from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage
 
 def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs):
     
     # Create image array with background and mask applied
     try:
-        mask = results['mask']
+        if np.any(results['mask']):
+            mask = results['mask']
+        else:
+            mask = None
     except:
         mask = None
     dat = IMG - results['background']
@@ -33,22 +36,23 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
     sbfixE = []
 
     count_neg = 0
+    medflux = np.inf
     for i in range(len(R)):
-        if R[i] < (kwargs['isoband_start'] if 'isoband_start' in kwargs else 100):
-            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask)
-            isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'], mask = mask)
+        isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)
+        if medflux > (results['background noise']*(kwargs['isoband_start'] if 'isoband_start' in kwargs else 2)) or isobandwidth < 0.5:
+            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, rad_interp = (kwargs['iso_interpolate_start'] if 'iso_interpolate_start' in kwargs else 5)*results['psf fwhm'])
+            isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'], mask = mask, rad_interp = (kwargs['iso_interpolate_start'] if 'iso_interpolate_start' in kwargs else 5)*results['psf fwhm'])
         else:
-            isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)
             isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'], mask = mask)
             isovalsfix = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, results['init ellip'], results['init pa'], results['center'], mask = mask)
-        isotot = _iso_within(dat, R[i], E[i], PA[i], results['center'], mask = mask)
+        isotot = np.sum(_iso_between(dat, 0, R[i], E[i], PA[i], results['center'], mask = mask))
         medflux = np.median(isovals)
         medfluxfix = np.median(isovalsfix)
         sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
         sbE.append((2.5*iqr(isovals, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
         sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(pixscale)) if medfluxfix > 0 else 99.999)
         sbfixE.append((2.5*iqr(isovalsfix, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovalsfix))*np.median(isovalsfix)*np.log(10))) if medfluxfix > 0 else 99.999)
-        cogdirect.append(-2.5*np.log10(isotot) + zeropoint)
+        cogdirect.append(-2.5*np.log10(isotot) + zeropoint if isotot > 0 else 99.999)
         if medflux <= 0:
             count_neg += 1
         if 'truncate_evaluation' in kwargs and kwargs['truncate_evaluation'] and count_neg >= 2:

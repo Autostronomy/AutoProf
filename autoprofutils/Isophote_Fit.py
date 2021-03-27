@@ -120,6 +120,8 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
     # subtract background from image during processing
     dat = IMG - results['background']
     mask = results['mask'] if 'mask' in results else None
+    if not np.any(mask):
+        mask = None
     
     # Determine sampling radii
     ######################################################################

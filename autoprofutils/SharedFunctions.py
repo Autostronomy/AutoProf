@@ -216,7 +216,38 @@ def L_to_mag(L, band, Le = None, zeropoint = None):
         mage = np.abs(2.5 * Le / (L * np.log(10)))
         return mag, mage
 
-def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False):
+
+def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None):
+
+    ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
+              [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
+    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
+    XX -= c['x'] - float(ranges[0][0])
+    YY -= c['y'] - float(ranges[1][0])
+    if more:
+        theta = np.arctan(YY/XX) + np.pi*(XX < 0)
+    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
+    YY /= 1 - eps
+    RR = XX**2 + YY**2
+    rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
+    fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
+    if not mask is None:
+        CHOOSE = np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect])
+        if np.sum(CHOOSE) < 5:
+            logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, pa*180/np.pi, eps))
+            CHOOSE = np.ones(CHOOSE.shape).astype(bool)
+    if more:
+        if not mask is None:
+            return fluxes[CHOOSE], theta[rselect][CHOOSE]
+        else:
+            return fluxes, theta[rselect]
+    else:
+        if not mask is None:
+            return fluxes[CHOOSE]
+        else:
+            return fluxes
+        
+def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False, rad_interp = 30):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
@@ -257,7 +288,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
     X,Y = (X*np.cos(pa) - Y*np.sin(pa), X*np.sin(pa) + Y*np.cos(pa))
     theta = (theta + pa) % (2*np.pi)
     
-    if sma < 30: 
+    if sma < rad_interp: 
         box = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
                [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
         f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
@@ -275,14 +306,7 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
             if np.sum(CHOOSE) < 5:
                 logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
             elif interp_mask:
-                #plt.scatter(theta,flux, color = 'b', label = 'pre interp')
                 flux[np.logical_not(CHOOSE)] = np.interp(theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period = 2*np.pi)
-                # plt.scatter(theta, flux, color = 'k', label = 'post interp')
-                # plt.scatter(theta[np.logical_not(CHOOSE)], flux[np.logical_not(CHOOSE)], color = 'r', label = 'interp')
-                # plt.legend()
-                # plt.ylim([-10, 500])
-                # plt.savefig('interpflux_%.1f.jpg' % sma)
-                # plt.close()
             else:
                 flux = flux[CHOOSE]
                 theta = theta[CHOOSE]
@@ -291,49 +315,19 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
     else:
         return flux
 
-def _iso_within(IMG, sma, eps, pa, c, mask = None):
+# def _iso_within(IMG, sma, eps, pa, c, mask = None):
 
-    ranges = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
-              [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
-    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
-    XX -= c['x'] - float(ranges[0][0])
-    YY -= c['y'] - float(ranges[1][0])
-    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
-    YY /= 1 - eps
-    RR = (XX**2 + YY**2) < sma**2
-    if not mask is None:
-        RR = np.logical_and(RR, np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]]))
-    return np.sum(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][RR])
-
-def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None):
-
-    ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
-              [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
-    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
-    XX -= c['x'] - float(ranges[0][0])
-    YY -= c['y'] - float(ranges[1][0])
-    if more:
-        theta = np.arctan(YY/XX) + np.pi*(XX < 0)
-    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
-    YY /= 1 - eps
-    RR = XX**2 + YY**2
-    rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
-    fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
-    if not mask is None:
-        CHOOSE = np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect])
-        if np.sum(CHOOSE) < 5:
-            logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
-            CHOOSE = np.ones(CHOOSE.shape).astype(bool)
-    if more:
-        if not mask is None:
-            return fluxes[CHOOSE], theta[rselect][CHOOSE]
-        else:
-            return fluxes, theta[rselect]
-    else:
-        if not mask is None:
-            return fluxes[CHOOSE]
-        else:
-            return fluxes
+#     ranges = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
+#               [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
+#     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
+#     XX -= c['x'] - float(ranges[0][0])
+#     YY -= c['y'] - float(ranges[1][0])
+#     XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
+#     YY /= 1 - eps
+#     RR = (XX**2 + YY**2) < sma**2
+#     if not mask is None:
+#         RR = np.logical_and(RR, np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]]))
+#     return np.sum(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][RR])
 
         
 def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10., maxstars = np.inf):
@@ -541,27 +535,27 @@ def GetKwargs(c):
     newkwargs = {}
 
     try:
-        newkwargs['saveto'] = c.saveto
+        newkwargs['saveto'] = str(c.saveto)
     except:
         newkwargs['saveto'] = None
     try:
-        newkwargs['name'] = c.name
+        newkwargs['name'] = str(c.name)
     except:
         newkwargs['name'] = None
     try:
-        newkwargs['n_procs'] = c.n_procs
+        newkwargs['n_procs'] = int(c.n_procs)
     except:
         newkwargs['n_procs'] = 1
     try:
-        newkwargs['mask_file'] = c.mask_file
+        newkwargs['mask_file'] = str(c.mask_file)
     except:
         newkwargs['mask_file'] = None
     try:
-        newkwargs['savemask'] = c.savemask
+        newkwargs['savemask'] = bool(c.savemask)
     except:
         pass
     try:
-        newkwargs['preprocess_all'] = c.preprocess_all
+        newkwargs['preprocess_all'] = bool(c.preprocess_all)
     except:
         pass
     try:
@@ -573,35 +567,35 @@ def GetKwargs(c):
     except:
         pass
     try:
-        newkwargs['psf_guess'] = c.psf_guess
+        newkwargs['psf_guess'] = float(c.psf_guess)
     except:
         pass
     try:
-        newkwargs['psf_set'] = c.psf_set
+        newkwargs['psf_set'] = float(c.psf_set)
     except:
         pass
     try:
-        newkwargs['autodetectoverflow'] = c.autodetectoverflow
+        newkwargs['autodetectoverflow'] = bool(c.autodetectoverflow)
     except:
         pass
     try:
-        newkwargs['overflowval'] = c.overflowval
+        newkwargs['overflowval'] = float(c.overflowval)
     except:
         pass
     try:
-        newkwargs['forcing_profile'] = c.forcing_profile
+        newkwargs['forcing_profile'] = str(c.forcing_profile)
     except:
         pass
     try:
-        newkwargs['plotpath'] = c.plotpath
+        newkwargs['plotpath'] = str(c.plotpath)
     except:
         pass
     try:
-        newkwargs['doplot'] = c.doplot
+        newkwargs['doplot'] = bool(c.doplot)
     except:
         pass
     try:
-        newkwargs['hdulelement'] = c.hdulelement
+        newkwargs['hdulelement'] = int(c.hdulelement)
     except:
         pass
     try:
@@ -609,79 +603,79 @@ def GetKwargs(c):
     except:
         pass
     try:
-        newkwargs['fit_center'] = c.fit_center
+        newkwargs['fit_center'] = bool(c.fit_center)
     except:
         pass
     try:
-        newkwargs['fit_limit'] = c.fit_limit
+        newkwargs['fit_limit'] = float(c.fit_limit)
     except:
         pass
     try:
-        newkwargs['scale'] = c.scale
+        newkwargs['scale'] = float(c.scale)
     except:
         pass
     try:
-        newkwargs['samplegeometricscale'] = c.samplegeometricscale
+        newkwargs['samplegeometricscale'] = float(c.samplegeometricscale)
     except:
         pass
     try:
-        newkwargs['samplelinearscale'] = c.samplelinearscale
+        newkwargs['samplelinearscale'] = float(c.samplelinearscale)
     except:
         pass
     try:
-        newkwargs['samplestyle'] = c.samplestyle
+        newkwargs['samplestyle'] = str(c.samplestyle)
     except:
         pass
     try:
-        newkwargs['sampleinitR'] = c.sampleinitR
+        newkwargs['sampleinitR'] = float(c.sampleinitR)
     except:
         pass
     try:
-        newkwargs['sampleendR'] = c.sampleendR
+        newkwargs['sampleendR'] = float(c.sampleendR)
     except:
         pass
     try:
-        newkwargs['sampleerrorlim'] = c.sampleerrorlim
+        newkwargs['zeropoint'] = float(c.zeropoint)
     except:
         pass
     try:
-        newkwargs['zeropoint'] = c.zeropoint
+        newkwargs['truncate_evaluation'] = bool(c.truncate_evaluation)
     except:
         pass
     try:
-        newkwargs['truncate_evaluation'] = c.truncate_evaluation
+        newkwargs['delimiter'] = str(c.delimiter)
     except:
         pass
     try:
-        newkwargs['delimiter'] = c.delimiter
+        newkwargs['isoband_width'] = float(c.isoband_width)
     except:
         pass
     try:
-        newkwargs['isoband_width'] = c.isoband_width
+        newkwargs['isoband_start'] = float(c.isoband_start)
     except:
         pass
     try:
-        newkwargs['isoband_start'] = c.isoband_start
+        newkwargs['iso_interpolate_start'] = float(c.iso_interpolate_start)
     except:
         pass
     try:
-        newkwargs['radsample_nwedges'] = c.radsample_nwedges
+        newkwargs['radsample_nwedges'] = int(c.radsample_nwedges)
     except:
         pass
     try:
-        newkwargs['radsample_width'] = c.radsample_width
+        newkwargs['radsample_width'] = float(c.radsample_width)
     except:
         pass
     try:
-        newkwargs['radsample_pa'] = c.radsample_pa
+        newkwargs['radsample_pa'] = float(c.radsample_pa)
     except:
         pass
     try:
-        newkwargs['radsample_expwidth'] = c.radsample_expwidth
+        newkwargs['radsample_expwidth'] = bool(c.radsample_expwidth)
     except:
         pass
     try:
-        newkwargs['radsample_variable_pa'] = c.radsample_variable_pa
+        newkwargs['radsample_variable_pa'] = bool(c.radsample_variable_pa)
     except:
         pass
         
