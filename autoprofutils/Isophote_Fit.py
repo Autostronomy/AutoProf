@@ -51,7 +51,7 @@ def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
         for i in range(len(res['fit R'])):
             plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
                                         res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()                
     
     return res
@@ -269,13 +269,14 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
         logging.info(force['R'])
         ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/pixscale)*1.2))],
                   [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/pixscale)*1.2))]]
-        plt.imshow(np.clip(dat[ranges[0][0]: ranges[0][1], ranges[1][0]: ranges[1][1]],
-                           a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        # plt.imshow(np.clip(dat[ranges[0][0]: ranges[0][1], ranges[1][0]: ranges[1][1]],
+        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(0,len(np.array(force['R'])),2):
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/pixscale),
                                         2*(np.array(force['R'])[i]/pixscale)*(1. - force['ellip'][i]),
                                         force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sloss_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()                
     res = {'fit ellip': np.array(force['ellip']),
            'fit pa': np.array(force['pa'])*np.pi/180,
