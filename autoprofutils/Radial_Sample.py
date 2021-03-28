@@ -106,6 +106,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
             
         plt.xlim([0,ranges[0][1] - ranges[0][0]])
         plt.ylim([0,ranges[1][1] - ranges[1][0]])
+        plt.tight_layout()
         plt.savefig('%sradial_sample_wedges_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
         

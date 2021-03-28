@@ -6,5 +6,3 @@ pixscale = 0.262
 name = 'testimage'
 doplot = True
 overflowval = 10.
-
-new_pipeline_steps = {'ellipsemodel': 'ellipsemodel general'}

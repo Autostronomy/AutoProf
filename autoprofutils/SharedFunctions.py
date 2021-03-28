@@ -535,27 +535,27 @@ def GetKwargs(c):
     newkwargs = {}
 
     try:
-        newkwargs['saveto'] = str(c.saveto)
+        newkwargs['saveto'] = c.saveto
     except:
         newkwargs['saveto'] = None
     try:
-        newkwargs['name'] = str(c.name)
+        newkwargs['name'] = c.name
     except:
         newkwargs['name'] = None
     try:
-        newkwargs['n_procs'] = int(c.n_procs)
+        newkwargs['n_procs'] = c.n_procs
     except:
         newkwargs['n_procs'] = 1
     try:
-        newkwargs['mask_file'] = str(c.mask_file)
+        newkwargs['mask_file'] = c.mask_file
     except:
         newkwargs['mask_file'] = None
     try:
-        newkwargs['savemask'] = bool(c.savemask)
+        newkwargs['savemask'] = c.savemask
     except:
         pass
     try:
-        newkwargs['preprocess_all'] = bool(c.preprocess_all)
+        newkwargs['preprocess_all'] = c.preprocess_all
     except:
         pass
     try:
@@ -567,35 +567,35 @@ def GetKwargs(c):
     except:
         pass
     try:
-        newkwargs['psf_guess'] = float(c.psf_guess)
+        newkwargs['psf_guess'] = c.psf_guess
     except:
         pass
     try:
-        newkwargs['psf_set'] = float(c.psf_set)
+        newkwargs['psf_set'] = c.psf_set
     except:
         pass
     try:
-        newkwargs['autodetectoverflow'] = bool(c.autodetectoverflow)
+        newkwargs['autodetectoverflow'] = c.autodetectoverflow
     except:
         pass
     try:
-        newkwargs['overflowval'] = float(c.overflowval)
+        newkwargs['overflowval'] = c.overflowval
     except:
         pass
     try:
-        newkwargs['forcing_profile'] = str(c.forcing_profile)
+        newkwargs['forcing_profile'] = c.forcing_profile
     except:
         pass
     try:
-        newkwargs['plotpath'] = str(c.plotpath)
+        newkwargs['plotpath'] = c.plotpath
     except:
         pass
     try:
-        newkwargs['doplot'] = bool(c.doplot)
+        newkwargs['doplot'] = c.doplot
     except:
         pass
     try:
-        newkwargs['hdulelement'] = int(c.hdulelement)
+        newkwargs['hdulelement'] = c.hdulelement
     except:
         pass
     try:
@@ -603,79 +603,79 @@ def GetKwargs(c):
     except:
         pass
     try:
-        newkwargs['fit_center'] = bool(c.fit_center)
+        newkwargs['fit_center'] = c.fit_center
     except:
         pass
     try:
-        newkwargs['fit_limit'] = float(c.fit_limit)
+        newkwargs['fit_limit'] = c.fit_limit
     except:
         pass
     try:
-        newkwargs['scale'] = float(c.scale)
+        newkwargs['scale'] = c.scale
     except:
         pass
     try:
-        newkwargs['samplegeometricscale'] = float(c.samplegeometricscale)
+        newkwargs['samplegeometricscale'] = c.samplegeometricscale
     except:
         pass
     try:
-        newkwargs['samplelinearscale'] = float(c.samplelinearscale)
+        newkwargs['samplelinearscale'] = c.samplelinearscale
     except:
         pass
     try:
-        newkwargs['samplestyle'] = str(c.samplestyle)
+        newkwargs['samplestyle'] = c.samplestyle
     except:
         pass
     try:
-        newkwargs['sampleinitR'] = float(c.sampleinitR)
+        newkwargs['sampleinitR'] = c.sampleinitR
     except:
         pass
     try:
-        newkwargs['sampleendR'] = float(c.sampleendR)
+        newkwargs['sampleendR'] = c.sampleendR
     except:
         pass
     try:
-        newkwargs['zeropoint'] = float(c.zeropoint)
+        newkwargs['zeropoint'] = c.zeropoint
     except:
         pass
     try:
-        newkwargs['truncate_evaluation'] = bool(c.truncate_evaluation)
+        newkwargs['truncate_evaluation'] = c.truncate_evaluation
     except:
         pass
     try:
-        newkwargs['delimiter'] = str(c.delimiter)
+        newkwargs['delimiter'] = c.delimiter
     except:
         pass
     try:
-        newkwargs['isoband_width'] = float(c.isoband_width)
+        newkwargs['isoband_width'] = c.isoband_width
     except:
         pass
     try:
-        newkwargs['isoband_start'] = float(c.isoband_start)
+        newkwargs['isoband_start'] = c.isoband_start
     except:
         pass
     try:
-        newkwargs['iso_interpolate_start'] = float(c.iso_interpolate_start)
+        newkwargs['iso_interpolate_start'] = c.iso_interpolate_start
     except:
         pass
     try:
-        newkwargs['radsample_nwedges'] = int(c.radsample_nwedges)
+        newkwargs['radsample_nwedges'] = c.radsample_nwedges
     except:
         pass
     try:
-        newkwargs['radsample_width'] = float(c.radsample_width)
+        newkwargs['radsample_width'] = c.radsample_width
     except:
         pass
     try:
-        newkwargs['radsample_pa'] = float(c.radsample_pa)
+        newkwargs['radsample_pa'] = c.radsample_pa
     except:
         pass
     try:
-        newkwargs['radsample_expwidth'] = bool(c.radsample_expwidth)
+        newkwargs['radsample_expwidth'] = c.radsample_expwidth
     except:
         pass
     try:
-        newkwargs['radsample_variable_pa'] = bool(c.radsample_variable_pa)
+        newkwargs['radsample_variable_pa'] = c.radsample_variable_pa
     except:
         pass
         
