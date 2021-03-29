@@ -147,7 +147,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
     # Fit isophotes
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
-
+    regularize_scale = kwargs['regularize_scale'] if 'regularize_scale' in kwargs else 1.
     N_perturb = 5
 
     count = 0
@@ -166,7 +166,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             perturbations = []
             perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
             perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                         use_center, results['background noise'], mask = mask, name = name)
+                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale, name = name)
             for n in range(N_perturb):
                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
                 if count % 3 in [0,1]:
@@ -174,7 +174,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
                 if count % 3 in [1,2]:
                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
                 perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                             use_center, results['background noise'], mask = mask, name = name)
+                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale, name = name)
             
             best = np.argmin(list(p['loss'] for p in perturbations))
             if best > 0:

@@ -611,6 +611,10 @@ def GetKwargs(c):
     except:
         pass
     try:
+        newkwargs['regularize_scale'] = c.regularize_scale
+    except:
+        pass
+    try:
         newkwargs['scale'] = c.scale
     except:
         pass
