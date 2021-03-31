@@ -40,9 +40,9 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
         logging.info('%s: Background set by user: %.4e' % (name, bkgrnd))
     else:
         # set the starting point for the sky level optimization at the median pixel flux
-        start = np.quantile(values, 0.30)
+        start = np.quantile(values, 0.40)
         # set the smoothing scale equal to roughly 0.5% of the width of the data
-        scale = iqr(values,rng = [30,70])/80
+        scale = iqr(values,rng = [30,70])/10
         
         # Fit the peak of the smoothed histogram
         res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
@@ -65,7 +65,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
         plt.xlabel('flux')
         plt.ylabel('log$_{10}$(count)')
         plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-        plt.close()
+        plt.close()        
         
     return {'background': bkgrnd,
             'background noise': noise,
