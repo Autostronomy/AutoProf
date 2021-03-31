@@ -91,11 +91,11 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
 
     reg_loss = 0
     if i < (len(R)-1):
-        reg_loss += abs((E[i] - E[i+1])/E[i+1]) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i+1]))/0.1)
-        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.3))
+        reg_loss += abs((E[i] - E[i+1])/(0.2*E[i+1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i+1]))/0.1)
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.2))
     if i > 0:
-        reg_loss += abs((E[i] - E[i-1])/E[i-1]) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i-1]))/0.1)
-        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.3))
+        reg_loss += abs((E[i] - E[i-1])/(0.2*E[i-1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i-1]))/0.1)
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.2))
 
     return f2_loss*(1 + reg_loss*reg_scale) #(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
 
