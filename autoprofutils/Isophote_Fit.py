@@ -91,11 +91,11 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
 
     reg_loss = 0
     if i < (len(R)-1):
-        reg_loss += abs((E[i] - E[i+1])/(0.2*E[i+1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i+1]))/0.1)
-        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.2))
+        reg_loss += abs((E[i] - E[i+1])/(1 - E[i+1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i+1]))/0.1)
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.3))
     if i > 0:
-        reg_loss += abs((E[i] - E[i-1])/(0.2*E[i-1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i-1]))/0.1)
-        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.2))
+        reg_loss += abs((E[i] - E[i-1])/(1 - E[i-1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i-1]))/0.1)
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.3))
 
     return f2_loss*(1 + reg_loss*reg_scale) #(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
 
@@ -166,7 +166,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             perturbations = []
             perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
             perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale, name = name)
+                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = name)
             for n in range(N_perturb):
                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
                 if count % 3 in [0,1]:
@@ -174,7 +174,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
                 if count % 3 in [1,2]:
                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
                 perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale, name = name)
+                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = name)
             
             best = np.argmin(list(p['loss'] for p in perturbations))
             if best > 0:
