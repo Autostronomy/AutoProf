@@ -315,20 +315,25 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
     else:
         return flux
 
-# def _iso_within(IMG, sma, eps, pa, c, mask = None):
+def _iso_line(IMG, length, width, pa, c, more = False):
 
-#     ranges = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
-#               [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
-#     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
-#     XX -= c['x'] - float(ranges[0][0])
-#     YY -= c['y'] - float(ranges[1][0])
-#     XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
-#     YY /= 1 - eps
-#     RR = (XX**2 + YY**2) < sma**2
-#     if not mask is None:
-#         RR = np.logical_and(RR, np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]]))
-#     return np.sum(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][RR])
+    start = np.array([c['x'], c['y']])
+    end = start + length*np.array([np.cos(pa), np.sin(pa)])
+    
+    ranges = [[max(0,int(min(start[0], end[0])-2)), min(IMG.shape[1],int(max(start[0], end[0])+2))],
+              [max(0,int(min(start[1], end[1])-2)), min(IMG.shape[0],int(max(start[1], end[1])+2))]]
+    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
+    XX -= c['x'] - float(ranges[0][0])
+    YY -= c['y'] - float(ranges[1][0])
+    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
 
+    lselect = np.logical_and.reduce((XX >= -0.5, XX < length, np.abs(YY) <= (width/2)))
+    flux = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][lselect]
+
+    if more:
+        return flux, XX[lselect], YY[lselect]
+    else:
+        return flux, XX[lselect]
         
 def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10., maxstars = np.inf):
     """

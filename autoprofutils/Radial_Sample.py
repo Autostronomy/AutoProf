@@ -73,7 +73,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         newprofdata[p2] = sbE[sa_i]
         
     if 'doplot' in kwargs and kwargs['doplot']:
-        CHOOSE = SBE < 0.3
+        CHOOSE = SBE < 0.2
         ranges = [[max(0,int(results['center']['x']-R[CHOOSE][-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[CHOOSE][-1]+2))],
                   [max(0,int(results['center']['y']-R[CHOOSE][-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[CHOOSE][-1]+2))]]
         cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
