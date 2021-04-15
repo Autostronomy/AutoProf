@@ -74,8 +74,11 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         
     if 'doplot' in kwargs and kwargs['doplot']:
         CHOOSE = SBE < 0.2
-        ranges = [[max(0,int(results['center']['x']-R[CHOOSE][-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[CHOOSE][-1]+2))],
-                  [max(0,int(results['center']['y']-R[CHOOSE][-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[CHOOSE][-1]+2))]]
+        firstbad = np.argmax(np.logical_not(CHOOSE))
+        if firstbad > 3:
+            CHOOSE[firstbad:] = False
+        ranges = [[max(0,int(results['center']['x']-1.5*R[CHOOSE][-1]-2)), min(IMG.shape[1],int(results['center']['x']+1.5*R[CHOOSE][-1]+2))],
+                  [max(0,int(results['center']['y']-1.5*R[CHOOSE][-1]-2)), min(IMG.shape[0],int(results['center']['y']+1.5*R[CHOOSE][-1]+2))]]
         cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
         colorind = np.arange(nwedges)/10
         for sa_i in range(len(wedgeangles)):
@@ -98,10 +101,13 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         cx, cy = (results['center']['x'] - ranges[0][0], results['center']['y'] - ranges[1][0])
         for sa_i in range(len(wedgeangles)):
             endx, endy = (R*np.cos(wedgeangles[sa_i]+pa), R*np.sin(wedgeangles[sa_i]+pa))
+            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 1.1)
             plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linewidth = 0.7)
             endx, endy = (R*np.cos(wedgeangles[sa_i]+pa + wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa + wedgewidth/2))
+            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
             plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
             endx, endy = (R*np.cos(wedgeangles[sa_i]+pa - wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa - wedgewidth/2))
+            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
             plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
             
         plt.xlim([0,ranges[0][1] - ranges[0][0]])

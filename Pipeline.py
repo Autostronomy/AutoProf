@@ -62,8 +62,8 @@ class Isophote_Pipeline(object):
                                    'orthsample': Orthogonal_Sample}
         
         # Default pipeline analysis order
-        self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit',
-                               'mask segmentation map', 'isophoteextract', 'checkfit', 'radsample', 'ellipsemodel']
+        self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',
+                               'isophotefit', 'isophoteextract', 'checkfit']
 
         # Holder for any preprocessing function the user may want to apply
         self.preprocess = None

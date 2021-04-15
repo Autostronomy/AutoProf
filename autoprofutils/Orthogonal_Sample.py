@@ -106,12 +106,19 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                 plt.gca().invert_yaxis()
                 plt.legend(fontsize = 10)
                 plt.title('%sR : pa%s90' % ('+' if rd > 0 else '-', '+' if ang > 0 else '-'))
+                plt.tight_layout()
                 plt.savefig('%sorthogonal_sample_q%i_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', count, name), dpi = 400)
                 plt.close()
                 count += 1
-        
-        ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
-                  [max(0,int(results['center']['y']-R[-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[-1]+2))]]
+
+
+        CHOOSE = np.array(results['prof data']['SB_e']) < 0.2
+        firstbad = np.argmax(np.logical_not(CHOOSE))
+        if firstbad > 3:
+            CHOOSE[firstbad:] = False
+        outto = np.array(results['prof data']['R'])[CHOOSE][-1]*1.5/pixscale
+        ranges = [[max(0,int(results['center']['x']-outto-2)), min(IMG.shape[1],int(results['center']['x']+outto+2))],
+                  [max(0,int(results['center']['y']-outto-2)), min(IMG.shape[0],int(results['center']['y']+outto+2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         count = 0
         colours = ['b', 'r', 'orange', 'limegreen']

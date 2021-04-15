@@ -92,6 +92,28 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
                                         0, fill = False, linewidth = 0.5, color = 'r' if stars['deformity'][i] >= def_clip else 'y'))
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
         plt.close()
+        # paper plot
+        N = np.argsort(stars['deformity'])
+        figscale = max(stars['fwhm'][N[:9]])*2
+        fig, axarr = plt.subplots(3,3, figsize = (6,6))
+        plt.subplots_adjust(hspace = 0.01, wspace = 0.01, left = 0.05, right = 0.95, top = 0.95, bottom = 0.05)
+        count = 0
+        for i in range(3):
+            for j in range(3):
+                ranges = [[int(stars['x'][N[count]]-figscale),1+int(stars['x'][N[count]]+figscale)],
+                          [int(stars['y'][N[count]]-figscale),1+int(stars['y'][N[count]]+figscale)]]
+                axarr[i][j].imshow(np.clip(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]] - results['background'], a_min = 0, a_max = None), origin = 'lower',
+                                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()), extent = (0,1,0,1))
+                axarr[i][j].add_patch(Ellipse(((stars['x'][N[count]]-ranges[0][0])/(ranges[0][1]-ranges[0][0]),
+                                               (stars['y'][N[count]]-ranges[1][0])/(ranges[1][1]-ranges[1][0])),
+                                              stars['fwhm'][N[count]]/(ranges[0][1]-ranges[0][0]),
+                                              stars['fwhm'][N[count]]/(ranges[1][1]-ranges[1][0]),
+                                              0, fill = False, linewidth = 1, color = 'r'))
+                axarr[i][j].set_xticks([])
+                axarr[i][j].set_yticks([])
+                count += 1
+        plt.savefig('%sPSF_Best_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.close()
 
     logging.info('%s: found psf: %f with deformity clip of: %f' % (name,np.median(stars['fwhm'][stars['deformity'] < def_clip]), def_clip))
     return {'psf fwhm': np.median(stars['fwhm'][stars['deformity'] < def_clip])}

@@ -245,18 +245,40 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
     track_centers = np.array(track_centers)
 
     # paper plot
-    # if 'doplot' in kwargs and kwargs['doplot']:    
-    #     plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-    #     plt.plot([IMG.shape[0]/2],[IMG.shape[1]/2], marker = 'x', markersize = 2, color = 'y')
-    #     plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
-    #     plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-    #     plt.close()
+    if 'doplot' in kwargs and kwargs['doplot']:    
+        plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        plt.plot([IMG.shape[0]/2],[IMG.shape[1]/2], marker = 'x', markersize = 2, color = 'y')
+        plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
+        plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.close()
 
-    #     plt.plot(track_centers[:,0], track_centers[:,1], color = 'k')
-    #     plt.scatter(track_centers[:,0], track_centers[:,1], c = range(len(track_centers)), cmap = 'Reds')
-    #     plt.xlabel('x coordinate [pix]')
-    #     plt.ylabel('y coordinate [pix]')
-    #     plt.savefig('%sCenter_path_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
-    #     plt.close()
+        xwidth = 2*max(np.abs(track_centers[:,0] - current_center['x']))
+        ywidth = 2*max(np.abs(track_centers[:,1] - current_center['y']))
+        width = max(xwidth, ywidth)
+        ranges = [[int(current_center['x'] - width), int(current_center['x'] + width)],
+                  [int(current_center['y'] - width), int(current_center['y'] + width)]]
+        fig, axarr = plt.subplots(2,1, figsize = (3,6))
+        plt.subplots_adjust(hspace = 0.01, wspace = 0.01, left = 0.05, right = 0.95, top = 0.95, bottom = 0.05)
+        axarr[0].imshow(np.clip(dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]],a_min = 0, a_max = None),
+                        origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()),
+                        extent = [ranges[0][0],ranges[0][1],ranges[1][0]-1,ranges[1][1]-1])
+        axarr[0].plot(track_centers[:,0], track_centers[:,1], color = 'y')
+        axarr[0].scatter(track_centers[:,0], track_centers[:,1], c = range(len(track_centers)), cmap = 'Reds')
+        axarr[0].set_xticks([])
+        axarr[0].set_yticks([])        
+        width = 10.
+        ranges = [[int(current_center['x'] - width), int(current_center['x'] + width)],
+                  [int(current_center['y'] - width), int(current_center['y'] + width)]]
+        axarr[1].imshow(np.clip(dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]],a_min = 0, a_max = None),
+                        origin = 'lower', cmap = 'Greys_r',
+                        extent = [ranges[0][0],ranges[0][1],ranges[1][0]-1,ranges[1][1]-1])
+        axarr[1].plot(track_centers[:,0], track_centers[:,1], color = 'y')
+        axarr[1].scatter(track_centers[:,0], track_centers[:,1], c = range(len(track_centers)), cmap = 'Reds')
+        axarr[1].set_xlim(ranges[0])
+        axarr[1].set_ylim(np.array(ranges[1])-1)        
+        axarr[1].set_xticks([])
+        axarr[1].set_yticks([])
+        plt.savefig('%sCenter_path_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.close()
         
     return {'center': current_center}

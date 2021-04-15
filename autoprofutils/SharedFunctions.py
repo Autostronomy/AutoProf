@@ -37,16 +37,18 @@ Pc_to_m     = 3.086e16           # m pc^-1
 Pc_to_Au    = 206265.            # Au pc^-1
 
 def LSBImage(dat, noise):
-    plt.imshow(np.clip(dat, a_min = 1e-5*noise, a_max = 3*noise),
+    plt.figure(figsize = (6,6))
+    plt.imshow(np.clip(dat, a_min = 1e-5*noise, a_max = 2*noise),
                origin = 'lower', cmap = 'Greys',
                norm = ImageNormalize(stretch=LogStretch())) 
     my_cmap = cm.Greys_r
     my_cmap.set_under('k', alpha=0)
-    plt.imshow(np.clip(dat,a_min = 2*noise, a_max = None),
+    plt.imshow(np.clip(dat,a_min = noise, a_max = None),
                origin = 'lower', cmap = my_cmap,
                norm = ImageNormalize(stretch=LogStretch(), clip = False),
-               clim = [3*noise, None], vmin = 3*noise) 
-
+               clim = [2*noise, None], vmin = 2*noise) 
+    plt.xticks([])
+    plt.yticks([])
 
 def magperarcsec2_to_mag(mu, a = None, b = None, A = None):
     """
@@ -525,6 +527,15 @@ def Angle_Average(a):
     i = np.cos(a) + 1j*np.sin(a)
     return np.angle(np.mean(i))
 
+def Angle_Median(a):
+    """
+    Compute the median for a list of angles, which may wrap around a cyclic boundary.
+
+    a: list of angles in the range [0,2pi]
+    """
+    i = np.median(np.cos(a)) + 1j*np.median(np.sin(a))
+    return np.angle(i)
+    
 def Angle_Scatter(a):
     """
     Compute the average for a list of angles, which may wrap around a cyclic boundary.
