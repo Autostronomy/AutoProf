@@ -13,3 +13,4 @@ samplegeometricscale = 0.05
 truncate_evaluation = True
 new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',                                                                                 
                       'isophotefit', 'isophoteextract', 'checkfit', 'orthsample', 'radsample']
+

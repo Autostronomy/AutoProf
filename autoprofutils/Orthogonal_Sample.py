@@ -121,7 +121,9 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                   [max(0,int(results['center']['y']-outto-2)), min(IMG.shape[0],int(results['center']['y']+outto+2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         count = 0
-        colours = ['b', 'r', 'orange', 'limegreen']
+        cmap = matplotlib.cm.get_cmap('hsv')
+        colorind = (np.linspace(0,1 - 1/4,4) + 0.1) % 1
+        colours = list(cmap(c) for c in colorind) #['b', 'r', 'orange', 'limegreen']
         for rd in [1,-1]:
             for ang in [1, -1]:
                 key = (rd,ang)

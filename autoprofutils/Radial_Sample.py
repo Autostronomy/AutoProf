@@ -79,8 +79,10 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
             CHOOSE[firstbad:] = False
         ranges = [[max(0,int(results['center']['x']-1.5*R[CHOOSE][-1]-2)), min(IMG.shape[1],int(results['center']['x']+1.5*R[CHOOSE][-1]+2))],
                   [max(0,int(results['center']['y']-1.5*R[CHOOSE][-1]-2)), min(IMG.shape[0],int(results['center']['y']+1.5*R[CHOOSE][-1]+2))]]
-        cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
-        colorind = np.arange(nwedges)/10
+        # cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
+        # colorind = np.arange(nwedges)/10
+        cmap = matplotlib.cm.get_cmap('hsv')
+        colorind = (np.linspace(0,1 - 1/nwedges,nwedges) + 0.1) % 1
         for sa_i in range(len(wedgeangles)):
             CHOOSE = np.logical_and(np.array(sb[sa_i]) < 99, np.array(sbE[sa_i]) < 1)
             plt.errorbar(np.array(R)[CHOOSE]*pixscale, np.array(sb[sa_i])[CHOOSE], yerr = np.array(sbE[sa_i])[CHOOSE],
