@@ -1,8 +1,6 @@
 <picture>
-  <source
-    srcset="AP_logo_white.png"
-    media="(prefers-color-scheme: dark)">
-    <img src="AP_logo.png" alt="AutoProf" width="250"/>
+  <source srcset="AP_logo.png" media="(prefers-color-scheme: dark)"/>
+  <img src="AP_logo_white.png" alt="AutoProf" width="300"/>
 </picture>
 
 
