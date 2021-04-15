@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract
+from autoprofutils.SharedFunctions import _iso_extract, AddLogo
 from photutils.centroids import centroid_2dg, centroid_com, centroid_1dg
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -249,7 +249,8 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([IMG.shape[0]/2],[IMG.shape[1]/2], marker = 'x', markersize = 2, color = 'y')
         plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
-        plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        AddLogo(plt.gcf())
+        plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
 
         xwidth = 2*max(np.abs(track_centers[:,0] - current_center['x']))

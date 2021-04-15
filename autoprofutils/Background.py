@@ -10,6 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
+import sys
+import os
+sys.path.append(os.environ['AUTOPROF'])
+from autoprofutils.SharedFunctions import AddLogo
 
 
 def Background_Mode(IMG, pixscale, name, results, **kwargs):
@@ -66,7 +70,8 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
         plt.xlabel('flux')
         plt.ylabel('log$_{10}$(count)')
         plt.tight_layout()
-        plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        AddLogo(plt.gcf())
+        plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()        
         
     return {'background': bkgrnd,

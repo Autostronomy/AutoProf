@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, _iso_line
+from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, _iso_line, AddLogo
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -107,6 +107,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                 plt.legend(fontsize = 10)
                 plt.title('%sR : pa%s90' % ('+' if rd > 0 else '-', '+' if ang > 0 else '-'))
                 plt.tight_layout()
+                AddLogo(plt.gcf())
                 plt.savefig('%sorthogonal_sample_q%i_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', count, name), dpi = 400)
                 plt.close()
                 count += 1
@@ -142,6 +143,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
         plt.xlim([0,ranges[0][1] - ranges[0][0]])
         plt.ylim([0,ranges[1][1] - ranges[1][0]])
         plt.tight_layout()
+        AddLogo(plt.gcf())
         plt.savefig('%sorthogonal_sample_lines_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
         

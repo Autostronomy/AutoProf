@@ -13,7 +13,7 @@ from scipy.fftpack import fft, ifft
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, StarFind
+from autoprofutils.SharedFunctions import _iso_extract, StarFind, AddLogo
 from copy import deepcopy
 
 def PSF_IRAF(IMG, pixscale, name, results, **kwargs):
@@ -90,6 +90,7 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
         for i in range(len(stars['fwhm'])):
             plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/pixscale, 16/pixscale,
                                         0, fill = False, linewidth = 0.5, color = 'r' if stars['deformity'][i] >= def_clip else 'y'))
+        AddLogo(plt.gcf())
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
         plt.close()
         # paper plot

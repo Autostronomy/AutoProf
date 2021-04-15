@@ -1,4 +1,4 @@
-# AutoProf
+<img src="AP_logo.png" alt="AutoProf" width="250"/>
 
 This pipeline for non-parametric Galaxy image analysis was written with the goal
 of making a tool that is easy for anyone to get started with, yet flexible

@@ -17,6 +17,8 @@ import logging
 from copy import deepcopy
 from time import time
 import matplotlib.cm as cm
+from matplotlib.cbook import get_sample_data
+
 
 Abs_Mag_Sun = {'u': 6.39,
                'g': 5.11,
@@ -49,6 +51,16 @@ def LSBImage(dat, noise):
                clim = [2*noise, None], vmin = 2*noise) 
     plt.xticks([])
     plt.yticks([])
+
+def AddLogo(fig, loc = [0.8,0.01,0.844/5, 0.185/5], white = False):
+    im = plt.imread(get_sample_data(os.environ['AUTOPROF'] + ('AP_logo_white.png' if white else 'AP_logo.png')))
+    newax = fig.add_axes(loc, zorder=1000)
+    if white:
+        newax.imshow(np.zeros(im.shape) + np.array([0,0,0,1]))
+    else:
+        newax.imshow(np.ones(im.shape))
+    newax.imshow(im)
+    newax.axis('off')
 
 def magperarcsec2_to_mag(mu, a = None, b = None, A = None):
     """

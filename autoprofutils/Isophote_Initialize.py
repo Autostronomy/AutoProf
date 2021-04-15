@@ -5,7 +5,7 @@ from scipy.stats import iqr
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo
 import logging
 from copy import copy
 from astropy.visualization import SqrtStretch, LogStretch
@@ -90,7 +90,8 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = 'r')
         plt.tight_layout()
-        plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        AddLogo(plt.gcf())
+        plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
 
         # paper plot
@@ -109,7 +110,8 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         ax[1].set_xlabel('Ellipticity [1 - b/a]')
         ax[1].set_ylabel('Loss [FFT$_{2}$/med(flux)]')
         plt.tight_layout()
-        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        AddLogo(plt.gcf())
+        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
         
     return {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}
