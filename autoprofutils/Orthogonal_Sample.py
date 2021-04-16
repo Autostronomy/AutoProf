@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, _iso_line, AddLogo
+from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, _iso_line, AddLogo, autocmap
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -14,6 +14,8 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
 
     mask = results['mask'] if 'mask' in results else None
     pa = (kwargs['orthsample_pa']*np.pi/180) if 'orthsample_pa' in kwargs else results['init pa']
+    if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel']:
+        pa += np.pi/2
     dat = IMG - results['background']
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
 
@@ -32,7 +34,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
 
     sb = {}
     sbE = {}
-    for rd in [1,-1]:
+    for rd in [1, -1]:
         for ang in [1, -1]:
             key = (rd,ang)
             sb[key] = []
@@ -86,20 +88,20 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
         for rd in [1,-1]:
             for ang in [1, -1]:
                 key = (rd,ang)
-                cmap = matplotlib.cm.get_cmap('viridis_r')
+                #cmap = matplotlib.cm.get_cmap('viridis_r')
                 norm = matplotlib.colors.Normalize(vmin=0, vmax=R[-1]*pixscale)
                 for pi, pR in enumerate(R):
                     if pi % 3 != 0:
                         continue
                     CHOOSE = np.logical_and(np.array(sb[key][pi]) < 99, np.array(sbE[key][pi]) < 1)
                     plt.errorbar(np.array(R)[CHOOSE]*pixscale, np.array(sb[key][pi])[CHOOSE], yerr = np.array(sbE[key][pi])[CHOOSE],
-                                 elinewidth = 1, linewidth = 0, marker = '.', markersize = 4, color = cmap(norm(pR*pixscale)))
-                plt.xlabel('Major-axis displacement [arcsec]')
+                                 elinewidth = 1, linewidth = 0, marker = '.', markersize = 3, color = autocmap.reversed()(norm(pR*pixscale)))
+                plt.xlabel('%s-axis displacement [arcsec]' % ('Minor' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Major'))
                 plt.ylabel('Surface Brightness [mag/arcsec^2]')
                 # cb1 = matplotlib.colorbar.ColorbarBase(plt.gca(), cmap=cmap,
                 #                                        norm=norm)
-                cb1 = plt.colorbar(matplotlib.cm.ScalarMappable(norm = norm, cmap = cmap))
-                cb1.set_label('Major-axis position [arcsec]')
+                cb1 = plt.colorbar(matplotlib.cm.ScalarMappable(norm = norm, cmap = autocmap.reversed()))
+                cb1.set_label('%s-axis position [arcsec]'  % ('Minor' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Major'))
                 # plt.colorbar()
                 bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2)
                 plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)

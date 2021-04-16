@@ -18,7 +18,7 @@ from copy import deepcopy
 from time import time
 import matplotlib.cm as cm
 from matplotlib.cbook import get_sample_data
-
+from matplotlib.colors import LinearSegmentedColormap
 
 Abs_Mag_Sun = {'u': 6.39,
                'g': 5.11,
@@ -38,6 +38,15 @@ Au_to_Pc    = 4.84814e-6         # pc au^-1
 Pc_to_m     = 3.086e16           # m pc^-1
 Pc_to_Au    = 206265.            # Au pc^-1
 
+cmaplist = ['#000000', '#720026', '#A0213F', '#ce4257', '#E76154', '#ff9b54', '#ffd1b1']
+cdict = {'red': [], 'green': [], 'blue': []}
+cpoints = np.linspace(0,1,len(cmaplist))
+for i in range(len(cmaplist)):
+    cdict['red'].append([cpoints[i], int(cmaplist[i][1:3],16)/256,int(cmaplist[i][1:3],16)/256])
+    cdict['green'].append([cpoints[i], int(cmaplist[i][3:5],16)/256,int(cmaplist[i][3:5],16)/256])
+    cdict['blue'].append([cpoints[i], int(cmaplist[i][5:7],16)/256,int(cmaplist[i][5:7],16)/256])
+autocmap = LinearSegmentedColormap('autocmap', cdict)
+    
 def LSBImage(dat, noise):
     plt.figure(figsize = (6,6))
     plt.imshow(np.clip(dat, a_min = 1e-5*noise, a_max = 2*noise),
@@ -708,6 +717,14 @@ def GetKwargs(c):
         pass
     try:
         newkwargs['radsample_variable_pa'] = c.radsample_variable_pa
+    except:
+        pass
+    try:
+        newkwargs['orthsample_pa'] = c.orthsample_pa
+    except:
+        pass
+    try:
+        newkwargs['orthsample_parallel'] = c.orthsample_parallel
     except:
         pass
         

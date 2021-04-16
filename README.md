@@ -1,3 +1,5 @@
+<img src="AP_logo_white.png" alt="AutoProf" width="300"/>
+---
 <img src="AP_logo.png" alt="AutoProf" width="300"/>
 
 This pipeline for non-parametric Galaxy image analysis was written with the goal

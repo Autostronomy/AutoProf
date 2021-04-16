@@ -3,6 +3,14 @@ from astropy.io import fits
 from scipy.interpolate import SmoothBivariateSpline, interp2d, Rbf
 from copy import deepcopy
 import matplotlib.pyplot as plt
+import sys
+import os
+sys.path.append(os.environ['AUTOPROF'])
+from autoprofutils.SharedFunctions import AddLogo, autocmap
+from astropy.visualization import SqrtStretch, LogStretch
+from astropy.visualization.mpl_normalize import ImageNormalize
+
+
 
 def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
 
@@ -34,6 +42,31 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
                          fits.ImageHDU(Model)])
     
     hdul.writeto('%s%s_fixmodel.fits' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), overwrite = True)
+
+
+    if 'doplot' in kwargs and kwargs['doplot']:
+        plt.figure(figsize = (7,7))
+        plt.imshow(np.clip(Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
+                   origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
+        plt.axis('off')
+        plt.tight_layout()
+        AddLogo(plt.gcf())
+        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.close()
+        
+        residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
+        plt.figure(figsize = (7,7))
+        plt.imshow(residual, origin = 'lower', cmap = 'PuBu',
+                   vmin = np.quantile(residual, 0.0001), vmax = 0)
+        autocmap.set_under('k', alpha=0)
+        plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),
+                   origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
+           interpolation = 'none', clim = [1e-5, None])        
+        plt.axis('off')
+        plt.tight_layout()
+        AddLogo(plt.gcf())
+        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.close()
     
     return {'ellipse model': Model}
     
@@ -103,5 +136,30 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
                          fits.ImageHDU(Model)])
     
     hdul.writeto('%s%s_model.fits' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), overwrite = True)
+
+    if 'doplot' in kwargs and kwargs['doplot']:
+        plt.figure(figsize = (7,7))
+        plt.imshow(np.clip(Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
+                   origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
+        plt.axis('off')
+        plt.tight_layout()
+        AddLogo(plt.gcf())
+        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.close()
+        
+        residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
+        plt.figure(figsize = (7,7))
+        plt.imshow(residual, origin = 'lower', cmap = 'PuBu',
+                   vmin = np.quantile(residual, 0.0001), vmax = 0)
+        autocmap.set_under('k', alpha=0)
+        plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),
+                   origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
+           interpolation = 'none', clim = [1e-5, None])        
+        plt.axis('off')
+        plt.tight_layout()
+        AddLogo(plt.gcf())
+        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.close()
+
     
     return {'ellipse model': Model}
