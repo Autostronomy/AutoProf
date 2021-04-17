@@ -495,7 +495,20 @@ def _inv_x_to_pa(pa):
     function as _x_to_pa is non reversible.
     """
     return pa % np.pi
-#
+
+def PA_shift_convention(pa, deg = False):
+    """
+    Alternates between standard mathematical convention for angles, and astronomical position angle convention.
+    The standard convention is to measure angles counter-clockwise relative to the positive x-axis
+    THe astronomical convention is to measure angles counter-clockwise relative to the positive y-axis
+    """
+    
+    if deg:
+        shift = 180.
+    else:
+        shift = np.pi
+    return (pa - (shift/2)) % shift
+
 def _x_to_eps(x):
     """
     Internal, function to map the reals to the range (0.05,0.95)

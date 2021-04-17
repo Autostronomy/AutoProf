@@ -17,7 +17,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage, AddLogo
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage, AddLogo, PA_shift_convention
 
 def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
     """
@@ -263,6 +263,8 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
         for l in raw[readfrom+2:]:
             for d, h in zip(l.split(','), header):
                 force[h].append(float(d.strip()))
+
+    force['pa'] = PA_shift_convention(np.array(force['pa']), deg = True)
                 
     if 'doplot' in kwargs and kwargs['doplot']:
         dat = IMG - results['background']

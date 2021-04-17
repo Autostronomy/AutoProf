@@ -12,7 +12,7 @@ from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Ellipse_Model import EllipseModel_Fix, EllipseModel_General
 from autoprofutils.Radial_Sample import Radial_Sample
 from autoprofutils.Orthogonal_Sample import Orthogonal_Sample
-from autoprofutils.SharedFunctions import GetKwargs, Read_Image
+from autoprofutils.SharedFunctions import GetKwargs, Read_Image, PA_shift_convention
 from multiprocessing import Pool, current_process
 from astropy.io import fits
 from scipy.stats import iqr
@@ -125,9 +125,10 @@ class Isophote_Pipeline(object):
             f.write('center x: %.2f pix, y: %.2f pix\n' % (use_center['x'], use_center['y']))
             if 'init ellip_err' in results and 'init pa_err' in results:
                 f.write('global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg\n' % (results['init ellip'], results['init ellip_err'],
-                                                                                      results['init pa']*180/np.pi, results['init pa_err']*180/np.pi))
+                                                                                      PA_shift_convention(results['init pa'])*180/np.pi,
+                                                                                      results['init pa_err']*180/np.pi))
             else:
-                f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['init ellip'], results['init pa']*180/np.pi))
+                f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['init ellip'], PA_shift_convention(results['init pa'])*180/np.pi))
             f.write('fit limit semi-major axis: %.2f pix\n' % results['fit R'][-1])
             if len(kwargs) > 0:
                 for k in kwargs.keys():
@@ -141,7 +142,12 @@ class Isophote_Pipeline(object):
             if 'prof units' in results:
                  f.write(delim.join(results['prof units'][h] for h in results['prof header']) + '\n')
             for i in range(len(results['prof data'][results['prof header'][0]])):
-                line = list((results['prof format'][h] % results['prof data'][h][i]) for h in results['prof header'])
+                line = []
+                for h in results['prof header']:
+                    if h == 'pa':
+                        line.append(results['prof format'][h] % PA_shift_convention(results['prof data'][h][i], deg = True))
+                    else:
+                        line.append(results['prof format'][h] % results['prof data'][h][i])
                 f.write(delim.join(line) + '\n')
                 
         # Write the mask data, if provided
@@ -339,8 +345,8 @@ class Isophote_Pipeline(object):
             c = importlib.import_module(use_config)
 
         if 'forced' in c.process_mode:
-            self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced',
-                                                      'mask segmentation map', 'isophoteextract forced', 'radsample', 'ellipsemodel'])
+            self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit',
+                                                      'isophotefit forced', 'isophoteextract forced'])
             
         try:
             self.UpdatePipeline(new_pipeline_functions = c.new_pipeline_functions)
