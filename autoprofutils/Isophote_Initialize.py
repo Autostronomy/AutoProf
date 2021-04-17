@@ -78,7 +78,7 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         
     circ_ellipse_radii = np.array(circ_ellipse_radii)
     
-    if name != '' and 'doplot' in kwargs and kwargs['doplot']:
+    if 'doplot' in kwargs and kwargs['doplot']:
 
         ranges = [[max(0,int(results['center']['x']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[1],int(results['center']['x']+circ_ellipse_radii[-1]*1.5))],
                   [max(0,int(results['center']['y']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[0],int(results['center']['y']+circ_ellipse_radii[-1]*1.5))]]
@@ -94,6 +94,7 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
         plt.close()
 
+    if 'paperplots' in kwargs and kwargs['paperplots']:
         # paper plot
         fig, ax = plt.subplots(2,1, figsize = (6,6))
         ax[0].plot(circ_ellipse_radii[:-1], ((-np.angle(allphase)/2) % np.pi)*180/np.pi, color = 'k')

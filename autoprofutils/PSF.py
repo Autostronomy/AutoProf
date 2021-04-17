@@ -93,6 +93,8 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
         AddLogo(plt.gcf())
         plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
         plt.close()
+
+    if 'paperplots' in kwargs and kwargs['paperplots']:    
         # paper plot
         N = np.argsort(stars['deformity'])
         figscale = max(stars['fwhm'][N[:9]])*2

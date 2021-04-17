@@ -245,7 +245,7 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
     track_centers = np.array(track_centers)
 
     # paper plot
-    if 'doplot' in kwargs and kwargs['doplot']:    
+    if 'paperplots' in kwargs and kwargs['paperplots']:    
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([IMG.shape[0]/2],[IMG.shape[1]/2], marker = 'x', markersize = 2, color = 'y')
         plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')

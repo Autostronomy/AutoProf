@@ -583,7 +583,11 @@ def Angle_Scatter(a):
 def GetKwargs(c):
 
     newkwargs = {}
-
+    
+    try:
+        newkwargs['paperplots'] = c.paperplots
+    except:
+        pass
     try:
         newkwargs['saveto'] = c.saveto
     except:
