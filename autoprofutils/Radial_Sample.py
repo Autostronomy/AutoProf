@@ -94,8 +94,9 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         plt.gca().invert_yaxis()
         plt.legend(fontsize = 10)
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sradial_sample_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 500)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sradial_sample_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
@@ -117,8 +118,9 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         plt.xlim([0,ranges[0][1] - ranges[0][0]])
         plt.ylim([0,ranges[1][1] - ranges[1][0]])
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sradial_sample_wedges_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sradial_sample_wedges_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
     return {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata, 'prof format': newprofformat}

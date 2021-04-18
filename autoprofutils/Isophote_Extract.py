@@ -114,8 +114,9 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         plt.gca().invert_yaxis()
         plt.legend(fontsize = 10)
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 500)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()                
 
         useR = np.array(SBprof_data['R'])[CHOOSE]/pixscale
@@ -128,8 +129,9 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
                                         usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < results['fit R'][-1] else '--'))
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
         

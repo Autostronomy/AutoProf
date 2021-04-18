@@ -649,6 +649,14 @@ def GetKwargs(c):
     except:
         pass
     try:
+        newkwargs['nologo'] = c.nologo
+    except:
+        pass
+    try:
+        newkwargs['plotdpi'] = c.plotdpi
+    except:
+        pass
+    try:
         newkwargs['hdulelement'] = c.hdulelement
     except:
         pass

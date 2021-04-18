@@ -70,8 +70,9 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
         plt.xlabel('flux')
         plt.ylabel('log$_{10}$(count)')
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()        
         
     return {'background': bkgrnd,

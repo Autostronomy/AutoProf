@@ -15,4 +15,3 @@ new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',
                       'isophotefit', 'isophoteextract', 'checkfit',
                       'ellipsemodel general', 'orthsample', 'radsample']
 
-orthsample_parallel = True

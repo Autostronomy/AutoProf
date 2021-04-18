@@ -249,8 +249,9 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([IMG.shape[0]/2],[IMG.shape[1]/2], marker = 'x', markersize = 2, color = 'y')
         plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
-        AddLogo(plt.gcf())
-        plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
         xwidth = 2*max(np.abs(track_centers[:,0] - current_center['x']))
@@ -279,7 +280,7 @@ def Center_HillClimb(IMG, pixscale, name, results, **kwargs):
         axarr[1].set_ylim(np.array(ranges[1])-1)        
         axarr[1].set_xticks([])
         axarr[1].set_yticks([])
-        plt.savefig('%sCenter_path_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        plt.savefig('%sCenter_path_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
     return {'center': current_center}

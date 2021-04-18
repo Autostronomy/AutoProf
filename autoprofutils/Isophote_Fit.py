@@ -210,8 +210,9 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
                                         pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = 'r'))
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
         plt.scatter(sample_radii, ellip, color = 'r', label = 'ellip')
@@ -222,8 +223,9 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'smooth pa/$np.pi$')
         #plt.xscale('log')
         plt.legend()
-        AddLogo(plt.gcf())
-        plt.savefig('%sphaseprofile_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name))
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphaseprofile_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     # Compute errors
@@ -280,7 +282,7 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/pixscale),
                                         2*(np.array(force['R'])[i]/pixscale)*(1. - force['ellip'][i]),
                                         force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()                
     res = {'fit ellip': np.array(force['ellip']),
            'fit pa': np.array(force['pa'])*np.pi/180,

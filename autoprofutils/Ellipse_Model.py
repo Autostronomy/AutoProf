@@ -50,7 +50,8 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
                    origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
         plt.axis('off')
         plt.tight_layout()
-        AddLogo(plt.gcf())
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
         plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
         plt.close()
         
@@ -64,7 +65,8 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
            interpolation = 'none', clim = [1e-5, None])        
         plt.axis('off')
         plt.tight_layout()
-        AddLogo(plt.gcf())
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
         plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
         plt.close()
     
@@ -143,8 +145,9 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
                    origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
         plt.axis('off')
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
         residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
@@ -157,8 +160,9 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
            interpolation = 'none', clim = [1e-5, None])        
         plt.axis('off')
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     

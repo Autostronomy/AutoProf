@@ -109,8 +109,9 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                 plt.legend(fontsize = 10)
                 plt.title('%sR : pa%s90' % ('+' if rd > 0 else '-', '+' if ang > 0 else '-'))
                 plt.tight_layout()
-                AddLogo(plt.gcf())
-                plt.savefig('%sorthogonal_sample_q%i_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', count, name), dpi = 400)
+                if not ('nologo' in kwargs and kwargs['nologo']):
+                    AddLogo(plt.gcf())
+                plt.savefig('%sorthogonal_sample_q%i_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', count, name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
                 plt.close()
                 count += 1
 
@@ -145,8 +146,9 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
         plt.xlim([0,ranges[0][1] - ranges[0][0]])
         plt.ylim([0,ranges[1][1] - ranges[1][0]])
         plt.tight_layout()
-        AddLogo(plt.gcf())
-        plt.savefig('%sorthogonal_sample_lines_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sorthogonal_sample_lines_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
             

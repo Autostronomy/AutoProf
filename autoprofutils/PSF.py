@@ -90,8 +90,9 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
         for i in range(len(stars['fwhm'])):
             plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/pixscale, 16/pixscale,
                                         0, fill = False, linewidth = 0.5, color = 'r' if stars['deformity'][i] >= def_clip else 'y'))
-        AddLogo(plt.gcf())
-        plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 600)
+        if not ('nologo' in kwargs and kwargs['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     if 'paperplots' in kwargs and kwargs['paperplots']:    
@@ -115,7 +116,7 @@ def PSF_StarFind(IMG, pixscale, name, results, **kwargs):
                 axarr[i][j].set_xticks([])
                 axarr[i][j].set_yticks([])
                 count += 1
-        plt.savefig('%sPSF_Best_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.savefig('%sPSF_Best_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     logging.info('%s: found psf: %f with deformity clip of: %f' % (name,np.median(stars['fwhm'][stars['deformity'] < def_clip]), def_clip))
