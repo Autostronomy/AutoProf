@@ -96,12 +96,12 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                     CHOOSE = np.logical_and(np.array(sb[key][pi]) < 99, np.array(sbE[key][pi]) < 1)
                     plt.errorbar(np.array(R)[CHOOSE]*pixscale, np.array(sb[key][pi])[CHOOSE], yerr = np.array(sbE[key][pi])[CHOOSE],
                                  elinewidth = 1, linewidth = 0, marker = '.', markersize = 3, color = autocmap.reversed()(norm(pR*pixscale)))
-                plt.xlabel('%s-axis displacement [arcsec]' % ('Minor' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Major'))
+                plt.xlabel('%s-axis position on line [arcsec]' % ('Major' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Minor'))
                 plt.ylabel('Surface Brightness [mag/arcsec^2]')
                 # cb1 = matplotlib.colorbar.ColorbarBase(plt.gca(), cmap=cmap,
                 #                                        norm=norm)
                 cb1 = plt.colorbar(matplotlib.cm.ScalarMappable(norm = norm, cmap = autocmap.reversed()))
-                cb1.set_label('%s-axis position [arcsec]'  % ('Minor' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Major'))
+                cb1.set_label('%s-axis position of line [arcsec]'  % ('Minor' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Major'))
                 # plt.colorbar()
                 bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2)
                 plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)

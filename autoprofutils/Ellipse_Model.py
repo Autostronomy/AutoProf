@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import AddLogo, autocmap
+from autoprofutils.SharedFunctions import AddLogo, autocmap, LSBImage
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 
@@ -52,7 +52,7 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
         residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
@@ -67,7 +67,7 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 400)
+        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
     
     return {'ellipse model': Model}
@@ -163,6 +163,14 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.close()
+
+    if 'paperplots' in kwargs and kwargs['paperplots']:    
+        plt.figure(figsize = (7,7))
+        LSBImage(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'], results['background noise'])
+        plt.axis('off')
+        plt.tight_layout()
+        plt.savefig('%sclearimage_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     
