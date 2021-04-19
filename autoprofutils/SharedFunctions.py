@@ -6,7 +6,7 @@ from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariat
 from scipy.fftpack import fft, ifft
 from scipy.optimize import minimize
 from scipy.signal import convolve2d
-from astropy.visualization import SqrtStretch, LogStretch
+from astropy.visualization import SqrtStretch, LogStretch, HistEqStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 import matplotlib.pyplot as plt
 from astropy.io import fits
@@ -49,18 +49,17 @@ autocmap = LinearSegmentedColormap('autocmap', cdict)
     
 def LSBImage(dat, noise):
     plt.figure(figsize = (6,6))
-    plt.imshow(np.clip(dat, a_min = 1e-5*noise, a_max = 2*noise),
-               origin = 'lower', cmap = 'Greys',
-               norm = ImageNormalize(stretch=LogStretch())) 
+    plt.imshow(dat, origin = 'lower', cmap = 'Greys',
+               norm = ImageNormalize(stretch=HistEqStretch(dat))) 
     my_cmap = cm.Greys_r
     my_cmap.set_under('k', alpha=0)
     plt.imshow(np.clip(dat,a_min = noise, a_max = None),
                origin = 'lower', cmap = my_cmap,
                norm = ImageNormalize(stretch=LogStretch(), clip = False),
-               clim = [2*noise, None], vmin = 2*noise) 
+               clim = [3*noise, None], vmin = 3*noise) 
     plt.xticks([])
     plt.yticks([])
-
+    
 def AddLogo(fig, loc = [0.8,0.01,0.844/5, 0.185/5], white = False):
     im = plt.imread(get_sample_data(os.environ['AUTOPROF'] + ('AP_logo_white.png' if white else 'AP_logo.png')))
     newax = fig.add_axes(loc, zorder=1000)
