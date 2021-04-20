@@ -62,7 +62,7 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
         autocmap.set_under('k', alpha=0)
         plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),
                    origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
-           interpolation = 'none', clim = [1e-5, None])        
+                   interpolation = 'none', clim = [1e-5, None])        
         plt.axis('off')
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
