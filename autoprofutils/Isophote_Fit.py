@@ -19,15 +19,9 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage, AddLogo, PA_shift_convention
 
-def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
+def Photutils_Fit(IMG, results, **kwargs):
     """
     Function to run the photutils automated isophote analysis on an image.
-
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
     """    
 
     dat = IMG - results['background']
@@ -45,13 +39,10 @@ def Photutils_Fit(IMG, pixscale, name, results, **kwargs):
         ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2))],
                   [max(0,int(results['center']['x']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['x']+res['fit R'][-1]*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        # plt.imshow(np.clip(dat[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)): min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2)),
-        #                        max(0,int(results['center']['x']-res['fit R'][-1]*1.2)): min(dat.shape[1],int(results['center']['x']+res['fit R'][-1]*1.2))],
-        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(len(res['fit R'])):
             plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
                                         res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = 300)
+        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = 300)
         plt.close()                
     
     return res
@@ -99,17 +90,11 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
 
     return f2_loss*(1 + reg_loss*reg_scale) #(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
 
-def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
+def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
     """
     Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
     Included is a regularization term which penalizes isophotes for having large differences between parameters
     of adjacent isophotes.
-
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
     """
 
     if 'scale' in kwargs:
@@ -142,7 +127,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         raise Exception('Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.')
     ellip = np.ones(len(sample_radii))*results['init ellip']
     pa = np.ones(len(sample_radii))*results['init pa']
-    logging.debug('%s: sample radii: %s' % (name, str(sample_radii)))
+    logging.debug('%s: sample radii: %s' % (kwargs['name'], str(sample_radii)))
     
     # Fit isophotes
     ######################################################################
@@ -158,7 +143,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
     while count < 300 and count_nochange < (3*len(sample_radii)):
         # Periodically include logging message
         if count % 10 == 0:
-            logging.debug('%s: count: %i' % (name,count))
+            logging.debug('%s: count: %i' % (kwargs['name'],count))
         count += 1
         
         np.random.shuffle(I)
@@ -166,7 +151,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             perturbations = []
             perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
             perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = name)
+                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = kwargs['name'])
             for n in range(N_perturb):
                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
                 if count % 3 in [0,1]:
@@ -174,7 +159,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
                 if count % 3 in [1,2]:
                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
                 perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = name)
+                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = kwargs['name'])
             
             best = np.argmin(list(p['loss'] for p in perturbations))
             if best > 0:
@@ -184,7 +169,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
             else:
                 count_nochange += 1
                 
-    logging.info('%s: Completed isohpote fit in %i itterations' % (name, count))
+    logging.info('%s: Completed isohpote fit in %i itterations' % (kwargs['name'], count))
     # detect collapsed center
     ######################################################################
     for i in range(5):
@@ -212,7 +197,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
         plt.scatter(sample_radii, ellip, color = 'r', label = 'ellip')
@@ -225,7 +210,7 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
         plt.legend()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sphaseprofile_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sphaseprofile_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     # Compute errors
@@ -244,15 +229,9 @@ def Isophote_Fit_FFT_Robust(IMG, pixscale, name, results, **kwargs):
            'fit ellip_err': ellip_err, 'fit pa_err': pa_err}
     return res
 
-def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
+def Isophote_Fit_Forced(IMG, results, **kwargs):
     """
     Take isophotal fit from a given profile.
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
     """
     with open(kwargs['forcing_profile'], 'r') as f:
         raw = f.readlines()
@@ -273,21 +252,21 @@ def Isophote_Fit_Forced(IMG, pixscale, name, results, **kwargs):
         logging.info(results['center'])
         logging.info(force.keys())
         logging.info(force['R'])
-        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/pixscale)*1.2))],
-                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/pixscale)*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/pixscale)*1.2))]]
+        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2))],
+                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         # plt.imshow(np.clip(dat[ranges[0][0]: ranges[0][1], ranges[1][0]: ranges[1][1]],
         #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(0,len(np.array(force['R'])),2):
-            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/pixscale),
-                                        2*(np.array(force['R'])[i]/pixscale)*(1. - force['ellip'][i]),
+            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/kwargs['pixscale']),
+                                        2*(np.array(force['R'])[i]/kwargs['pixscale'])*(1. - force['ellip'][i]),
                                         force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()                
     res = {'fit ellip': np.array(force['ellip']),
            'fit pa': np.array(force['pa'])*np.pi/180,
-           'fit R': list(np.array(force['R'])/pixscale)}
+           'fit R': list(np.array(force['R'])/kwargs['pixscale'])}
     if 'ellip_e' in force and 'pa_e' in force:
         res['fit ellip_err'] = np.array(force['ellip_e'])
         res['fit pa_err'] = np.array(force['pa_e'])*np.pi/180
-    return res
+    return IMG, res

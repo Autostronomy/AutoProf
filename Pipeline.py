@@ -9,6 +9,7 @@ from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_For
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Mask_Segmentation_Map
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit
+from autoprofutils.Write_Prof import WriteProf
 from autoprofutils.Ellipse_Model import EllipseModel_Fix, EllipseModel_General
 from autoprofutils.Radial_Sample import Radial_Sample
 from autoprofutils.Orthogonal_Sample import Orthogonal_Sample
@@ -56,22 +57,20 @@ class Isophote_Pipeline(object):
                                    'isophoteextract': Isophote_Extract,
                                    'isophoteextract forced': Isophote_Extract_Forced,
                                    'checkfit': Check_Fit,
+                                   'writeprof': WriteProf,
                                    'ellipsemodel': EllipseModel_Fix,
                                    'ellipsemodel general': EllipseModel_General,
                                    'radsample': Radial_Sample,
                                    'orthsample': Orthogonal_Sample}
         
         # Default pipeline analysis order
-        self.pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',
-                               'isophotefit', 'isophoteextract', 'checkfit']
-
-        # Holder for any preprocessing function the user may want to apply
-        self.preprocess = None
+        self.pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit',
+                                        'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']}
 
         # Start the logger
         logging.basicConfig(level=logging.INFO, filename = 'AutoProf.log' if loggername is None else loggername, filemode = 'w')
 
-    def UpdatePipeline(self, new_pipeline_functions = None, new_pipeline_steps = None, preprocess = None):
+    def UpdatePipeline(self, new_pipeline_functions = None, new_pipeline_steps = None):
         """
         modify steps in the AutoProf pipeline.
 
@@ -88,98 +87,25 @@ class Isophote_Pipeline(object):
             self.pipeline_functions.update(new_pipeline_functions)
         if new_pipeline_steps:
             if type(new_pipeline_steps) == list:
-                logging.info('PIPELINE new steps: %s' % str(new_pipeline_steps))
-                self.pipeline_steps = new_pipeline_steps
+                logging.info('PIPELINE new steps: %s' % (str(new_pipeline_steps)))
+                self.pipeline_steps['head'] = new_pipeline_steps
             elif type(new_pipeline_steps) == dict:
-                for k in new_pipeline_steps.keys():
-                    logging.info('PIPELINE replacing "%s" pipeline step with "%s"' % (k, new_pipeline_steps[k]))
-                    self.pipeline_steps[self.pipeline_steps.index(k)] = new_pipeline_steps[k]
-        if preprocess:
-            self.preprocess = preprocess
-
-    def WriteProf(self, results, saveto, pixscale, name = None, **kwargs):
-        """
-        Writes the photometry information for disk given a photutils isolist object
-
-        extractedprofile: surface brightness profile and all other data
-        saveto: Full path string indicating where to save the profile
-        pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-        starmask: Optional, a star mask to save along with the profile
-        background: if saving the star mask, the background can also be saved
-                    for full reproducability
-        """
-
-        with open(saveto + name + '.aux', 'w') as f:
-            # write profile info
-            f.write('name: %s\n' % str(name))
-            f.write('pixel scale: %.3e arcsec/pix\n' % pixscale)
-            if 'checkfit' in results:
-                for k in results['checkfit'].keys():
-                    f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
-            f.write('psf fwhm: %.3f pix\n' % (results['psf fwhm']))
-            try:
-                f.write('background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix\n' % (results['background'], results['background uncertainty'], results['background noise']))
-            except:
-                pass
-            use_center = results['center']
-            f.write('center x: %.2f pix, y: %.2f pix\n' % (use_center['x'], use_center['y']))
-            if 'init ellip_err' in results and 'init pa_err' in results:
-                f.write('global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg\n' % (results['init ellip'], results['init ellip_err'],
-                                                                                      PA_shift_convention(results['init pa'])*180/np.pi,
-                                                                                      results['init pa_err']*180/np.pi))
-            else:
-                f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['init ellip'], PA_shift_convention(results['init pa'])*180/np.pi))
-            f.write('fit limit semi-major axis: %.2f pix\n' % results['fit R'][-1])
-            if len(kwargs) > 0:
-                for k in kwargs.keys():
-                    f.write('settings %s: %s\n' % (k,str(kwargs[k])))
+                logging.info('PIPELINE new steps: %s' % (str(new_pipeline_steps)))
+                assert 'head' in new_pipeline_steps.keys()
+                self.pipeline_steps = new_pipeline_steps
             
-        # Write the profile
-        delim = kwargs['delimiter'] if 'delimiter' in kwargs else ','
-        with open(saveto + name + '.prof', 'w') as f:
-            # Write profile header
-            f.write(delim.join(results['prof header']) + '\n')
-            if 'prof units' in results:
-                 f.write(delim.join(results['prof units'][h] for h in results['prof header']) + '\n')
-            for i in range(len(results['prof data'][results['prof header'][0]])):
-                line = []
-                for h in results['prof header']:
-                    if h == 'pa':
-                        line.append(results['prof format'][h] % PA_shift_convention(results['prof data'][h][i], deg = True))
-                    else:
-                        line.append(results['prof format'][h] % results['prof data'][h][i])
-                f.write(delim.join(line) + '\n')
-                
-        # Write the mask data, if provided
-        if 'mask' in results and (not results['mask'] is None) and 'savemask' in kwargs and kwargs['savemask']:
-            header = fits.Header()
-            header['IMAGE 1'] = 'star mask'
-            header['IMAGE 2'] = 'overflow values mask'
-            hdul = fits.HDUList([fits.PrimaryHDU(header=header),
-                                 fits.ImageHDU(results['mask'].astype(int)),
-                                 fits.ImageHDU(results['overflow mask'].astype(int))])
-            hdul.writeto(saveto + name + '_mask.fits', overwrite = True)
-            sleep(1)
-            # Zip the mask file because it can be large and take a lot of memory, but in principle
-            # is very easy to compress
-            os.system('gzip -fq '+ saveto + name + '_mask.fits')
-            
-    def Process_Image(self, IMG, pixscale, saveto = None, name = None, kwargs_internal = {}, **kwargs):
+    def Process_Image(self, kwargs_internal = {}, **kwargs):
         """
         Function which runs the pipeline for a single image. Each sub-function of the pipeline is run
         in order and the outputs are passed along. If multiple images are given, the pipeline is
         excecuted on the first image and the isophotes are applied to the others.
-        
-        IMG: string or list of strings providing the path to an image file
-        pixscale: angular size of the pixels in arcsec/pixel
-        saveto: string or list of strings indicating where to save profiles
-        name: string name of galaxy in image, used for log files to make searching easier
 
         returns list of times for each pipeline step if successful. else returns 1
         """
 
         kwargs.update(kwargs_internal)
 
+        # Seed the random number generator in numpy so each thread gets unique random numbers
         try:
             sleep(0.01)
             np.random.seed(int(np.random.randint(10000)*current_process().pid*(time() % 1) % 2**15))
@@ -187,25 +113,21 @@ class Isophote_Pipeline(object):
             pass
         
         # use filename if no name is given
-        if name is None:
-            name = IMG[(IMG.rfind('/') if '/' in IMG else 0):IMG.find('.', (IMG.rfind('/') if '/' in IMG else 0))]
+        if not ('name' in kwargs and type(kwargs['name']) == str):
+            kwargs['name'] = IMG[(IMG.rfind('/') if '/' in IMG else 0):IMG.find('.', (IMG.rfind('/') if '/' in IMG else 0))]
 
         # Read the primary image
         try:
             dat = Read_Image(IMG, **kwargs)
         except:
-            logging.error('%s: could not read image %s' % (name, str(IMG)))
+            logging.error('%s: could not read image %s' % (kwargs['name'], str(IMG)))
             return 1
             
         # Check that image data exists and is not corrupted
         if dat is None or np.all(dat[int(len(dat)/2.)-10:int(len(dat)/2.)+10, int(len(dat[0])/2.)-10:int(len(dat[0])/2.)+10] == 0):
-            logging.error('%s Large chunk of data missing, impossible to process image' % name)
+            logging.error('%s Large chunk of data missing, impossible to process image' % kwargs['name'])
             return 1
         
-        # Save profile to the same folder as the image if no path is provided
-        if saveto is None:
-            saveto = './'
-            
         # Track time to run analysis
         start = time()
         
@@ -213,72 +135,52 @@ class Isophote_Pipeline(object):
         timers = {}
         results = {}
 
-        # Preprocess the image if needed
-        if self.preprocess:
-            logging.info('%s: Preprocessing Image' % name)
-            print('%s: Preprocessing Image' % name)
-            kwargs.update({'preprocess': self.preprocess})
-            dat = self.preprocess(dat)
-            timers['preprocess'] = time() - start
-            
-        for step in range(len(self.pipeline_steps)):
+        key = 'head'
+        step = 0
+        while step < len(self.pipeline_steps[key]):
             try:
-                step_start = time()
-                logging.info('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
-                print('%s: %s at: %.1f sec' % (name, self.pipeline_steps[step], time() - start))
-                results.update(self.pipeline_functions[self.pipeline_steps[step]](dat, pixscale, name, results, **kwargs))
-                timers[self.pipeline_steps[step]] = time() - step_start
+                logging.info('%s: %s %s at: %.1f sec' % (kwargs['name'], key, self.pipeline_steps[key][step], time() - start))
+                print('%s: %s %s at: %.1f sec' % (kwargs['name'], key, self.pipeline_steps[key][step], time() - start))
+                if 'branch' in self.pipeline_steps[key][step]:
+                    decision = self.pipeline_functions[self.pipeline_steps[key][step]](dat, results, **kwargs)
+                    if type(decision) == str:
+                        key = decision
+                        step = 0
+                    else:
+                        step += 1
+                else:
+                    step_start = time()
+                    dat, res = self.pipeline_functions[self.pipeline_steps[key][step]](dat, results, **kwargs)
+                    results.update(res)
+                    timers[self.pipeline_steps[key][step]] = time() - step_start
+                    step += 1
             except Exception as e:
-                logging.error('%s: on step %s got error: %s' % (name, self.pipeline_steps[step], str(e)))
-                logging.error('%s: with full trace: %s' % (name, traceback.format_exc()))
+                logging.error('%s: on step %s got error: %s' % (kwargs['name'], self.pipeline_steps[step], str(e)))
+                logging.error('%s: with full trace: %s' % (kwargs['name'], traceback.format_exc()))
                 return 1
-
-        # Save the profile
-        print('%s: saving at: %.1f sec' % (name, time() - start))
-        logging.info('%s: saving at: %.1f sec' % (name, time() - start))
-        self.WriteProf(results, saveto, pixscale, name = name, **kwargs)
-                
-        print('%s: Processing Complete! (at %.1f sec)' % (name, time() - start))
-        logging.info('%s: Processing Complete! (at %.1f sec)' % (name, time() - start))
+            
+        print('%s: Processing Complete! (at %.1f sec)' % (kwargs['name'], time() - start))
+        logging.info('%s: Processing Complete! (at %.1f sec)' % (kwargs['name'], time() - start))
         return timers
     
-    def Process_List(self, IMG, pixscale, n_procs = 4, saveto = None, name = None, **kwargs):
+    def Process_List(self, **kwargs):
         """
         Wrapper function to run "Process_Image" in parallel for many images.
         
         IMG: list of strings containing image file paths
         pixscale: angular pixel size in arcsec/pixel
         n_procs: number of processors to use
-        saveto: list of strings containing file paths to save profiles
-        name: names of the galaxies, used for logging
         """
 
-        assert type(IMG) == list
+        assert type(kwargs['image_file']) == list
         
         # Format the inputs so that they can be zipped with the images files
         # and passed to the Process_Image function.
-        if type(pixscale) in [float, int]:
-            use_pixscale = [float(pixscale)]*len(IMG)
-        else:
-            use_pixscale = pixscale
-        if saveto is None:
-            use_saveto = [None]*len(IMG)
-        elif type(saveto) == list:
-            use_saveto = saveto
-        elif type(saveto) == str:
-            use_saveto = [saveto]*len(IMG)
-        else:
-            raise TypeError('saveto should be a list or string')
-        if name is None:
-            use_name = [None]*len(IMG)
-        else:
-            use_name = name
-
         if all(type(v) != list for v in kwargs.values()):
-            use_kwargs = [kwargs]*len(IMG)
+            use_kwargs = [kwargs]*len(kwargs['image_file'])
         else:
             use_kwargs = []
-            for i in range(len(IMG)):
+            for i in range(len(kwargs['image_file'])):
                 tmp_kwargs = {}
                 for k in kwargs.keys():
                     if type(kwargs[k]) == list:
@@ -290,28 +192,32 @@ class Isophote_Pipeline(object):
         start = time()
         
         # Create a multiprocessing pool to parallelize image processing
-        imagedata = list(zip(IMG, use_pixscale, use_saveto,
-                             use_name, use_kwargs))
-        if n_procs > 1:
-            with Pool(n_procs) as pool:
-                res = pool.starmap(self.Process_Image,
-                                   imagedata,
-                                   chunksize = 5 if len(IMG) > 100 else 1)
+        if kwargs['n_procs'] > 1:
+            with Pool(int(kwargs['n_procs'])) as pool:
+                res = pool.map(self.Process_Image, use_kwargs,
+                               chunksize = 5 if len(kwargs['image_file']) > 100 else 1)
         else:
-            res = list(starmap(self.Process_Image, imagedata))
+            res = list(map(self.Process_Image, use_kwargs))
             
         # Report completed processing, and track time used
         logging.info('All Images Finished Processing at %.1f' % (time() - start))
-        timers = dict((s,0) for s in self.pipeline_steps)
-        count_success = 0.
+        timers = dict()
+        counts = dict()
         for r in res:
             if r == 1:
                 continue
-            count_success += 1.
-            for s in self.pipeline_steps:
-                timers[s] += r[s]
-        for s in self.pipeline_steps:
-            timers[s] /= count_success
+            for s in r.keys():
+                if s in timers:
+                    timers[s] += r[s]
+                    counts[s] += 1.
+                else:
+                    timers[s] = r[s]
+                    counts[s] = 1.
+        if len(timers) == 0:
+            logging.error('All images failed to process!')
+            return 
+        for s in timers:
+            timers[s] /= counts[s]
             logging.info('%s took %.3f seconds on average' % (s, timers[s]))
         
         # Return the success/fail indicators for every Process_Image excecution
@@ -335,7 +241,7 @@ class Isophote_Pipeline(object):
         if '.' in config_file:
             use_config = config_file[startat:config_file.find('.', startat)]
         else:
-            use_config = config_file[startat:] # config_file[:-3] if config_file[-3:] == '.py' else config_file
+            use_config = config_file[startat:]
         if '/' in config_file:
             sys.path.append(config_file[:config_file.rfind('/')])
         try:
@@ -346,7 +252,7 @@ class Isophote_Pipeline(object):
 
         if 'forced' in c.process_mode:
             self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit',
-                                                      'isophotefit forced', 'isophoteextract forced'])
+                                                      'isophotefit forced', 'isophoteextract forced', 'writeprof'])
             
         try:
             self.UpdatePipeline(new_pipeline_functions = c.new_pipeline_functions)
@@ -356,17 +262,13 @@ class Isophote_Pipeline(object):
             self.UpdatePipeline(new_pipeline_steps = c.new_pipeline_steps)
         except:
             pass
-        try:
-            self.UpdatePipeline(preprocess = c.preprocess)
-        except:
-            pass
             
         use_kwargs = GetKwargs(c)
             
         if c.process_mode in ['image', 'forced image']:
-            return self.Process_Image(IMG = c.image_file, pixscale = c.pixscale, **use_kwargs)
+            return self.Process_Image(use_kwargs)
         elif c.process_mode in ['image list', 'forced image list']:
-            return self.Process_List(IMG = c.image_file, pixscale = c.pixscale, **use_kwargs)
+            return self.Process_List(**use_kwargs)
         else:
             logging.error('Unrecognized process_mode! Should be in: [image, image list, forced image, forced image list]')
             return 1

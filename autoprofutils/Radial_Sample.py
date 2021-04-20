@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import logging
 
-def Radial_Sample(IMG, pixscale, name, results, **kwargs):
+def Radial_Sample(IMG, results, **kwargs):
 
     mask = results['mask'] if 'mask' in results else None
     nwedges = kwargs['radsample_nwedges'] if 'radsample_nwedges' in kwargs else 4
@@ -18,7 +18,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
 
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
 
-    R = np.array(results['prof data']['R'])/pixscale
+    R = np.array(results['prof data']['R'])/kwargs['pixscale']
     SBE = np.array(results['prof data']['SB_e'])
     if 'radsample_variable_pa' in kwargs and kwargs['radsample_variable_pa']:
         pa = np.array(results['prof data']['pa'])*np.pi/180
@@ -54,7 +54,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
                 sbE[sa_i].append(99.999)
                 continue
             medflux = np.median(isovals[0][aselect])
-            sb[sa_i].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
+            sb[sa_i].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(kwargs['pixscale'])) if medflux > 0 else 99.999)
             sbE[sa_i].append((2.5*iqr(isovals[0][aselect], rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(np.sum(aselect))*medflux*np.log(10))) if medflux > 0 else 99.999)
 
     newprofheader = results['prof header']
@@ -85,18 +85,18 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         colorind = (np.linspace(0,1 - 1/nwedges,nwedges) + 0.1) % 1
         for sa_i in range(len(wedgeangles)):
             CHOOSE = np.logical_and(np.array(sb[sa_i]) < 99, np.array(sbE[sa_i]) < 1)
-            plt.errorbar(np.array(R)[CHOOSE]*pixscale, np.array(sb[sa_i])[CHOOSE], yerr = np.array(sbE[sa_i])[CHOOSE],
+            plt.errorbar(np.array(R)[CHOOSE]*kwargs['pixscale'], np.array(sb[sa_i])[CHOOSE], yerr = np.array(sbE[sa_i])[CHOOSE],
                          elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = cmap(colorind[sa_i]), label = 'Wedge %.2f' % (wedgeangles[sa_i]*180/np.pi))
         plt.xlabel('Radius [arcsec]')
         plt.ylabel('Surface Brightness [mag/arcsec^2]')
-        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2)
+        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(kwargs['pixscale']**2)
         plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
         plt.gca().invert_yaxis()
         plt.legend(fontsize = 10)
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sradial_sample_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sradial_sample_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
@@ -120,7 +120,7 @@ def Radial_Sample(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sradial_sample_wedges_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sradial_sample_wedges_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
-    return {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata, 'prof format': newprofformat}
+    return IMG, {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata, 'prof format': newprofformat}

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import logging
 
-def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
+def Orthogonal_Sample(IMG, results, **kwargs):
 
     mask = results['mask'] if 'mask' in results else None
     pa = (kwargs['orthsample_pa']*np.pi/180) if 'orthsample_pa' in kwargs else results['init pa']
@@ -20,7 +20,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
 
     if 'prof data' in results:
-        Rproflim = results['prof data']['R'][-1]/pixscale
+        Rproflim = results['prof data']['R'][-1]/kwargs['pixscale']
     else:
         Rproflim = min(IMG.shape)/2
     
@@ -55,16 +55,16 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                         sbE[key][-1].append(99.999)
                         continue
                     medflux = np.median(flux[CHOOSE])
-                    sb[key][-1].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
+                    sb[key][-1].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(kwargs['pixscale'])) if medflux > 0 else 99.999)
                     sbE[key][-1].append((2.5*iqr(flux[CHOOSE], rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(np.sum(CHOOSE))*medflux*np.log(10))) if medflux > 0 else 99.999)
                     
 
-    with open('%s%s_orthogonal_sample.prof' % ((kwargs['saveto'] if 'saveto' in kwargs else ''), name), 'w') as f:
+    with open('%s%s_orthogonal_sample.prof' % ((kwargs['saveto'] if 'saveto' in kwargs else ''), kwargs['name']), 'w') as f:
         f.write('R')
         for rd in [1,-1]:
             for ang in [1, -1]:
                 for pR in R:
-                    f.write(',sb[%.3f:%s90],sbE[%.3f:%s90]' % (rd*pR*pixscale, '+' if ang > 0 else '-', rd*pR*pixscale, '+' if ang > 0 else '-'))
+                    f.write(',sb[%.3f:%s90],sbE[%.3f:%s90]' % (rd*pR*kwargs['pixscale'], '+' if ang > 0 else '-', rd*pR*kwargs['pixscale'], '+' if ang > 0 else '-'))
         f.write('\n')
         f.write('arcsec')
         for rd in [1,-1]:
@@ -73,7 +73,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                     f.write(',mag*arcsec^-2,mag*arcsec^-2')
         f.write('\n')
         for oi, oR in enumerate(R):
-            f.write('%.4f' % (oR*pixscale))
+            f.write('%.4f' % (oR*kwargs['pixscale']))
             for rd in [1,-1]:
                 for ang in [1, -1]:
                     key = (rd,ang)
@@ -89,13 +89,13 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
             for ang in [1, -1]:
                 key = (rd,ang)
                 #cmap = matplotlib.cm.get_cmap('viridis_r')
-                norm = matplotlib.colors.Normalize(vmin=0, vmax=R[-1]*pixscale)
+                norm = matplotlib.colors.Normalize(vmin=0, vmax=R[-1]*kwargs['pixscale'])
                 for pi, pR in enumerate(R):
                     if pi % 3 != 0:
                         continue
                     CHOOSE = np.logical_and(np.array(sb[key][pi]) < 99, np.array(sbE[key][pi]) < 1)
-                    plt.errorbar(np.array(R)[CHOOSE]*pixscale, np.array(sb[key][pi])[CHOOSE], yerr = np.array(sbE[key][pi])[CHOOSE],
-                                 elinewidth = 1, linewidth = 0, marker = '.', markersize = 3, color = autocmap.reversed()(norm(pR*pixscale)))
+                    plt.errorbar(np.array(R)[CHOOSE]*kwargs['pixscale'], np.array(sb[key][pi])[CHOOSE], yerr = np.array(sbE[key][pi])[CHOOSE],
+                                 elinewidth = 1, linewidth = 0, marker = '.', markersize = 3, color = autocmap.reversed()(norm(pR*kwargs['pixscale'])))
                 plt.xlabel('%s-axis position on line [arcsec]' % ('Major' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Minor'))
                 plt.ylabel('Surface Brightness [mag/arcsec^2]')
                 # cb1 = matplotlib.colorbar.ColorbarBase(plt.gca(), cmap=cmap,
@@ -103,7 +103,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                 cb1 = plt.colorbar(matplotlib.cm.ScalarMappable(norm = norm, cmap = autocmap.reversed()))
                 cb1.set_label('%s-axis position of line [arcsec]'  % ('Minor' if 'orthsample_parallel' in kwargs and kwargs['orthsample_parallel'] else 'Major'))
                 # plt.colorbar()
-                bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2)
+                bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(kwargs['pixscale']**2)
                 plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
                 plt.gca().invert_yaxis()
                 plt.legend(fontsize = 10)
@@ -111,7 +111,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
                 plt.tight_layout()
                 if not ('nologo' in kwargs and kwargs['nologo']):
                     AddLogo(plt.gcf())
-                plt.savefig('%sorthogonal_sample_q%i_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', count, name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+                plt.savefig('%sorthogonal_sample_q%i_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', count, kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
                 plt.close()
                 count += 1
 
@@ -120,7 +120,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
         firstbad = np.argmax(np.logical_not(CHOOSE))
         if firstbad > 3:
             CHOOSE[firstbad:] = False
-        outto = np.array(results['prof data']['R'])[CHOOSE][-1]*1.5/pixscale
+        outto = np.array(results['prof data']['R'])[CHOOSE][-1]*1.5/kwargs['pixscale']
         ranges = [[max(0,int(results['center']['x']-outto-2)), min(IMG.shape[1],int(results['center']['x']+outto+2))],
                   [max(0,int(results['center']['y']-outto-2)), min(IMG.shape[0],int(results['center']['y']+outto+2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
@@ -148,8 +148,7 @@ def Orthogonal_Sample(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sorthogonal_sample_lines_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
-        plt.close()
-        
+        plt.savefig('%sorthogonal_sample_lines_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.close()        
             
-    return {}
+    return IMG, {}

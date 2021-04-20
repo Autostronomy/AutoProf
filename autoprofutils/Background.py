@@ -16,22 +16,16 @@ sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import AddLogo
 
 
-def Background_Mode(IMG, pixscale, name, results, **kwargs):
+def Background_Mode(IMG, results, **kwargs):
     """
     Compute background by finding the peak in a smoothed histogram of flux values.
     This should correspond to the peak of the noise floor.
-    
-    IMG: 2d ndarray with flux values for the image
-    pixscale: conversion factor between pixels and arcseconds (arcsec / pixel)
-    name: string name of galaxy in image, used for log files to make searching easier
-    results: dictionary contianing results from past steps in the pipeline
-    kwargs: user specified arguments
     """
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
     if 'mask' in results and not results['mask'] is None and np.any(results['mask']):
         mask = np.logical_not(results['mask'])
-        logging.info('%s: Background using segmentation map mask. Masking %i pixels' % (name, np.sum(results['mask'])))
+        logging.info('%s: Background using segmentation map mask. Masking %i pixels' % (kwargs['name'], np.sum(results['mask'])))
     else:
         mask = np.ones(IMG.shape, dtype = bool)
         mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
@@ -41,7 +35,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
 
     if 'background' in kwargs:
         bkgrnd = kwargs['background']
-        logging.info('%s: Background set by user: %.4e' % (name, bkgrnd))
+        logging.info('%s: Background set by user: %.4e' % (kwargs['name'], bkgrnd))
     else:
         # set the starting point for the sky level optimization at the median pixel flux
         start = np.quantile(values, 0.40)
@@ -54,7 +48,7 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
     if 'background_noise' in kwargs:
         noise = kwargs['background_noise']
-        logging.info('%s: Background Noise set by user: %.4e' % (name, noise))
+        logging.info('%s: Background Noise set by user: %.4e' % (kwargs['name'], noise))
     else:
         noise = iqr(values[(values-bkgrnd) < 0], rng = [100 - 68.2689492137,100])
     uncertainty = noise / np.sqrt(np.sum((values-bkgrnd) < 0))
@@ -72,14 +66,14 @@ def Background_Mode(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sBackground_hist_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()        
         
-    return {'background': bkgrnd,
-            'background noise': noise,
-            'background uncertainty': uncertainty}
+    return IMG, {'background': bkgrnd,
+                 'background noise': noise,
+                 'background uncertainty': uncertainty}
 
-def Background_DilatedSources(IMG, pixscale, name, results, **kwargs):
+def Background_DilatedSources(IMG, results, **kwargs):
     """
     Compute a global background value for an image. Performed by
     identifying pixels which are beyond 3 sigma above the average
@@ -102,10 +96,10 @@ def Background_DilatedSources(IMG, pixscale, name, results, **kwargs):
     # around each source.
     source_mask = make_source_mask(IMG,
                                    nsigma = 3,
-                                   npixels = int(1./pixscale),
+                                   npixels = int(1./kwargs['pixscale']),
                                    dilate_size = 40,
-                                   filter_fwhm = 1./pixscale,
-                                   filter_size = int(3./pixscale),
+                                   filter_fwhm = 1./kwargs['pixscale'],
+                                   filter_size = int(3./kwargs['pixscale']),
                                    sigclip_iters = 5)
     mask = np.logical_or(mask, source_mask)
 
@@ -115,7 +109,7 @@ def Background_DilatedSources(IMG, pixscale, name, results, **kwargs):
             'background noise': noise,
             'background uncertainty': noise/np.sqrt(np.sum(np.logical_not(mask)))}
 
-def Background_Unsharp(IMG, pixscale, name, results, **kwargs):
+def Background_Unsharp(IMG, results, **kwargs):
 
     coefs = fft2(IMG)
 
@@ -123,7 +117,7 @@ def Background_Unsharp(IMG, pixscale, name, results, **kwargs):
     coefs[unsharp:-unsharp] = 0
     coefs[:,unsharp:-unsharp] = 0
 
-    stats = Background_Mode(IMG, pixscale, name, results, **kwargs)
+    dumy, stats = Background_Mode(IMG, results, **kwargs)
     stats.update({'background': ifft2(coefs).real})
     return stats
             

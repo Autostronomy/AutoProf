@@ -19,7 +19,7 @@ def _fitEllip_loss(e, dat, r, p, c, n):
     coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
     return np.abs(coefs[2]) / (len(isovals)*(np.abs(np.median(isovals))+n))
 
-def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
+def Isophote_Initialize(IMG, results, **kwargs):
     """
     Determine the global pa and ellipticity for a galaxy. First grow circular isophotes
     until reaching near the noise floor, then evaluate the phase of the second FFT
@@ -43,7 +43,7 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         # Stop when at 3 time background noise
         if np.quantile(isovals[0], 0.8) < (3*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
             break
-    logging.info('%s: init scale: %f pix' % (name, circ_ellipse_radii[-1]))
+    logging.info('%s: init scale: %f pix' % (kwargs['name'], circ_ellipse_radii[-1]))
     # Find global position angle.
     phase = (-Angle_Median(np.angle(allphase[-5:]))/2) % np.pi #(-np.angle(np.mean(allphase[-5:]))/2) % np.pi
 
@@ -58,7 +58,7 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
                                                       phase, results['center'],results['background noise']),
                    method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]})
     if res.success:
-        logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (name, _x_to_eps(res.x[0]), ellip))
+        logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (kwargs['name'], _x_to_eps(res.x[0]), ellip))
         ellip = _x_to_eps(res.x[0])
 
     # Compute the error on the parameters
@@ -92,7 +92,7 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sinitialize_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
         fig, ax = plt.subplots(2,1, figsize = (6,6))
@@ -112,7 +112,7 @@ def Isophote_Initialize(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
-    return {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}
+    return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}

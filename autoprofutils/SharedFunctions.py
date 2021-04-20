@@ -582,6 +582,9 @@ def Angle_Scatter(a):
 def GetKwargs(c):
 
     newkwargs = {}
+
+    newkwargs['pixscale'] = c.pixscale
+    newkwargs['image_file'] = c.image_file
     
     try:
         newkwargs['paperplots'] = c.paperplots

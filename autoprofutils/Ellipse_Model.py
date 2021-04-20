@@ -10,16 +10,14 @@ from autoprofutils.SharedFunctions import AddLogo, autocmap, LSBImage
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 
-
-
-def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
+def EllipseModel_Fix(IMG, results, **kwargs):
 
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
     pa = results['init pa']
     eps = results['init ellip']
     
     CHOOSE = np.array(results['prof data']['SB_e']) < 0.3
-    R = np.array(results['prof data']['R'])[CHOOSE]/pixscale
+    R = np.array(results['prof data']['R'])[CHOOSE]/kwargs['pixscale']
     SB = np.array(results['prof data']['SB'])[CHOOSE]
 
     Model = np.zeros(IMG.shape, dtype = np.float32)
@@ -33,7 +31,7 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
     RR = np.sqrt(XX**2 + YY**2)
 
     MM = np.interp(RR.ravel(), R, SB).reshape(RR.shape)
-    MM = 10**(-(MM - zeropoint - 5*np.log10(pixscale))/2.5)
+    MM = 10**(-(MM - zeropoint - 5*np.log10(kwargs['pixscale']))/2.5)
     MM[RR > R[-1]] = 0
     Model[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]] = MM
 
@@ -41,7 +39,7 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
     hdul = fits.HDUList([fits.PrimaryHDU(header=header),
                          fits.ImageHDU(Model)])
     
-    hdul.writeto('%s%s_fixmodel.fits' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), overwrite = True)
+    hdul.writeto('%s%s_fixmodel.fits' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), overwrite = True)
 
 
     if 'doplot' in kwargs and kwargs['doplot']:
@@ -52,7 +50,7 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
         residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
@@ -67,18 +65,18 @@ def EllipseModel_Fix(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
     
-    return {'ellipse model': Model}
+    return IMG, {'ellipse model': Model}
     
 
-def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
+def EllipseModel_General(IMG, results, **kwargs):
     
     zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
     
     CHOOSE = np.array(results['prof data']['SB_e']) < 0.5
-    R = np.array(results['prof data']['R'])[CHOOSE]/pixscale
+    R = np.array(results['prof data']['R'])[CHOOSE]/kwargs['pixscale']
     SB = np.array(results['prof data']['SB'])[CHOOSE]
     SB_e = np.clip(np.array(results['prof data']['SB_e'])[CHOOSE], a_min = 1e-3, a_max = None)
     PA = np.array(results['prof data']['pa'])[CHOOSE]*np.pi/180
@@ -123,7 +121,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
     sp_interp = Rbf(X,Y,M, smooth = 1, function = 'linear') #interp2d(X,Y,M, fill_value = 0)
     MM = sp_interp(XX,YY) #np.reshape(sp_interp(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float)), XX.shape)
     
-    MM = 10**(-(MM - zeropoint - 5*np.log10(pixscale))/2.5)
+    MM = 10**(-(MM - zeropoint - 5*np.log10(kwargs['pixscale']))/2.5)
     
     XX, YY = (XX*np.cos(-PA[-1]) - YY*np.sin(-PA[-1]), XX*np.sin(-PA[-1]) + YY*np.cos(-PA[-1]))
     YY /= 1 - ellip[-1]
@@ -137,7 +135,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
     hdul = fits.HDUList([fits.PrimaryHDU(header=header),
                          fits.ImageHDU(Model)])
     
-    hdul.writeto('%s%s_model.fits' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), overwrite = True)
+    hdul.writeto('%s%s_model.fits' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), overwrite = True)
 
     if 'doplot' in kwargs and kwargs['doplot']:
         plt.figure(figsize = (7,7))
@@ -147,7 +145,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sellipsemodel_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
         
         residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
@@ -162,7 +160,7 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sellipseresidual_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     if 'paperplots' in kwargs and kwargs['paperplots']:    
@@ -170,8 +168,8 @@ def EllipseModel_General(IMG, pixscale, name, results, **kwargs):
         LSBImage(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'], results['background noise'])
         plt.axis('off')
         plt.tight_layout()
-        plt.savefig('%sclearimage_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sclearimage_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
     
-    return {'ellipse model': Model}
+    return IMG, {'ellipse model': Model}

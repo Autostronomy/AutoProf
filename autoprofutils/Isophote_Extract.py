@@ -16,7 +16,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo
 
-def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs):
+def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
     
     # Create image array with background and mask applied
     try:
@@ -49,9 +49,9 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         isotot = np.sum(_iso_between(dat, 0, R[i], E[i], PA[i], results['center'], mask = mask))
         medflux = np.median(isovals)
         medfluxfix = np.median(isovalsfix)
-        sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(pixscale)) if medflux > 0 else 99.999)
+        sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(kwargs['pixscale'])) if medflux > 0 else 99.999)
         sbE.append((2.5*iqr(isovals, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
-        sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(pixscale)) if medfluxfix > 0 else 99.999)
+        sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(kwargs['pixscale'])) if medfluxfix > 0 else 99.999)
         sbfixE.append((2.5*iqr(isovalsfix, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovalsfix))*np.median(isovalsfix)*np.log(10))) if medfluxfix > 0 else 99.999)
         cogdirect.append(-2.5*np.log10(isotot) + zeropoint if isotot > 0 else 99.999)
         if medflux <= 0:
@@ -61,10 +61,10 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
             break
         
     # Compute Curve of Growth from SB profile
-    cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* pixscale, np.array(sb), np.array(sbE), 1. - E[:end_prof],
+    cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* kwargs['pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
                                         Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
     cogE[cog > 99] = 99.999
-    cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * pixscale, np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
+    cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * kwargs['pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
                                               Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
     cogfixE[cogfix > 99] = 99.999
     
@@ -79,7 +79,7 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f',
                      'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
     
-    SBprof_data['R'] = list(R[:end_prof] * pixscale)
+    SBprof_data['R'] = list(R[:end_prof] * kwargs['pixscale'])
     SBprof_data['SB'] = list(sb)
     SBprof_data['SB_e'] = list(sbE)
     SBprof_data['totmag'] = list(cog)
@@ -109,17 +109,17 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         #              elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
         plt.xlabel('Semi-Major-Axis [arcsec]')
         plt.ylabel('Surface Brightness [mag/arcsec$^2$]')
-        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(pixscale**2)
+        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(kwargs['pixscale']**2)
         plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
         plt.gca().invert_yaxis()
         plt.legend(fontsize = 10)
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()                
 
-        useR = np.array(SBprof_data['R'])[CHOOSE]/pixscale
+        useR = np.array(SBprof_data['R'])[CHOOSE]/kwargs['pixscale']
         useE = np.array(SBprof_data['ellip'])[CHOOSE]
         usePA = np.array(SBprof_data['pa'])[CHOOSE]
         ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
@@ -131,14 +131,14 @@ def _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
         plt.tight_layout()
         if not ('nologo' in kwargs and kwargs['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', name), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
         plt.close()
 
         
     return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
     
 
-def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
+def Isophote_Extract_Forced(IMG, results, **kwargs):
     """
     Run isophote data extraction given exact specification for pa and ellip profiles.
     """
@@ -149,10 +149,10 @@ def Isophote_Extract_Forced(IMG, pixscale, name, results, **kwargs):
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
         
-    return _Generate_Profile(IMG, pixscale, name, results, np.array(results['fit R']), np.array(results['fit ellip']), Ee, np.array(results['fit pa']), PAe, **kwargs)
+    return IMG, _Generate_Profile(IMG, results, np.array(results['fit R']), np.array(results['fit ellip']), Ee, np.array(results['fit pa']), PAe, **kwargs)
     
     
-def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
+def Isophote_Extract(IMG, results, **kwargs):
     """
     Extract isophotes given output profile from Isophotes_Simultaneous_Fit which
     parametrizes pa and ellipticity via functions which map all the reals to the
@@ -177,7 +177,7 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
         else:
             R.append(R[-1]*(1. + (kwargs['samplegeometricscale'] if 'samplegeometricscale' in kwargs else 0.1)))
     R = np.array(R)
-    logging.info('%s: R complete in range [%.1f,%.1f]' % (name,R[0],R[-1]))
+    logging.info('%s: R complete in range [%.1f,%.1f]' % (kwargs['name'],R[0],R[-1]))
     
     # Interpolate profile values, when extrapolating just take last point
     E = _x_to_eps(np.interp(R, results['fit R'], _inv_x_to_eps(results['fit ellip'])))
@@ -202,4 +202,4 @@ def Isophote_Extract(IMG, pixscale, name, results, **kwargs):
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
     
-    return _Generate_Profile(IMG, pixscale, name, results, R, E, Ee, PA, PAe, **kwargs)
+    return IMG, _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs)
