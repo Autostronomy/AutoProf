@@ -3,7 +3,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.Background import Background_Mode, Background_DilatedSources, Background_Unsharp
 from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
-from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_Refine
+from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced
 from autoprofutils.Isophote_Initialize import Isophote_Initialize
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit
 from autoprofutils.Mask import Star_Mask_IRAF, NoMask, Mask_Segmentation_Map
@@ -42,7 +42,6 @@ class Isophote_Pipeline(object):
                                    'psf': PSF_StarFind,
                                    'psf IRAF': PSF_IRAF,
                                    'center': Center_HillClimb,
-                                   'center nelder-mead': Center_HillClimb_Refine,
                                    'center forced': Center_Forced,
                                    'center 2DGaussian': Center_2DGaussian,
                                    'center 1DGaussian': Center_1DGaussian,
