@@ -2,7 +2,7 @@
 
 This pipeline for non-parametric Galaxy image analysis was written with the goal
 of making a tool that is easy for anyone to get started with, yet flexible
-enough to prototype new ideas and accommodate advanced users. It was written
+enough to prototype new ideas and support advanced users. It was written
 by [Connor Stone](https://connorjstone.com/) along with lots of testing/help from
 [Nikhil Arora](https://orcid.org/0000-0002-3929-9316),
 [Stephane Courteau](https://www.physics.queensu.ca/facultysites/courteau/),
@@ -46,8 +46,9 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     autoprof test_config.py
     autoprof test_forced_config.py Forced.log
     autoprof test_batch_config.py Batch.log
+    autoprof test_tree_config.py Tree.log
     ```
-    This will test a basic AutoProf run on a single galaxy, forced photometry of the galaxy on itself, and batch photometry for multiple images (which are actually the same in this case) respectively.
+    This will test a basic AutoProf run on a single galaxy, forced photometry of the galaxy on itself, and batch photometry for multiple images (which are actually the same in this case), and pipeline decision tree construction, respectively. You can also run all of these tests in one command by executing the *runtests.sh* script in bash.
 
 ### Issues
 
@@ -79,12 +80,13 @@ The fastest way to run AutoProf for yourself will be for a single image.
 The steps below describe how to get AutoProf to run on an image that you provide.
 To run in batch mode for many images there isn't much to change, but that will be described later.
 
-1. Copy the *config.py.example* script to the directory with your image. And remove the *.example* part from the filename.
+1. Copy the *test_config.py* script from the AutoProf test directory to the directory with your image. 
 1. In the config file, edit the following lines:
     ```python
     pixscale = # your image scale in arcsec/pix
     image_file = # filename of your image
     ```
+    and change any other options as they pertain to your image. If you aren't sure what to do, you can just remove an option from the config file. All that is truly needed to get started is *process_mode*, *pixscale*, and *image_file*.
 1. Run AutoProf on the configuration file:
     ```bash
     autoprof config.py
@@ -93,6 +95,9 @@ To run in batch mode for many images there isn't much to change, but that will b
 Check the .aux file for extra information, including checks on the success of the fit.
 Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
 Also, look at the diagnostic plots to see if the fit appears to have worked.
+
+Note that AutoProf has a list of arguments that it is expecting (see *List Of AutoProf Arguments* for a full list) and it only checks for those.
+You can therefore make any variables you need in the config file to construct your list of image files so long as they don't conflict with any of the expected AutoProf arguments.
 
 ### Other Processing Modes
 
@@ -101,52 +106,51 @@ The subsections below will outline how to use each mode.
 
 #### Running AutoProf In Batch Mode
 
-Running AutoProf in batch mode is relatively simple once you have applied it to a single image.
+Running AutoProf in batch mode is relatively simple once you have learned how to work with a single image.
+For an example batch processing config file, see the *test_batch_config.py* file in the AutoProf test directory.
 You must modify the *process_mode* command to:
 ```python
 process_mode = 'image list'
 ```
-Then anything which you think should be specified for each galaxy should be a list, instead of a single value.
-For example, the *image_file* variable should now be a list of image files.
-If it doesn't need to be different for each galaxy, then simply leave the argument as a single value.
+Then, some config parameters will need to be turned into lists.
+The *image_file* variable should now be a list of image files, instead of a single string.
+Any other config parameter can be made into a list or left as a single value.
+If a parameter is a list, it must be the same length as the *image_file* list, if it is a single value then that value will be used for all instances.
 For example, the *pixscale* variable can be left as a float value and AutoProf will use that same value for all images.
+
 Also unique to batch processing is the availability of parallel processing with the *n_procs* variable.
 Since image analysis is an "embarrassingly parallel problem" AutoProf can analyze many images simultaneously.
 It is suggested that you set *n_procs* equal to the number of processors you have, although you may need to experiment.
 Especially if you don't have much ram, this may be the limiting factor.
 
-Note that AutoProf has a list of arguments that it is expecting (see *List Of AutoProf Arguments* for a full list) and it only checks for those.
-You can therefore make any variables you need in the config file to construct your list of image files so long as they don't conflict with any of the expected AutoProf arguments.
-
 #### Forced Photometry
 
 Forced photometry allows one to take an isophotal solution from one image and apply it (kind of) blindly to another image.
-This can be used for multi-band images from the same telescope, or between telescopes.
+An example forced photometry config file can be found in AutoProf test directory and is named *test_forced_config.py* which will only work once *test_config.py* has been run.
+Forced photometry can be used for multi-band images from the same telescope, or between telescopes.
 One may need to adjust for different pixel scales, or have to re-center between images, but the ultimate goal is to apply the same ellipticity and position angle profile to the galaxy in each band.
-Running forced photometry is very similar to image processing.
-You will, however, need the .prof and .aux files from an AutoProf run in order to try out the forced photometry.
-Once you have that, you may follow these basic instructions to run forced photometry on a single image:
+Running forced photometry is very similar to the other processing modes with one extra required parameter (the pre-fit .prof file).
 
-1. Copy the *config.py.example* script to the directory with your image. And remove the *.example* part from the filename.
+1. Copy the *test_forced_config.py* script to the directory with your image. 
 1. In the config file, edit the following lines:
     ```python
-    process_mode = 'forced image'
     pixscale = # your image scale in arcsec/pix
     image_file = # filename of your image
     forcing_profile = # filename for the .prof output
     ```
 1. Run AutoProf on the configuration file:
     ```bash
-    autoprof config.py
+    autoprof forced_config.py
     ```
 1. Check the .prof file for the surface brightness profile.
 Check the .aux file for extra information, including checks on the success of the fit.
 Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
-Also, look at the diagnostic plots to see if the fit appears to have worked.
+Also, look at the diagnostic plots to see if the fit appears to have aligned properly with the new image.
 
-To run forced photometry in batch mode is very similar to running image processing in batch mode.
-Modify the *process_mode* variable to 'forced image list', then you must make *image_file* and *forcing_profile* into lists with the matching images and profiles.
-And of course, any other arguments can be made into lists as well if appropriate.
+#### Batch Forced Photometry
+
+You may be able to guess at this point.
+To run forced photometry in batch mode, start with a single image forced photometry config file and convert single values into lists wherever necessary
 
 ### List Of AutoProf Arguments
 
@@ -162,15 +166,12 @@ In your config file, do not use any of these names unless you intend for AutoPro
 #### High Level Parameters
 - saveto: path to directory where final profile should be saved (string)
 - name: name to use for the galaxy, this will be the name used in output files and in the log file (string)
-- preprocess: A function that takes an image and returns an image. This is intended to address user specific concerns
-  	      such as clipping off the edges of an image that have low S/N due to dithering (function)
-- preprocess_all: boolean to apply preprocessing function to other inported images, such as the mask (boolean)
 - n_procs: number of processes to create when running in batch mode (int)
 - doplot: Generate diagnostic plots during processing (bool).
 - plotpath: Path to file where diagnostic plots should be written, see also "doplot" (string)
 - hdulelement: index for hdul of fits file where image exists (int).
 - delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
-- new_pipeline_functions: Allows user to set functions for the AutoProf pipeline analysis. See *Modifying Pipeline Functions* for more information (dict)
+- new_pipeline_methods: Allows user to set methods for the AutoProf pipeline analysis. See *Modifying Pipeline Methods* for more information (dict)
 - new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
 - zeropoint: Photometric zero point, AB magnitude is assumed if none given, corresponding to a zero point of 22.5 (float)
 
@@ -238,8 +239,9 @@ autoprof config.py newlogfilename.log
 # How Does AutoProf Work?
 
 At it's core AutoProf is a simple pipeline object that loads in an image, blindly runs a list of functions, and saves the resulting information.
-It is equipped with a powerful default set of functions which can fit an isophotal solution to most galaxies, even with relatively complex features.
-Below is a high level description for each function, in case something goes wrong this may help you troubleshoot the issue.
+It is equipped with a powerful default set of functions which can fit an isophotal solution to most galaxies, even with relatively complex features and low S/N.
+Below is a high level description for the default pipeline methods, in case something goes wrong this may help you troubleshoot the issue.
+This section will also help you write your own methods to integrate into AutoProf if you wish to handle a specific use case.
 
 ### Background
 
@@ -254,6 +256,7 @@ Output format:
 ```python
 {'background': , # flux value representing the background level
 'background noise': # measure of scatter around the background level
+'background uncertainty': # optional, uncertainty on background level
 }
 ```
 
@@ -340,22 +343,6 @@ Output format:
 }
 ```
 
-### Star Masking
-
-**pipeline label: starmask**
-
-A cutout of the full image is identified which encloses the full isophotal solution.
-The IRAF star finder wrapper from photutils is used to identify stars in the cutout.
-The stars are then masked with a variable size circle based on the brightness of the stars.
-This routine also identifies saturated pixels if the user provides an *overflowval* as an argument.
-
-Output format:
-```python
-{'mask': , # 2D array with same dimensions as the image indicating which pixels should be masked (ndarray)
-'overflow mask': # 2D array with same dimensions as the image indicating which pixels were saturated (ndarray)
-}
-```
-
 ### Isophotal Profile Extraction
 
 **pipeline label: isophoteextract**
@@ -407,59 +394,199 @@ Output format:
 
 # Advanced Usage
 
-### Modifying Pipeline Functions
+### Modifying Pipeline Methods
 
-This is done with the *new_pipeline_functions* argument, which is formatted as a dictionary with string keys and functions as values.
-In this way you can alter the functions used by AutoProf in it's pipeline.
+This is done with the *new_pipeline_methods* argument, which is formatted as a dictionary with string keys and functions as values.
+In this way you can add to or alter the methods used by AutoProf in it's pipeline.
 
-Each of the functions in *How Does AutoProf Work?* has a pipeline label, this is how the code identifies the functions and their outputs.
-Thus, one can create their own version of any function and modify the pipeline by assigning the function to that label.
-For example, if you wrote a new center finding function, you could update the pipeline by including:
+Each of the methods in *How Does AutoProf Work?* has a pipeline label, this is how the code identifies the functions and their outputs.
+Thus, one can create their own version of any method and modify the pipeline by assigning the function to that label.
+For example, if you wrote a new center finding method, you could update the pipeline by including:
 ```python
-new_pipeline_functions = {'center': My_Center_Finding_Function}
+new_pipeline_methods = {'center': My_Center_Finding_Method}
 ```
 in your config file.
-You can also make up any other functions and add them to the pipeline functions list, assigning whatever key you like.
-However, AutoProf will only look for functions that are in the pipeline steps object, so see *Modifying Pipeline Steps* for how to add/remove/reorder steps in the pipeline.
+You can also make up any other methods and add them to the pipeline functions list, assigning whatever key you like.
+However, AutoProf will only look for methods that are in the *pipeline_steps* object, so see *Modifying Pipeline Steps* for how to add/remove/reorder steps in the pipeline.
 
 Every function in the pipeline has the same template.
 To add a new function, or replace an existing one, you must format it as:
 ```python
-def My_New_Function(IMG, pixscale, name, results, **kwargs):
+def My_New_Function(IMG, results, options):
     # Code here
-    return {'results': of, 'the': calculations}
+    return IMG, {'results': of, 'the': calculations}
 ```
-where *IMG* is the unaltered input image, *pixscale* is the pixel scale in arcsec/pix, *name* is a string that identifies the galaxy, *results* is a dictionary containing the output of all previous pipeline steps, and *kwargs* is a dictionary with all user specified arguments from *List Of AutoProf Arguments* if they have non-default values.
-The output of every function in the pipeline is a dictionary with strings for keys.
-If you wish to replace a function, make sure to have the output follow the same format.
-So long as your output dictionary has the same keys/value format, it should be able to seamlessly replace that step in the pipeline.
-If you wish to include more information, you can include as many other entries in the dictionary as you like, the default pipeline functions will ignore them.
+where *IMG* is the input image, *results* is a dictionary containing the output of all previous pipeline steps, and *options* is a dictionary with all user specified arguments from *List Of AutoProf Arguments* if they have non-default values.
+The output of every method in the pipeline is an image and a dictionary with strings for keys.
+The output image is assigned to replace the input image, so if you wish to alter the input image you can do so in a way that all future steps will see.
+The dictionary output is used to update the *results* dictionary that is passed to all future methods, you can therefore add new elements to the dictionary or replace older ones. 
+If you wish to replace a method, make sure to have the output follow this format.
+So long as your output dictionary has the same keys/value format, it should be able to seamlessly replace a step in the pipeline.
+If you wish to include more information, you can include as many other entries in the dictionary as you like, the default methods functions will ignore them.
 See *How Does AutoProf Work?* for the expected outputs from each function.
 
 ### Modifying Pipeline Steps
 
-This is done with the *new_pipeline_steps* argument, which is formatted as a list of strings which tells AutoProf what order to run it's pipeline functions.
+This is done with the *new_pipeline_steps* argument, which is formatted as a list of strings which tells AutoProf what order to run it's pipeline methods.
 In this way you can alter the order of operations used by AutoProf in it's pipeline.
 
 Each function must be run in a specific order as they often rely on the output from another step.
 The basic pipeline step order is:
 ```python
-['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'mask segmentation map', 'isophoteextract', 'checkfit', 'radsample', 'ellipsemodel']
+['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
 ```
-For forced photomettry the pipeline step order is:
+For forced photomettry the default pipeline step order is:
 ```python
-['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced', 'mask segmentation map', 'isophoteextract forced', 'radsample', 'ellipsemodel']
+['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
 ```
-So the background, psf, and global ellip/pa are always fit directly to the image, but for forced photometry the center, isophote parameter, and star mask are fixed.
-If you would like to change this behaviour, just provide a new pipeline steps list.
-For example if you wished to re-fit the center for an image you can change *center forced* back to *center*.
-
-You can create your own order, or add in new functions by supplying a new list.
-For example, if you had your own function to run after the centering function you could do so by including:
+If you would like to change this behaviour, just provide a *new_pipeline_steps* list.
+For example if you wished to use forced photometry but you want to re-fit the center you can change *center forced* back to *center* with:
 ```python
-new_pipeline_functions = {'myfunction': My_New_Function}
-new_pipeline_steps = ['background', 'psf', 'center', 'myfunction', 'isophoteinit', 'isophotefit', 'mask segmentation map', 'isophoteextract', 'checkfit', 'radsample', 'ellipsemodel']
+new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
 ```
 in your config file.
-Note that for *new_pipeline_functions* you need only include the new function, while for *new_pipeline_steps* you must write out the full pipeline steps.
-If you wish to skip a step, it is sometimes better to write your own "null" version of the function (and change *new_pipeline_functions*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash. 
+
+You can create your own order, or add in new functions by supplying a new list.
+For example, if you had your own method to run after the centering function you could do so by including:
+```python
+new_pipeline_methods = {'mymethod': My_New_Method}
+new_pipeline_steps = ['background', 'psf', 'center', 'myfunction', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
+```
+in your config file.
+Note that for *new_pipeline_methods* you need only include the new function, while for *new_pipeline_steps* you must write out the full pipeline steps.
+If you wish to skip a step, it is sometimes better to write your own "null" version of the function (and change *new_pipeline_methods*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash.
+
+### Going Deeper, Decision Tree Pipelines
+
+AutoProf at its core is a pipeline building code, as such it has a more advanced feature for constructing complex pipelines: decision trees.
+In a decision tree pipeline, one can essentially construct a flow chart of decisions and corresponding functions to run.
+The beginning of the tree is always *'head'* and AutoProf will continue to read those steps until it reaches a step containing the word *branch* (any other text can be included in the step name so you can write many different branches).
+At a branch step, AutoProf will provide the usual inputs, but the output should be a string or *None*.
+If *None* is returned then AutoProf carries on along the same branch it is already on.
+If a string is returned, then that is taken as the key from which to check for the next step in the pipeline steps object.
+When switching branches, AutoProf will start at the beginning of the new branch.
+Note, the new branch can even be the branch you started on so watch out for infinite loops!
+
+For example, in a large sample, one may wish to process edge-on galaxies differently than the others, but it may not be clear which galaxies fit the edge-on criteria until the photometry is done.
+In this example, one could have AutoProf perform photometry up to the point of the *isophoteinit* step, then the rest of the functions could be chosen based on the ellipticity of the initialized ellipse.
+To make this work one could add:
+```python
+new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: 'edgeon' if results['init ellip'] > 0.8 else 'standard',
+		        'edgeonfit': My_Edgon_Fit_Method}
+new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],
+		      'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof'],
+		      'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'orthsample', 'radsample']}
+```
+in your config file. This config file would apply a standard pipeline for face-on or moderately inclined galaxies, but a special pipeline for edge-on galaxies which includes a user defined fitting function *My_Edgeon_Fit_Method*, orthogonal sampling profiles, and radial sampling profiles. 
+
+# Methods that come with AutoProf
+
+As well as the defualt pipeline, AutoProf has a number of pre-built methods for different use cases and extending one's analysis beyond a direct isophote fit.
+Here we outline a basic description of those methods and some of their use cases (though you may find clever new uses!).
+Some are meant as drop-in replacements for methods in the default pipeline, and others are meant as entirely new methods.
+
+### Background - Dilated Sources
+
+**pipeline label: 'background dilatedsources'**
+
+Using the photutils *make_source_mask* function, a mask is constructed for bright sources in the image.
+A "dilation" is then applied to expand the masked area around each source.
+The background is then taken as the median of the unmasked pixels.
+The noise is half the 16-84 quartile range of unmasked pixels.
+
+### Background - Basic
+
+**pipeline label: 'background basic'**
+
+All pixels in the outer boarder of the image (outer 1/4th of the image) are taken, the mean value is the background, standard deviation is the noise.
+
+### Background - Unsharp masking
+
+**pipeline label: 'background unsharp'**
+
+A two-dimensional FFT is taken on the image, the background level is computed across the image using a low pass filter of the FFT coefficients.
+
+### PSF - IRAF
+
+**pipeline label: 'psf IRAF'**
+
+The photutils IRAF star finder wrapper is used to identify stars in the image, the psf is taken as the average fwhm fitted by IRAF.
+
+### Center - Mean
+
+**pipeline label: 'center mean'**
+
+Similar to the standard center finding method, except flux values along circular apertures are evaluated using the mean (instead of the median) which is more accurate in the low S/N limit that pixel values are integers.
+
+### Center - 2D Gaussian
+
+**pipeline label: 'center 2DGaussian'**
+
+Wrapper for photutils center finding method which fits a 2D Gaussian to the image in order to find the center of a galaxy.
+
+### Center - 1D Gaussian
+
+**pipeline label: 'center 1DGaussian'**
+
+Wrapper for photutils center finding method which fits a series of 1D Gaussians to slices of the image to identify the galaxy center.
+
+### Center - Of Mass
+
+**pipeline label: 'center OfMass'**
+
+Wrapper for photutils method which finds the flux centroid of an image to determine the center.
+
+### Isophote Initialize - Mean
+
+**pipeline label: 'isophoteinit mean'**
+
+Similar to the standard isophote initialization method, except flux values along isophotes are evaluated using the mean (instead of the median) which is more accurate in the low S/N limit that pixel values are integers.
+
+### Isophote Fitting - Mean
+
+**pipeline label: 'isophotefit mean'**
+
+Similar to the standard isophote fitting method, except flux values along isophotes are evaluated using the mean (instead of the median) which is more accurate in the low S/N limit that pixel values are integers.
+
+### Isophote Fitting - photutils
+
+**pipeline label: 'isophotefit photutils'**
+
+Wrapper for the photutils isophote fitting method which is based on Jedzejewski 1987.
+
+### Star Masking - IRAF
+
+**pipeline label: 'starmask'**
+
+Using the photutils wrapper of IRAF, identifies stars in the image and masks them.
+
+### Masking - Segmentation Map
+
+**pipeline label: 'mask segmentation map'**
+
+Reads in a user provided segmentation map and converts it into a mask. If a galaxy center has been found it will ignore the segmentation ID where the center lays.
+
+### Ellipse Model - Fixed
+
+**pipeline label: 'ellipsemodel'**
+
+Constructs a 2D model image of the galaxy based on the extracted surface brightness profile and the global ellipticity and position angle values.
+
+### Ellipse Model - General
+
+**pipeline label: 'ellipsemodel general'**
+
+Constructs 2D model image of the galaxy based on the extracted surface brightness, ellipticity, and position angle profile.
+
+### Radial Sampling
+
+**pipeline label: 'radsample'**
+
+Samples surface brightness values radially from the center of the galaxy. The radial samples are placed on the semi-minor/major axes by default, though more wedges can be requested and their angle can be specified by the user.
+
+### Orthogonal Sampling
+
+**pipeline label: 'orthsample'**
+
+Samples surface brightness values along lines parallel to the semi-minor axis.
+
