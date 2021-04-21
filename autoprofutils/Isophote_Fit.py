@@ -19,7 +19,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage, AddLogo, PA_shift_convention
 
-def Photutils_Fit(IMG, results, **kwargs):
+def Photutils_Fit(IMG, results, options):
     """
     Function to run the photutils automated isophote analysis on an image.
     """    
@@ -35,17 +35,17 @@ def Photutils_Fit(IMG, results, **kwargs):
     isolist = ellipse.fit_image(fix_center = True, linear = False)
     res = {'fit R': isolist.sma[1:], 'fit ellip': isolist.eps[1:], 'fit ellip_err': isolist.ellip_err[1:], 'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:]}
     
-    if 'doplot' in kwargs and kwargs['doplot']:
+    if 'doplot' in options and options['doplot']:
         ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2))],
                   [max(0,int(results['center']['x']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['x']+res['fit R'][-1]*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         for i in range(len(res['fit R'])):
             plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
                                         res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = 300)
+        plt.savefig('%sfit_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = 300)
         plt.close()                
     
-    return res
+    return IMG, res
 
 
 def _ellip_smooth(R, E, deg):
@@ -90,15 +90,15 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
 
     return f2_loss*(1 + reg_loss*reg_scale) #(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
 
-def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
+def Isophote_Fit_FFT_Robust(IMG, results, options):
     """
     Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
     Included is a regularization term which penalizes isophotes for having large differences between parameters
     of adjacent isophotes.
     """
 
-    if 'scale' in kwargs:
-        scale = kwargs['scale']
+    if 'scale' in options:
+        scale = options['scale']
     else:
         scale = 0.2
 
@@ -116,7 +116,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
         while sample_radii[-1] < (max(IMG.shape)/2):
             isovals = _iso_extract(dat,sample_radii[-1],results['init ellip'],
                                    results['init pa'],results['center'], more = False, mask = mask)
-            if np.median(isovals) < (kwargs['fit_limit'] if 'fit_limit' in kwargs else 1)*results['background noise']:
+            if np.median(isovals) < (options['fit_limit'] if 'fit_limit' in options else 1)*results['background noise']:
                 break
             sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
         if len(sample_radii) < 15:
@@ -127,12 +127,12 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
         raise Exception('Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.')
     ellip = np.ones(len(sample_radii))*results['init ellip']
     pa = np.ones(len(sample_radii))*results['init pa']
-    logging.debug('%s: sample radii: %s' % (kwargs['name'], str(sample_radii)))
+    logging.debug('%s: sample radii: %s' % (options['name'], str(sample_radii)))
     
     # Fit isophotes
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
-    regularize_scale = kwargs['regularize_scale'] if 'regularize_scale' in kwargs else 1.
+    regularize_scale = options['regularize_scale'] if 'regularize_scale' in options else 1.
     N_perturb = 5
 
     count = 0
@@ -143,7 +143,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
     while count < 300 and count_nochange < (3*len(sample_radii)):
         # Periodically include logging message
         if count % 10 == 0:
-            logging.debug('%s: count: %i' % (kwargs['name'],count))
+            logging.debug('%s: count: %i' % (options['name'],count))
         count += 1
         
         np.random.shuffle(I)
@@ -151,7 +151,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
             perturbations = []
             perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
             perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = kwargs['name'])
+                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = options['name'])
             for n in range(N_perturb):
                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
                 if count % 3 in [0,1]:
@@ -159,7 +159,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
                 if count % 3 in [1,2]:
                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
                 perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = kwargs['name'])
+                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = options['name'])
             
             best = np.argmin(list(p['loss'] for p in perturbations))
             if best > 0:
@@ -169,7 +169,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
             else:
                 count_nochange += 1
                 
-    logging.info('%s: Completed isohpote fit in %i itterations' % (kwargs['name'], count))
+    logging.info('%s: Completed isohpote fit in %i itterations' % (options['name'], count))
     # detect collapsed center
     ######################################################################
     for i in range(5):
@@ -185,7 +185,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
     smooth_ellip = _ellip_smooth(sample_radii, smooth_ellip, 5)
     smooth_pa = _pa_smooth(sample_radii, smooth_pa, 5)
     
-    if 'doplot' in kwargs and kwargs['doplot']:
+    if 'doplot' in options and options['doplot']:
         ranges = [[max(0,int(use_center['x']-sample_radii[-1]*1.2)), min(dat.shape[1],int(use_center['x']+sample_radii[-1]*1.2))],
                   [max(0,int(use_center['y']-sample_radii[-1]*1.2)), min(dat.shape[0],int(use_center['y']+sample_radii[-1]*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
@@ -195,9 +195,9 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
                                         pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = 'r'))
         plt.tight_layout()
-        if not ('nologo' in kwargs and kwargs['nologo']):
+        if not ('nologo' in options and options['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sfit_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()
         
         plt.scatter(sample_radii, ellip, color = 'r', label = 'ellip')
@@ -208,9 +208,9 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
         plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'smooth pa/$np.pi$')
         #plt.xscale('log')
         plt.legend()
-        if not ('nologo' in kwargs and kwargs['nologo']):
+        if not ('nologo' in options and options['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sphaseprofile_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sphaseprofile_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()
 
     # Compute errors
@@ -227,13 +227,13 @@ def Isophote_Fit_FFT_Robust(IMG, results, **kwargs):
 
     res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
            'fit ellip_err': ellip_err, 'fit pa_err': pa_err}
-    return res
+    return IMG, res
 
-def Isophote_Fit_Forced(IMG, results, **kwargs):
+def Isophote_Fit_Forced(IMG, results, options):
     """
     Take isophotal fit from a given profile.
     """
-    with open(kwargs['forcing_profile'], 'r') as f:
+    with open(options['forcing_profile'], 'r') as f:
         raw = f.readlines()
         for i,l in enumerate(raw):
             if l[0] != '#':
@@ -247,26 +247,189 @@ def Isophote_Fit_Forced(IMG, results, **kwargs):
 
     force['pa'] = PA_shift_convention(np.array(force['pa']), deg = True)
                 
-    if 'doplot' in kwargs and kwargs['doplot']:
+    if 'doplot' in options and options['doplot']:
         dat = IMG - results['background']
         logging.info(results['center'])
         logging.info(force.keys())
         logging.info(force['R'])
-        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2))],
-                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/kwargs['pixscale'])*1.2))]]
+        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/options['pixscale'])*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/options['pixscale'])*1.2))],
+                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/options['pixscale'])*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/options['pixscale'])*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         # plt.imshow(np.clip(dat[ranges[0][0]: ranges[0][1], ranges[1][0]: ranges[1][1]],
         #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(0,len(np.array(force['R'])),2):
-            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/kwargs['pixscale']),
-                                        2*(np.array(force['R'])[i]/kwargs['pixscale'])*(1. - force['ellip'][i]),
+            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/options['pixscale']),
+                                        2*(np.array(force['R'])[i]/options['pixscale'])*(1. - force['ellip'][i]),
                                         force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
-        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()                
     res = {'fit ellip': np.array(force['ellip']),
            'fit pa': np.array(force['pa'])*np.pi/180,
-           'fit R': list(np.array(force['R'])/kwargs['pixscale'])}
+           'fit R': list(np.array(force['R'])/options['pixscale'])}
     if 'ellip_e' in force and 'pa_e' in force:
         res['fit ellip_err'] = np.array(force['ellip_e'])
         res['fit pa_err'] = np.array(force['pa_e'])*np.pi/180
+    return IMG, res
+
+
+######################################################################
+def _FFT_mean_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., name = ''):
+
+    isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True)
+    
+    if not np.all(np.isfinite(isovals)):
+        logging.warning('Failed to evaluate isophotal flux values, skipping this ellip/pa combination')
+        return np.inf
+
+    coefs = fft(isovals)
+    
+    f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.mean(isovals)) + noise))
+
+    reg_loss = 0
+    if i < (len(R)-1):
+        reg_loss += abs((E[i] - E[i+1])/(1 - E[i+1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i+1]))/0.1)
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.3))
+    if i > 0:
+        reg_loss += abs((E[i] - E[i-1])/(1 - E[i-1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i-1]))/0.1)
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.3))
+
+    return f2_loss*(1 + reg_loss*reg_scale) #(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
+
+def Isophote_Fit_FFT_mean(IMG, results, options):
+    """
+    Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
+    Included is a regularization term which penalizes isophotes for having large differences between parameters
+    of adjacent isophotes.
+    """
+
+    if 'scale' in options:
+        scale = options['scale']
+    else:
+        scale = 0.2
+
+    # subtract background from image during processing
+    dat = IMG - results['background']
+    mask = results['mask'] if 'mask' in results else None
+    if not np.any(mask):
+        mask = None
+    
+    # Determine sampling radii
+    ######################################################################
+    shrink = 0
+    while shrink < 5:
+        sample_radii = [3*results['psf fwhm']/2]
+        while sample_radii[-1] < (max(IMG.shape)/2):
+            isovals = _iso_extract(dat,sample_radii[-1],results['init ellip'],
+                                   results['init pa'],results['center'], more = False, mask = mask)
+            if np.mean(isovals) < (options['fit_limit'] if 'fit_limit' in options else 1)*results['background noise']:
+                break
+            sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
+        if len(sample_radii) < 15:
+            shrink += 1
+        else:
+            break
+    if shrink >= 5:
+        raise Exception('Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.')
+    ellip = np.ones(len(sample_radii))*results['init ellip']
+    pa = np.ones(len(sample_radii))*results['init pa']
+    logging.debug('%s: sample radii: %s' % (options['name'], str(sample_radii)))
+    
+    # Fit isophotes
+    ######################################################################
+    perturb_scale = np.array([0.03, 0.06])
+    regularize_scale = options['regularize_scale'] if 'regularize_scale' in options else 1.
+    N_perturb = 5
+
+    count = 0
+
+    count_nochange = 0
+    use_center = copy(results['center'])
+    I = np.array(range(len(sample_radii)))
+    while count < 300 and count_nochange < (3*len(sample_radii)):
+        # Periodically include logging message
+        if count % 10 == 0:
+            logging.debug('%s: count: %i' % (options['name'],count))
+        count += 1
+        
+        np.random.shuffle(I)
+        for i in I:
+            perturbations = []
+            perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
+            perturbations[-1]['loss'] = _FFT_mean_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
+                                                       use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = options['name'])
+            for n in range(N_perturb):
+                perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
+                if count % 3 in [0,1]:
+                    perturbations[-1]['ellip'][i] = _x_to_eps(_inv_x_to_eps(perturbations[-1]['ellip'][i]) + np.random.normal(loc = 0, scale = perturb_scale[0]))
+                if count % 3 in [1,2]:
+                    perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
+                perturbations[-1]['loss'] = _FFT_mean_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
+                                                           use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = options['name'])
+            
+            best = np.argmin(list(p['loss'] for p in perturbations))
+            if best > 0:
+                ellip = copy(perturbations[best]['ellip'])
+                pa = copy(perturbations[best]['pa'])
+                count_nochange = 0
+            else:
+                count_nochange += 1
+                
+    logging.info('%s: Completed isohpote fit in %i itterations' % (options['name'], count))
+    # detect collapsed center
+    ######################################################################
+    for i in range(5):
+        if (_inv_x_to_eps(ellip[i]) - _inv_x_to_eps(ellip[i+1])) > 0.5:
+            ellip[:i+1] = ellip[i+1]
+            pa[:i+1] = pa[i+1]
+
+    # Smooth ellip and pa profile
+    ######################################################################
+    smooth_ellip = copy(ellip)
+    smooth_pa = copy(pa)
+    ellip[:3] = min(ellip[:3])
+    smooth_ellip = _ellip_smooth(sample_radii, smooth_ellip, 5)
+    smooth_pa = _pa_smooth(sample_radii, smooth_pa, 5)
+    
+    if 'doplot' in options and options['doplot']:
+        ranges = [[max(0,int(use_center['x']-sample_radii[-1]*1.2)), min(dat.shape[1],int(use_center['x']+sample_radii[-1]*1.2))],
+                  [max(0,int(use_center['y']-sample_radii[-1]*1.2)), min(dat.shape[0],int(use_center['y']+sample_radii[-1]*1.2))]]
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
+        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys', norm = ImageNormalize(stretch=LogStretch())) 
+        for i in range(len(sample_radii)):
+            plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
+                                        pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = 'r'))
+        plt.tight_layout()
+        if not ('nologo' in options and options['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sfit_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
+        plt.close()
+        
+        plt.scatter(sample_radii, ellip, color = 'r', label = 'ellip')
+        plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa/$np.pi$')
+        show_ellip = _ellip_smooth(sample_radii, ellip, deg = 5)
+        show_pa = _pa_smooth(sample_radii, pa, deg = 5)
+        plt.plot(sample_radii, show_ellip, color = 'orange', linewidth = 2, linestyle='--', label = 'smooth ellip')
+        plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'smooth pa/$np.pi$')
+        #plt.xscale('log')
+        plt.legend()
+        if not ('nologo' in options and options['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphaseprofile_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
+        plt.close()
+
+    # Compute errors
+    ######################################################################
+    ellip_err = np.zeros(len(ellip))
+    ellip_err[:2] = np.sqrt(np.sum((ellip[:4] - smooth_ellip[:4])**2)/4)
+    ellip_err[-1] = np.sqrt(np.sum((ellip[-4:] - smooth_ellip[-4:])**2)/4)
+    pa_err = np.zeros(len(pa))
+    pa_err[:2] = np.sqrt(np.sum((pa[:4] - smooth_pa[:4])**2)/4)
+    pa_err[-1] = np.sqrt(np.sum((pa[-4:] - smooth_pa[-4:])**2)/4)
+    for i in range(2,len(pa)-1):
+        ellip_err[i] = np.sqrt(np.sum((ellip[i-2:i+2] - smooth_ellip[i-2:i+2])**2)/4)
+        pa_err[i] = np.sqrt(np.sum((pa[i-2:i+2] - smooth_pa[i-2:i+2])**2)/4)
+
+    res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
+           'fit ellip_err': ellip_err, 'fit pa_err': pa_err}
     return IMG, res

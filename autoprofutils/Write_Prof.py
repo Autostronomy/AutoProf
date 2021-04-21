@@ -1,19 +1,22 @@
 from astropy.io import fits
 import numpy as np
+import sys
 import os
+sys.path.append(os.environ['AUTOPROF'])
+from autoprofutils.SharedFunctions import PA_shift_convention
 
-def WriteProf(IMG, results, **kwargs):
+def WriteProf(IMG, results, options):
     """
     Writes the photometry information for disk given a photutils isolist object
     """
     
-    saveto = kwargs['saveto'] if 'saveto' in kwargs else './'
+    saveto = options['saveto'] if 'saveto' in options else './'
     
     # Write aux file
-    with open(saveto + kwargs['name'] + '.aux', 'w') as f:
+    with open(saveto + options['name'] + '.aux', 'w') as f:
         # write profile info
-        f.write('name: %s\n' % str(kwargs['name']))
-        f.write('pixel scale: %.3e arcsec/pix\n' % kwargs['pixscale'])
+        f.write('name: %s\n' % str(options['name']))
+        f.write('pixel scale: %.3e arcsec/pix\n' % options['pixscale'])
         if 'checkfit' in results:
             for k in results['checkfit'].keys():
                 f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
@@ -31,13 +34,13 @@ def WriteProf(IMG, results, **kwargs):
         else:
             f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['init ellip'], PA_shift_convention(results['init pa'])*180/np.pi))
         f.write('fit limit semi-major axis: %.2f pix\n' % results['fit R'][-1])
-        if len(kwargs) > 0:
-            for k in kwargs.keys():
-                f.write('settings %s: %s\n' % (k,str(kwargs[k])))
+        if len(options) > 0:
+            for k in options.keys():
+                f.write('settings %s: %s\n' % (k,str(options[k])))
             
     # Write the profile
-    delim = kwargs['delimiter'] if 'delimiter' in kwargs else ','
-    with open(saveto + kwargs['name'] + '.prof', 'w') as f:
+    delim = options['delimiter'] if 'delimiter' in options else ','
+    with open(saveto + options['name'] + '.prof', 'w') as f:
         # Write profile header
         f.write(delim.join(results['prof header']) + '\n')
         if 'prof units' in results:
@@ -52,16 +55,16 @@ def WriteProf(IMG, results, **kwargs):
             f.write(delim.join(line) + '\n')
                 
     # Write the mask data, if provided
-    if 'mask' in results and (not results['mask'] is None) and 'savemask' in kwargs and kwargs['savemask']:
+    if 'mask' in results and (not results['mask'] is None) and 'savemask' in options and options['savemask']:
         header = fits.Header()
         header['IMAGE 1'] = 'star mask'
         header['IMAGE 2'] = 'overflow values mask'
         hdul = fits.HDUList([fits.PrimaryHDU(header=header),
                              fits.ImageHDU(results['mask'].astype(int)),
                              fits.ImageHDU(results['overflow mask'].astype(int))])
-        hdul.writeto(saveto + kwargs['name'] + '_mask.fits', overwrite = True)
+        hdul.writeto(saveto + options['name'] + '_mask.fits', overwrite = True)
         sleep(1)
         # Zip the mask file because it can be large and take a lot of memory, but in principle
         # is very easy to compress
-        os.system('gzip -fq '+ saveto + kwargs['name'] + '_mask.fits')
+        os.system('gzip -fq '+ saveto + options['name'] + '_mask.fits')
     return IMG, {}

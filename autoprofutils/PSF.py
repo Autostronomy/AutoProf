@@ -16,18 +16,18 @@ sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, StarFind, AddLogo
 from copy import deepcopy
 
-def PSF_IRAF(IMG, results, **kwargs):
+def PSF_IRAF(IMG, results, options):
     """
     Apply the photutils IRAF wrapper to the image to extract a PSF fwhm
     """
-    if 'psf_set' in kwargs:
-        logging.info('%s: PSF set by user: %.4e' % (kwargs['name'], kwargs['psf_set']))
-        return IMG, {'psf fwhm': kwargs['psf_set']}
-    elif 'psf_guess' in kwargs:
-        logging.info('%s: PSF initialized by user: %.4e' % (kwargs['name'], kwargs['psf_guess']))
-        fwhm_guess = kwargs['psf_guess']
+    if 'psf_set' in options:
+        logging.info('%s: PSF set by user: %.4e' % (options['name'], options['psf_set']))
+        return IMG, {'psf fwhm': options['psf_set']}
+    elif 'psf_guess' in options:
+        logging.info('%s: PSF initialized by user: %.4e' % (options['name'], options['psf_guess']))
+        fwhm_guess = options['psf_guess']
     else:
-        fwhm_guess = max(1., 1./kwargs['pixscale'])
+        fwhm_guess = max(1., 1./options['pixscale'])
 
     edge_mask = np.zeros(IMG.shape, dtype = bool)
     edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
@@ -52,50 +52,50 @@ def PSF_IRAF(IMG, results, **kwargs):
     if len(irafsources) < 5:
         return IMG, {'psf fwhm': fwhm_guess}
     
-    if 'doplot' in kwargs and kwargs['doplot']:    
+    if 'doplot' in options and options['doplot']:    
         plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
                    cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         for i in range(len(irafsources['fwhm'])):
-            plt.gca().add_patch(Ellipse((irafsources['xcentroid'][i],irafsources['ycentroid'][i]), 16/kwargs['pixscale'], 16/kwargs['pixscale'],
+            plt.gca().add_patch(Ellipse((irafsources['xcentroid'][i],irafsources['ycentroid'][i]), 16/options['pixscale'], 16/options['pixscale'],
                                         0, fill = False, linewidth = 0.5, color = 'y'))
-        plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = 600)
+        plt.savefig('%sPSF_Stars_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = 600)
         plt.close()
         
     return IMG, {'psf fwhm': np.median(irafsources['fwhm'])}
 
 
-def PSF_StarFind(IMG, results, **kwargs):
+def PSF_StarFind(IMG, results, options):
 
-    if 'psf_set' in kwargs:
-        return IMG, {'psf fwhm': kwargs['psf_set']}
-    elif 'psf_guess' in kwargs:
-        fwhm_guess = kwargs['psf_guess']
+    if 'psf_set' in options:
+        return IMG, {'psf fwhm': options['psf_set']}
+    elif 'psf_guess' in options:
+        fwhm_guess = options['psf_guess']
     else:
-        fwhm_guess = max(1., 1./kwargs['pixscale'])
+        fwhm_guess = max(1., 1./options['pixscale'])
 
     edge_mask = np.zeros(IMG.shape, dtype = bool)
     edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
               int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
     stars = StarFind(IMG - results['background'], fwhm_guess, results['background noise'],
-                     edge_mask, # peakmax = (kwargs['overflowval']-results['background'])*0.95 if 'overflowval' in kwargs else None,
+                     edge_mask, # peakmax = (options['overflowval']-results['background'])*0.95 if 'overflowval' in options else None,
                      maxstars = 50)
     if len(stars['fwhm']) <= 10:
         return IMG, {'psf fwhm': fwhm_guess}
     def_clip = 0.1
     while np.sum(stars['deformity'] < def_clip) < max(10,2*len(stars['fwhm'])/3):
         def_clip += 0.1
-    if 'doplot' in kwargs and kwargs['doplot']:
+    if 'doplot' in options and options['doplot']:
         plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
                    cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         for i in range(len(stars['fwhm'])):
-            plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/kwargs['pixscale'], 16/kwargs['pixscale'],
+            plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/options['pixscale'], 16/options['pixscale'],
                                         0, fill = False, linewidth = 0.5, color = 'r' if stars['deformity'][i] >= def_clip else 'y'))
-        if not ('nologo' in kwargs and kwargs['nologo']):
+        if not ('nologo' in options and options['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sPSF_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sPSF_Stars_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()
 
-    if 'paperplots' in kwargs and kwargs['paperplots']:    
+    if 'paperplots' in options and options['paperplots']:    
         # paper plot
         N = np.argsort(stars['deformity'])
         figscale = max(stars['fwhm'][N[:9]])*2
@@ -116,8 +116,9 @@ def PSF_StarFind(IMG, results, **kwargs):
                 axarr[i][j].set_xticks([])
                 axarr[i][j].set_yticks([])
                 count += 1
-        plt.savefig('%sPSF_Best_Stars_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sPSF_Best_Stars_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()
 
-    logging.info('%s: found psf: %f with deformity clip of: %f' % (kwargs['name'],np.median(stars['fwhm'][stars['deformity'] < def_clip]), def_clip))
+    logging.info('%s: found psf: %f with deformity clip of: %f' % (options['name'],np.median(stars['fwhm'][stars['deformity'] < def_clip]), def_clip))
     return IMG, {'psf fwhm': np.median(stars['fwhm'][stars['deformity'] < def_clip])}
+

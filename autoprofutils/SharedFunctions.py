@@ -522,7 +522,7 @@ def _inv_x_to_eps(eps):
     return 0.5 + np.tan(np.pi*((eps - 0.02)/0.96 - 0.5)) #0.5 - np.log(0.96/(eps - 0.02) - 1.) 
 
 
-def Read_Image(filename, **kwargs):
+def Read_Image(filename, options):
     """
     Reads a galaxy image given a file name. In a fits image the data is assumed to exist in the
     primary HDU unless given 'hdulelement'. In a numpy file, it is assumed that only one image
@@ -536,7 +536,7 @@ def Read_Image(filename, **kwargs):
     # Read a fits file
     if filename[filename.rfind('.')+1:].lower() == 'fits':
         hdul = fits.open(filename)
-        dat = hdul[kwargs['hdulelement'] if 'hdulelement' in kwargs else 0].data
+        dat = hdul[options['hdulelement'] if 'hdulelement' in options else 0].data
     # Read a numpy array file
     if filename[filename.rfind('.')+1:].lower() == 'npy':
         dat = np.load(filename)
@@ -579,183 +579,187 @@ def Angle_Scatter(a):
     return iqr(np.angle(1j*i/np.mean(i)),rng = [16,84])
 
 
-def GetKwargs(c):
+def GetOptions(c):
 
-    newkwargs = {}
+    newoptions = {}
 
-    newkwargs['pixscale'] = c.pixscale
-    newkwargs['image_file'] = c.image_file
+    newoptions['pixscale'] = c.pixscale
+    newoptions['image_file'] = c.image_file
     
     try:
-        newkwargs['paperplots'] = c.paperplots
+        newoptions['paperplots'] = c.paperplots
     except:
         pass
     try:
-        newkwargs['saveto'] = c.saveto
-    except:
-        newkwargs['saveto'] = None
-    try:
-        newkwargs['name'] = c.name
-    except:
-        newkwargs['name'] = None
-    try:
-        newkwargs['n_procs'] = c.n_procs
-    except:
-        newkwargs['n_procs'] = 1
-    try:
-        newkwargs['mask_file'] = c.mask_file
-    except:
-        newkwargs['mask_file'] = None
-    try:
-        newkwargs['savemask'] = c.savemask
+        newoptions['saveto'] = c.saveto
     except:
         pass
     try:
-        newkwargs['preprocess_all'] = c.preprocess_all
+        newoptions['name'] = c.name
     except:
         pass
     try:
-        newkwargs['background'] = c.background
+        newoptions['n_procs'] = c.n_procs
+    except:
+        newoptions['n_procs'] = 1
+    try:
+        newoptions['mask_file'] = c.mask_file
     except:
         pass
     try:
-        newkwargs['background_noise'] = c.background_noise
+        newoptions['savemask'] = c.savemask
     except:
         pass
     try:
-        newkwargs['psf_guess'] = c.psf_guess
+        newoptions['preprocess_all'] = c.preprocess_all
     except:
         pass
     try:
-        newkwargs['psf_set'] = c.psf_set
+        newoptions['background'] = c.background
     except:
         pass
     try:
-        newkwargs['autodetectoverflow'] = c.autodetectoverflow
+        newoptions['background_noise'] = c.background_noise
     except:
         pass
     try:
-        newkwargs['overflowval'] = c.overflowval
+        newoptions['psf_guess'] = c.psf_guess
     except:
         pass
     try:
-        newkwargs['forcing_profile'] = c.forcing_profile
+        newoptions['psf_set'] = c.psf_set
     except:
         pass
     try:
-        newkwargs['plotpath'] = c.plotpath
+        newoptions['autodetectoverflow'] = c.autodetectoverflow
     except:
         pass
     try:
-        newkwargs['doplot'] = c.doplot
+        newoptions['overflowval'] = c.overflowval
     except:
         pass
     try:
-        newkwargs['nologo'] = c.nologo
+        newoptions['forcing_profile'] = c.forcing_profile
     except:
         pass
     try:
-        newkwargs['plotdpi'] = c.plotdpi
+        newoptions['plotpath'] = c.plotpath
     except:
         pass
     try:
-        newkwargs['hdulelement'] = c.hdulelement
+        newoptions['doplot'] = c.doplot
     except:
         pass
     try:
-        newkwargs['given_center'] = c.given_center
+        newoptions['nologo'] = c.nologo
     except:
         pass
     try:
-        newkwargs['fit_center'] = c.fit_center
+        newoptions['plotdpi'] = c.plotdpi
     except:
         pass
     try:
-        newkwargs['fit_limit'] = c.fit_limit
+        newoptions['hdulelement'] = c.hdulelement
     except:
         pass
     try:
-        newkwargs['regularize_scale'] = c.regularize_scale
+        newoptions['given_center'] = c.given_center
     except:
         pass
     try:
-        newkwargs['scale'] = c.scale
+        newoptions['fit_center'] = c.fit_center
     except:
         pass
     try:
-        newkwargs['samplegeometricscale'] = c.samplegeometricscale
+        newoptions['fit_limit'] = c.fit_limit
     except:
         pass
     try:
-        newkwargs['samplelinearscale'] = c.samplelinearscale
+        newoptions['regularize_scale'] = c.regularize_scale
     except:
         pass
     try:
-        newkwargs['samplestyle'] = c.samplestyle
+        newoptions['scale'] = c.scale
     except:
         pass
     try:
-        newkwargs['sampleinitR'] = c.sampleinitR
+        newoptions['samplegeometricscale'] = c.samplegeometricscale
     except:
         pass
     try:
-        newkwargs['sampleendR'] = c.sampleendR
+        newoptions['samplelinearscale'] = c.samplelinearscale
     except:
         pass
     try:
-        newkwargs['zeropoint'] = c.zeropoint
+        newoptions['samplestyle'] = c.samplestyle
     except:
         pass
     try:
-        newkwargs['truncate_evaluation'] = c.truncate_evaluation
+        newoptions['sampleinitR'] = c.sampleinitR
     except:
         pass
     try:
-        newkwargs['delimiter'] = c.delimiter
+        newoptions['sampleendR'] = c.sampleendR
     except:
         pass
     try:
-        newkwargs['isoband_width'] = c.isoband_width
+        newoptions['zeropoint'] = c.zeropoint
     except:
         pass
     try:
-        newkwargs['isoband_start'] = c.isoband_start
+        newoptions['truncate_evaluation'] = c.truncate_evaluation
     except:
         pass
     try:
-        newkwargs['iso_interpolate_start'] = c.iso_interpolate_start
+        newoptions['extract_mean'] = c.extract_mean
     except:
         pass
     try:
-        newkwargs['radsample_nwedges'] = c.radsample_nwedges
+        newoptions['delimiter'] = c.delimiter
     except:
         pass
     try:
-        newkwargs['radsample_width'] = c.radsample_width
+        newoptions['isoband_width'] = c.isoband_width
     except:
         pass
     try:
-        newkwargs['radsample_pa'] = c.radsample_pa
+        newoptions['isoband_start'] = c.isoband_start
     except:
         pass
     try:
-        newkwargs['radsample_expwidth'] = c.radsample_expwidth
+        newoptions['iso_interpolate_start'] = c.iso_interpolate_start
     except:
         pass
     try:
-        newkwargs['radsample_variable_pa'] = c.radsample_variable_pa
+        newoptions['radsample_nwedges'] = c.radsample_nwedges
     except:
         pass
     try:
-        newkwargs['orthsample_pa'] = c.orthsample_pa
+        newoptions['radsample_width'] = c.radsample_width
     except:
         pass
     try:
-        newkwargs['orthsample_parallel'] = c.orthsample_parallel
+        newoptions['radsample_pa'] = c.radsample_pa
+    except:
+        pass
+    try:
+        newoptions['radsample_expwidth'] = c.radsample_expwidth
+    except:
+        pass
+    try:
+        newoptions['radsample_variable_pa'] = c.radsample_variable_pa
+    except:
+        pass
+    try:
+        newoptions['orthsample_pa'] = c.orthsample_pa
+    except:
+        pass
+    try:
+        newoptions['orthsample_parallel'] = c.orthsample_parallel
     except:
         pass
         
-    return newkwargs
+    return newoptions
 
 
 

@@ -10,14 +10,14 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import Read_Image
 
-def Overflow_Mask(IMG, results, **kwargs):
+def Overflow_Mask(IMG, results, options):
     """
     Identify parts of the image where the CCD has overflowed and maxed
     out the sensor. These are characterized by large areas with high
     and identical pixel values
     """
     
-    if 'autodetectoverflow' in kwargs and kwargs['autodetectoverflow']:
+    if 'autodetectoverflow' in options and options['autodetectoverflow']:
         # Set the overflowval to the most common pixel value, since overflow
         # pixels all have the same value with no noise.
         overflowval = mode(IMG, axis = None, nan_policy = 'omit')
@@ -25,38 +25,38 @@ def Overflow_Mask(IMG, results, **kwargs):
         # overflowed and the value is just random.
         if np.sum(IMG == overflowval) < 100:
             return IMG, {'mask': np.zeros(IMG.shape,dtype = bool)}
-    if (not 'overflowval' in kwargs) or kwargs['overflowval'] is None:
-        logging.info('%s: not masking overflow %s' % kwargs['name'])
+    if (not 'overflowval' in options) or options['overflowval'] is None:
+        logging.info('%s: not masking overflow %s' % options['name'])
         return IMG, {'mask': np.zeros(IMG.shape)}
 
-    Mask = np.logical_and(IMG > (kwargs['overflowval'] - 1e-3), IMG < (kwargs['overflowval'] + 1e-3)).astype(bool)
+    Mask = np.logical_and(IMG > (options['overflowval'] - 1e-3), IMG < (options['overflowval'] + 1e-3)).astype(bool)
 
     # eliminate places where no data is recorded
     Mask[IMG == 0] = True
-    logging.info('%s: masking %i overflow pixels' % (kwargs['name'], np.sum(Mask)))
+    logging.info('%s: masking %i overflow pixels' % (options['name'], np.sum(Mask)))
     return IMG, {'mask': Mask}
 
-def Mask_Segmentation_Map(IMG, results, **kwargs):
+def Mask_Segmentation_Map(IMG, results, options):
 
-    if kwargs['mask_file'] is None:
+    if options['mask_file'] is None:
         mask = np.zeros(IMG.shape) 
     else:
-        mask = Read_Image(kwargs['mask_file'], **kwargs)
-        if 'preprocess' in kwargs and 'preprocess_all' in kwargs and kwargs['preprocess_all']: 
-            mask = kwargs['preprocess'](mask)
+        mask = Read_Image(options['mask_file'], options)
+        if 'preprocess' in options and 'preprocess_all' in options and options['preprocess_all']: 
+            mask = options['preprocess'](mask)
             
     if 'center' in results:
         if mask[int(results['center']['y']),int(results['center']['x'])] > 1.1:
             mask[mask == mask[int(results['center']['y']),int(results['center']['x'])]] = 0
-    elif 'given_center' in kwargs:
-        if mask[int(kwargs['given_center']['y']),int(kwargs['given_center']['x'])] > 1.1:
-            mask[mask == mask[int(kwargs['given_center']['y']),int(kwargs['given_center']['x'])]] = 0
+    elif 'given_center' in options:
+        if mask[int(options['given_center']['y']),int(options['given_center']['x'])] > 1.1:
+            mask[mask == mask[int(options['given_center']['y']),int(options['given_center']['x'])]] = 0
     elif mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)] > 1.1:
         mask[mask == mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)]] = 0
 
     return IMG, {'mask': mask.astype(bool)}
 
-def Star_Mask_IRAF(IMG, results, **kwargs):
+def Star_Mask_IRAF(IMG, results, options):
     """
     Idenitfy the location of stars in the image and create a mask around
     each star of pixels to be avoided in further processing.
@@ -92,14 +92,14 @@ def Star_Mask_IRAF(IMG, results, **kwargs):
             mask[R < Rstar] = True 
 
     # Include user defined mask if any
-    if 'mask_file' in kwargs and not kwargs['mask_file'] is None:
-        mask  = np.logical_or(mask, Read_Image(mask_file, **kwargs))
+    if 'mask_file' in options and not options['mask_file'] is None:
+        mask  = np.logical_or(mask, Read_Image(mask_file, options))
         
     # Run separate code to find overflow pixels from very bright stars
-    overflow_mask = Overflow_Mask(IMG, results, **kwargs)[1]['mask']
+    overflow_mask = Overflow_Mask(IMG, results, options)[1]['mask']
     
     # Plot star mask for diagnostic purposes
-    if 'doplot' in kwargs and kwargs['doplot']:
+    if 'doplot' in options and options['doplot']:
         plt.imshow(np.clip(IMG[max(0,int(use_center['y']-smaj*1.2)): min(IMG.shape[0],int(use_center['y']+smaj*1.2)),
                                max(0,int(use_center['x']-smaj*1.2)): min(IMG.shape[1],int(use_center['x']+smaj*1.2))],
                            a_min = 0, a_max = None), origin = 'lower',
@@ -108,7 +108,7 @@ def Star_Mask_IRAF(IMG, results, **kwargs):
                                                                max(0,int(use_center['x']-smaj*1.2)): min(IMG.shape[1],int(use_center['x']+smaj*1.2))]
         dat[dat == 0] = np.nan
         plt.imshow(dat, origin = 'lower', cmap = 'Reds_r', alpha = 0.7)
-        plt.savefig('%sMask_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']))
+        plt.savefig('%sMask_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']))
         plt.close()
     
     return IMG, {'mask': np.logical_or(mask, overflow_mask)}

@@ -7,7 +7,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa
 
-def Check_Fit(IMG, results, **kwargs):
+def Check_Fit(IMG, results, options):
     """
     Check for failed fit with various measures.
     1) compare iqr of isophotes with that of a simple global fit
@@ -44,22 +44,22 @@ def Check_Fit(IMG, results, **kwargs):
     f1_compare = np.array(f1_compare)
     f2_compare = np.array(f2_compare)
     if count_variable > (0.2*len(results['fit R'])):
-        logging.warning('%s: Possible failed fit! flux values highly variable along isophotes' % kwargs['name'])
+        logging.warning('%s: Possible failed fit! flux values highly variable along isophotes' % options['name'])
         tests['isophote variability'] = False
     else:
         tests['isophote variability'] = True
     if count_initrelative > (0.5*len(results['fit R'])):
-        logging.warning('%s: Possible failed fit! flux values highly variable relative to initialization' % kwargs['name'])
+        logging.warning('%s: Possible failed fit! flux values highly variable relative to initialization' % options['name'])
         tests['initial fit compare'] = False
     else:
         tests['initial fit compare'] = True
     if np.sum(f2_compare > 0.3) > 2 or np.sum(f2_compare > 0.2) > (0.3*len(results['fit R'])) or np.sum(f2_compare > 0.1) > (0.8*len(results['fit R'])):
-        logging.warning('%s: Possible failed fit! poor convergence of FFT coefficients' % kwargs['name'])
+        logging.warning('%s: Possible failed fit! poor convergence of FFT coefficients' % options['name'])
         tests['FFT coefficients'] = False
     else:
         tests['FFT coefficients'] = True
     if np.sum(f1_compare > 0.3) > 2 or np.sum(f1_compare > 0.2) > (0.3*len(results['fit R'])) or np.sum(f1_compare > 0.1) > (0.8*len(results['fit R'])):
-        logging.warning('%s: Possible failed fit! possible failed center or lopsided galaxy' % kwargs['name'])
+        logging.warning('%s: Possible failed fit! possible failed center or lopsided galaxy' % options['name'])
         tests['Light symmetry'] = False
     else:
         tests['Light symmetry'] = True
@@ -72,7 +72,7 @@ def Check_Fit(IMG, results, **kwargs):
         Msum = np.array(results['prof data']['totmag_direct'])
         CHOOSE = np.logical_and(SB < 99, SBe < 0.1)
         if np.sum(np.abs(Mint[CHOOSE][-4:] - Msum[CHOOSE][-4:]) > 0.2) > 2:
-            logging.warning('%s: Possible failed fit! Inconsistent results for curve of growth, bad fit or foreground star' % kwargs['name'])
+            logging.warning('%s: Possible failed fit! Inconsistent results for curve of growth, bad fit or foreground star' % options['name'])
             tests['curve of growth consistency'] = False
         else:
             tests['curve of growth consistency'] = True

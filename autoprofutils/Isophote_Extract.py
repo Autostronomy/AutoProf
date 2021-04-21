@@ -16,7 +16,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo
 
-def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
+def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     
     # Create image array with background and mask applied
     try:
@@ -27,7 +27,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
     except:
         mask = None
     dat = IMG - results['background']
-    zeropoint = kwargs['zeropoint'] if 'zeropoint' in kwargs else 22.5
+    zeropoint = options['zeropoint'] if 'zeropoint' in options else 22.5
 
     sb = []
     sbE = []
@@ -39,32 +39,32 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
     medflux = np.inf
     end_prof = None
     for i in range(len(R)):
-        isobandwidth = R[i]*(kwargs['isoband_width'] if 'isoband_width' in kwargs else 0.025)
-        if medflux > (results['background noise']*(kwargs['isoband_start'] if 'isoband_start' in kwargs else 2)) or isobandwidth < 0.5:
-            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, rad_interp = (kwargs['iso_interpolate_start'] if 'iso_interpolate_start' in kwargs else 5)*results['psf fwhm'])
-            isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'], mask = mask, rad_interp = (kwargs['iso_interpolate_start'] if 'iso_interpolate_start' in kwargs else 5)*results['psf fwhm'])
+        isobandwidth = R[i]*(options['isoband_width'] if 'isoband_width' in options else 0.025)
+        if medflux > (results['background noise']*(options['isoband_start'] if 'isoband_start' in options else 2)) or isobandwidth < 0.5:
+            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, rad_interp = (options['iso_interpolate_start'] if 'iso_interpolate_start' in options else 5)*results['psf fwhm'])
+            isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'], mask = mask, rad_interp = (options['iso_interpolate_start'] if 'iso_interpolate_start' in options else 5)*results['psf fwhm'])
         else:
             isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'], mask = mask)
             isovalsfix = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, results['init ellip'], results['init pa'], results['center'], mask = mask)
         isotot = np.sum(_iso_between(dat, 0, R[i], E[i], PA[i], results['center'], mask = mask))
         medflux = np.median(isovals)
         medfluxfix = np.median(isovalsfix)
-        sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(kwargs['pixscale'])) if medflux > 0 else 99.999)
+        sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(options['pixscale'])) if medflux > 0 else 99.999)
         sbE.append((2.5*iqr(isovals, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
-        sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(kwargs['pixscale'])) if medfluxfix > 0 else 99.999)
+        sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(options['pixscale'])) if medfluxfix > 0 else 99.999)
         sbfixE.append((2.5*iqr(isovalsfix, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovalsfix))*np.median(isovalsfix)*np.log(10))) if medfluxfix > 0 else 99.999)
         cogdirect.append(-2.5*np.log10(isotot) + zeropoint if isotot > 0 else 99.999)
         if medflux <= 0:
             count_neg += 1
-        if 'truncate_evaluation' in kwargs and kwargs['truncate_evaluation'] and count_neg >= 2:
+        if 'truncate_evaluation' in options and options['truncate_evaluation'] and count_neg >= 2:
             end_prof = i+1
             break
         
     # Compute Curve of Growth from SB profile
-    cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* kwargs['pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
+    cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* options['pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
                                         Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
     cogE[cog > 99] = 99.999
-    cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * kwargs['pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
+    cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * options['pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
                                               Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
     cogfixE[cogfix > 99] = 99.999
     
@@ -79,7 +79,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f',
                      'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
     
-    SBprof_data['R'] = list(R[:end_prof] * kwargs['pixscale'])
+    SBprof_data['R'] = list(R[:end_prof] * options['pixscale'])
     SBprof_data['SB'] = list(sb)
     SBprof_data['SB_e'] = list(sbE)
     SBprof_data['totmag'] = list(cog)
@@ -94,11 +94,11 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
     SBprof_data['totmag_fix'] = list(cogfix)
     SBprof_data['totmag_fix_e'] = list(cogfixE)
 
-    if 'doplot' in kwargs and kwargs['doplot']:
+    if 'doplot' in options and options['doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
         errscale = 1.
-        if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.8):
-            errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
+        # if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.8):
+        #     errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
         plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
                      elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale)
         plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
@@ -109,17 +109,17 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
         #              elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
         plt.xlabel('Semi-Major-Axis [arcsec]')
         plt.ylabel('Surface Brightness [mag/arcsec$^2$]')
-        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(kwargs['pixscale']**2)
+        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['pixscale']**2)
         plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
         plt.gca().invert_yaxis()
         plt.legend(fontsize = 10)
         plt.tight_layout()
-        if not ('nologo' in kwargs and kwargs['nologo']):
+        if not ('nologo' in options and options['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sphotometry_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()                
 
-        useR = np.array(SBprof_data['R'])[CHOOSE]/kwargs['pixscale']
+        useR = np.array(SBprof_data['R'])[CHOOSE]/options['pixscale']
         useE = np.array(SBprof_data['ellip'])[CHOOSE]
         usePA = np.array(SBprof_data['pa'])[CHOOSE]
         ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
@@ -129,16 +129,135 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs):
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
                                         usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < results['fit R'][-1] else '--'))
         plt.tight_layout()
-        if not ('nologo' in kwargs and kwargs['nologo']):
+        if not ('nologo' in options and options['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_ellipse_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()
-
         
     return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
-    
 
-def Isophote_Extract_Forced(IMG, results, **kwargs):
+def _Generate_Profile_mean(IMG, results, R, E, Ee, PA, PAe, options):
+    
+    # Create image array with background and mask applied
+    try:
+        if np.any(results['mask']):
+            mask = results['mask']
+        else:
+            mask = None
+    except:
+        mask = None
+    dat = IMG - results['background']
+    zeropoint = options['zeropoint'] if 'zeropoint' in options else 22.5
+
+    sb = []
+    sbE = []
+    cogdirect = []
+    sbfix = []
+    sbfixE = []
+
+    count_neg = 0
+    medflux = np.inf
+    end_prof = None
+    for i in range(len(R)):
+        isobandwidth = R[i]*(options['isoband_width'] if 'isoband_width' in options else 0.025)
+        if medflux > (results['background noise']*(options['isoband_start'] if 'isoband_start' in options else 2)) or isobandwidth < 0.5:
+            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, rad_interp = (options['iso_interpolate_start'] if 'iso_interpolate_start' in options else 5)*results['psf fwhm'])
+            isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'], mask = mask, rad_interp = (options['iso_interpolate_start'] if 'iso_interpolate_start' in options else 5)*results['psf fwhm'])
+        else:
+            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'], mask = mask)
+            isovalsfix = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, results['init ellip'], results['init pa'], results['center'], mask = mask)
+        isotot = np.sum(_iso_between(dat, 0, R[i], E[i], PA[i], results['center'], mask = mask))
+        medflux = np.mean(isovals)
+        medfluxfix = np.mean(isovalsfix)
+        sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(options['pixscale'])) if medflux > 0 else 99.999)
+        sbE.append((2.5*np.std(isovals) / (np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
+        sbfix.append((-2.5*np.log10(medfluxfix) + zeropoint + 5*np.log10(options['pixscale'])) if medfluxfix > 0 else 99.999)
+        sbfixE.append((2.5*np.std(isovalsfix) / (np.sqrt(len(isovalsfix))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
+        cogdirect.append(-2.5*np.log10(isotot) + zeropoint if isotot > 0 else 99.999)
+        if medflux <= 0:
+            count_neg += 1
+        if 'truncate_evaluation' in options and options['truncate_evaluation'] and count_neg >= 2:
+            end_prof = i+1
+            break
+        
+    # Compute Curve of Growth from SB profile
+    cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* options['pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
+                                        Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
+    cogE[cog > 99] = 99.999
+    cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * options['pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
+                                              Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
+    cogfixE[cogfix > 99] = 99.999
+    
+    # For each radius evaluation, write the profile parameters
+    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
+        
+    SBprof_data = dict((h,None) for h in params)
+    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
+                    'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'totmag_direct': 'mag',
+                    'SB_fix': 'mag*arcsec^-2', 'SB_fix_e': 'mag*arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
+    SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
+                    'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f',
+                     'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
+    
+    SBprof_data['R'] = list(R[:end_prof] * options['pixscale'])
+    SBprof_data['SB'] = list(sb)
+    SBprof_data['SB_e'] = list(sbE)
+    SBprof_data['totmag'] = list(cog)
+    SBprof_data['totmag_e'] = list(cogE)
+    SBprof_data['ellip'] = list(E[:end_prof])
+    SBprof_data['ellip_e'] = list(Ee[:end_prof])
+    SBprof_data['pa'] = list(PA[:end_prof]*180/np.pi)
+    SBprof_data['pa_e'] = list(PAe[:end_prof]*180/np.pi)
+    SBprof_data['totmag_direct'] = list(cogdirect)
+    SBprof_data['SB_fix'] = list(sbfix)
+    SBprof_data['SB_fix_e'] = list(sbfixE)
+    SBprof_data['totmag_fix'] = list(cogfix)
+    SBprof_data['totmag_fix_e'] = list(cogfixE)
+
+    if 'doplot' in options and options['doplot']:
+        CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
+        errscale = 1.
+        # if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.8):
+        #     errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
+        plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale)
+        plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     np.array(SBprof_data['SB'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     yerr = np.array(SBprof_data['SB_e'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'limegreen')
+        # plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
+        #              elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
+        plt.xlabel('Semi-Major-Axis [arcsec]')
+        plt.ylabel('Surface Brightness [mag/arcsec$^2$]')
+        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['pixscale']**2)
+        plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
+        plt.gca().invert_yaxis()
+        plt.legend(fontsize = 10)
+        plt.tight_layout()
+        if not ('nologo' in options and options['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphotometry_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
+        plt.close()                
+
+        useR = np.array(SBprof_data['R'])[CHOOSE]/options['pixscale']
+        useE = np.array(SBprof_data['ellip'])[CHOOSE]
+        usePA = np.array(SBprof_data['pa'])[CHOOSE]
+        ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
+                  [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        for i in range(len(useR)):
+            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
+                                        usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < results['fit R'][-1] else '--'))
+        plt.tight_layout()
+        if not ('nologo' in options and options['nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
+        plt.close()
+        
+    return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
+
+
+def Isophote_Extract_Forced(IMG, results, options):
     """
     Run isophote data extraction given exact specification for pa and ellip profiles.
     """
@@ -148,11 +267,14 @@ def Isophote_Extract_Forced(IMG, results, **kwargs):
     else:
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
-        
-    return IMG, _Generate_Profile(IMG, results, np.array(results['fit R']), np.array(results['fit ellip']), Ee, np.array(results['fit pa']), PAe, **kwargs)
+
+    if 'extract_mean' in options and options['extract_mean']:
+        return IMG, _Generate_Profile_mean(IMG, results, np.array(results['fit R']), np.array(results['fit ellip']), Ee, np.array(results['fit pa']), PAe, options)
+    else:
+        return IMG, _Generate_Profile(IMG, results, np.array(results['fit R']), np.array(results['fit ellip']), Ee, np.array(results['fit pa']), PAe, options)
     
     
-def Isophote_Extract(IMG, results, **kwargs):
+def Isophote_Extract(IMG, results, options):
     """
     Extract isophotes given output profile from Isophotes_Simultaneous_Fit which
     parametrizes pa and ellipticity via functions which map all the reals to the
@@ -165,19 +287,19 @@ def Isophote_Extract(IMG, results, **kwargs):
     use_center = results['center']
         
     # Radius values to evaluate isophotes
-    R = [kwargs['sampleinitR'] if 'sampleinitR' in kwargs else min(1.,results['psf fwhm']/2)]
-    while (((R[-1] < kwargs['sampleendR'] if 'sampleendR' in kwargs else True) and R[-1] < 3*results['fit R'][-1]) or (kwargs['extractfull'] if 'extractfull' in kwargs else False)) and R[-1] < max(IMG.shape)/np.sqrt(2):
-        if 'samplestyle' in kwargs and kwargs['samplestyle'] == 'geometric-linear':
-            if len(R) > 1 and abs(R[-1] - R[-2]) >= (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 3*results['psf fwhm']):
-                R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else results['psf fwhm']))
+    R = [options['sampleinitR'] if 'sampleinitR' in options else min(1.,results['psf fwhm']/2)]
+    while (((R[-1] < options['sampleendR'] if 'sampleendR' in options else True) and R[-1] < 3*results['fit R'][-1]) or (options['extractfull'] if 'extractfull' in options else False)) and R[-1] < max(IMG.shape)/np.sqrt(2):
+        if 'samplestyle' in options and options['samplestyle'] == 'geometric-linear':
+            if len(R) > 1 and abs(R[-1] - R[-2]) >= (options['samplelinearscale'] if 'samplelinearscale' in options else 3*results['psf fwhm']):
+                R.append(R[-1] + (options['samplelinearscale'] if 'samplelinearscale' in options else results['psf fwhm']))
             else:
-                R.append(R[-1]*(1. + (kwargs['samplegeometricscale'] if 'samplegeometricscale' in kwargs else 0.1)))
-        elif 'samplestyle' in kwargs and kwargs['samplestyle'] == 'linear':
-            R.append(R[-1] + (kwargs['samplelinearscale'] if 'samplelinearscale' in kwargs else 0.5*results['psf fwhm']))
+                R.append(R[-1]*(1. + (options['samplegeometricscale'] if 'samplegeometricscale' in options else 0.1)))
+        elif 'samplestyle' in options and options['samplestyle'] == 'linear':
+            R.append(R[-1] + (options['samplelinearscale'] if 'samplelinearscale' in options else 0.5*results['psf fwhm']))
         else:
-            R.append(R[-1]*(1. + (kwargs['samplegeometricscale'] if 'samplegeometricscale' in kwargs else 0.1)))
+            R.append(R[-1]*(1. + (options['samplegeometricscale'] if 'samplegeometricscale' in options else 0.1)))
     R = np.array(R)
-    logging.info('%s: R complete in range [%.1f,%.1f]' % (kwargs['name'],R[0],R[-1]))
+    logging.info('%s: R complete in range [%.1f,%.1f]' % (options['name'],R[0],R[-1]))
     
     # Interpolate profile values, when extrapolating just take last point
     E = _x_to_eps(np.interp(R, results['fit R'], _inv_x_to_eps(results['fit ellip'])))
@@ -202,4 +324,7 @@ def Isophote_Extract(IMG, results, **kwargs):
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
     
-    return IMG, _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, **kwargs)
+    if 'extract_mean' in options and options['extract_mean']:
+        return IMG, _Generate_Profile_mean(IMG, results, R, E, Ee, PA, PAe, options)
+    else:
+        return IMG, _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options)

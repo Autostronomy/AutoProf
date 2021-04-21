@@ -12,17 +12,17 @@ import matplotlib.pyplot as plt
 import logging
 from copy import copy, deepcopy
 
-def Center_Forced(IMG, results, **kwargs):
+def Center_Forced(IMG, results, options):
     """
     Takes the center from an aux file, or given value.
     """
     center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in kwargs:
-        return IMG, {'center': deepcopy(kwargs['given_center'])}
-    if 'fit_center' in kwargs and not kwargs['fit_center']:
+    if 'given_center' in options:
+        return IMG, {'center': deepcopy(options['given_center'])}
+    if 'fit_center' in options and not options['fit_center']:
         return IMG, {'center': current_center}
     
-    with open(kwargs['forcing_profile'][:-4] + 'aux', 'r') as f:
+    with open(options['forcing_profile'][:-4] + 'aux', 'r') as f:
         for line in f.readlines():
             if line[:6] == 'center':
                 x_loc = line.find('x:')
@@ -34,19 +34,19 @@ def Center_Forced(IMG, results, **kwargs):
                 except:
                     pass
         else:
-            logging.warning('%s: Forced center failed! Using image center.' % kwargs['name'])
+            logging.warning('%s: Forced center failed! Using image center.' % options['name'])
     return IMG, {'center': current_center}
     
-def Center_2DGaussian(IMG, results, **kwargs):
+def Center_2DGaussian(IMG, results, options):
     """
     Compute the pixel location of the galaxy center by fitting
     a 2d Gaussian as implimented by the photutils package.
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in kwargs:
-        current_center = deepcopy(kwargs['given_center'])
-    if 'fit_center' in kwargs and not kwargs['fit_center']:
+    if 'given_center' in options:
+        current_center = deepcopy(options['given_center'])
+    if 'fit_center' in options and not options['fit_center']:
         return IMG, {'center': current_center}
     
     # Create mask to focus centering algorithm on the center of the image
@@ -59,16 +59,16 @@ def Center_2DGaussian(IMG, results, **kwargs):
     x, y = centroid_2dg(IMG - results['background'], mask = centralize_mask)
 
     # Plot center value for diagnostic purposes
-    if 'doplot' in kwargs and kwargs['doplot']:    
+    if 'doplot' in options and options['doplot']:    
         plt.imshow(np.clip(IMG - results['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']))
+        plt.savefig('%scenter_vis_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']))
         plt.close()
-    logging.info('%s Center found: x %.1f, y %.1f' % (kwargs['name'], x, y))    
+    logging.info('%s Center found: x %.1f, y %.1f' % (options['name'], x, y))    
     return IMG, {'center': {'x': x, 'y': y}}
 
-def Center_1DGaussian(IMG, results, **kwargs):
+def Center_1DGaussian(IMG, results, options):
     """
     Compute the pixel location of the galaxy center using a photutils method.
     Looking at 100 seeing lengths around the center of the image (images
@@ -77,9 +77,9 @@ def Center_1DGaussian(IMG, results, **kwargs):
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in kwargs:
-        current_center = deepcopy(kwargs['given_center'])
-    if 'fit_center' in kwargs and not kwargs['fit_center']:
+    if 'given_center' in options:
+        current_center = deepcopy(options['given_center'])
+    if 'fit_center' in options and not options['fit_center']:
         return IMG, {'center': current_center}
     
     # Create mask to focus centering algorithm on the center of the image
@@ -93,16 +93,16 @@ def Center_1DGaussian(IMG, results, **kwargs):
                         mask = centralize_mask) 
     
     # Plot center value for diagnostic purposes
-    if 'doplot' in kwargs and kwargs['doplot']:    
+    if 'doplot' in options and options['doplot']:    
         plt.imshow(np.clip(IMG - results['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']))
+        plt.savefig('%scenter_vis_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']))
         plt.close()
-    logging.info('%s Center found: x %.1f, y %.1f' % (kwargs['name'], x, y))    
+    logging.info('%s Center found: x %.1f, y %.1f' % (options['name'], x, y))    
     return IMG, {'center': {'x': x, 'y': y}}
 
-def Center_OfMass(IMG, results, **kwargs):
+def Center_OfMass(IMG, results, options):
     """
     Compute the pixel location of the galaxy center using a light weighted
     center of mass. Looking at 50 seeing lengths around the center of the
@@ -111,9 +111,9 @@ def Center_OfMass(IMG, results, **kwargs):
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in kwargs:
-        current_center = kwargs['given_center']
-    if 'fit_center' in kwargs and not kwargs['fit_center']:
+    if 'given_center' in options:
+        current_center = options['given_center']
+    if 'fit_center' in options and not options['fit_center']:
         return IMG, {'center': current_center}
     
     # Create mask to focus centering algorithm on the center of the image
@@ -127,13 +127,13 @@ def Center_OfMass(IMG, results, **kwargs):
                         mask = centralize_mask) # np.logical_or(mask['mask'], centralize_mask)
     
     # Plot center value for diagnostic purposes
-    if 'doplot' in kwargs and kwargs['doplot']:    
+    if 'doplot' in options and options['doplot']:    
         plt.imshow(np.clip(IMG - results['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']))
+        plt.savefig('%scenter_vis_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']))
         plt.close()
-    logging.info('%s Center found: x %.1f, y %.1f' % (kwargs['name'], x, y))    
+    logging.info('%s Center found: x %.1f, y %.1f' % (options['name'], x, y))    
     return IMG, {'center': {'x': x, 'y': y}}
 
 def _hillclimb_loss(x, IMG, PSF):
@@ -145,7 +145,7 @@ def _hillclimb_loss(x, IMG, PSF):
         center_loss += np.abs(coefs[1])/np.median(isovals)
     return center_loss
 
-def Center_HillClimb(IMG, results, **kwargs):
+def Center_HillClimb(IMG, results, options):
     """
     Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
     phases are averaged to find the direction of increasing flux. Flux values are sampled
@@ -153,11 +153,11 @@ def Center_HillClimb(IMG, results, **kwargs):
     repeated until the step size becomes very small.
     """
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in kwargs:
-        current_center = kwargs['given_center']
-        logging.info('%s: Center initialized by user: %s' % (kwargs['name'], str(current_center)))
-    if 'fit_center' in kwargs and not kwargs['fit_center']:
-        logging.info('%s: Center set by user: %s' % (kwargs['name'], str(current_center)))
+    if 'given_center' in options:
+        current_center = options['given_center']
+        logging.info('%s: Center initialized by user: %s' % (options['name'], str(current_center)))
+    if 'fit_center' in options and not options['fit_center']:
+        logging.info('%s: Center set by user: %s' % (options['name'], str(current_center)))
         return IMG, {'center': current_center}
 
     dat = IMG - results['background']
@@ -213,7 +213,7 @@ def Center_HillClimb(IMG, results, **kwargs):
         current_center['y'] = res.x[1]
 
     # paper plot
-    if 'paperplots' in kwargs and kwargs['paperplots']:    
+    if 'paperplots' in options and options['paperplots']:    
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
         for i in range(3):
@@ -221,9 +221,9 @@ def Center_HillClimb(IMG, results, **kwargs):
                                         2*((i+0.5)*results['psf fwhm']),
                                         0, fill = False, linewidth = 0.5, color = 'y'))
         plt.tight_layout()
-        if not ('nologo' in kwargs and kwargs['nologo']):
+        if not ('nologo' in options and options['nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%stest_center_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%stest_center_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
         plt.close()
 
         xwidth = 2*max(np.abs(track_centers[:,0] - current_center['x']))
@@ -252,7 +252,86 @@ def Center_HillClimb(IMG, results, **kwargs):
         axarr[1].set_ylim(np.array(ranges[1])-1)        
         axarr[1].set_xticks([])
         axarr[1].set_yticks([])
-        plt.savefig('%sCenter_path_%s.jpg' % (kwargs['plotpath'] if 'plotpath' in kwargs else '', kwargs['name']), dpi = kwargs['plotdpi'] if 'plotdpi'in kwargs else 300)
+        plt.savefig('%sCenter_path_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi' in options else 300)
         plt.close()
+        
+    return IMG, {'center': current_center}
+
+
+def _hillclimb_mean_loss(x, IMG, PSF):
+    center_loss = 0
+    for rr in range(3):
+        isovals = _iso_extract(IMG,(rr+0.5)*PSF,0.,
+                               0.,{'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
+        coefs = fft(isovals)
+        center_loss += np.abs(coefs[1])/np.mean(isovals) # fixme *len + noise
+    return center_loss
+
+def Center_HillClimb_mean(IMG, results, options):
+    """
+    Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
+    phases are averaged to find the direction of increasing flux. Flux values are sampled
+    along this direction and a quadratic fit gives the maximum. This is iteratively
+    repeated until the step size becomes very small.
+    """
+    current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
+    if 'given_center' in options:
+        current_center = options['given_center']
+        logging.info('%s: Center initialized by user: %s' % (options['name'], str(current_center)))
+    if 'fit_center' in options and not options['fit_center']:
+        logging.info('%s: Center set by user: %s' % (options['name'], str(current_center)))
+        return IMG, {'center': current_center}
+
+    dat = IMG - results['background']
+
+    sampleradii = np.linspace(1,10,10) * results['psf fwhm']
+
+    track_centers = []
+    small_update_count = 0
+    total_count = 0
+    while small_update_count <= 5 and total_count <= 100:
+        total_count += 1
+        phases = []
+        isovals = []
+        coefs = []
+        for r in sampleradii:
+            isovals.append(_iso_extract(dat,r,0.,0.,current_center, more = True))
+            coefs.append(fft(isovals[-1][0]))
+            phases.append((-np.angle(coefs[-1][1])) % (2*np.pi))
+        complexphase = np.array(np.cos(phases) + np.sin(phases)*1j,dtype = np.complex_)
+        direction = np.angle(np.mean(complexphase)) % (2*np.pi)  # fixme angle average
+        levels = []
+        level_locs = []
+        for i, r in enumerate(sampleradii):
+            floc = np.argmin(np.abs(isovals[i][1] - direction))
+            rloc = np.argmin(np.abs(isovals[i][1] - ((direction+np.pi) % (2*np.pi))))
+            smooth = np.abs(ifft(coefs[i][:min(10,len(coefs[i]))],n = len(coefs[i])))
+            if smooth[floc] > (3*results['background noise']):
+                levels.append(smooth[floc])
+                level_locs.append(r)
+            if smooth[rloc] > (3*results['background noise']):
+                levels.insert(0,smooth[rloc])
+                level_locs.insert(0,-r)
+        try:
+            p = np.polyfit(level_locs, levels, deg = 2)
+            if p[0] < 0 and len(levels) > 3:
+                dist = np.clip(-p[1]/(2*p[0]), a_min = min(level_locs), a_max = max(level_locs))
+            else:
+                dist = level_locs[np.argmax(levels)]
+        except:
+            dist = 1.
+        current_center['x'] += dist*np.cos(direction)
+        current_center['y'] += dist*np.sin(direction)
+        if abs(dist) < (0.25*results['psf fwhm']):
+            small_update_count += 1
+        else:
+            small_update_count = 0
+        track_centers.append([current_center['x'], current_center['y']])
+
+    # refine center
+    res = minimize(_hillclimb_loss, x0 =  [current_center['x'], current_center['y']], args = (dat, results['psf fwhm']), method = 'Nelder-Mead')
+    if res.success:
+        current_center['x'] = res.x[0]
+        current_center['y'] = res.x[1]
         
     return IMG, {'center': current_center}
