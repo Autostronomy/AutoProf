@@ -136,13 +136,13 @@ def Center_OfMass(IMG, results, options):
     logging.info('%s Center found: x %.1f, y %.1f' % (options['name'], x, y))    
     return IMG, {'center': {'x': x, 'y': y}}
 
-def _hillclimb_loss(x, IMG, PSF):
+def _hillclimb_loss(x, IMG, PSF, noise):
     center_loss = 0
     for rr in range(3):
         isovals = _iso_extract(IMG,(rr+0.5)*PSF,0.,
                                0.,{'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
         coefs = fft(isovals)
-        center_loss += np.abs(coefs[1])/np.median(isovals)
+        center_loss += np.abs(coefs[1])/(len(isovals)*(max(0,np.median(isovals)) + noise))
     return center_loss
 
 def Center_HillClimb(IMG, results, options):
@@ -207,7 +207,7 @@ def Center_HillClimb(IMG, results, options):
         track_centers.append([current_center['x'], current_center['y']])
 
     # refine center
-    res = minimize(_hillclimb_loss, x0 =  [current_center['x'], current_center['y']], args = (dat, results['psf fwhm']), method = 'Nelder-Mead')
+    res = minimize(_hillclimb_loss, x0 =  [current_center['x'], current_center['y']], args = (dat, results['psf fwhm'], results['background noise']), method = 'Nelder-Mead')
     if res.success:
         current_center['x'] = res.x[0]
         current_center['y'] = res.x[1]
@@ -258,13 +258,13 @@ def Center_HillClimb(IMG, results, options):
     return IMG, {'center': current_center}
 
 
-def _hillclimb_mean_loss(x, IMG, PSF):
+def _hillclimb_mean_loss(x, IMG, PSF, noise):
     center_loss = 0
     for rr in range(3):
         isovals = _iso_extract(IMG,(rr+0.5)*PSF,0.,
                                0.,{'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
         coefs = fft(isovals)
-        center_loss += np.abs(coefs[1])/np.mean(isovals) # fixme *len + noise
+        center_loss += np.abs(coefs[1])/(len(isovals)*(max(0,np.mean(isovals))+noise)) 
     return center_loss
 
 def Center_HillClimb_mean(IMG, results, options):
@@ -329,7 +329,7 @@ def Center_HillClimb_mean(IMG, results, options):
         track_centers.append([current_center['x'], current_center['y']])
 
     # refine center
-    res = minimize(_hillclimb_loss, x0 =  [current_center['x'], current_center['y']], args = (dat, results['psf fwhm']), method = 'Nelder-Mead')
+    res = minimize(_hillclimb_loss, x0 =  [current_center['x'], current_center['y']], args = (dat, results['psf fwhm'], results['background noise']), method = 'Nelder-Mead')
     if res.success:
         current_center['x'] = res.x[0]
         current_center['y'] = res.x[1]

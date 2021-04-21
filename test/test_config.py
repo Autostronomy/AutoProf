@@ -6,11 +6,9 @@ pixscale = 0.262
 name = 'testimage'
 doplot = True
 overflowval = 10.
-#fit_limit = 0.1
 isoband_width = 0.05
 samplegeometricscale = 0.05
 truncate_evaluation = True
 new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',                                                                                 
                       'isophotefit', 'isophoteextract', 'checkfit',
                       'ellipsemodel', 'orthsample', 'radsample', 'writeprof']
-

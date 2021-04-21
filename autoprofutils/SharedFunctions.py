@@ -611,10 +611,6 @@ def GetOptions(c):
     except:
         pass
     try:
-        newoptions['preprocess_all'] = c.preprocess_all
-    except:
-        pass
-    try:
         newoptions['background'] = c.background
     except:
         pass

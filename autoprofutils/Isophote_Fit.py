@@ -249,9 +249,6 @@ def Isophote_Fit_Forced(IMG, results, options):
                 
     if 'doplot' in options and options['doplot']:
         dat = IMG - results['background']
-        logging.info(results['center'])
-        logging.info(force.keys())
-        logging.info(force['R'])
         ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/options['pixscale'])*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/options['pixscale'])*1.2))],
                   [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/options['pixscale'])*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/options['pixscale'])*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
