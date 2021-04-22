@@ -1,7 +1,0 @@
-
-process_mode = 'image'
-
-pixscale = # Pixel scale in arcsec/pixel
-image_file = # Path to galaxy image file
-name = 'testimage'
-doplot = True

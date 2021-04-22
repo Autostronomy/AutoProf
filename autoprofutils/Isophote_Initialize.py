@@ -43,7 +43,7 @@ def Isophote_Initialize(IMG, results, options):
         # Stop when at 3 time background noise
         if np.quantile(isovals[0], 0.8) < (3*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
             break
-    logging.info('%s: init scale: %f pix' % (options['name'], circ_ellipse_radii[-1]))
+    logging.info('%s: init scale: %f pix' % (options['ap_name'], circ_ellipse_radii[-1]))
     # Find global position angle.
     phase = (-Angle_Median(np.angle(allphase[-5:]))/2) % np.pi #(-np.angle(np.mean(allphase[-5:]))/2) % np.pi
 
@@ -58,7 +58,7 @@ def Isophote_Initialize(IMG, results, options):
                                                       phase, results['center'],results['background noise']),
                    method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]})
     if res.success:
-        logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (options['name'], _x_to_eps(res.x[0]), ellip))
+        logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (options['ap_name'], _x_to_eps(res.x[0]), ellip))
         ellip = _x_to_eps(res.x[0])
 
     # Compute the error on the parameters
@@ -78,7 +78,7 @@ def Isophote_Initialize(IMG, results, options):
         
     circ_ellipse_radii = np.array(circ_ellipse_radii)
     
-    if 'doplot' in options and options['doplot']:
+    if 'ap_doplot' in options and options['ap_doplot']:
 
         ranges = [[max(0,int(results['center']['x']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[1],int(results['center']['x']+circ_ellipse_radii[-1]*1.5))],
                   [max(0,int(results['center']['y']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[0],int(results['center']['y']+circ_ellipse_radii[-1]*1.5))]]
@@ -90,9 +90,9 @@ def Isophote_Initialize(IMG, results, options):
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = 'r')
         plt.tight_layout()
-        if not ('nologo' in options and options['nologo']):
+        if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi' in options else 300)
+        plt.savefig('%sinitialize_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
 
         fig, ax = plt.subplots(2,1, figsize = (6,6))
@@ -110,9 +110,9 @@ def Isophote_Initialize(IMG, results, options):
         ax[1].set_xlabel('Ellipticity [1 - b/a]')
         ax[1].set_ylabel('Loss [FFT$_{2}$/med(flux)]')
         plt.tight_layout()
-        if not ('nologo' in options and options['nologo']):
+        if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi' in options else 300)
+        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
         
     return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}
@@ -147,7 +147,7 @@ def Isophote_Initialize_mean(IMG, results, options):
         # Stop when at 3 time background noise
         if np.mean(isovals[0]) < (3*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
             break
-    logging.info('%s: init scale: %f pix' % (options['name'], circ_ellipse_radii[-1]))
+    logging.info('%s: init scale: %f pix' % (options['ap_name'], circ_ellipse_radii[-1]))
     # Find global position angle.
     phase = (-Angle_Median(np.angle(allphase[-5:]))/2) % np.pi #(-np.angle(np.mean(allphase[-5:]))/2) % np.pi
 
@@ -162,7 +162,7 @@ def Isophote_Initialize_mean(IMG, results, options):
                                                       phase, results['center'],results['background noise']),
                    method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]})
     if res.success:
-        logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (options['name'], _x_to_eps(res.x[0]), ellip))
+        logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (options['ap_name'], _x_to_eps(res.x[0]), ellip))
         ellip = _x_to_eps(res.x[0])
 
     # Compute the error on the parameters
@@ -182,7 +182,7 @@ def Isophote_Initialize_mean(IMG, results, options):
         
     circ_ellipse_radii = np.array(circ_ellipse_radii)
     
-    if 'doplot' in options and options['doplot']:
+    if 'ap_doplot' in options and options['ap_doplot']:
 
         ranges = [[max(0,int(results['center']['x']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[1],int(results['center']['x']+circ_ellipse_radii[-1]*1.5))],
                   [max(0,int(results['center']['y']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[0],int(results['center']['y']+circ_ellipse_radii[-1]*1.5))]]
@@ -194,9 +194,9 @@ def Isophote_Initialize_mean(IMG, results, options):
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = 'r')
         plt.tight_layout()
-        if not ('nologo' in options and options['nologo']):
+        if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi' in options else 300)
+        plt.savefig('%sinitialize_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
 
         fig, ax = plt.subplots(2,1, figsize = (6,6))
@@ -214,9 +214,9 @@ def Isophote_Initialize_mean(IMG, results, options):
         ax[1].set_xlabel('Ellipticity [1 - b/a]')
         ax[1].set_ylabel('Loss [FFT$_{2}$/med(flux)]')
         plt.tight_layout()
-        if not ('nologo' in options and options['nologo']):
+        if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi' in options else 300)
+        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
         
     return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}

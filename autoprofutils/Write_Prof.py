@@ -10,13 +10,13 @@ def WriteProf(IMG, results, options):
     Writes the photometry information for disk given a photutils isolist object
     """
     
-    saveto = options['saveto'] if 'saveto' in options else './'
+    saveto = options['ap_saveto'] if 'ap_saveto' in options else './'
     
     # Write aux file
-    with open(saveto + options['name'] + '.aux', 'w') as f:
+    with open(saveto + options['ap_name'] + '_AP.aux', 'w') as f:
         # write profile info
-        f.write('name: %s\n' % str(options['name']))
-        f.write('pixel scale: %.3e arcsec/pix\n' % options['pixscale'])
+        f.write('name: %s\n' % str(options['ap_name']))
+        f.write('pixel scale: %.3e arcsec/pix\n' % options['ap_pixscale'])
         if 'checkfit' in results:
             for k in results['checkfit'].keys():
                 f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
@@ -39,8 +39,8 @@ def WriteProf(IMG, results, options):
                 f.write('settings %s: %s\n' % (k,str(options[k])))
             
     # Write the profile
-    delim = options['delimiter'] if 'delimiter' in options else ','
-    with open(saveto + options['name'] + '.prof', 'w') as f:
+    delim = options['ap_delimiter'] if 'ap_delimiter' in options else ','
+    with open(saveto + options['ap_name'] + '_AP.prof', 'w') as f:
         # Write profile header
         f.write(delim.join(results['prof header']) + '\n')
         if 'prof units' in results:
@@ -55,16 +55,16 @@ def WriteProf(IMG, results, options):
             f.write(delim.join(line) + '\n')
                 
     # Write the mask data, if provided
-    if 'mask' in results and (not results['mask'] is None) and 'savemask' in options and options['savemask']:
+    if 'mask' in results and (not results['mask'] is None) and 'ap_savemask' in options and options['ap_savemask']:
         header = fits.Header()
         header['IMAGE 1'] = 'star mask'
         header['IMAGE 2'] = 'overflow values mask'
         hdul = fits.HDUList([fits.PrimaryHDU(header=header),
                              fits.ImageHDU(results['mask'].astype(int)),
                              fits.ImageHDU(results['overflow mask'].astype(int))])
-        hdul.writeto(saveto + options['name'] + '_mask.fits', overwrite = True)
+        hdul.writeto(saveto + options['ap_name'] + '_mask.fits', overwrite = True)
         sleep(1)
         # Zip the mask file because it can be large and take a lot of memory, but in principle
         # is very easy to compress
-        os.system('gzip -fq '+ saveto + options['name'] + '_mask.fits')
+        os.system('gzip -fq '+ saveto + options['ap_name'] + '_mask.fits')
     return IMG, {}

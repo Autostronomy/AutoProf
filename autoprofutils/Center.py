@@ -17,12 +17,12 @@ def Center_Forced(IMG, results, options):
     Takes the center from an aux file, or given value.
     """
     center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in options:
-        return IMG, {'center': deepcopy(options['given_center'])}
-    if 'fit_center' in options and not options['fit_center']:
+    if 'ap_given_center' in options:
+        return IMG, {'center': deepcopy(options['ap_given_center'])}
+    if 'ap_fit_center' in options and not options['ap_fit_center']:
         return IMG, {'center': current_center}
     
-    with open(options['forcing_profile'][:-4] + 'aux', 'r') as f:
+    with open(options['ap_forcing_profile'][:-4] + 'aux', 'r') as f:
         for line in f.readlines():
             if line[:6] == 'center':
                 x_loc = line.find('x:')
@@ -34,7 +34,7 @@ def Center_Forced(IMG, results, options):
                 except:
                     pass
         else:
-            logging.warning('%s: Forced center failed! Using image center.' % options['name'])
+            logging.warning('%s: Forced center failed! Using image center.' % options['ap_name'])
     return IMG, {'center': current_center}
     
 def Center_2DGaussian(IMG, results, options):
@@ -44,9 +44,9 @@ def Center_2DGaussian(IMG, results, options):
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in options:
-        current_center = deepcopy(options['given_center'])
-    if 'fit_center' in options and not options['fit_center']:
+    if 'ap_given_center' in options:
+        current_center = deepcopy(options['ap_given_center'])
+    if 'ap_fit_center' in options and not options['ap_fit_center']:
         return IMG, {'center': current_center}
     
     # Create mask to focus centering algorithm on the center of the image
@@ -59,13 +59,13 @@ def Center_2DGaussian(IMG, results, options):
     x, y = centroid_2dg(IMG - results['background'], mask = centralize_mask)
 
     # Plot center value for diagnostic purposes
-    if 'doplot' in options and options['doplot']:    
+    if 'ap_doplot' in options and options['ap_doplot']:    
         plt.imshow(np.clip(IMG - results['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']))
+        plt.savefig('%scenter_vis_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']))
         plt.close()
-    logging.info('%s Center found: x %.1f, y %.1f' % (options['name'], x, y))    
+    logging.info('%s Center found: x %.1f, y %.1f' % (options['ap_name'], x, y))    
     return IMG, {'center': {'x': x, 'y': y}}
 
 def Center_1DGaussian(IMG, results, options):
@@ -77,9 +77,9 @@ def Center_1DGaussian(IMG, results, options):
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in options:
-        current_center = deepcopy(options['given_center'])
-    if 'fit_center' in options and not options['fit_center']:
+    if 'ap_given_center' in options:
+        current_center = deepcopy(options['ap_given_center'])
+    if 'ap_fit_center' in options and not options['ap_fit_center']:
         return IMG, {'center': current_center}
     
     # Create mask to focus centering algorithm on the center of the image
@@ -93,13 +93,13 @@ def Center_1DGaussian(IMG, results, options):
                         mask = centralize_mask) 
     
     # Plot center value for diagnostic purposes
-    if 'doplot' in options and options['doplot']:    
+    if 'ap_doplot' in options and options['ap_doplot']:    
         plt.imshow(np.clip(IMG - results['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']))
+        plt.savefig('%scenter_vis_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']))
         plt.close()
-    logging.info('%s Center found: x %.1f, y %.1f' % (options['name'], x, y))    
+    logging.info('%s Center found: x %.1f, y %.1f' % (options['ap_name'], x, y))    
     return IMG, {'center': {'x': x, 'y': y}}
 
 def Center_OfMass(IMG, results, options):
@@ -111,9 +111,9 @@ def Center_OfMass(IMG, results, options):
     """
     
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in options:
-        current_center = options['given_center']
-    if 'fit_center' in options and not options['fit_center']:
+    if 'ap_given_center' in options:
+        current_center = options['ap_given_center']
+    if 'ap_fit_center' in options and not options['ap_fit_center']:
         return IMG, {'center': current_center}
     
     # Create mask to focus centering algorithm on the center of the image
@@ -127,13 +127,13 @@ def Center_OfMass(IMG, results, options):
                         mask = centralize_mask) # np.logical_or(mask['mask'], centralize_mask)
     
     # Plot center value for diagnostic purposes
-    if 'doplot' in options and options['doplot']:    
+    if 'ap_doplot' in options and options['ap_doplot']:    
         plt.imshow(np.clip(IMG - results['background'],a_min = 0, a_max = None),
                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-        plt.savefig('%scenter_vis_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']))
+        plt.savefig('%scenter_vis_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']))
         plt.close()
-    logging.info('%s Center found: x %.1f, y %.1f' % (options['name'], x, y))    
+    logging.info('%s Center found: x %.1f, y %.1f' % (options['ap_name'], x, y))    
     return IMG, {'center': {'x': x, 'y': y}}
 
 def _hillclimb_loss(x, IMG, PSF, noise):
@@ -153,11 +153,11 @@ def Center_HillClimb(IMG, results, options):
     repeated until the step size becomes very small.
     """
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in options:
-        current_center = options['given_center']
-        logging.info('%s: Center initialized by user: %s' % (options['name'], str(current_center)))
-    if 'fit_center' in options and not options['fit_center']:
-        logging.info('%s: Center set by user: %s' % (options['name'], str(current_center)))
+    if 'ap_given_center' in options:
+        current_center = options['ap_given_center']
+        logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
+    if 'ap_fit_center' in options and not options['ap_fit_center']:
+        logging.info('%s: Center set by user: %s' % (options['ap_name'], str(current_center)))
         return IMG, {'center': current_center}
 
     dat = IMG - results['background']
@@ -213,7 +213,7 @@ def Center_HillClimb(IMG, results, options):
         current_center['y'] = res.x[1]
 
     # paper plot
-    if 'paperplots' in options and options['paperplots']:    
+    if 'ap_paperplots' in options and options['ap_paperplots']:    
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
         for i in range(3):
@@ -221,9 +221,9 @@ def Center_HillClimb(IMG, results, options):
                                         2*((i+0.5)*results['psf fwhm']),
                                         0, fill = False, linewidth = 0.5, color = 'y'))
         plt.tight_layout()
-        if not ('nologo' in options and options['nologo']):
+        if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%stest_center_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
+        plt.savefig('%stest_center_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
 
         xwidth = 2*max(np.abs(track_centers[:,0] - current_center['x']))
@@ -252,7 +252,7 @@ def Center_HillClimb(IMG, results, options):
         axarr[1].set_ylim(np.array(ranges[1])-1)        
         axarr[1].set_xticks([])
         axarr[1].set_yticks([])
-        plt.savefig('%sCenter_path_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi' in options else 300)
+        plt.savefig('%sCenter_path_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
         
     return IMG, {'center': current_center}
@@ -275,11 +275,11 @@ def Center_HillClimb_mean(IMG, results, options):
     repeated until the step size becomes very small.
     """
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
-    if 'given_center' in options:
-        current_center = options['given_center']
-        logging.info('%s: Center initialized by user: %s' % (options['name'], str(current_center)))
-    if 'fit_center' in options and not options['fit_center']:
-        logging.info('%s: Center set by user: %s' % (options['name'], str(current_center)))
+    if 'ap_given_center' in options:
+        current_center = options['ap_given_center']
+        logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
+    if 'ap_fit_center' in options and not options['ap_fit_center']:
+        logging.info('%s: Center set by user: %s' % (options['ap_name'], str(current_center)))
         return IMG, {'center': current_center}
 
     dat = IMG - results['background']

@@ -25,7 +25,7 @@ def Background_Mode(IMG, results, options):
     # for background calculation.
     if 'mask' in results and not results['mask'] is None and np.any(results['mask']):
         mask = np.logical_not(results['mask'])
-        logging.info('%s: Background using segmentation map mask. Masking %i pixels' % (options['name'], np.sum(results['mask'])))
+        logging.info('%s: Background using segmentation map mask. Masking %i pixels' % (options['ap_name'], np.sum(results['mask'])))
     else:
         mask = np.ones(IMG.shape, dtype = bool)
         mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
@@ -35,9 +35,9 @@ def Background_Mode(IMG, results, options):
         values = IMG.flatten()
     values = values[np.isfinite(values)]
 
-    if 'background' in options:
-        bkgrnd = options['background']
-        logging.info('%s: Background set by user: %.4e' % (options['name'], bkgrnd))
+    if 'ap_background' in options:
+        bkgrnd = options['ap_background']
+        logging.info('%s: Background set by user: %.4e' % (options['ap_name'], bkgrnd))
     else:
         # set the starting point for the sky level optimization at the median pixel flux
         start = np.quantile(values, 0.40)
@@ -48,9 +48,9 @@ def Background_Mode(IMG, results, options):
         res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
         bkgrnd = res.x[0]
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
-    if 'background_noise' in options:
-        noise = options['background_noise']
-        logging.info('%s: Background Noise set by user: %.4e' % (options['name'], noise))
+    if 'ap_background_noise' in options:
+        noise = options['ap_background_noise']
+        logging.info('%s: Background Noise set by user: %.4e' % (options['ap_name'], noise))
     else:
         noise = iqr(values[(values-bkgrnd) < 0], rng = [100 - 68.2689492137,100])
         if not np.isfinite(noise):
@@ -59,7 +59,7 @@ def Background_Mode(IMG, results, options):
     if not np.isfinite(uncertainty):
         uncertainty = noise / np.sqrt(len(values))
 
-    if 'doplot' in options and options['doplot']:    
+    if 'ap_doplot' in options and options['ap_doplot']:    
         hist, bins = np.histogram(values[np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -3*noise)], bins = 1000)
         plt.figure(figsize = (6,6))
         plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
@@ -70,9 +70,9 @@ def Background_Mode(IMG, results, options):
         plt.xlabel('flux')
         plt.ylabel('log$_{10}$(count)')
         plt.tight_layout()
-        if not ('nologo' in options and options['nologo']):
+        if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sBackground_hist_%s.jpg' % (options['plotpath'] if 'plotpath' in options else '', options['name']), dpi = options['plotdpi'] if 'plotdpi'in options else 300)
+        plt.savefig('%sBackground_hist_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()        
         
     return IMG, {'background': bkgrnd,
@@ -101,10 +101,10 @@ def Background_DilatedSources(IMG, results, options):
     # such as stars and galaxies, including a boarder
     # around each source.
     source_mask = make_source_mask(IMG, nsigma = 3,
-                                   npixels = int(1./options['pixscale']),
+                                   npixels = int(1./options['ap_pixscale']),
                                    dilate_size = 40,
-                                   filter_fwhm = 1./options['pixscale'],
-                                   filter_size = int(3./options['pixscale']),
+                                   filter_fwhm = 1./options['ap_pixscale'],
+                                   filter_size = int(3./options['ap_pixscale']),
                                    sigclip_iters = 5)
     mask = np.logical_or(mask, source_mask)
 

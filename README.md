@@ -35,7 +35,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     git clone git@github.com:ConnorStoneAstro/AutoProf.git
     ```
     If you are having difficulty cloning the package, it is also possible to download a zip file of the package from the github page.
-1. Set an environment variable and alias the autoprof function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). 
+1. Set an environment variable and alias the AutoProf function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). 
     ```bash
     export AUTOPROF='/path/to/AutoProf/'
     alias autoprof='/path/to/AutoProf/autoprof.py'
@@ -52,6 +52,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 
 ### Issues
 
+* Each analysis run should end with the words "Processing Complete!" if you don't get that, then the pipeline probably crashed at some point, check the log file (probably called *AutoProf.log*) for more information
 * If you get *Permission Denied*, it is possible that the file is not listed as executable and you need to run:
     ```bash
     cd /path/to/AutoProf/
@@ -70,7 +71,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     #!/wherever/your/python3/is/installed
     ```
 
-For other issues contact connor.stone@queensu.ca for help. The code has been tested on Linux Mint and Mac machines.
+For other issues contact connor.stone@queensu.ca for help. The code has been tested on Linux and Mac machines.
 
 # Using AutoProf
 
@@ -83,10 +84,10 @@ To run in batch mode for many images there isn't much to change, but that will b
 1. Copy the *test_config.py* script from the AutoProf test directory to the directory with your image. 
 1. In the config file, edit the following lines:
     ```python
-    pixscale = # your image scale in arcsec/pix
-    image_file = # filename of your image
+    ap_pixscale = # your image scale in arcsec/pix
+    ap_image_file = # filename of your image
     ```
-    and change any other options as they pertain to your image. If you aren't sure what to do, you can just remove an option from the config file. All that is truly needed to get started is *process_mode*, *pixscale*, and *image_file*.
+    and change any other options as they pertain to your image. If you aren't sure what to do, you can just remove an option from the config file. All that is truly needed to get started is *ap_process_mode*, *ap_pixscale*, and *ap_image_file*.
 1. Run AutoProf on the configuration file:
     ```bash
     autoprof config.py
@@ -97,7 +98,7 @@ Check the .log file for messages about the progress of the fit, which are update
 Also, look at the diagnostic plots to see if the fit appears to have worked.
 
 Note that AutoProf has a list of arguments that it is expecting (see *List Of AutoProf Arguments* for a full list) and it only checks for those.
-You can therefore make any variables you need in the config file to construct your list of image files so long as they don't conflict with any of the expected AutoProf arguments.
+You can therefore make any variables or functions you need in the config file to construct your list of image files so long as they don't conflict with any of the expected AutoProf arguments.
 
 ### Other Processing Modes
 
@@ -108,19 +109,19 @@ The subsections below will outline how to use each mode.
 
 Running AutoProf in batch mode is relatively simple once you have learned how to work with a single image.
 For an example batch processing config file, see the *test_batch_config.py* file in the AutoProf test directory.
-You must modify the *process_mode* command to:
+You must modify the *ap_process_mode* command to:
 ```python
-process_mode = 'image list'
+ap_process_mode = 'image list'
 ```
 Then, some config parameters will need to be turned into lists.
-The *image_file* variable should now be a list of image files, instead of a single string.
+The *ap_image_file* variable should now be a list of image files, instead of a single string.
 Any other config parameter can be made into a list or left as a single value.
-If a parameter is a list, it must be the same length as the *image_file* list, if it is a single value then that value will be used for all instances.
-For example, the *pixscale* variable can be left as a float value and AutoProf will use that same value for all images.
+If a parameter is a list, it must be the same length as the *ap_image_file* list, if it is a single value then that value will be used for all instances.
+For example, the *ap_pixscale* variable can be left as a float value and AutoProf will use that same value for all images.
 
-Also unique to batch processing is the availability of parallel processing with the *n_procs* variable.
+Also unique to batch processing is the availability of parallel processing with the *ap_n_procs* variable.
 Since image analysis is an "embarrassingly parallel problem" AutoProf can analyze many images simultaneously.
-It is suggested that you set *n_procs* equal to the number of processors you have, although you may need to experiment.
+It is suggested that you set *ap_n_procs* equal to the number of processors you have, although you may need to experiment.
 Especially if you don't have much ram, this may be the limiting factor.
 
 #### Forced Photometry
@@ -134,9 +135,9 @@ Running forced photometry is very similar to the other processing modes with one
 1. Copy the *test_forced_config.py* script to the directory with your image. 
 1. In the config file, edit the following lines:
     ```python
-    pixscale = # your image scale in arcsec/pix
-    image_file = # filename of your image
-    forcing_profile = # filename for the .prof output
+    ap_pixscale = # your image scale in arcsec/pix
+    ap_image_file = # filename of your image
+    ap_forcing_profile = # filename for the .prof output
     ```
 1. Run AutoProf on the configuration file:
     ```bash
@@ -150,7 +151,7 @@ Also, look at the diagnostic plots to see if the fit appears to have aligned pro
 #### Batch Forced Photometry
 
 You may be able to guess at this point.
-To run forced photometry in batch mode, start with a single image forced photometry config file and convert single values into lists wherever necessary
+To run forced photometry in batch mode, start with a single image forced photometry config file and convert single values into lists wherever necessary.
 
 ### List Of AutoProf Arguments
 
@@ -158,76 +159,83 @@ This is a list of all arguments that AutoProf will check for and a quick descrip
 In your config file, do not use any of these names unless you intend for AutoProf to interpret those values in it's image processing pipeline.
 
 #### Required Parameters
-- pixscale: pixel scale in arcsec/pixel (float)
-- image_file: path to fits file with image data (string)
-- process_mode: analysis mode for AutoProf to run in (string)
-- forcing_profile: (required for forced photometry) file path to .prof file providing forced photometry PA and ellip values to apply to *image_file* (string)
+- ap_pixscale: pixel scale in arcsec/pixel (float)
+- ap_image_file: path to fits file with image data (string)
+- ap_process_mode: analysis mode for AutoProf to run in (string)
+- ap_forcing_profile: (required for forced photometry) file path to .prof file providing forced photometry PA and ellip values to apply to *ap_image_file* (string)
 
 #### High Level Parameters
-- saveto: path to directory where final profile should be saved (string)
-- name: name to use for the galaxy, this will be the name used in output files and in the log file (string)
-- n_procs: number of processes to create when running in batch mode (int)
-- doplot: Generate diagnostic plots during processing (bool).
-- plotpath: Path to file where diagnostic plots should be written, see also "doplot" (string)
-- hdulelement: index for hdul of fits file where image exists (int).
-- delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
-- new_pipeline_methods: Allows user to set methods for the AutoProf pipeline analysis. See *Modifying Pipeline Methods* for more information (dict)
-- new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
-- zeropoint: Photometric zero point, AB magnitude is assumed if none given, corresponding to a zero point of 22.5 (float)
+- ap_saveto: path to directory where final profile should be saved (string)
+- ap_name: name to use for the galaxy, this will be the name used in output files and in the log file (string)
+- ap_n_procs: number of processes to create when running in batch mode (int)
+- ap_doplot: Generate diagnostic plots during processing (bool).
+- ap_plotpath: Path to file where diagnostic plots should be written, see also *ap_doplot* (string)
+- ap_plotdpi: sets dpi for plots (default 300). Can be used to reduce file size, or to increase detail in images (int)
+- ap_hdulelement: index for hdul of fits file where image exists (int)
+- ap_delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
+- ap_new_pipeline_methods: Allows user to set methods for the AutoProf pipeline analysis. See *Modifying Pipeline Methods* for more information (dict)
+- ap_new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
+- ap_zeropoint: Photometric zero point, AB magnitude is assumed if none given, corresponding to a zero point of 22.5 (float)
+- ap_nologo: tells AutoProf not to put it's logo on plots. Please only use this for figures that will be used in publications that don't allow logos (bool)
 
 #### Background
-- background: User provided background value in flux (float)
-- background_noise: User provided background noise level in flux (float)
+- ap_background: User provided background value in flux (float)
+- ap_background_noise: User provided background noise level in flux (float)
 
 #### PSF
-- psf_guess: intialization value for the PSF calculation in pixels (float)
-- psf_set: force AutoProf to use this PSF value (in pixels) instead of calculating its own. (float)
+- ap_psf_guess: initialization value for the PSF calculation in pixels. If not given, AutoProf will start with a guess of 1/*ap_pixscale* (float)
+- ap_psf_set: force AutoProf to use this PSF value (in pixels) instead of calculating its own. (float)
 
 #### Center
-- forced_recenter: when doing forced photometry indicates if AutoProf should re-calculate the galaxy center in the image (bool)
-- given_center: user provided center for isophote fitting. Center should be formatted as:
-		{'x':float, 'y': float}, where the floats are the center coordinates in pixels. Also see *fit_center* (dict)
-- fit_center: indicates if AutoProf should attempt to find the center. It will start at the center of the image unless *given_center* is provided
-  	      in which case it will start there. This argument is ignored for forced photometry, in the event that a *given_center* is provided,
-	      AutoProf will automatically use that value, if not given then it will read from the .aux file (bool)
+- ap_given_center: user provided center for isophote fitting. Center should be formatted as:
+		{'x':float, 'y': float}, where the floats are the center coordinates in pixels. Also see *ap_fit_center* (dict)
+- ap_fit_center: indicates if AutoProf should attempt to find the center. It will start at the center of the image unless *ap_given_center* is provided
+  		 in which case it will start there. This argument is ignored for forced photometry, in the event that a *ap_given_center* is provided,
+	      	 AutoProf will automatically use that value, if not given then it will read from the .aux file (bool)
 
 #### Masking
-- overflowval: flux value that corresponds to an overflow pixel, used to identify bad pixels and mask them (float)
-- mask_file: path to fits file which is a mask for the image. Must have the same dimensions as the main image (string)
-- savemask: indicates if the star mask should be saved after fitting (bool)
-- autodetectoverflow: Will try to guess the pixel saturation flux value from the mode
-   		       in the image. In principle if all overflow pixels have the same
-		       value then it would show up as the mode, but this is not
-		       guaranteed (bool).
+- ap_overflowval: flux value that corresponds to an overflow pixel, used to identify bad pixels and mask them (float)
+- ap_mask_file: path to fits file which is a mask for the image. Must have the same dimensions as the main image (string)
+- ap_savemask: indicates if the star mask should be saved after fitting (bool)
+- ap_autodetectoverflow: Will try to guess the pixel saturation flux value from the mode
+   		       	 in the image. In principle if all overflow pixels have the same
+		       	 value then it would show up as the mode, but this is not
+		       	 guaranteed (bool).
 
 #### Isophote Fitting
-- scale: growth scale when fitting isophotes, not the same as "sample---scale" (float)
-- fit_limit: noise level out to which to extend the fit in units of pixel background noise level (float)
-- regularize_scale: scale factor to apply to regularization coupling factor between galaxies.
-  		    Default of 1, larger values make smoother fits, smaller values give more chaotic fits. (float)
+- ap_scale: growth scale when fitting isophotes, not the same as "ap_sample---scale" (float)
+- ap_fit_limit: noise level out to which to extend the fit in units of pixel background noise level (float)
+- ap_regularize_scale: scale factor to apply to regularization coupling factor between isophotes.
+  		       Default of 1, larger values make smoother fits, smaller values give more chaotic fits. (float)
 
 #### Isophote Sampling
-- samplegeometricscale: growth scale for isophotes when sampling for the final output profile.
-                         Used when sampling geometrically (float)
-- samplelinearscale: growth scale (in pixels) for isophotes when sampling for the final output
-                      profile. Used when sampling linearly (float)
-- samplestyle: indicate if isophote sampling radii should grow linearly or geometrically. Can
-                also do geometric sampling at the center and linear sampling once geometric step
-		size equals linear (string, ['linear', 'geometric', 'geometric-linear'])
-- sampleinitR: Starting radius (in pixels) for isophote sampling from the image. Note that
-   		a starting radius of zero is not advised. (float)
-- sampleendR: End radius (in pixels) for isophote sampling from the image (float)
-- isoband_start: The radius (in pixels) at which to begin sampling a band of pixels to compute SB instead of sampling a line of pixels near the isophote (float)
-- isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- isoband_width*R for each radius. default value is 0.025 (float)
-- truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
-- iso_interpolate_start: Use a bicubic spline interpolation for isophotes with semi-major axis less than this number time sthe PSF (float)
+- ap_samplegeometricscale: growth scale for isophotes when sampling for the final output profile.
+                           Used when sampling geometrically (float)
+- ap_samplelinearscale: growth scale (in pixels) for isophotes when sampling for the final output
+                      	profile. Used when sampling linearly (float)
+- ap_samplestyle: indicate if isophote sampling radii should grow linearly or geometrically. Can
+                  also do geometric sampling at the center and linear sampling once geometric step
+		  size equals linear (string, ['linear', 'geometric', 'geometric-linear'])
+- ap_sampleinitR: Starting radius (in pixels) for isophote sampling from the image. Note that
+   		  a starting radius of zero is not advised. (float)
+- ap_sampleendR: End radius (in pixels) for isophote sampling from the image (float)
+- ap_isoband_start: The radius (in pixels) at which to begin sampling a band of pixels to compute SB instead of sampling a line of pixels near the isophote (float)
+- ap_isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- *ap_isoband_width**R for each radius. default value is 0.025 (float)
+- ap_truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
+- ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF (float)
+- ap_extract_mean: use mean instead of median as average flux on an isophote. This is better suited to very low S/N data, though it is sensitive to outliers such as foreground
+  		   stars. In the presence of outliers (which is nearly all real-world data) the mean will be biased high. (bool) 
 
 #### Radial Sampling
-- radsample_nwedges: number of radial wedges to sample. Recommended chosing a power of 2 (int)
-- radwample_width: User set width of radial sampling in degrees. Default value is 15 degrees (float)
-- radsample_pa: user set position angle at which to measure radial wedges relative to, in degrees (float)
-- radsample_expwidth: tell AutoProf to use exponentially increasing widths for radial samples. In this case *radsample_width* corresponds to the final width of the radial sampling (bool)
-- radsample_variable_pa: tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy (bool)
+- ap_radsample_nwedges: number of radial wedges to sample. Recommended choosing a power of 2 (int)
+- ap_radsample_width: User set width of radial sampling in degrees. Default value is 15 degrees (float)
+- ap_radsample_pa: user set position angle at which to measure radial wedges relative to, in degrees (float)
+- ap_radsample_expwidth: tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radsample_width* corresponds to the final width of the radial sampling (bool)
+- ap_radsample_variable_pa: tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy (bool)
+
+#### Orthogonal Sampling
+- ap_orthsample_pa: user set position angle at which to align the orthogonal sampling lines, in degrees (float)
+- ap_orthsample_parallel: align orthogonal sampling lines parallel to the major axis instead of perpendicular. This is similar to applying a transpose to the regular orthogonal sampling output matrix (bool)
 
 There is one argument that AutoProf can take in the command line, which is the name of the log file.
 The log file stores information about everything that AutoProf is doing, this is useful for diagnostic purposes.
@@ -266,7 +274,7 @@ Output format:
 
 Using the IRAF star finder wrapper from photutils, bright stars in the image are identified (at most 30).
 An FFT is used to identify non-circular stars or artifacts which may have been picked up by IRAF.
-Circular appertures are placed around the star until the background brightness is nearly reached.
+Circular apertures are placed around the star until the background brightness is nearly reached.
 The brightness of these apertures as a function of radius are fit with a Gaussian and the sigma is converted into a fwhm.
 
 
@@ -396,14 +404,14 @@ Output format:
 
 ### Modifying Pipeline Methods
 
-This is done with the *new_pipeline_methods* argument, which is formatted as a dictionary with string keys and functions as values.
+This is done with the *ap_new_pipeline_methods* argument, which is formatted as a dictionary with string keys and functions as values.
 In this way you can add to or alter the methods used by AutoProf in it's pipeline.
 
 Each of the methods in *How Does AutoProf Work?* has a pipeline label, this is how the code identifies the functions and their outputs.
 Thus, one can create their own version of any method and modify the pipeline by assigning the function to that label.
 For example, if you wrote a new center finding method, you could update the pipeline by including:
 ```python
-new_pipeline_methods = {'center': My_Center_Finding_Method}
+ap_new_pipeline_methods = {'center': My_Center_Finding_Method}
 ```
 in your config file.
 You can also make up any other methods and add them to the pipeline functions list, assigning whatever key you like.
@@ -427,7 +435,7 @@ See *How Does AutoProf Work?* for the expected outputs from each function.
 
 ### Modifying Pipeline Steps
 
-This is done with the *new_pipeline_steps* argument, which is formatted as a list of strings which tells AutoProf what order to run it's pipeline methods.
+This is done with the *ap_new_pipeline_steps* argument, which is formatted as a list of strings which tells AutoProf what order to run it's pipeline methods.
 In this way you can alter the order of operations used by AutoProf in it's pipeline.
 
 Each function must be run in a specific order as they often rely on the output from another step.
@@ -435,35 +443,36 @@ The basic pipeline step order is:
 ```python
 ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
 ```
-For forced photomettry the default pipeline step order is:
+For forced photometry the default pipeline step order is:
 ```python
 ['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
 ```
-If you would like to change this behaviour, just provide a *new_pipeline_steps* list.
+If you would like to change this behaviour, just provide a *ap_new_pipeline_steps* list.
 For example if you wished to use forced photometry but you want to re-fit the center you can change *center forced* back to *center* with:
 ```python
-new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
+ap_new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
 ```
 in your config file.
 
 You can create your own order, or add in new functions by supplying a new list.
 For example, if you had your own method to run after the centering function you could do so by including:
 ```python
-new_pipeline_methods = {'mymethod': My_New_Method}
-new_pipeline_steps = ['background', 'psf', 'center', 'myfunction', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
+ap_new_pipeline_methods = {'mymethod': My_New_Method}
+ap_new_pipeline_steps = ['background', 'psf', 'center', 'myfunction', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
 ```
 in your config file.
-Note that for *new_pipeline_methods* you need only include the new function, while for *new_pipeline_steps* you must write out the full pipeline steps.
-If you wish to skip a step, it is sometimes better to write your own "null" version of the function (and change *new_pipeline_methods*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash.
+Note that for *ap_new_pipeline_methods* you need only include the new function, while for *ap_new_pipeline_steps* you must write out the full pipeline steps.
+If you wish to skip a step, it is sometimes better to write your own "null" version of the function (and change *ap_new_pipeline_methods*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash.
 
 ### Going Deeper, Decision Tree Pipelines
 
 AutoProf at its core is a pipeline building code, as such it has a more advanced feature for constructing complex pipelines: decision trees.
-In a decision tree pipeline, one can essentially construct a flow chart of decisions and corresponding functions to run.
+In a decision tree pipeline, one can essentially construct a flow chart of decisions and corresponding methods to run and options to use.
 The beginning of the tree is always *'head'* and AutoProf will continue to read those steps until it reaches a step containing the word *branch* (any other text can be included in the step name so you can write many different branches).
-At a branch step, AutoProf will provide the usual inputs, but the output should be a string or *None*.
+At a branch step, AutoProf will provide the usual inputs, but the output should be a string or *None* and a dictionary of new options (if any).
 If *None* is returned then AutoProf carries on along the same branch it is already on.
 If a string is returned, then that is taken as the key from which to check for the next step in the pipeline steps object.
+An empty dictionary can be used to change no options.
 When switching branches, AutoProf will start at the beginning of the new branch.
 Note, the new branch can even be the branch you started on so watch out for infinite loops!
 
@@ -471,17 +480,22 @@ For example, in a large sample, one may wish to process edge-on galaxies differe
 In this example, one could have AutoProf perform photometry up to the point of the *isophoteinit* step, then the rest of the functions could be chosen based on the ellipticity of the initialized ellipse.
 To make this work one could add:
 ```python
-new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: 'edgeon' if results['init ellip'] > 0.8 else 'standard',
-		        'edgeonfit': My_Edgon_Fit_Method}
-new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],
-		      'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof'],
-		      'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'orthsample', 'radsample']}
+def My_Edgeon_Fit_Method(IMG, results, options):
+    N = 100
+    return IMG, {'fit ellip': np.array([results['init ellip']]*N), 'fit pa': np.array([results['init pa']]*N),
+                 'fit ellip_err': np.array([0.05]*N), 'fit pa_err': np.array([5*np.pi/180]*N),
+                 'fit R': np.logspace(0,np.log10(results['init R']*2),N)}
+ap_new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: ('edgeon' if results['init ellip'] > 0.8 else 'standard', {}),
+			   'edgeonfit': My_Edgeon_Fit_Method}
+ap_new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],
+		         'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof'],
+		         'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'orthsample', 'radsample']}
 ```
-in your config file. This config file would apply a standard pipeline for face-on or moderately inclined galaxies, but a special pipeline for edge-on galaxies which includes a user defined fitting function *My_Edgeon_Fit_Method*, orthogonal sampling profiles, and radial sampling profiles. 
+in the config file. This config file would apply a standard pipeline for face-on or moderately inclined galaxies, but a special pipeline for edge-on galaxies which includes a user defined fitting function *My_Edgeon_Fit_Method*, orthogonal sampling profiles, and radial sampling profiles. This example is included in the test folder as the *test_tree_config.py* example config file.
 
 # Methods that come with AutoProf
 
-As well as the defualt pipeline, AutoProf has a number of pre-built methods for different use cases and extending one's analysis beyond a direct isophote fit.
+As well as the default pipeline, AutoProf has a number of pre-built methods for different use cases and extending one's analysis beyond a direct isophote fit.
 Here we outline a basic description of those methods and some of their use cases (though you may find clever new uses!).
 Some are meant as drop-in replacements for methods in the default pipeline, and others are meant as entirely new methods.
 

@@ -536,7 +536,7 @@ def Read_Image(filename, options):
     # Read a fits file
     if filename[filename.rfind('.')+1:].lower() == 'fits':
         hdul = fits.open(filename)
-        dat = hdul[options['hdulelement'] if 'hdulelement' in options else 0].data
+        dat = hdul[options['ap_hdulelement'] if 'ap_hdulelement' in options else 0].data
     # Read a numpy array file
     if filename[filename.rfind('.')+1:].lower() == 'npy':
         dat = np.load(filename)
@@ -581,179 +581,19 @@ def Angle_Scatter(a):
 
 def GetOptions(c):
 
-    newoptions = {}
-
-    newoptions['pixscale'] = c.pixscale
-    newoptions['image_file'] = c.image_file
-    
-    try:
-        newoptions['paperplots'] = c.paperplots
-    except:
-        pass
-    try:
-        newoptions['saveto'] = c.saveto
-    except:
-        pass
-    try:
-        newoptions['name'] = c.name
-    except:
-        pass
-    try:
-        newoptions['n_procs'] = c.n_procs
-    except:
-        newoptions['n_procs'] = 1
-    try:
-        newoptions['mask_file'] = c.mask_file
-    except:
-        pass
-    try:
-        newoptions['savemask'] = c.savemask
-    except:
-        pass
-    try:
-        newoptions['background'] = c.background
-    except:
-        pass
-    try:
-        newoptions['background_noise'] = c.background_noise
-    except:
-        pass
-    try:
-        newoptions['psf_guess'] = c.psf_guess
-    except:
-        pass
-    try:
-        newoptions['psf_set'] = c.psf_set
-    except:
-        pass
-    try:
-        newoptions['autodetectoverflow'] = c.autodetectoverflow
-    except:
-        pass
-    try:
-        newoptions['overflowval'] = c.overflowval
-    except:
-        pass
-    try:
-        newoptions['forcing_profile'] = c.forcing_profile
-    except:
-        pass
-    try:
-        newoptions['plotpath'] = c.plotpath
-    except:
-        pass
-    try:
-        newoptions['doplot'] = c.doplot
-    except:
-        pass
-    try:
-        newoptions['nologo'] = c.nologo
-    except:
-        pass
-    try:
-        newoptions['plotdpi'] = c.plotdpi
-    except:
-        pass
-    try:
-        newoptions['hdulelement'] = c.hdulelement
-    except:
-        pass
-    try:
-        newoptions['given_center'] = c.given_center
-    except:
-        pass
-    try:
-        newoptions['fit_center'] = c.fit_center
-    except:
-        pass
-    try:
-        newoptions['fit_limit'] = c.fit_limit
-    except:
-        pass
-    try:
-        newoptions['regularize_scale'] = c.regularize_scale
-    except:
-        pass
-    try:
-        newoptions['scale'] = c.scale
-    except:
-        pass
-    try:
-        newoptions['samplegeometricscale'] = c.samplegeometricscale
-    except:
-        pass
-    try:
-        newoptions['samplelinearscale'] = c.samplelinearscale
-    except:
-        pass
-    try:
-        newoptions['samplestyle'] = c.samplestyle
-    except:
-        pass
-    try:
-        newoptions['sampleinitR'] = c.sampleinitR
-    except:
-        pass
-    try:
-        newoptions['sampleendR'] = c.sampleendR
-    except:
-        pass
-    try:
-        newoptions['zeropoint'] = c.zeropoint
-    except:
-        pass
-    try:
-        newoptions['truncate_evaluation'] = c.truncate_evaluation
-    except:
-        pass
-    try:
-        newoptions['extract_mean'] = c.extract_mean
-    except:
-        pass
-    try:
-        newoptions['delimiter'] = c.delimiter
-    except:
-        pass
-    try:
-        newoptions['isoband_width'] = c.isoband_width
-    except:
-        pass
-    try:
-        newoptions['isoband_start'] = c.isoband_start
-    except:
-        pass
-    try:
-        newoptions['iso_interpolate_start'] = c.iso_interpolate_start
-    except:
-        pass
-    try:
-        newoptions['radsample_nwedges'] = c.radsample_nwedges
-    except:
-        pass
-    try:
-        newoptions['radsample_width'] = c.radsample_width
-    except:
-        pass
-    try:
-        newoptions['radsample_pa'] = c.radsample_pa
-    except:
-        pass
-    try:
-        newoptions['radsample_expwidth'] = c.radsample_expwidth
-    except:
-        pass
-    try:
-        newoptions['radsample_variable_pa'] = c.radsample_variable_pa
-    except:
-        pass
-    try:
-        newoptions['orthsample_pa'] = c.orthsample_pa
-    except:
-        pass
-    try:
-        newoptions['orthsample_parallel'] = c.orthsample_parallel
-    except:
-        pass
+    # expected_arguments = ['process_mode', 'pixscale', 'image_file', 'paperplots', 'saveto', 'name', 'n_procs',
+    #                       'mask_file', 'savemask', 'background', 'background_noise', 'psf_guess', 'psf_set',
+    #                       'isoband_width', 'delimiter', 'extract_mean', 'truncate_evaluation', 'zeropoint',
+    #                       'sampleendR', 'sampleinitR', 'samplestyle', 'samplelinearscale', 'samplegeometricscale',
+    #                       'scale', 'regularize_scale', 'fit_limit', 'fit_center', 'given_center', 'hdulelement',
+    #                       'plotdpi', 'nologo', 'doplot', 'plotpath', 'forcing_profile', 'overflowval',
+    #                       'autodetectoverflow', 'orthsample_parallel', 'orthsample_pa', 'radsample_variable_pa',
+    #                       'radsample_expwidth', 'radsample_pa', 'radsample_width', 'radsample_nwedges',
+    #                       'iso_interpolate_start', 'isoband_start']
+    newoptions = {'n_procs': 1}
+    for var in dir(c):
+        if var.startswith('ap_'):
+            newoptions[var] = getattr(c,var)
         
     return newoptions
 
@@ -857,3 +697,4 @@ def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, m
     else:
         return COG_profile, COG_lower, COG_upper
     
+'orthsample_parallel', 'orthsample_pa', 'radsample_variable_pa', 'radsample_expwidth', 'radsample_pa', 'radsample_width', 'radsample_nwedges', 'iso_interpolate_start', 'isoband_start'

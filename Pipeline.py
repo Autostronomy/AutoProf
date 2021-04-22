@@ -113,20 +113,20 @@ class Isophote_Pipeline(object):
             pass
         
         # use filename if no name is given
-        if not ('name' in options and type(options['name']) == str):
-            startat = options['image_file'].rfind('/') if '/' in options['image_file'] else 0
-            options['name'] = options['image_file'][startat: options['image_file'].find('.', startat)]
+        if not ('ap_name' in options and type(options['ap_name']) == str):
+            startat = options['ap_image_file'].rfind('/') if '/' in options['ap_image_file'] else 0
+            options['ap_name'] = options['ap_image_file'][startat: options['ap_image_file'].find('.', startat)]
 
         # Read the primary image
         try:
-            dat = Read_Image(options['image_file'], options)
+            dat = Read_Image(options['ap_image_file'], options)
         except:
-            logging.error('%s: could not read image %s' % (options['name'], options['image_file']))
+            logging.error('%s: could not read image %s' % (options['ap_name'], options['ap_image_file']))
             return 1
             
         # Check that image data exists and is not corrupted
         if dat is None or np.all(dat[int(len(dat)/2.)-10:int(len(dat)/2.)+10, int(len(dat[0])/2.)-10:int(len(dat[0])/2.)+10] == 0):
-            logging.error('%s Large chunk of data missing, impossible to process image' % options['name'])
+            logging.error('%s Large chunk of data missing, impossible to process image' % options['ap_name'])
             return 1
         
         # Track time to run analysis
@@ -140,10 +140,11 @@ class Isophote_Pipeline(object):
         step = 0
         while step < len(self.pipeline_steps[key]):
             try:
-                logging.info('%s: %s %s at: %.1f sec' % (options['name'], key, self.pipeline_steps[key][step], time() - start))
-                print('%s: %s %s at: %.1f sec' % (options['name'], key, self.pipeline_steps[key][step], time() - start))
+                logging.info('%s: %s %s at: %.1f sec' % (options['ap_name'], key, self.pipeline_steps[key][step], time() - start))
+                print('%s: %s %s at: %.1f sec' % (options['ap_name'], key, self.pipeline_steps[key][step], time() - start))
                 if 'branch' in self.pipeline_steps[key][step]:
-                    decision = self.pipeline_methods[self.pipeline_steps[key][step]](dat, results, options)
+                    decision, newoptions = self.pipeline_methods[self.pipeline_steps[key][step]](dat, results, options)
+                    options.update(newoptions)
                     if type(decision) == str:
                         key = decision
                         step = 0
@@ -156,12 +157,12 @@ class Isophote_Pipeline(object):
                     timers[self.pipeline_steps[key][step]] = time() - step_start
                     step += 1
             except Exception as e:
-                logging.error('%s: on step %s got error: %s' % (options['name'], self.pipeline_steps[key][step], str(e)))
-                logging.error('%s: with full trace: %s' % (options['name'], traceback.format_exc()))
+                logging.error('%s: on step %s got error: %s' % (options['ap_name'], self.pipeline_steps[key][step], str(e)))
+                logging.error('%s: with full trace: %s' % (options['ap_name'], traceback.format_exc()))
                 return 1
             
-        print('%s: Processing Complete! (at %.1f sec)' % (options['name'], time() - start))
-        logging.info('%s: Processing Complete! (at %.1f sec)' % (options['name'], time() - start))
+        print('%s: Processing Complete! (at %.1f sec)' % (options['ap_name'], time() - start))
+        logging.info('%s: Processing Complete! (at %.1f sec)' % (options['ap_name'], time() - start))
         return timers
     
     def Process_List(self, options):
@@ -169,15 +170,15 @@ class Isophote_Pipeline(object):
         Wrapper function to run "Process_Image" in parallel for many images.
         """
 
-        assert type(options['image_file']) == list
+        assert type(options['ap_image_file']) == list
         
         # Format the inputs so that they can be zipped with the images files
         # and passed to the Process_Image function.
         if all(type(v) != list for v in options.values()):
-            use_options = [options]*len(options['image_file'])
+            use_options = [options]*len(options['ap_image_file'])
         else:
             use_options = []
-            for i in range(len(options['image_file'])):
+            for i in range(len(options['ap_image_file'])):
                 tmp_options = {}
                 for k in options.keys():
                     if type(options[k]) == list:
@@ -189,10 +190,10 @@ class Isophote_Pipeline(object):
         start = time()
         
         # Create a multiprocessing pool to parallelize image processing
-        if options['n_procs'] > 1:
-            with Pool(int(options['n_procs'])) as pool:
+        if options['ap_n_procs'] > 1:
+            with Pool(int(options['ap_n_procs'])) as pool:
                 res = pool.map(self.Process_Image, use_options,
-                               chunksize = 5 if len(options['image_file']) > 100 else 1)
+                               chunksize = 5 if len(options['ap_image_file']) > 100 else 1)
         else:
             res = list(map(self.Process_Image, use_options))
             
@@ -247,24 +248,24 @@ class Isophote_Pipeline(object):
             sys.path.append(os.getcwd())
             c = importlib.import_module(use_config)
 
-        if 'forced' in c.process_mode:
+        if 'forced' in c.ap_process_mode:
             self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit',
                                                       'isophotefit forced', 'isophoteextract forced', 'writeprof'])
             
         try:
-            self.UpdatePipeline(new_pipeline_methods = c.new_pipeline_methods)
+            self.UpdatePipeline(new_pipeline_methods = c.ap_new_pipeline_methods)
         except:
             pass
         try:
-            self.UpdatePipeline(new_pipeline_steps = c.new_pipeline_steps)
+            self.UpdatePipeline(new_pipeline_steps = c.ap_new_pipeline_steps)
         except:
             pass
             
         use_options = GetOptions(c)
             
-        if c.process_mode in ['image', 'forced image']:
+        if c.ap_process_mode in ['image', 'forced image']:
             return self.Process_Image(use_options)
-        elif c.process_mode in ['image list', 'forced image list']:
+        elif c.ap_process_mode in ['image list', 'forced image list']:
             return self.Process_List(use_options)
         else:
             logging.error('Unrecognized process_mode! Should be in: [image, image list, forced image, forced image list]')
