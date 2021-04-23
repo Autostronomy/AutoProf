@@ -6,4 +6,3 @@ ap_forcing_profile = 'testimage_AP.prof'
 ap_pixscale = 0.262
 ap_name = 'testforcedimage'
 ap_doplot = True
-ap_overflowval = 10.
