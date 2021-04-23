@@ -490,7 +490,7 @@ You can create your own order, or add in new functions by supplying a new list.
 For example, if you had your own method to run after the centering function you could do so by including:
 ```python
 ap_new_pipeline_methods = {'mymethod': My_New_Method}
-ap_new_pipeline_steps = ['background', 'psf', 'center', 'myfunction', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
+ap_new_pipeline_steps = ['background', 'psf', 'center', 'mymethod', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
 ```
 in your config file.
 Note that for *ap_new_pipeline_methods* you need only include the new function, while for *ap_new_pipeline_steps* you must write out the full pipeline steps.
