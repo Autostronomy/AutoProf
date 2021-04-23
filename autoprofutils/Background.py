@@ -25,7 +25,7 @@ def Background_Mode(IMG, results, options):
     # for background calculation.
     if 'mask' in results and not results['mask'] is None and np.any(results['mask']):
         mask = np.logical_not(results['mask'])
-        logging.info('%s: Background using segmentation map mask. Masking %i pixels' % (options['ap_name'], np.sum(results['mask'])))
+        logging.info('%s: Background using mask. Masking %i pixels' % (options['ap_name'], np.sum(results['mask'])))
     else:
         mask = np.ones(IMG.shape, dtype = bool)
         mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),

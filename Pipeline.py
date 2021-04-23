@@ -6,7 +6,7 @@ from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
 from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
 from autoprofutils.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean
-from autoprofutils.Mask import Star_Mask_IRAF, Mask_Segmentation_Map
+from autoprofutils.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Write_Prof import WriteProf
@@ -56,6 +56,7 @@ class Isophote_Pipeline(object):
                                  'isophotefit mean': Isophote_Fit_FFT_mean,
                                  'isophotefit forced': Isophote_Fit_Forced,
                                  'isophotefit photutils': Photutils_Fit,
+                                 'mask badpixels': Bad_Pixel_Mask,
                                  'starmask': Star_Mask_IRAF,
                                  'mask segmentation map': Mask_Segmentation_Map,
                                  'isophoteextract': Isophote_Extract,

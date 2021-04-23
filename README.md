@@ -296,8 +296,7 @@ An FFT is taken for the flux values around each circular isophote and the phase 
 Taking the average direction, flux values are sampled from the current center out to 10 times the PSF.
 A parabola is fit to the flux values and the center is then updated to the maximum of the parabola.
 This is repeated until the update steps become negligible.
-At this point, tiny random perturbations are used to fine tune the center.
-The random perturbations continue until a minimum is found in FFT first coefficient magnitude.
+At this point, a Nelder-Mead simplex optimizer is used for fine tuning to find a minimum in FFT first coefficient magnitude.
 
 Output format:
 ```python
