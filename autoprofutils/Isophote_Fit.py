@@ -33,7 +33,8 @@ def Photutils_Fit(IMG, results, options):
     ellipse = Photutils_Ellipse(dat, geometry = geo)
 
     isolist = ellipse.fit_image(fix_center = True, linear = False)
-    res = {'fit R': isolist.sma[1:], 'fit ellip': isolist.eps[1:], 'fit ellip_err': isolist.ellip_err[1:], 'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:]}
+    res = {'fit R': isolist.sma[1:], 'fit ellip': isolist.eps[1:], 'fit ellip_err': isolist.ellip_err[1:],
+           'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:], 'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]}
     
     if 'ap_doplot' in options and options['ap_doplot']:
         ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2))],
@@ -44,7 +45,7 @@ def Photutils_Fit(IMG, results, options):
                                         res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
         plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = 300)
         plt.close()                
-    
+
     return IMG, res
 
 
@@ -226,7 +227,8 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         pa_err[i] = np.sqrt(np.sum((pa[i-2:i+2] - smooth_pa[i-2:i+2])**2)/4)
 
     res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
-           'fit ellip_err': ellip_err, 'fit pa_err': pa_err}
+           'fit ellip_err': ellip_err, 'fit pa_err': pa_err,
+           'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % sample_radii[-1]}
     return IMG, res
 
 def Isophote_Fit_Forced(IMG, results, options):
@@ -428,5 +430,6 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         pa_err[i] = np.sqrt(np.sum((pa[i-2:i+2] - smooth_pa[i-2:i+2])**2)/4)
 
     res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
-           'fit ellip_err': ellip_err, 'fit pa_err': pa_err}
+           'fit ellip_err': ellip_err, 'fit pa_err': pa_err,
+           'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % sample_radii[-1]}
     return IMG, res

@@ -190,8 +190,9 @@ class Isophote_Pipeline(object):
         start = time()
         
         # Create a multiprocessing pool to parallelize image processing
-        if options['ap_n_procs'] > 1:
-            with Pool(int(options['ap_n_procs'])) as pool:
+        n_procs = options['ap_n_procs'] if 'ap_n_procs' in options else 1
+        if n_procs > 1:
+            with Pool(int(n_procs)) as pool:
                 res = pool.map(self.Process_Image, use_options,
                                chunksize = 5 if len(options['ap_image_file']) > 100 else 1)
         else:

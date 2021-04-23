@@ -35,8 +35,8 @@ def Background_Mode(IMG, results, options):
         values = IMG.flatten()
     values = values[np.isfinite(values)]
 
-    if 'ap_background' in options:
-        bkgrnd = options['ap_background']
+    if 'ap_set_background' in options:
+        bkgrnd = options['ap_set_background']
         logging.info('%s: Background set by user: %.4e' % (options['ap_name'], bkgrnd))
     else:
         # set the starting point for the sky level optimization at the median pixel flux
@@ -48,8 +48,8 @@ def Background_Mode(IMG, results, options):
         res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
         bkgrnd = res.x[0]
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
-    if 'ap_background_noise' in options:
-        noise = options['ap_background_noise']
+    if 'ap_set_background_noise' in options:
+        noise = options['ap_set_background_noise']
         logging.info('%s: Background Noise set by user: %.4e' % (options['ap_name'], noise))
     else:
         noise = iqr(values[(values-bkgrnd) < 0], rng = [100 - 68.2689492137,100])
@@ -77,7 +77,8 @@ def Background_Mode(IMG, results, options):
         
     return IMG, {'background': bkgrnd,
                  'background noise': noise,
-                 'background uncertainty': uncertainty}
+                 'background uncertainty': uncertainty,
+                 'auxfile background': 'background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix' % (bkgrnd, uncertainty, noise)}
 
 def Background_DilatedSources(IMG, results, options):
     """
@@ -100,28 +101,36 @@ def Background_DilatedSources(IMG, results, options):
     # Run photutils source mask to remove pixels with sources
     # such as stars and galaxies, including a boarder
     # around each source.
-    source_mask = make_source_mask(IMG, nsigma = 3,
-                                   npixels = int(1./options['ap_pixscale']),
-                                   dilate_size = 40,
-                                   filter_fwhm = 1./options['ap_pixscale'],
-                                   filter_size = int(3./options['ap_pixscale']),
-                                   sigclip_iters = 5)
-    mask = np.logical_or(mask, source_mask)
+    if not ('ap_set_background' in options and 'ap_set_background_noise' in options):
+        source_mask = make_source_mask(IMG, nsigma = 3,
+                                       npixels = int(1./options['ap_pixscale']),
+                                       dilate_size = 40,
+                                       filter_fwhm = 1./options['ap_pixscale'],
+                                       filter_size = int(3./options['ap_pixscale']),
+                                       sigclip_iters = 5)
+        mask = np.logical_or(mask, source_mask)
 
     # Return statistics from background sky
-    noise = iqr(IMG[np.logical_not(mask)],rng = [16,84])/2
-    return IMG, {'background': np.median(IMG[np.logical_not(mask)]),
+    bkgrnd = options['ap_set_background'] if 'ap_set_background' in options else np.median(IMG[np.logical_not(mask)])
+    noise = options['ap_set_background_noise'] if 'ap_set_background_noise' in options else iqr(IMG[np.logical_not(mask)],rng = [16,84])/2
+    uncertainty = noise/np.sqrt(np.sum(np.logical_not(mask)))
+    return IMG, {'background': bkgrnd,
                  'background noise': noise,
-                 'background uncertainty': noise/np.sqrt(np.sum(np.logical_not(mask)))}
+                 'background uncertainty': uncertainty,
+                 'auxfile background': 'background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix' % (bkgrnd, uncertainty, noise)}
 
 def Background_Basic(IMG, results, options):
     mask = np.ones(IMG.shape, dtype = bool)
     mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
          int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = False
-    
-    return IMG, {'background': np.mean(IMG[mask]),
-                 'background noise': np.std(IMG[mask]),
-                 'background uncertainty': np.std(IMG[mask]) / np.sqrt(len(IMG[mask].ravel()))}
+
+    bkgrnd = options['ap_set_background'] if 'ap_set_background' in options else np.mean(IMG[mask])
+    noise = options['ap_set_background_noise'] if 'ap_set_background_noise' in options else np.std(IMG[mask])
+    uncertainty = noise / np.sqrt(len(IMG[mask].ravel()))
+    return IMG, {'background': bkgrnd,
+                 'background noise': noise,
+                 'background uncertainty': uncertainty,
+                 'auxfile background': 'background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix' % (bkgrnd, uncertainty, noise)}
 
 def Background_Unsharp(IMG, results, options):
 

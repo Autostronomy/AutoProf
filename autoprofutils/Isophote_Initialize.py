@@ -5,7 +5,7 @@ from scipy.stats import iqr
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo, PA_shift_convention
 import logging
 from copy import copy
 from astropy.visualization import SqrtStretch, LogStretch
@@ -114,8 +114,12 @@ def Isophote_Initialize(IMG, results, options):
             AddLogo(plt.gcf())
         plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
-        
-    return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}
+
+    auxmessage = 'global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix' % (ellip, ellip_err,
+                                                                                           PA_shift_convention(phase)*180/np.pi,
+                                                                                           pa_err*180/np.pi, circ_ellipse_radii[-2])
+    return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase,
+                 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2], 'auxfile initialize': auxmessage}
 
 
 def _fitEllip_mean_loss(e, dat, r, p, c, n):
@@ -219,4 +223,7 @@ def Isophote_Initialize_mean(IMG, results, options):
         plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
         
-    return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2]}
+    auxmessage = 'global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix' % (ellip, ellip_err,
+                                                                                           PA_shift_convention(phase)*180/np.pi,
+                                                                                           pa_err*180/np.pi, circ_ellipse_radii[-2])
+    return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': phase, 'init pa_err': pa_err, 'init R': circ_ellipse_radii[-2], 'auxfile initialize': auxmessage}

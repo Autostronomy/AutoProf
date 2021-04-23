@@ -10,30 +10,21 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import Read_Image
 
-def Overflow_Mask(IMG, results, options):
+def Bad_Pixel_Mask(IMG, results, options):
     """
-    Identify parts of the image where the CCD has overflowed and maxed
-    out the sensor. These are characterized by large areas with high
-    and identical pixel values
+    construct a mask by identifying bad pixels as selected by basic
+    cutoff criteria.
     """
-    
-    if 'autodetectoverflow' in options and options['ap_autodetectoverflow']:
-        # Set the overflowval to the most common pixel value, since overflow
-        # pixels all have the same value with no noise.
-        overflowval = mode(IMG, axis = None, nan_policy = 'omit')
-        # If less than 10 pixels have the mode value, assume no pixels have
-        # overflowed and the value is just random.
-        if np.sum(IMG == overflowval) < 100:
-            return IMG, {'mask': np.zeros(IMG.shape,dtype = bool)}
-    if (not 'overflowval' in options) or options['ap_overflowval'] is None:
-        logging.info('%s: not masking overflow %s' % options['ap_name'])
-        return IMG, {'mask': np.zeros(IMG.shape)}
 
-    Mask = np.logical_and(IMG > (options['ap_overflowval'] - 1e-3), IMG < (options['ap_overflowval'] + 1e-3)).astype(bool)
-
-    # eliminate places where no data is recorded
-    Mask[IMG == 0] = True
-    logging.info('%s: masking %i overflow pixels' % (options['ap_name'], np.sum(Mask)))
+    Mask = np.zeros(IMG.shape, dtype = bool)
+    if 'ap_badpixel_high' in options:
+        Mask[IMG >= options['ap_badpixel_high']] = True
+    if 'ap_badpixel_low' in options:
+        Mask[IMG <= options['ap_badpixel_low']] = True
+    if 'ap_badpixel_exact' in options:
+        Mask[IMG == options['ap_badpixel_exact']] = True
+        
+    logging.info('%s: masking %i bad pixels' % (options['ap_name'], np.sum(Mask)))
     return IMG, {'mask': Mask}
 
 def Mask_Segmentation_Map(IMG, results, options):
@@ -48,9 +39,12 @@ def Mask_Segmentation_Map(IMG, results, options):
     if 'center' in results:
         if mask[int(results['center']['y']),int(results['center']['x'])] > 1.1:
             mask[mask == mask[int(results['center']['y']),int(results['center']['x'])]] = 0
-    elif 'given_center' in options:
-        if mask[int(options['ap_given_center']['y']),int(options['ap_given_center']['x'])] > 1.1:
-            mask[mask == mask[int(options['ap_given_center']['y']),int(options['ap_given_center']['x'])]] = 0
+    elif 'ap_set_center' in options:
+        if mask[int(options['ap_set_center']['y']),int(options['ap_set_center']['x'])] > 1.1:
+            mask[mask == mask[int(options['ap_set_center']['y']),int(options['ap_set_center']['x'])]] = 0
+    elif 'ap_guess_center' in options:
+        if mask[int(options['ap_guess_center']['y']),int(options['ap_guess_center']['x'])] > 1.1:
+            mask[mask == mask[int(options['ap_guess_center']['y']),int(options['ap_guess_center']['x'])]] = 0
     elif mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)] > 1.1:
         mask[mask == mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)]] = 0
 
@@ -66,7 +60,7 @@ def Star_Mask_IRAF(IMG, results, options):
     use_center = results['center']
 
     # Find scale of bounding box for galaxy. Stars will only be found within this box
-    smaj = results['fit R'][-1]
+    smaj = results['fit R'][-1] if 'fit R' in results else max(IMG.shape)
     xbox = int(1.5*smaj)
     ybox = int(1.5*smaj)
     xbounds = [max(0,int(use_center['x'] - xbox)),min(int(use_center['x'] + xbox),IMG.shape[1])]
@@ -95,9 +89,6 @@ def Star_Mask_IRAF(IMG, results, options):
     if 'mask_file' in options and not options['ap_mask_file'] is None:
         mask  = np.logical_or(mask, Read_Image(mask_file, options))
         
-    # Run separate code to find overflow pixels from very bright stars
-    overflow_mask = Overflow_Mask(IMG, results, options)[1]['mask']
-    
     # Plot star mask for diagnostic purposes
     if 'doplot' in options and options['ap_doplot']:
         plt.imshow(np.clip(IMG[max(0,int(use_center['y']-smaj*1.2)): min(IMG.shape[0],int(use_center['y']+smaj*1.2)),

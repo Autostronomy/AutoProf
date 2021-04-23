@@ -20,12 +20,12 @@ def PSF_IRAF(IMG, results, options):
     """
     Apply the photutils IRAF wrapper to the image to extract a PSF fwhm
     """
-    if 'ap_psf_set' in options:
-        logging.info('%s: PSF set by user: %.4e' % (options['ap_name'], options['ap_psf_set']))
-        return IMG, {'psf fwhm': options['ap_psf_set']}
-    elif 'ap_psf_guess' in options:
-        logging.info('%s: PSF initialized by user: %.4e' % (options['ap_name'], options['ap_psf_guess']))
-        fwhm_guess = options['ap_psf_guess']
+    if 'ap_set_psf' in options:
+        logging.info('%s: PSF set by user: %.4e' % (options['ap_name'], options['ap_set_psf']))
+        return IMG, {'psf fwhm': options['ap_set_psf']}
+    elif 'ap_guess_psf' in options:
+        logging.info('%s: PSF initialized by user: %.4e' % (options['ap_name'], options['ap_guess_psf']))
+        fwhm_guess = options['ap_guess_psf']
     else:
         fwhm_guess = max(1., 1./options['ap_pixscale'])
 
@@ -60,16 +60,18 @@ def PSF_IRAF(IMG, results, options):
                                         0, fill = False, linewidth = 0.5, color = 'y'))
         plt.savefig('%sPSF_Stars_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = 600)
         plt.close()
-        
-    return IMG, {'psf fwhm': np.median(irafsources['fwhm'])}
 
+    psf = np.median(irafsources['fwhm'])
+    return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf}
 
 def PSF_StarFind(IMG, results, options):
 
-    if 'ap_psf_set' in options:
-        return IMG, {'psf fwhm': options['ap_psf_set']}
-    elif 'ap_psf_guess' in options:
-        fwhm_guess = options['ap_psf_guess']
+    if 'ap_set_psf' in options:
+        logging.info('%s: PSF set by user: %.4e' % (options['ap_name'], options['ap_set_psf']))
+        return IMG, {'psf fwhm': options['ap_set_psf']}
+    elif 'ap_guess_psf' in options:
+        logging.info('%s: PSF initialized by user: %.4e' % (options['ap_name'], options['ap_guess_psf']))
+        fwhm_guess = options['ap_guess_psf']
     else:
         fwhm_guess = max(1., 1./options['ap_pixscale'])
 
@@ -119,6 +121,7 @@ def PSF_StarFind(IMG, results, options):
         plt.savefig('%sPSF_Best_Stars_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
 
-    logging.info('%s: found psf: %f with deformity clip of: %f' % (options['ap_name'],np.median(stars['fwhm'][stars['deformity'] < def_clip]), def_clip))
-    return IMG, {'psf fwhm': np.median(stars['fwhm'][stars['deformity'] < def_clip])}
+    psf = np.median(stars['fwhm'][stars['deformity'] < def_clip])
+    logging.info('%s: found psf: %f with deformity clip of: %f' % (options['ap_name'],psf, def_clip))
+    return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf}
 

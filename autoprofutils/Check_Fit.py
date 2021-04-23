@@ -79,5 +79,7 @@ def Check_Fit(IMG, results, options):
     except:
         logging.info('%s: Check fit could not check SB profile consistency')
     
-    
-    return IMG, {'checkfit': tests}
+    res = {'checkfit': tests}
+    for t in tests:
+        res['auxfile checkfit %s' % t] = 'checkfit %s: %s' % (t, 'pass' if tests[t] else 'fail')
+    return IMG, res

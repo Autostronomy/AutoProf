@@ -179,31 +179,31 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_nologo: tells AutoProf not to put it's logo on plots. Please only use this for figures that will be used in publications that don't allow logos (bool)
 
 #### Background
-- ap_background: User provided background value in flux (float)
-- ap_background_noise: User provided background noise level in flux (float)
+- ap_set_background: User provided background value in flux (float)
+- ap_set_background_noise: User provided background noise level in flux (float)
 
 #### PSF
-- ap_psf_guess: initialization value for the PSF calculation in pixels. If not given, AutoProf will start with a guess of 1/*ap_pixscale* (float)
-- ap_psf_set: force AutoProf to use this PSF value (in pixels) instead of calculating its own. (float)
+- ap_guess_psf: initialization value for the PSF calculation in pixels. If not given, AutoProf will start with a guess of 1/*ap_pixscale* (float)
+- ap_set_psf: force AutoProf to use this PSF value (in pixels) instead of calculating its own. (float)
 
 #### Center
-- ap_given_center: user provided center for isophote fitting. Center should be formatted as:
-		{'x':float, 'y': float}, where the floats are the center coordinates in pixels. Also see *ap_fit_center* (dict)
-- ap_fit_center: indicates if AutoProf should attempt to find the center. It will start at the center of the image unless *ap_given_center* is provided
-  		 in which case it will start there. This argument is ignored for forced photometry, in the event that a *ap_given_center* is provided,
-	      	 AutoProf will automatically use that value, if not given then it will read from the .aux file (bool)
+- ap_guess_center: user provided starting point for center fitting. Center should be formatted as:
+		   {'x':float, 'y': float}, where the floats are the center coordinates in pixels. (dict)
+- ap_set_center: user provided center for isophote fitting. Center should be formatted as:
+		   {'x':float, 'y': float}, where the floats are the center coordinates in pixels. (dict)
 
 #### Masking
-- ap_overflowval: flux value that corresponds to an overflow pixel, used to identify bad pixels and mask them (float)
+- ap_badpixel_high: flux value that corresponds to a saturated pixel or bad pixel flag, all values above *ap_badpixel_high* will be masked
+  		    if using the *Bad_Pixel_Mask* pipeline method. (float)
+- ap_badpixel_low: flux value that corresponds to a bad pixel flag, all values below *ap_badpixel_low* will be masked
+  		    if using the *Bad_Pixel_Mask* pipeline method. (float)
+- ap_badpixel_exact: flux value that corresponds to a precise bad pixel flag, all values equal to *ap_badpixel_exact* will be masked
+  		    if using the *Bad_Pixel_Mask* pipeline method. (float)
 - ap_mask_file: path to fits file which is a mask for the image. Must have the same dimensions as the main image (string)
 - ap_savemask: indicates if the star mask should be saved after fitting (bool)
-- ap_autodetectoverflow: Will try to guess the pixel saturation flux value from the mode
-   		       	 in the image. In principle if all overflow pixels have the same
-		       	 value then it would show up as the mode, but this is not
-		       	 guaranteed (bool).
 
 #### Isophote Fitting
-- ap_scale: growth scale when fitting isophotes, not the same as "ap_sample---scale" (float)
+- ap_scale: growth scale when fitting isophotes, not the same as *ap_sample---scale* (float)
 - ap_fit_limit: noise level out to which to extend the fit in units of pixel background noise level (float)
 - ap_regularize_scale: scale factor to apply to regularization coupling factor between isophotes.
   		       Default of 1, larger values make smoother fits, smaller values give more chaotic fits. (float)
@@ -262,9 +262,10 @@ This peak is used as the background level, a few rounds of sigma clipping are ap
 
 Output format:
 ```python
-{'background': , # flux value representing the background level
-'background noise': # measure of scatter around the background level
-'background uncertainty': # optional, uncertainty on background level
+{'background': , # flux value representing the background level (float)
+'background noise': ,# measure of scatter around the background level (float)
+'background uncertainty': ,# optional, uncertainty on background level (float)
+'auxfile background': # optional, message for aux file to record background level (string)
 }
 ```
 
@@ -280,7 +281,8 @@ The brightness of these apertures as a function of radius are fit with a Gaussia
 
 Output format:
 ```python
-{'psf fwhm': # estimate of the fwhm of the PSF
+{'psf fwhm': ,# estimate of the fwhm of the PSF (float)
+'auxfile psf': # optional, message for aux file to record psf estimate (string)
 }
 ```
 
@@ -300,7 +302,8 @@ The random perturbations continue until a minimum is found in FFT first coeffici
 Output format:
 ```python
 {'center': {'x': , # x coordinate of the center (pix)
-	    'y': } # y coordinate of the center (pix)
+	    'y': }, # y coordinate of the center (pix)
+'auxfile center': # optional, message for aux file to record galaxy center (string)
 }
 ```
 
@@ -320,7 +323,8 @@ For ellipticity the error is computed by optimizing the ellipticity for multiple
 Output format:
 ```python
 {'init ellip': , # Ellipticity of the global fit (float)
- 'init pa': # Position angle of the global fit (float)
+ 'init pa': ,# Position angle of the global fit (float)
+ 'auxfile initialize': # optional, message for aux file to record the global ellipticity and postition angle (string)
 }
 ```
 
@@ -348,6 +352,7 @@ Output format:
 'fit ellip_err': , # Optional, uncertainty on ellipticity values (list)
 'fit pa': , # Position angle values at each corresponding R value (list)
 'fit pa_err': , # Optional, uncertainty on position angle values (list)
+'auxfile fitlimit': # optional, message ofr aux file to record fitting limit semi-major axis (string)
 }
 ```
 
@@ -396,8 +401,36 @@ Output format:
 	      'you': , # True if the test was passed, False if the test failed (bool)
 	      'want': , # True if the test was passed, False if the test failed (bool)
 	      'to': , # True if the test was passed, False if the test failed (bool)
-	      'put': } # True if the test was passed, False if the test failed (bool)
+	      'put': }, # True if the test was passed, False if the test failed (bool)
+'auxfile checkfit anything': ,# optional aux file message for pass/fail of test (string) 
+'auxfile checkfit you': ,# optional aux file message for pass/fail of test (string) 
+'auxfile checkfit want': ,# optional aux file message for pass/fail of test (string) 
+'auxfile checkfit to': ,# optional aux file message for pass/fail of test (string) 
+'auxfile checkfit put': # optional aux file message for pass/fail of test (string) 
 }
+```
+
+### Writing the Results
+
+**pipeline label: writeprof**
+
+This step writes the results of the AutoProf pipeline analysis to a file.
+There are two files written, a *.prof* file containing the surface brightness profile and acompanying measurements, and a *.aux* file containing global results, messages, and setting used for the pipeline.
+The *.prof* file looks for specific keywords in the results dictionary: *prof header*, *prof units*, *prof data*, and *prof format*.
+There are the results from the isophotal fitting step.
+*prof header* gives the column names for the profile, *prof units* is a dictionary which gives the corresponding units for each column header key, *prof data* is a dictionary containing a list of values for each header key, and *prof format* is a dictionary which gives the python string format for values under each header key (for example '%.4f' gives a number to 4 decimal places).
+The profile is written with comma (or a user specified delimiter) separation for each value, where each row corresponds to a given isophote at increasing semi-major axis values.
+
+The *.aux* file has a less strict format than the *.prof* file.
+The first line records the date and time that the file was written, the second line gives the name of the object as specified by the user or the filename.
+The next lines are taken from the results dictionary, any result key with *auxfile* in the name is taken as a message for the *.aux* file and written (in alphabetical order by key) to the file.
+See the pipeline step output formats for the messages that are included in the *.aux* file.
+Finally, a record of the user specified options is included for reference.
+
+Output format:
+no results added from this step
+```python
+{}
 ```
 
 # Advanced Usage
@@ -567,6 +600,12 @@ Similar to the standard isophote fitting method, except flux values along isopho
 **pipeline label: 'isophotefit photutils'**
 
 Wrapper for the photutils isophote fitting method which is based on Jedzejewski 1987.
+
+### Masking - Bad Pixels
+
+**pipeline label: 'mask badpixels'**
+
+Identifies pixels that meet "bad pixel" criteria set by user options and constructs a mask.
 
 ### Star Masking - IRAF
 

@@ -4,6 +4,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import PA_shift_convention
+from datetime import datetime
 
 def WriteProf(IMG, results, options):
     """
@@ -15,28 +16,16 @@ def WriteProf(IMG, results, options):
     # Write aux file
     with open(saveto + options['ap_name'] + '_AP.aux', 'w') as f:
         # write profile info
+        f.write('written on: %s\n' % str(datetime.now()))
         f.write('name: %s\n' % str(options['ap_name']))
-        f.write('pixel scale: %.3e arcsec/pix\n' % options['ap_pixscale'])
-        if 'checkfit' in results:
-            for k in results['checkfit'].keys():
-                f.write('check fit %s: %s\n' % (k, 'pass' if results['checkfit'][k] else 'fail'))
-        f.write('psf fwhm: %.3f pix\n' % (results['psf fwhm']))
-        try:
-            f.write('background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix\n' % (results['background'], results['background uncertainty'], results['background noise']))
-        except:
-            pass
-        use_center = results['center']
-        f.write('center x: %.2f pix, y: %.2f pix\n' % (use_center['x'], use_center['y']))
-        if 'init ellip_err' in results and 'init pa_err' in results:
-            f.write('global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg\n' % (results['init ellip'], results['init ellip_err'],
-                                                                                  PA_shift_convention(results['init pa'])*180/np.pi,
-                                                                                  results['init pa_err']*180/np.pi))
-        else:
-            f.write('global ellipticity: %.3f, pa: %.3f deg\n' % (results['init ellip'], PA_shift_convention(results['init pa'])*180/np.pi))
-        f.write('fit limit semi-major axis: %.2f pix\n' % results['fit R'][-1])
-        if len(options) > 0:
-            for k in options.keys():
-                f.write('settings %s: %s\n' % (k,str(options[k])))
+
+        for r in sorted(results.keys()):
+            if 'auxfile' in r:
+                f.write(results[r] + '\n')
+        for k in sorted(options.keys()):
+            if k == 'ap_name':
+                continue
+            f.write('option %s: %s\n' % (k,str(options[k])))
             
     # Write the profile
     delim = options['ap_delimiter'] if 'ap_delimiter' in options else ','

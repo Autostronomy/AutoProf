@@ -580,24 +580,17 @@ def Angle_Scatter(a):
 
 
 def GetOptions(c):
-
-    # expected_arguments = ['process_mode', 'pixscale', 'image_file', 'paperplots', 'saveto', 'name', 'n_procs',
-    #                       'mask_file', 'savemask', 'background', 'background_noise', 'psf_guess', 'psf_set',
-    #                       'isoband_width', 'delimiter', 'extract_mean', 'truncate_evaluation', 'zeropoint',
-    #                       'sampleendR', 'sampleinitR', 'samplestyle', 'samplelinearscale', 'samplegeometricscale',
-    #                       'scale', 'regularize_scale', 'fit_limit', 'fit_center', 'given_center', 'hdulelement',
-    #                       'plotdpi', 'nologo', 'doplot', 'plotpath', 'forcing_profile', 'overflowval',
-    #                       'autodetectoverflow', 'orthsample_parallel', 'orthsample_pa', 'radsample_variable_pa',
-    #                       'radsample_expwidth', 'radsample_pa', 'radsample_width', 'radsample_nwedges',
-    #                       'iso_interpolate_start', 'isoband_start']
-    newoptions = {'n_procs': 1}
+    """
+    Extract all of the AutoProf user optionional parameters form the config file.
+    User options are identified as any python object that starts with "ap_" in the
+    variable name.
+    """
+    newoptions = {}
     for var in dir(c):
         if var.startswith('ap_'):
             newoptions[var] = getattr(c,var)
         
     return newoptions
-
-
 
 def SBprof_to_COG(R, SB, axisratio, method = 0):
     """
