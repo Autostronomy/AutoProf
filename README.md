@@ -181,6 +181,9 @@ In your config file, do not use any of these names unless you intend for AutoPro
 #### Background
 - ap_set_background: User provided background value in flux (float)
 - ap_set_background_noise: User provided background noise level in flux (float)
+- ap_background_speedup: speedup factor for background calculation. Speedup is achieved by reducing the number of pixels used
+  			 in calculating the background, only use this option for large images where all pixels are not needed
+			 to get an accurate background estimate (int)
 
 #### PSF
 - ap_guess_psf: initialization value for the PSF calculation in pixels. If not given, AutoProf will start with a guess of 1/*ap_pixscale* (float)
@@ -224,7 +227,12 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
 - ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF (float)
 - ap_extract_mean: use mean instead of median as average flux on an isophote. This is better suited to very low S/N data, though it is sensitive to outliers such as foreground
-  		   stars. In the presence of outliers (which is nearly all real-world data) the mean will be biased high. (bool) 
+  		   stars. In the presence of outliers (which is nearly all real-world data) the mean will be biased high. (bool)
+- ap_isoclip: Perform sigma clipping along extracted isophotes. Removes flux samples from an isophote that deviate significantly from the median. Several iterations
+  	      of sigma clipping are performed until convergence or *ap_isoclip_iterations* iterations are reached. Sigma clipping is a useful substitute for masking
+	      objects, though careful masking is better. Also an aggressive sigma clip may bias results. (bool)
+- ap_isoclip_iterations: Maximum number of sigma clipping iterations to perform. The default is infinity, so the sigma clipping procedure repeats until convergence (int)
+- ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_iterations* x sigma) are removed from the isophote (float) 
 
 #### Radial Sampling
 - ap_radsample_nwedges: number of radial wedges to sample. Recommended choosing a power of 2 (int)

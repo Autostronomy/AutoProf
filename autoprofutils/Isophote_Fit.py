@@ -37,8 +37,8 @@ def Photutils_Fit(IMG, results, options):
            'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:], 'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]}
     
     if 'ap_doplot' in options and options['ap_doplot']:
-        ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['y']+res['fit R'][-1]*1.2))],
-                  [max(0,int(results['center']['x']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['x']+res['fit R'][-1]*1.2))]]
+        ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['y']+res['fit R'][-1]*1.2))],
+                  [max(0,int(results['center']['x']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['x']+res['fit R'][-1]*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         for i in range(len(res['fit R'])):
             plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
@@ -70,10 +70,6 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
 
     isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True)
     
-    if not np.all(np.isfinite(isovals)):
-        logging.warning('Failed to evaluate isophotal flux values, skipping this ellip/pa combination')
-        return np.inf
-
     if mask is None:
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
     else:
@@ -83,13 +79,13 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
 
     reg_loss = 0
     if i < (len(R)-1):
-        reg_loss += abs((E[i] - E[i+1])/(1 - E[i+1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i+1]))/0.1)
-        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.3))
+        reg_loss += abs((E[i] - E[i+1])/(1 - E[i+1])) 
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.2))
     if i > 0:
-        reg_loss += abs((E[i] - E[i-1])/(1 - E[i-1])) #abs((_inv_x_to_eps(E[i]) - _inv_x_to_eps(E[i-1]))/0.1)
-        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.3))
+        reg_loss += abs((E[i] - E[i-1])/(1 - E[i-1])) 
+        reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.2))
 
-    return f2_loss*(1 + reg_loss*reg_scale) #(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
+    return f2_loss*(1 + reg_loss*reg_scale) 
 
 def Isophote_Fit_FFT_Robust(IMG, results, options):
     """
@@ -117,7 +113,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         while sample_radii[-1] < (max(IMG.shape)/2):
             isovals = _iso_extract(dat,sample_radii[-1],results['init ellip'],
                                    results['init pa'],results['center'], more = False, mask = mask)
-            if np.median(isovals) < (options['ap_fit_limit'] if 'ap_fit_limit' in options else 1)*results['background noise']:
+            if np.median(isovals) < (options['ap_fit_limit'] if 'ap_fit_limit' in options else 2)*results['background noise']:
                 break
             sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
         if len(sample_radii) < 15:
@@ -251,8 +247,8 @@ def Isophote_Fit_Forced(IMG, results, options):
                 
     if 'ap_doplot' in options and options['ap_doplot']:
         dat = IMG - results['background']
-        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2)), min(dat.shape[0],int(results['center']['y'] + (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2))],
-                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2)), min(dat.shape[1],int(results['center']['x'] + (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2))]]
+        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2)), min(dat.shape[1],int(results['center']['y'] + (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2))],
+                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2)), min(dat.shape[0],int(results['center']['x'] + (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
         # plt.imshow(np.clip(dat[ranges[0][0]: ranges[0][1], ranges[1][0]: ranges[1][1]],
         #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 

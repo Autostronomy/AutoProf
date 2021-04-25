@@ -33,6 +33,8 @@ def Background_Mode(IMG, results, options):
     values = IMG[mask].flatten()
     if len(values) < 1e5:
         values = IMG.flatten()
+    if 'ap_background_speedup' in options and int(options['ap_background_speedup']) > 1:
+        values = values[::int(options['ap_background_speedup'])]
     values = values[np.isfinite(values)]
 
     if 'ap_set_background' in options:

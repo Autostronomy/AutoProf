@@ -5,7 +5,7 @@ from scipy.stats import iqr
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo, PA_shift_convention
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo, PA_shift_convention, Sigma_Clip_Upper
 import logging
 from copy import copy
 from astropy.visualization import SqrtStretch, LogStretch
@@ -15,8 +15,8 @@ from matplotlib.patches import Ellipse
 from time import time
 
 def _fitEllip_loss(e, dat, r, p, c, n):
-    isovals = _iso_extract(dat,r,e,p,c)
-    coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
+    isovals = _iso_extract(dat,r,e,p,c, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
+    coefs = fft(isovals)
     return np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals))+n))
 
 def Isophote_Initialize(IMG, results, options):
@@ -37,15 +37,16 @@ def Isophote_Initialize(IMG, results, options):
 
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.2))
-        isovals = _iso_extract(dat,circ_ellipse_radii[-1],0.,0.,results['center'], more = True)
-        coefs = fft(np.clip(isovals[0], a_max = np.quantile(isovals[0],0.85), a_min = None))
+        isovals = _iso_extract(dat,circ_ellipse_radii[-1],0.,0.,results['center'], more = True,
+                               sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
+        coefs = fft(isovals[0]) 
         allphase.append(coefs[2])
         # Stop when at 3 time background noise
-        if np.quantile(isovals[0], 0.8) < (3*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
+        if np.quantile(isovals[0], 0.8) < (3*results['background noise']) and len(circ_ellipse_radii) > 4:
             break
     logging.info('%s: init scale: %f pix' % (options['ap_name'], circ_ellipse_radii[-1]))
     # Find global position angle.
-    phase = (-Angle_Median(np.angle(allphase[-5:]))/2) % np.pi #(-np.angle(np.mean(allphase[-5:]))/2) % np.pi
+    phase = (-Angle_Median(np.angle(allphase[-5:]))/2) % np.pi 
 
     # Find global ellipticity
     test_ellip = np.linspace(0.05,0.95,15)
@@ -66,8 +67,8 @@ def Isophote_Initialize(IMG, results, options):
     RR = np.linspace(circ_ellipse_radii[-2] - results['psf fwhm'], circ_ellipse_radii[-2] + results['psf fwhm'], 10)
     errallphase = []
     for rr in RR:
-        isovals = _iso_extract(dat,rr,0.,0.,results['center'], more = True)
-        coefs = fft(np.clip(isovals[0], a_max = np.quantile(isovals[0],0.85), a_min = None))
+        isovals = _iso_extract(dat,rr,0.,0.,results['center'], more = True, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
+        coefs = fft(isovals[0])
         errallphase.append(coefs[2])
     sample_pas = (-np.angle(1j*np.array(errallphase)/np.mean(errallphase))/2) % np.pi
     pa_err = iqr(sample_pas, rng = [16,84])/2

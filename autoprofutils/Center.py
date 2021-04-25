@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, AddLogo
+from autoprofutils.SharedFunctions import _iso_extract, AddLogo, Angle_Median
 from photutils.centroids import centroid_2dg, centroid_com, centroid_1dg
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -158,7 +158,7 @@ def Center_OfMass(IMG, results, options):
 
 def _hillclimb_loss(x, IMG, PSF, noise):
     center_loss = 0
-    for rr in range(3):
+    for rr in range(4):
         isovals = _iso_extract(IMG,(rr+0.5)*PSF,0.,
                                0.,{'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
         coefs = fft(isovals)
@@ -197,20 +197,17 @@ def Center_HillClimb(IMG, results, options):
             isovals.append(_iso_extract(dat,r,0.,0.,current_center, more = True))
             coefs.append(fft(np.clip(isovals[-1][0], a_max = np.quantile(isovals[-1][0],0.85), a_min = None)))
             phases.append((-np.angle(coefs[-1][1])) % (2*np.pi))
-        complexphase = np.array(np.cos(phases) + np.sin(phases)*1j,dtype = np.complex_)
-        direction = np.angle(np.mean(complexphase)) % (2*np.pi) 
+        direction = Angle_Median(phases) % (2*np.pi)
         levels = []
         level_locs = []
         for i, r in enumerate(sampleradii):
-            floc = np.argmin(np.abs(isovals[i][1] - direction))
-            rloc = np.argmin(np.abs(isovals[i][1] - ((direction+np.pi) % (2*np.pi))))
+            floc = np.argmin(np.abs((isovals[i][1] % (2*np.pi)) - direction))
+            rloc = np.argmin(np.abs((isovals[i][1] % (2*np.pi)) - ((direction+np.pi) % (2*np.pi))))
             smooth = np.abs(ifft(coefs[i][:min(10,len(coefs[i]))],n = len(coefs[i])))
-            if smooth[floc] > (3*results['background noise']):
-                levels.append(smooth[floc])
-                level_locs.append(r)
-            if smooth[rloc] > (3*results['background noise']):
-                levels.insert(0,smooth[rloc])
-                level_locs.insert(0,-r)
+            levels.append(smooth[floc])
+            level_locs.append(r)
+            levels.insert(0,smooth[rloc])
+            level_locs.insert(0,-r)
         try:
             p = np.polyfit(level_locs, levels, deg = 2)
             if p[0] < 0 and len(levels) > 3:
@@ -218,7 +215,7 @@ def Center_HillClimb(IMG, results, options):
             else:
                 dist = level_locs[np.argmax(levels)]
         except:
-            dist = 1.
+            dist = results['psf fwhm']
         current_center['x'] += dist*np.cos(direction)
         current_center['y'] += dist*np.sin(direction)
         if abs(dist) < (0.25*results['psf fwhm']):
@@ -228,11 +225,14 @@ def Center_HillClimb(IMG, results, options):
         track_centers.append([current_center['x'], current_center['y']])
 
     # refine center
-    res = minimize(_hillclimb_loss, x0 =  [current_center['x'], current_center['y']], args = (dat, results['psf fwhm'], results['background noise']), method = 'Nelder-Mead')
-    if res.success:
-        current_center['x'] = res.x[0]
-        current_center['y'] = res.x[1]
+    ranges = [[max(0,int(current_center['x']-results['psf fwhm']*5)), min(dat.shape[1],int(current_center['x']+results['psf fwhm']*5))],
+              [max(0,int(current_center['y']-results['psf fwhm']*5)), min(dat.shape[0],int(current_center['y']+results['psf fwhm']*5))]]
 
+    res = minimize(_hillclimb_loss, x0 =  [current_center['x'] - ranges[0][0], current_center['y'] - ranges[1][0]],
+                   args = (dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]], results['psf fwhm'], results['background noise']), method = 'Nelder-Mead')
+    if res.success:
+        current_center['x'] = res.x[0] + ranges[0][0]
+        current_center['y'] = res.x[1] + ranges[1][0]
     # paper plot
     if 'ap_paperplots' in options and options['ap_paperplots']:    
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
@@ -321,20 +321,17 @@ def Center_HillClimb_mean(IMG, results, options):
             isovals.append(_iso_extract(dat,r,0.,0.,current_center, more = True))
             coefs.append(fft(isovals[-1][0]))
             phases.append((-np.angle(coefs[-1][1])) % (2*np.pi))
-        complexphase = np.array(np.cos(phases) + np.sin(phases)*1j,dtype = np.complex_)
-        direction = np.angle(np.mean(complexphase)) % (2*np.pi)  # fixme angle average
+        direction = Angle_Median(phases) % (2*np.pi)
         levels = []
         level_locs = []
         for i, r in enumerate(sampleradii):
             floc = np.argmin(np.abs(isovals[i][1] - direction))
             rloc = np.argmin(np.abs(isovals[i][1] - ((direction+np.pi) % (2*np.pi))))
             smooth = np.abs(ifft(coefs[i][:min(10,len(coefs[i]))],n = len(coefs[i])))
-            if smooth[floc] > (3*results['background noise']):
-                levels.append(smooth[floc])
-                level_locs.append(r)
-            if smooth[rloc] > (3*results['background noise']):
-                levels.insert(0,smooth[rloc])
-                level_locs.insert(0,-r)
+            levels.append(smooth[floc])
+            level_locs.append(r)
+            levels.insert(0,smooth[rloc])
+            level_locs.insert(0,-r)
         try:
             p = np.polyfit(level_locs, levels, deg = 2)
             if p[0] < 0 and len(levels) > 3:
@@ -342,7 +339,7 @@ def Center_HillClimb_mean(IMG, results, options):
             else:
                 dist = level_locs[np.argmax(levels)]
         except:
-            dist = 1.
+            dist = results['psf fwhm']
         current_center['x'] += dist*np.cos(direction)
         current_center['y'] += dist*np.sin(direction)
         if abs(dist) < (0.25*results['psf fwhm']):

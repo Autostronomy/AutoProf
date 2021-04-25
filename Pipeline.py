@@ -175,18 +175,15 @@ class Isophote_Pipeline(object):
         
         # Format the inputs so that they can be zipped with the images files
         # and passed to the Process_Image function.
-        if all(type(options[k]) != list for k in options.keys() if not k in ['ap_new_pipeline_steps']):
-            use_options = [options]*len(options['ap_image_file'])
-        else:
-            use_options = []
-            for i in range(len(options['ap_image_file'])):
-                tmp_options = {}
-                for k in options.keys():
-                    if type(options[k]) == list and not k in ['ap_new_pipeline_steps']:
-                        tmp_options[k] = options[k][i]
-                    else:
-                        tmp_options[k] = options[k]
-                use_options.append(tmp_options)
+        use_options = []
+        for i in range(len(options['ap_image_file'])):
+            tmp_options = {}
+            for k in options.keys():
+                if type(options[k]) == list and not k in ['ap_new_pipeline_steps']:
+                    tmp_options[k] = options[k][i]
+                else:
+                    tmp_options[k] = options[k]
+            use_options.append(tmp_options)
         # Track how long it takes to run the analysis
         start = time()
         

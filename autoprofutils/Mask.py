@@ -3,12 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
-from scipy.stats import mode
+from scipy.stats import mode, iqr
 import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import Read_Image
+from autoprofutils.SharedFunctions import Read_Image, LSBImage, AddLogo
 
 def Bad_Pixel_Mask(IMG, results, options):
     """
@@ -28,13 +28,11 @@ def Bad_Pixel_Mask(IMG, results, options):
     return IMG, {'mask': Mask}
 
 def Mask_Segmentation_Map(IMG, results, options):
-
-    if options['ap_mask_file'] is None:
-        mask = np.zeros(IMG.shape) 
+    
+    if 'ap_mask_file' not in options or options['ap_mask_file'] is None:
+        mask = np.zeros(IMG.shape, dtype = bool) 
     else:
         mask = Read_Image(options['ap_mask_file'], options)
-        if 'preprocess' in options and 'preprocess_all' in options and options['ap_preprocess_all']: 
-            mask = options['ap_preprocess'](mask)
             
     if 'center' in results:
         if mask[int(results['center']['y']),int(results['center']['x'])] > 1.1:
@@ -48,6 +46,21 @@ def Mask_Segmentation_Map(IMG, results, options):
     elif mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)] > 1.1:
         mask[mask == mask[int(IMG.shape[0]/2),int(IMG.shape[1]/2)]] = 0
 
+    # Plot star mask for diagnostic purposes
+    if 'ap_doplot' in options and options['ap_doplot']:
+        bkgrnd = results['background'] if 'background' in results else np.median(IMG)
+        noise = results['background noise'] if 'background noise' in results else iqr(IMG, rng = [16,84])/2
+        LSBImage(IMG - bkgrnd, noise)
+        showmask = np.copy(mask)
+        showmask[showmask > 1] = 1
+        showmask[showmask < 1] = np.nan
+        plt.imshow(showmask, origin = 'lower', cmap = 'Reds_r', alpha = 0.5)
+        plt.tight_layout()
+        if not ('ap_nologo' in options and options['ap_nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%smask_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']))
+        plt.close()
+        
     return IMG, {'mask': mask.astype(bool)}
 
 def Star_Mask_IRAF(IMG, results, options):

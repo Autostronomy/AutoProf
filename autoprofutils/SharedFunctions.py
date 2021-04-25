@@ -238,8 +238,28 @@ def L_to_mag(L, band, Le = None, zeropoint = None):
         mage = np.abs(2.5 * Le / (L * np.log(10)))
         return mag, mage
 
+def Sigma_Clip_Upper(v, iterations = 10, nsigma = 5):
+    """
+    Perform sigma clipping on the "v" array. Each iteration involves
+    computing the median and 16-84 range, these are used to clip beyond
+    "nsigma" number of sigma above the median. This is repeated for
+    "iterations" number of iterations, or until convergence if None.
+    """
 
-def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None):
+    v2 = np.sort(v)
+    i = 0
+    old_lim = 0
+    lim = np.inf
+    while i < iterations and old_lim != lim:
+        med = np.median(v2[v2 < lim])
+        rng = iqr(v2[v2 < lim],rng=[16,84])/2
+        old_lim = lim
+        lim = med + rng*nsigma
+        i += 1
+    return lim
+
+def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
+                 sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
 
     ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
               [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
@@ -253,51 +273,37 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None):
     RR = XX**2 + YY**2
     rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
     fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
+    CHOOSE = None
     if not mask is None and sma_high > 5:
         CHOOSE = np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect])
-        if np.sum(CHOOSE) < 5:
-            logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, pa*180/np.pi, eps))
-            CHOOSE = np.ones(CHOOSE.shape).astype(bool)
+    # Perform sigma clipping if requested
+    if sigmaclip:
+        sclim = Sigma_Clip_Upper(fluxes, sclip_iterations, sclip_nsigma)
+        if CHOOSE is None:
+            CHOOSE = fluxes < sclim
+        else:
+            CHOOSE = np.logical_or(CHOOSE, fluxes < sclim)
+    if CHOOSE is not None and np.sum(CHOOSE) < 5:
+        logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, pa*180/np.pi, eps))
+        CHOOSE = np.ones(CHOOSE.shape).astype(bool)
+    
     if more:
-        if not mask is None and sma_high > 5:
+        if CHOOSE is not None and sma_high > 5:
             return fluxes[CHOOSE], theta[rselect][CHOOSE]
         else:
             return fluxes, theta[rselect]
     else:
-        if not mask is None and sma_high > 5:
+        if CHOOSE is not None and sma_high > 5:
             return fluxes[CHOOSE]
         else:
             return fluxes
         
-def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False, rad_interp = 30):
+def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False,
+                 rad_interp = 30, sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
     
-    if type(sma) == list:
-        box = [[max(0,int(c['x']-max(sma)-2)), min(IMG.shape[1],int(c['x']+max(sma)+2))],
-               [max(0,int(c['y']-max(sma)-2)), min(IMG.shape[0],int(c['y']+max(sma)+2))]]
-        f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
-                                       np.arange(box[0][1] - box[0][0], dtype = np.float32),
-                                       IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
-        
-        N = list(int(np.clip(7*s, a_min = 13, a_max = 50)) for s in sma)
-        # points along ellipse to evaluate
-        theta = list(np.linspace(0, 2*np.pi - 1./n, n) for n in N)
-        # Define ellipse
-        X = list(sma[i]*np.cos(theta[i]) for i in range(len(sma)))
-        Y = list(sma[i]*(1-eps)*np.sin(theta[i]) for i in range(len(sma)))
-        # rotate ellipse by PA
-        for i in range(len(sma)):
-            X[i],Y[i] = (X[i]*np.cos(pa) - Y[i]*np.sin(pa), X[i]*np.sin(pa) + Y[i]*np.cos(pa))
-        theta = list((theta[i] + pa) % (2*np.pi) for i in range(len(sma)))
-        flux = list(f_interp(Y[i] + c['y'] - box[1][0],
-                             X[i] + c['x'] - box[0][0], grid = False) for i in range(len(sma)))
-        if more:
-            return flux, theta
-        else:
-            return flux
-
     N = max(15,int(0.9*2*np.pi*sma))
     if not minN is None:
         N = max(minN,N)
@@ -322,16 +328,31 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
         # note uses values at edge when past image boundary, possible fixme?
         flux = IMG[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
                    np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)]
-        if not mask is None:
-            CHOOSE = np.logical_not(mask[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
-                                         np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)])
-            if np.sum(CHOOSE) < 5:
-                logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
-            elif interp_mask:
-                flux[np.logical_not(CHOOSE)] = np.interp(theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period = 2*np.pi)
-            else:
-                flux = flux[CHOOSE]
-                theta = theta[CHOOSE]
+    # CHOOSE holds bolean array for which flux values to keep, initialized as None for no clipping
+    CHOOSE = None
+    # Mask pixels if a mask is given
+    if not mask is None:
+        CHOOSE = np.logical_not(mask[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
+                                     np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)])
+    # Perform sigma clipping if requested
+    if sigmaclip:
+        sclim = Sigma_Clip_Upper(flux, sclip_iterations, sclip_nsigma)
+        if CHOOSE is None:
+            CHOOSE = flux < sclim
+        else:
+            CHOOSE = np.logical_or(CHOOSE, flux < sclim)
+    # Dont clip pixels if that removes all of the pixels
+    if not CHOOSE is None and np.sum(CHOOSE) < 5:
+        logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
+        # Interpolate clipped flux values if requested
+    elif not CHOOSE is None and interp_mask:
+        flux[np.logical_not(CHOOSE)] = np.interp(theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period = 2*np.pi)
+        # simply remove all clipped pixels if user doesn't reqest another option
+    elif not CHOOSE is None:
+        flux = flux[CHOOSE]
+        theta = theta[CHOOSE]
+
+    # Return just the flux values, or flux and angle values
     if more:
         return flux, theta
     else:
@@ -355,7 +376,7 @@ def _iso_line(IMG, length, width, pa, c, more = False):
     if more:
         return flux, XX[lselect], YY[lselect]
     else:
-        return flux, XX[lselect]
+        return flux, XX[lselect]            
         
 def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, detect_threshold = 20., minsep = 10., reject_size = 10., maxstars = np.inf):
     """
@@ -548,9 +569,8 @@ def Angle_TwoAngles(a1, a2):
     Compute the angle between two vectors at angles a1 and a2
     """
 
-    return np.arccos(np.sin(a1)*np.sin(a2) + np.cos(a1)*np.cos(a2))
+    return np.arccos(np.cos(a1 - a2)) #np.arccos(np.sin(a1)*np.sin(a2) + np.cos(a1)*np.cos(a2))
     
-
 def Angle_Average(a):
     """
     Compute the average for a list of angles, which may wrap around a cyclic boundary.
@@ -571,7 +591,7 @@ def Angle_Median(a):
     
 def Angle_Scatter(a):
     """
-    Compute the average for a list of angles, which may wrap around a cyclic boundary.
+    Compute the scatter for a list of angles, which may wrap around a cyclic boundary.
 
     a: list of angles in the range [0,2pi]
     """
