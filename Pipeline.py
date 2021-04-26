@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
+from autoprofutils.Plotting_Steps import Plot_Galaxy_Image
 from autoprofutils.Background import Background_Mode, Background_DilatedSources, Background_Unsharp, Background_Basic
 from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
 from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
@@ -52,6 +53,7 @@ class Isophote_Pipeline(object):
                                  'center OfMass': Center_OfMass,
                                  'isophoteinit': Isophote_Initialize,
                                  'isophoteinit mean': Isophote_Initialize_mean,
+                                 'plot image': Plot_Galaxy_Image,
                                  'isophotefit': Isophote_Fit_FFT_Robust,
                                  'isophotefit mean': Isophote_Fit_FFT_mean,
                                  'isophotefit forced': Isophote_Fit_Forced,
