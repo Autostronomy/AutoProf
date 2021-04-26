@@ -8,7 +8,8 @@ ap_doplot = True
 ap_isoband_width = 0.05
 ap_samplegeometricscale = 0.05
 ap_truncate_evaluation = True
-ap_badpixel_high = 9.9
-ap_new_pipeline_steps = ['mask badpixels', 'background', 'psf', 'center', 'isophoteinit',                                                                                 
-                         'isophotefit', 'isophoteextract', 'checkfit',
+ap_isoclip = True
+
+ap_new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',                                                                                 
+                         'plot image', 'isophotefit', 'isophoteextract', 'checkfit',
                          'ellipsemodel', 'orthsample', 'radsample', 'writeprof']
