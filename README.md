@@ -596,6 +596,12 @@ Wrapper for photutils method which finds the flux centroid of an image to determ
 
 Similar to the standard isophote initialization method, except flux values along isophotes are evaluated using the mean (instead of the median) which is more accurate in the low S/N limit that pixel values are integers.
 
+### Plot Clean Image
+
+**pipeline label: 'plot image'**
+
+Simply plots an image of the galaxy using hybrid histogram equalization and log scale, without any other features or tests drawn on top. This can be useful for inspecting the image for spurious features without any ellipses, lines, or other objects drawn overtop. The size of the image will be based on when the step is called in the pipeline, if it is called early in the pipeline then a larger and less centered image will be used, calling later in the pipeline will use later pieces of information to choose the image size and centering.
+
 ### Isophote Fitting - Mean
 
 **pipeline label: 'isophotefit mean'**
