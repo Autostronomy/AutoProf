@@ -90,7 +90,6 @@ def Isophote_Initialize(IMG, results, options):
         plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*circ_ellipse_radii[-1], 2*circ_ellipse_radii[-1]*(1. - ellip),
                                     phase*180/np.pi, fill = False, linewidth = 1, color = 'y'))
         plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = 'r')
-        plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sinitialize_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)

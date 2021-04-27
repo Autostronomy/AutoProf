@@ -245,6 +245,10 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_orthsample_pa: user set position angle at which to align the orthogonal sampling lines, in degrees (float)
 - ap_orthsample_parallel: align orthogonal sampling lines parallel to the major axis instead of perpendicular. This is similar to applying a transpose to the regular orthogonal sampling output matrix (bool)
 
+#### Ellipse Model
+- ap_ellipsemodel_resolution: scale factor for the ellipse model resolution. Above 1 increases the precision of the ellipse model (and computation time), between 0 and 1 decreases
+  			      the resolution (and computation time). Note that the ellipse model resolution is defined logarithmically, so the center will always be more resolved (float)
+
 There is one argument that AutoProf can take in the command line, which is the name of the log file.
 The log file stores information about everything that AutoProf is doing, this is useful for diagnostic purposes.
 By default, AutoProf will name the log file *AutoProf.log*, if you wish to make it a different filename then add the filename when running AutoProf:

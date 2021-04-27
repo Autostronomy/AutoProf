@@ -241,7 +241,6 @@ def Center_HillClimb(IMG, results, options):
             plt.gca().add_patch(Ellipse((current_center['x'],current_center['y']), 2*((i+0.5)*results['psf fwhm']),
                                         2*((i+0.5)*results['psf fwhm']),
                                         0, fill = False, linewidth = 0.5, color = 'y'))
-        plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%stest_center_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)

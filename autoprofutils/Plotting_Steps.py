@@ -35,7 +35,6 @@ def Plot_Galaxy_Image(IMG, results, options):
               [max(0,int(center['y']-edge)), min(IMG.shape[0],int(center['y']+edge))]]
         
     LSBImage(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]] - results['background'], results['background noise'])
-    plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
     plt.savefig('%sclean_image_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)

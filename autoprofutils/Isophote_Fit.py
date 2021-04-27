@@ -43,6 +43,8 @@ def Photutils_Fit(IMG, results, options):
         for i in range(len(res['fit R'])):
             plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
                                         res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
+        if not ('ap_nologo' in options and options['ap_nologo']):
+            AddLogo(plt.gcf())
         plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = 300)
         plt.close()                
 
@@ -191,7 +193,6 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         for i in range(len(sample_radii)):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
                                         pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = 'r'))
-        plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
@@ -256,6 +257,8 @@ def Isophote_Fit_Forced(IMG, results, options):
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/options['ap_pixscale']),
                                         2*(np.array(force['R'])[i]/options['ap_pixscale'])*(1. - force['ellip'][i]),
                                         force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
+        if not ('ap_nologo' in options and options['ap_nologo']):
+            AddLogo(plt.gcf())
         plt.savefig('%sforcedfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()                
     res = {'fit ellip': np.array(force['ellip']),
@@ -394,7 +397,6 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         for i in range(len(sample_radii)):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
                                         pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = 'r'))
-        plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)

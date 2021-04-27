@@ -89,6 +89,7 @@ def PSF_StarFind(IMG, results, options):
     if 'ap_doplot' in options and options['ap_doplot']:
         plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
                    cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        plt.axis('off')
         for i in range(len(stars['fwhm'])):
             plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/options['ap_pixscale'], 16/options['ap_pixscale'],
                                         0, fill = False, linewidth = 0.5, color = 'r' if stars['deformity'][i] >= def_clip else 'y'))

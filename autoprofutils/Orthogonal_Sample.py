@@ -145,7 +145,6 @@ def Orthogonal_Sample(IMG, results, options):
         plt.legend()
         plt.xlim([0,ranges[0][1] - ranges[0][0]])
         plt.ylim([0,ranges[1][1] - ranges[1][0]])
-        plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sorthogonal_sample_lines_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)

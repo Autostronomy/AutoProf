@@ -193,14 +193,19 @@ def EllipseModel_General(IMG, results, options):
     YY -= results['center']['y'] - float(ranges[1][0])
     MM = np.zeros(XX.shape, dtype = np.float32)
     Prox = np.zeros(XX.shape, dtype = np.float32) + np.inf
-
-    for r in reversed(np.logspace(np.log10(R[0]/2),np.log10(R[-1]),len(R)*2)):
-        RR = np.sqrt((XX*np.cos(-pa(r)) - YY*np.sin(-pa(r)))**2 + ((XX*np.sin(-pa(r)) + YY*np.cos(-pa(r)))/np.clip(q(r),a_min = 0.03,a_max = 1))**2)
+    WINDOW = [[0,XX.shape[0]],[0, XX.shape[1]]]
+    for r in reversed(np.logspace(np.log10(R[0]/2),np.log10(R[-1]),int(len(R)*2*(option['ap_ellipsemodel_resolution'] if 'ap_ellipsemodel_resolution' in options else 1)))):
+        if r < (R[-1]/2):
+            WINDOW = [[max(0,int(results['center']['y'] - float(ranges[1][0]) - r*1.5 - 5)),min(XX.shape[0],int(results['center']['y'] - float(ranges[1][0]) + r*1.5 + 5))],
+                      [max(0,int(results['center']['x'] - float(ranges[0][0]) - r*1.5 - 5)),min(XX.shape[1],int(results['center']['x'] - float(ranges[0][0]) + r*1.5 + 5))]]
+            
+        RR = np.sqrt((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(r)) - YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(r)))**2 + \
+                     ((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(r)) + YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(r)))/np.clip(q(r),a_min = 0.03,a_max = 1))**2)
         D = np.abs(RR - r)
-        CLOSE = D < Prox
+        CLOSE = D < Prox[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]
         if np.any(CLOSE):
-            MM[CLOSE] = sb(RR[CLOSE])
-            Prox[CLOSE] = D[CLOSE]
+            MM[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = sb(RR[CLOSE])
+            Prox[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = D[CLOSE]
         
     MM = 10**(-(MM - zeropoint - 5*np.log10(options['ap_pixscale']))/2.5)
     RR = np.sqrt((XX*np.cos(-pa(R[-1])) - YY*np.sin(-pa(R[-1])))**2 + ((XX*np.sin(-pa(R[-1])) + YY*np.cos(-pa(R[-1])))/np.clip(q(R[-1]),a_min = 0.03,a_max = 1))**2)
@@ -219,10 +224,12 @@ def EllipseModel_General(IMG, results, options):
         ranges = [[max(0,int(results['center']['x']-R[-1]*1.2)), min(IMG.shape[1],int(results['center']['x']+R[-1]*1.2))],
                   [max(0,int(results['center']['y']-R[-1]*1.2)), min(IMG.shape[0],int(results['center']['y']+R[-1]*1.2))]]
         plt.figure(figsize = (7,7))
-        plt.imshow(np.clip(Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
-                   origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
+        autocmap.set_under('k', alpha=0)
+        showmodel = Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].copy()
+        showmodel[showmodel > 0] += np.max(showmodel)/(10**3.5) - np.min(showmodel[showmodel > 0])
+        plt.imshow(showmodel, origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
         plt.axis('off')
-        plt.tight_layout()
+        plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sellipsemodel_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
@@ -232,12 +239,11 @@ def EllipseModel_General(IMG, results, options):
         plt.figure(figsize = (7,7))
         plt.imshow(residual, origin = 'lower', cmap = 'PuBu',
                    vmin = np.quantile(residual, 0.0001), vmax = 0)
-        autocmap.set_under('k', alpha=0)
         plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),
                    origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
            interpolation = 'none', clim = [1e-5, None])        
         plt.axis('off')
-        plt.tight_layout()
+        plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sellipseresidual_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
@@ -247,7 +253,7 @@ def EllipseModel_General(IMG, results, options):
         plt.figure(figsize = (7,7))
         LSBImage(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'], results['background noise'])
         plt.axis('off')
-        plt.tight_layout()
+        plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
         plt.savefig('%sclearimage_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
 
