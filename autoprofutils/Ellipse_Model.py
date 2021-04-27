@@ -181,9 +181,9 @@ def EllipseModel_General(IMG, results, options):
     CHOOSE = np.array(results['prof data']['SB_e']) < 0.5
     R = np.array(results['prof data']['R'])[CHOOSE]/options['ap_pixscale']
 
-    sb = UnivariateSpline(R, np.array(results['prof data']['SB'])[CHOOSE], ext = 3, s = 0)
-    pa = UnivariateSpline(R, np.array(results['prof data']['pa'])[CHOOSE]*np.pi/180, ext = 3, s = 0)
-    q = UnivariateSpline(R, 1 - np.array(results['prof data']['ellip'])[CHOOSE], ext = 3, s = 0)
+    sb = UnivariateSpline(np.log10(R), np.array(results['prof data']['SB'])[CHOOSE], ext = 3, s = 0)
+    pa = UnivariateSpline(np.log10(R), np.array(results['prof data']['pa'])[CHOOSE]*np.pi/180, ext = 3, s = 0)
+    q = UnivariateSpline(np.log10(R), 1 - np.array(results['prof data']['ellip'])[CHOOSE], ext = 3, s = 0)
     
     ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
               [max(0,int(results['center']['y']-R[-1]-2)), min(IMG.shape[0],int(results['center']['y']+R[-1]+2))]]
@@ -199,16 +199,16 @@ def EllipseModel_General(IMG, results, options):
             WINDOW = [[max(0,int(results['center']['y'] - float(ranges[1][0]) - r*1.5 - 5)),min(XX.shape[0],int(results['center']['y'] - float(ranges[1][0]) + r*1.5 + 5))],
                       [max(0,int(results['center']['x'] - float(ranges[0][0]) - r*1.5 - 5)),min(XX.shape[1],int(results['center']['x'] - float(ranges[0][0]) + r*1.5 + 5))]]
             
-        RR = np.sqrt((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(r)) - YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(r)))**2 + \
-                     ((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(r)) + YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(r)))/np.clip(q(r),a_min = 0.03,a_max = 1))**2)
+        RR = np.sqrt((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(np.log10(r))) - YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(np.log10(r))))**2 + \
+                     ((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(np.log10(r))) + YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(np.log10(r))))/np.clip(q(np.log10(r)),a_min = 0.03,a_max = 1))**2)
         D = np.abs(RR - r)
         CLOSE = D < Prox[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]
         if np.any(CLOSE):
-            MM[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = sb(RR[CLOSE])
+            MM[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = sb(np.log10(RR[CLOSE]))
             Prox[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = D[CLOSE]
         
     MM = 10**(-(MM - zeropoint - 5*np.log10(options['ap_pixscale']))/2.5)
-    RR = np.sqrt((XX*np.cos(-pa(R[-1])) - YY*np.sin(-pa(R[-1])))**2 + ((XX*np.sin(-pa(R[-1])) + YY*np.cos(-pa(R[-1])))/np.clip(q(R[-1]),a_min = 0.03,a_max = 1))**2)
+    RR = np.sqrt((XX*np.cos(-pa(np.log10(R[-1]))) - YY*np.sin(-pa(np.log10(R[-1]))))**2 + ((XX*np.sin(-pa(np.log10(R[-1]))) + YY*np.cos(-pa(np.log10(R[-1]))))/np.clip(q(np.log10(R[-1])),a_min = 0.03,a_max = 1))**2)
     MM[RR > R[-1]] = 0
     
     Model = np.zeros(IMG.shape, dtype = np.float32)
