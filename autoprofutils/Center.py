@@ -9,6 +9,7 @@ from astropy.visualization.mpl_normalize import ImageNormalize
 from scipy.fftpack import fft, ifft
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 import logging
 from copy import copy, deepcopy
 
@@ -245,7 +246,7 @@ def Center_HillClimb(IMG, results, options):
             AddLogo(plt.gcf())
         plt.savefig('%stest_center_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
-
+        track_centers = np.array(track_centers)
         xwidth = 2*max(np.abs(track_centers[:,0] - current_center['x']))
         ywidth = 2*max(np.abs(track_centers[:,1] - current_center['y']))
         width = max(xwidth, ywidth)

@@ -196,8 +196,8 @@ def EllipseModel_General(IMG, results, options):
     WINDOW = [[0,XX.shape[0]],[0, XX.shape[1]]]
     for r in reversed(np.logspace(np.log10(R[0]/2),np.log10(R[-1]),int(len(R)*2*(option['ap_ellipsemodel_resolution'] if 'ap_ellipsemodel_resolution' in options else 1)))):
         if r < (R[-1]/2):
-            WINDOW = [[max(0,int(results['center']['y'] - float(ranges[1][0]) - r*1.5 - 5)),min(XX.shape[0],int(results['center']['y'] - float(ranges[1][0]) + r*1.5 + 5))],
-                      [max(0,int(results['center']['x'] - float(ranges[0][0]) - r*1.5 - 5)),min(XX.shape[1],int(results['center']['x'] - float(ranges[0][0]) + r*1.5 + 5))]]
+            WINDOW = [[max(0,int(results['center']['y'] - float(ranges[1][0]) - r*1.5)),min(XX.shape[0],int(results['center']['y'] - float(ranges[1][0]) + r*1.5))],
+                      [max(0,int(results['center']['x'] - float(ranges[0][0]) - r*1.5)),min(XX.shape[1],int(results['center']['x'] - float(ranges[0][0]) + r*1.5))]]
             
         RR = np.sqrt((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(np.log10(r))) - YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(np.log10(r))))**2 + \
                      ((XX[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.sin(-pa(np.log10(r))) + YY[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]*np.cos(-pa(np.log10(r))))/np.clip(q(np.log10(r)),a_min = 0.03,a_max = 1))**2)

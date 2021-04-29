@@ -111,8 +111,8 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     if 'ap_doplot' in options and options['ap_doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
         errscale = 1.
-        # if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.8):
-        #     errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
+        if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.5):
+            errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
         plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
                      elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale)
         plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
