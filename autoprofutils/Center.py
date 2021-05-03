@@ -234,6 +234,7 @@ def Center_HillClimb(IMG, results, options):
     if res.success:
         current_center['x'] = res.x[0] + ranges[0][0]
         current_center['y'] = res.x[1] + ranges[1][0]
+    track_centers.append([current_center['x'], current_center['y']])
     # paper plot
     if 'ap_paperplots' in options and options['ap_paperplots']:    
         plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
