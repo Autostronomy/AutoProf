@@ -1,13 +1,12 @@
 <img src="AP_logo.png" alt="AutoProf" width="300"/>
 
-This pipeline for non-parametric Galaxy image analysis was written with the goal
-of making a tool that is easy for anyone to get started with, yet flexible
-enough to prototype new ideas and support advanced users. It was written
-by [Connor Stone](https://connorjstone.com/) along with lots of testing/help from
+AutoProf is a pipeline for basic and advanced non-parametric galaxy image analysis.
+Its design alows one to easily get started, but provides flexibility to explore new ideas and support advanced users.
+It was written by [Connor Stone](https://connorjstone.com/) with contributions from
 [Nikhil Arora](https://orcid.org/0000-0002-3929-9316),
 [Stephane Courteau](https://www.physics.queensu.ca/facultysites/courteau/),
-[Simon Diaz Garcia](https://orcid.org/0000-0002-4662-1289),
-and [Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/).
+[Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/),
+and [Simon Diaz Garcia](https://orcid.org/0000-0002-4662-1289).
 
 # Introduction
 
