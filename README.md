@@ -236,7 +236,7 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_radialprofiles_nwedges: number of radial wedges to sample. Recommended choosing a power of 2 (int)
 - ap_radialprofiles_width: User set width of radial sampling in degrees. Default value is 15 degrees (float)
 - ap_radialprofiles_pa: user set position angle at which to measure radial wedges relative to the global position angle, in degrees (float)
-- ap_radialprofiles_expwidth: tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radsample_width* corresponds to the final width of the radial sampling (bool)
+- ap_radialprofiles_expwidth: tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radialprofiles_width* corresponds to the final width of the radial sampling (bool)
 - ap_radialprofiles_variable_pa: tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy (bool)
 
 #### Axial Profiles
@@ -531,9 +531,9 @@ ap_new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: ('edgeon
 			   'edgeonfit': My_Edgeon_Fit_Method}
 ap_new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],
 		         'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof'],
-		         'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'orthsample', 'radsample']}
+		         'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'axialprofiles', 'radialprofiles']}
 ```
-in the config file. This config file would apply a standard pipeline for face-on or moderately inclined galaxies, but a special pipeline for edge-on galaxies which includes a user defined fitting function *My_Edgeon_Fit_Method*, orthogonal sampling profiles, and radial sampling profiles. This example is included in the test folder as the *test_tree_config.py* example config file.
+in the config file. This config file would apply a standard pipeline for face-on or moderately inclined galaxies, but a special pipeline for edge-on galaxies which includes a user defined fitting function *My_Edgeon_Fit_Method*, axial profiles, and radial profiles. This example is included in the test folder as the *test_tree_config.py* example config file.
 
 # Methods that come with AutoProf
 
@@ -646,15 +646,15 @@ Constructs a 2D model image of the galaxy based on the extracted surface brightn
 
 Constructs 2D model image of the galaxy based on the extracted surface brightness, ellipticity, and position angle profile.
 
-### Radial Sampling
+### Radial Profiles
 
-**pipeline label: 'radsample'**
+**pipeline label: 'radialprofiles'**
 
 Samples surface brightness values radially from the center of the galaxy. The radial samples are placed on the semi-minor/major axes by default, though more wedges can be requested and their angle can be specified by the user.
 
-### Orthogonal Sampling
+### Axial Profiles
 
-**pipeline label: 'orthsample'**
+**pipeline label: 'axialprofiles'**
 
 Samples surface brightness values along lines parallel to the semi-minor axis.
 

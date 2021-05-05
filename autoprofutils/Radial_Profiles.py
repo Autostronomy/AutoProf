@@ -62,7 +62,7 @@ def Radial_Profiles(IMG, results, options):
     newprofformat = results['prof format']
     newprofdata = results['prof data']
     for sa_i in range(len(wedgeangles)):
-        p1, p2 = ('SB[%.1f]' % (wedgeangles[sa_i]*180/np.pi), 'SB_e[%.1f]' % (wedgeangles[sa_i]*180/np.pi))
+        p1, p2 = ('SB_rad[%.1f]' % (wedgeangles[sa_i]*180/np.pi), 'SB_rad_e[%.1f]' % (wedgeangles[sa_i]*180/np.pi))
         newprofheader.append(p1)
         newprofheader.append(p2)
         newprofunits[p1] = 'mag*arcsec^-2'

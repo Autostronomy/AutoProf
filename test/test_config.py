@@ -13,4 +13,4 @@ ap_isoclip = True
 ap_new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',                                                                                 
                          'plot image', 'isophotefit', 'isophoteextract',
                          'checkfit', 'ellipsemodel general', 'ellipsemodel',
-                         'axialprofiles', 'radsample', 'writeprof']
+                         'axialprofiles', 'radialprofiles', 'writeprof']
