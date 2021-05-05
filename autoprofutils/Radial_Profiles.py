@@ -10,25 +10,25 @@ import matplotlib.pyplot as plt
 import matplotlib
 import logging
 
-def Radial_Sample(IMG, results, options):
+def Radial_Profiles(IMG, results, options):
 
     mask = results['mask'] if 'mask' in results else None
-    nwedges = options['ap_radsample_nwedges'] if 'ap_radsample_nwedges' in options else 4
+    nwedges = options['ap_radialprofiles_nwedges'] if 'ap_radialprofiles_nwedges' in options else 4
     wedgeangles = np.linspace(0, 2*np.pi*(1 - 1./nwedges), nwedges)
 
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
 
     R = np.array(results['prof data']['R'])/options['ap_pixscale']
     SBE = np.array(results['prof data']['SB_e'])
-    if 'ap_radsample_variable_pa' in options and options['ap_radsample_variable_pa']:
+    if 'ap_radialprofiles_variable_pa' in options and options['ap_radialprofiles_variable_pa']:
         pa = np.array(results['prof data']['pa'])*np.pi/180
     else:
-        pa = np.ones(len(R))*((options['ap_radsample_pa']*np.pi/180) if 'ap_radsample_pa' in options else results['init pa'])
+        pa = np.ones(len(R))*((options['ap_radialprofiles_pa']*np.pi/180) if 'ap_radialprofiles_pa' in options else results['init pa'])
     dat = IMG - results['background']
 
-    maxwedgewidth = options['ap_radsample_width'] if 'ap_radsample_width' in options else 15.
+    maxwedgewidth = options['ap_radialprofiles_width'] if 'ap_radialprofiles_width' in options else 15.
     maxwedgewidth *= np.pi/180
-    if 'ap_radsample_expwidth' in options and options['ap_radsample_expwidth']:
+    if 'ap_radialprofiles_expwidth' in options and options['ap_radialprofiles_expwidth']:
         wedgewidth = maxwedgewidth*np.exp(R/R[-1] - 1)
     else:
         wedgewidth = np.ones(len(R)) * maxwedgewidth
@@ -97,7 +97,7 @@ def Radial_Sample(IMG, results, options):
         plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sradial_sample_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.savefig('%sradial_profiles_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
 
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
@@ -120,7 +120,7 @@ def Radial_Sample(IMG, results, options):
         plt.ylim([0,ranges[1][1] - ranges[1][0]])
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sradial_sample_wedges_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.savefig('%sradial_profiles_wedges_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
         
     return IMG, {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata, 'prof format': newprofformat}

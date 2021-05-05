@@ -12,7 +12,7 @@ from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Fo
 from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Write_Prof import WriteProf
 from autoprofutils.Ellipse_Model import EllipseModel_Fix, EllipseModel_General
-from autoprofutils.Radial_Sample import Radial_Sample
+from autoprofutils.Radial_Profiles import Radial_Profiles
 from autoprofutils.Axial_Profiles import Axial_Profiles
 from autoprofutils.SharedFunctions import GetOptions, Read_Image, PA_shift_convention
 from multiprocessing import Pool, current_process
@@ -67,7 +67,7 @@ class Isophote_Pipeline(object):
                                  'writeprof': WriteProf,
                                  'ellipsemodel': EllipseModel_Fix,
                                  'ellipsemodel general': EllipseModel_General,
-                                 'radsample': Radial_Sample,
+                                 'radialprofiles': Radial_Profiles,
                                  'axialprofiles': Axial_Profiles}
         
         # Default pipeline analysis order

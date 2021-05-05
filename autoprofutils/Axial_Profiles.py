@@ -13,9 +13,7 @@ import logging
 def Axial_Profiles(IMG, results, options):
 
     mask = results['mask'] if 'mask' in results else None
-    pa = (options['ap_axialprof_pa']*np.pi/180) if 'ap_axialprof_pa' in options else results['init pa']
-    if 'ap_axialprof_parallel' in options and options['ap_axialprof_parallel']:
-        pa += np.pi/2
+    pa = results['init pa'] + ((options['ap_axialprof_pa']*np.pi/180) if 'ap_axialprof_pa' in options else 0.) 
     dat = IMG - results['background']
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
 

@@ -232,16 +232,16 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_isoclip_iterations: Maximum number of sigma clipping iterations to perform. The default is infinity, so the sigma clipping procedure repeats until convergence (int)
 - ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_iterations* x sigma) are removed from the isophote (float) 
 
-#### Radial Sampling
-- ap_radsample_nwedges: number of radial wedges to sample. Recommended choosing a power of 2 (int)
-- ap_radsample_width: User set width of radial sampling in degrees. Default value is 15 degrees (float)
-- ap_radsample_pa: user set position angle at which to measure radial wedges relative to, in degrees (float)
-- ap_radsample_expwidth: tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radsample_width* corresponds to the final width of the radial sampling (bool)
-- ap_radsample_variable_pa: tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy (bool)
+#### Radial Profiles
+- ap_radialprofiles_nwedges: number of radial wedges to sample. Recommended choosing a power of 2 (int)
+- ap_radialprofiles_width: User set width of radial sampling in degrees. Default value is 15 degrees (float)
+- ap_radialprofiles_pa: user set position angle at which to measure radial wedges relative to the global position angle, in degrees (float)
+- ap_radialprofiles_expwidth: tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radsample_width* corresponds to the final width of the radial sampling (bool)
+- ap_radialprofiles_variable_pa: tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy (bool)
 
-#### Orthogonal Sampling
-- ap_orthsample_pa: user set position angle at which to align the orthogonal sampling lines, in degrees (float)
-- ap_orthsample_parallel: align orthogonal sampling lines parallel to the major axis instead of perpendicular. This is similar to applying a transpose to the regular orthogonal sampling output matrix (bool)
+#### Axial Profiles
+- ap_axialprofiles_pa: user set position angle at which to align the axial profiles relative to the global position angle, in degrees. A common choice would
+  		       be "90" which would then sample along the semi-major axis instead of the semi-minor axis. (float)
 
 #### Ellipse Model
 - ap_ellipsemodel_resolution: scale factor for the ellipse model resolution. Above 1 increases the precision of the ellipse model (and computation time), between 0 and 1 decreases
