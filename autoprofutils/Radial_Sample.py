@@ -88,11 +88,12 @@ def Radial_Sample(IMG, results, options):
             plt.errorbar(np.array(R)[CHOOSE]*options['ap_pixscale'], np.array(sb[sa_i])[CHOOSE], yerr = np.array(sbE[sa_i])[CHOOSE],
                          elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = cmap(colorind[sa_i]), label = 'Wedge %.2f' % (wedgeangles[sa_i]*180/np.pi))
         plt.xlabel('Radius [arcsec]', fontsize = 16)
-        plt.ylabel('Surface Brightness [mag/arcsec^2]', fontsize = 16)
+        plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
         bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
         plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel:\n%.1f mag arcsec$^{-2}$' % bkgrdnoise)
         plt.gca().invert_yaxis()
         plt.legend(fontsize = 15)
+        plt.tick_params(labelsize = 14)
         plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())

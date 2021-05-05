@@ -5,8 +5,7 @@ Its design alows one to easily get started, but provides flexibility to explore 
 It was written by [Connor Stone](https://connorjstone.com/) with contributions from
 [Nikhil Arora](https://orcid.org/0000-0002-3929-9316),
 [Stephane Courteau](https://www.physics.queensu.ca/facultysites/courteau/),
-[Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/),
-and [Simon Diaz Garcia](https://orcid.org/0000-0002-4662-1289).
+and [Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/).
 
 # Introduction
 

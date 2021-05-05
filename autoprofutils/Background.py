@@ -63,14 +63,15 @@ def Background_Mode(IMG, results, options):
 
     if 'ap_doplot' in options and options['ap_doplot']:    
         hist, bins = np.histogram(values[np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -5*noise)], bins = 1000)
-        plt.figure(figsize = (6,6))
+        plt.figure(figsize = (5,5))
         plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
         plt.axvline(bkgrnd, color = 'r', label = 'sky level: %.5e' % bkgrnd)
         plt.axvline(bkgrnd - noise, color = 'r', linestyle = '--', label = '1$\\sigma$ noise/pix: %.5e' % noise)
         plt.axvline(bkgrnd + noise, color = 'r', linestyle = '--')
         plt.xlim([-5*noise, 20*noise])
-        plt.legend(fontsize = 15)
-        plt.xlabel('flux', fontsize = 16)
+        plt.legend(fontsize = 12)
+        plt.tick_params(labelsize = 12)
+        plt.xlabel('Pixel Flux', fontsize = 16)
         plt.ylabel('log$_{10}$(count)', fontsize = 16)
         plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):

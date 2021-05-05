@@ -97,7 +97,7 @@ def Orthogonal_Sample(IMG, results, options):
                     plt.errorbar(np.array(R)[CHOOSE]*options['ap_pixscale'], np.array(sb[key][pi])[CHOOSE], yerr = np.array(sbE[key][pi])[CHOOSE],
                                  elinewidth = 1, linewidth = 0, marker = '.', markersize = 3, color = autocmap.reversed()(norm(pR*options['ap_pixscale'])))
                 plt.xlabel('%s-axis position on line [arcsec]' % ('Major' if 'ap_orthsample_parallel' in options and options['ap_orthsample_parallel'] else 'Minor'), fontsize = 16)
-                plt.ylabel('Surface Brightness [mag/arcsec^2]', fontsize = 16)
+                plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
                 # cb1 = matplotlib.colorbar.ColorbarBase(plt.gca(), cmap=cmap,
                 #                                        norm=norm)
                 cb1 = plt.colorbar(matplotlib.cm.ScalarMappable(norm = norm, cmap = autocmap.reversed()))
@@ -107,6 +107,7 @@ def Orthogonal_Sample(IMG, results, options):
                 plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
                 plt.gca().invert_yaxis()
                 plt.legend(fontsize = 15)
+                plt.tick_params(labelsize = 14)
                 plt.title('%sR : pa%s90' % ('+' if rd > 0 else '-', '+' if ang > 0 else '-'), fontsize = 15)
                 plt.tight_layout()
                 if not ('ap_nologo' in options and options['ap_nologo']):

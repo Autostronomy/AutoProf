@@ -16,9 +16,9 @@ def EllipseModel_Fix(IMG, results, options):
     pa = results['init pa']
     eps = results['init ellip']
     
-    CHOOSE = np.array(results['prof data']['SB_e']) < 0.3
+    CHOOSE = np.array(results['prof data']['SB_fix_e']) < 0.3
     R = np.array(results['prof data']['R'])[CHOOSE]/options['ap_pixscale']
-    SB = np.array(results['prof data']['SB'])[CHOOSE]
+    SB = np.array(results['prof data']['SB_fix'])[CHOOSE]
 
     Model = np.zeros(IMG.shape, dtype = np.float32)
     ranges = [[max(0,int(results['center']['x']-R[-1]-2)), min(IMG.shape[1],int(results['center']['x']+R[-1]+2))],
@@ -43,30 +43,58 @@ def EllipseModel_Fix(IMG, results, options):
 
 
     if 'ap_doplot' in options and options['ap_doplot']:
+
         plt.figure(figsize = (7,7))
-        plt.imshow(np.clip(Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
-                   origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
+        autocmap.set_under('k', alpha=0)
+        showmodel = Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].copy()
+        showmodel[showmodel > 0] += np.max(showmodel)/(10**3.5) - np.min(showmodel[showmodel > 0])
+        plt.imshow(showmodel, origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
         plt.axis('off')
-        plt.tight_layout()
+        plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipsemodel_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.savefig('%sellipsemodel_fix_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
         
         residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
         plt.figure(figsize = (7,7))
         plt.imshow(residual, origin = 'lower', cmap = 'PuBu',
                    vmin = np.quantile(residual, 0.0001), vmax = 0)
-        autocmap.set_under('k', alpha=0)
         plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),
                    origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
-                   interpolation = 'none', clim = [1e-5, None])        
+           interpolation = 'none', clim = [1e-5, None])        
         plt.axis('off')
-        plt.tight_layout()
+        plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipseresidual_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.savefig('%sellipseresidual_fix_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
+
+        
+        # plt.figure(figsize = (7,7))
+        # plt.imshow(np.clip(Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
+        #            origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
+        # plt.axis('off')
+        # plt.tight_layout()
+        # if not ('ap_nologo' in options and options['ap_nologo']):
+        #     AddLogo(plt.gcf())
+        # plt.savefig('%sellipsemodel_fix_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        # plt.close()
+        
+        # residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
+        # plt.figure(figsize = (7,7))
+        # plt.imshow(residual, origin = 'lower', cmap = 'PuBu',
+        #            vmin = np.quantile(residual, 0.0001), vmax = 0)
+        # autocmap.set_under('k', alpha=0)
+        # plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),
+        #            origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
+        #            interpolation = 'none', clim = [1e-5, None])        
+        # plt.axis('off')
+        # plt.tight_layout()
+        # if not ('ap_nologo' in options and options['ap_nologo']):
+        #     AddLogo(plt.gcf())
+        # plt.savefig('%sellipseresidual_fix_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        # plt.close()
     
     return IMG, {'ellipse model': Model}
     
@@ -218,7 +246,7 @@ def EllipseModel_General(IMG, results, options):
     hdul = fits.HDUList([fits.PrimaryHDU(header=header),
                          fits.ImageHDU(Model)])
     
-    hdul.writeto('%s%s_model.fits' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), overwrite = True)
+    hdul.writeto('%s%s_genmodel.fits' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), overwrite = True)
 
     if 'ap_doplot' in options and options['ap_doplot']:
         ranges = [[max(0,int(results['center']['x']-R[-1]*1.2)), min(IMG.shape[1],int(results['center']['x']+R[-1]*1.2))],
@@ -232,7 +260,7 @@ def EllipseModel_General(IMG, results, options):
         plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipsemodel_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.savefig('%sellipsemodel_gen_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
         
         residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
@@ -246,7 +274,7 @@ def EllipseModel_General(IMG, results, options):
         plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
-        plt.savefig('%sellipseresidual_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.savefig('%sellipseresidual_gen_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
 
     if 'ap_paperplots' in options and options['ap_paperplots']:    
