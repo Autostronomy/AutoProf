@@ -11,5 +11,6 @@ ap_truncate_evaluation = True
 ap_isoclip = True
 
 ap_new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit',                                                                                 
-                         'plot image', 'isophotefit', 'isophoteextract', 'checkfit',
-                         'ellipsemodel general', 'ellipsemodel', 'orthsample', 'radsample', 'writeprof']
+                         'plot image', 'isophotefit', 'isophoteextract',
+                         'checkfit', 'ellipsemodel general', 'ellipsemodel',
+                         'axialprofiles', 'radsample', 'writeprof']

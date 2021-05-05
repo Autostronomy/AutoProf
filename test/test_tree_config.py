@@ -21,4 +21,4 @@ ap_new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: ('edgeon
 		           'edgeonfit': My_Edgon_Fit_Method}
 ap_new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],
 		         'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof'],
-		         'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'orthsample', 'radsample']}
+		         'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'axialprofiles', 'radsample']}

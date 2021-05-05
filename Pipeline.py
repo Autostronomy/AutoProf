@@ -13,7 +13,7 @@ from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Write_Prof import WriteProf
 from autoprofutils.Ellipse_Model import EllipseModel_Fix, EllipseModel_General
 from autoprofutils.Radial_Sample import Radial_Sample
-from autoprofutils.Orthogonal_Sample import Orthogonal_Sample
+from autoprofutils.Axial_Profiles import Axial_Profiles
 from autoprofutils.SharedFunctions import GetOptions, Read_Image, PA_shift_convention
 from multiprocessing import Pool, current_process
 from astropy.io import fits
@@ -68,7 +68,7 @@ class Isophote_Pipeline(object):
                                  'ellipsemodel': EllipseModel_Fix,
                                  'ellipsemodel general': EllipseModel_General,
                                  'radsample': Radial_Sample,
-                                 'orthsample': Orthogonal_Sample}
+                                 'axialprofiles': Axial_Profiles}
         
         # Default pipeline analysis order
         self.pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit',
