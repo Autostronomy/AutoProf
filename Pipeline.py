@@ -117,7 +117,7 @@ class Isophote_Pipeline(object):
         
         # use filename if no name is given
         if not ('ap_name' in options and type(options['ap_name']) == str):
-            base = os.path.basename(options['ap_image_file'])
+            base = os.path.split(options['ap_image_file'])[1]
             options['ap_name'] = os.path.splitext(base)[0]
 
         # Read the primary image
