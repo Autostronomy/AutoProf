@@ -117,8 +117,8 @@ class Isophote_Pipeline(object):
         
         # use filename if no name is given
         if not ('ap_name' in options and type(options['ap_name']) == str):
-            startat = options['ap_image_file'].rfind('/') if '/' in options['ap_image_file'] else 0
-            options['ap_name'] = options['ap_image_file'][startat: options['ap_image_file'].find('.', startat)]
+            base = os.path.basename(options['ap_image_file'])
+            options['ap_name'] = os.path.splitext(base)[0]
 
         # Read the primary image
         try:
