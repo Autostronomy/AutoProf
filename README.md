@@ -290,10 +290,11 @@ Output format:
 
 **pipeline label: psf**
 
-Using the IRAF star finder wrapper from photutils, bright stars in the image are identified (at most 30).
-An FFT is used to identify non-circular stars or artifacts which may have been picked up by IRAF.
-Circular apertures are placed around the star until the background brightness is nearly reached.
-The brightness of these apertures as a function of radius are fit with a Gaussian and the sigma is converted into a fwhm.
+Using an edge finding convolution filter, identifies candidate star pixels. Randomly iterates through the pixels and
+searches for a local maximum. An FFT is used to identify non-circular star candidate (artifacts or galaxies) which may have
+been picked up by the edge finder. Circular apertures are placed around the star until half the central flux value is reached,
+This is recorded as the FWHM for that star. A collection of 50 stars are identified and the most circular (by FFT coefficients)
+half are kept, a median is taken as the image PSF.
 
 
 Output format:
