@@ -113,8 +113,9 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         errscale = 1.
         if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.5):
             errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
-        plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
-                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale)
+        lnlist = []
+        lnlist.append(plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
+                                   elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale))
         plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
                      np.array(SBprof_data['SB'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
                      yerr = np.array(SBprof_data['SB_e'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
@@ -124,10 +125,16 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
         plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
         bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
-        plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
+        lnlist.append(plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise))
         plt.gca().invert_yaxis()
-        plt.legend(fontsize = 15)
         plt.tick_params(labelsize = 14)
+        # ax2 = plt.gca().twinx()
+        # lnlist += ax2.plot(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['pa'])[CHOOSE]/180, color = 'b', label = 'PA/180')
+        # lnlist += ax2.plot(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['ellip'])[CHOOSE], color = 'orange', linestyle = '--', label = 'ellipticity')
+        labs = [l.get_label() for l in lnlist]
+        plt.legend(lnlist, labs, fontsize = 11)
+        # ax2.set_ylabel('Position Angle, Ellipticity', fontsize = 16)
+        # ax2.tick_params(labelsize = 14)
         plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())

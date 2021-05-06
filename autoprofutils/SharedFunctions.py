@@ -371,7 +371,7 @@ def _iso_line(IMG, length, width, pa, c, more = False):
     YY -= c['y'] - float(ranges[1][0])
     XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
 
-    lselect = np.logical_and.reduce((XX >= -0.5, XX < length, np.abs(YY) <= (width/2)))
+    lselect = np.logical_and.reduce((XX >= -0.5, XX <= length, np.abs(YY) <= (width/2)))
     flux = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][lselect]
 
     if more:

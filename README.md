@@ -243,6 +243,13 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_axialprofiles_pa: user set position angle at which to align the axial profiles relative to the global position angle, in degrees. A common choice would
   		       be "90" which would then sample along the semi-major axis instead of the semi-minor axis. (float)
 
+#### Slice Profile
+- ap_slice_anchor: Coordinates for the starting point of the slice as a dictionary formatted "{'x': x-coord, 'y': y-coord}" in pixel units (dict)
+- ap_slice_pa: Position angle of the slice in degrees, counter-clockwise relative to the x-axis (float)
+- ap_slice_length: Length of the slice from anchor point in pixel units (float) 
+- ap_slice_width: Width of the slice in pixel units (float)
+- ap_slice_step: Distance between samples for the profile along the slice (float)
+
 #### Ellipse Model
 - ap_ellipsemodel_resolution: scale factor for the ellipse model resolution. Above 1 increases the precision of the ellipse model (and computation time), between 0 and 1 decreases
   			      the resolution (and computation time). Note that the ellipse model resolution is defined logarithmically, so the center will always be more resolved (float)
@@ -658,3 +665,8 @@ Samples surface brightness values radially from the center of the galaxy. The ra
 
 Samples surface brightness values along lines parallel to the semi-minor axis.
 
+### Slice Profile
+
+**pipeline label: 'sliceprofile'**
+
+Samples surface brightness values along a user specified line (slice) on the image.
