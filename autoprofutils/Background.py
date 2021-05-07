@@ -13,7 +13,7 @@ from astropy.visualization.mpl_normalize import ImageNormalize
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import AddLogo
+from autoprofutils.SharedFunctions import AddLogo, Smooth_Mode
 
 
 def Background_Mode(IMG, results, options):
@@ -41,14 +41,15 @@ def Background_Mode(IMG, results, options):
         bkgrnd = options['ap_set_background']
         logging.info('%s: Background set by user: %.4e' % (options['ap_name'], bkgrnd))
     else:
-        # set the starting point for the sky level optimization at the median pixel flux
-        start = np.quantile(values, 0.40)
-        # set the smoothing scale equal to roughly 0.5% of the width of the data
-        scale = iqr(values,rng = [30,70])/10
+        bkgrnd = Smooth_Mode(values)
+        # # set the starting point for the sky level optimization at the median pixel flux
+        # start = np.quantile(values, 0.40)
+        # # set the smoothing scale equal to roughly 0.5% of the width of the data
+        # scale = iqr(values,rng = [30,70])/10
         
-        # Fit the peak of the smoothed histogram
-        res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
-        bkgrnd = res.x[0]
+        # # Fit the peak of the smoothed histogram
+        # res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
+        # bkgrnd = res.x[0]
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
     if 'ap_set_background_noise' in options:
         noise = options['ap_set_background_noise']

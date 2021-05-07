@@ -71,6 +71,18 @@ def AddLogo(fig, loc = [0.8,0.01,0.844/5, 0.185/5], white = False):
     newax.imshow(im)
     newax.axis('off')
 
+def flux_to_sb(flux, pixscale, zeropoint):
+    return -2.5*np.log10(flux) + zeropoint + 5*np.log10(pixscale)
+
+def flux_to_mag(flux, zeropoint):
+    return -2.5*np.log10(flux) + zeropoint
+
+def sb_to_flux(sb, pixscale, zeropoint):
+    return (pixscale**2)*10**(-(sb - zeropoint)/2.5)
+
+def mag_to_flux(mag, zeropoint):
+    return 10**(-(sb - zeropoint)/2.5)
+
 def magperarcsec2_to_mag(mu, a = None, b = None, A = None):
     """
     Converts mag/arcsec^2 to mag
@@ -258,6 +270,35 @@ def Sigma_Clip_Upper(v, iterations = 10, nsigma = 5):
         lim = med + rng*nsigma
         i += 1
     return lim
+
+def Smooth_Mode(v):
+    # set the starting point for the optimization at the median
+    start = np.median(v)
+    # set the smoothing scale equal to roughly 0.5% of the width of the data
+    scale = iqr(v,rng = [30,70])/10
+    # Fit the peak of the smoothed histogram
+    res = minimize(lambda x: -np.sum(np.exp(-((v - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
+    return res.x[0]
+
+def _average(v, method = 'median'):
+    if method == 'mean':
+        return np.mean(v)
+    elif method == 'mode':
+        return Smooth_Mode(v)
+    elif method == 'median':
+        return np.median(v)
+    else:
+        raise ValueError('Unrecognized average method: %s' % method)
+
+def _scatter(v, method = 'median'):
+    if method == 'mean':
+        return np.std(v)
+    elif method == 'mode':
+        return iqr(v, rng = (31.731/2, 100 - 31.731/2))/2.
+    elif method == 'median':
+        return iqr(v, rng = (31.731/2, 100 - 31.731/2))/2.
+    else:
+        raise ValueError('Unrecognized average method: %s' % method)
 
 def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
                  sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):

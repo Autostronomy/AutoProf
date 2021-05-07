@@ -224,8 +224,10 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- *ap_isoband_width**R for each radius. default value is 0.025 (float)
 - ap_truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
 - ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF (float)
-- ap_extract_mean: use mean instead of median as average flux on an isophote. This is better suited to very low S/N data, though it is sensitive to outliers such as foreground
-  		   stars. In the presence of outliers (which is nearly all real-world data) the mean will be biased high. (bool)
+- ap_isoaverage_method: Select the method used to compute the averafge flux along an isophote. Choose from 'mean', 'median', and 'mode' where median is the default.
+  			In general, median is fast and robust to a few outliers. Mode is slow but robust to more outliers. Mean is fast and accurate in low S/N regimes
+			where fluxes take on near integer values, but not robust to outliers. The mean should be used along with a mask to remove spurious objects
+			such as foreground stars or galaxies, and should always be used with caution. (string)
 - ap_isoclip: Perform sigma clipping along extracted isophotes. Removes flux samples from an isophote that deviate significantly from the median. Several iterations
   	      of sigma clipping are performed until convergence or *ap_isoclip_iterations* iterations are reached. Sigma clipping is a useful substitute for masking
 	      objects, though careful masking is better. Also an aggressive sigma clip may bias results. (bool)
