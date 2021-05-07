@@ -650,7 +650,9 @@ def GetOptions(c):
     newoptions = {}
     for var in dir(c):
         if var.startswith('ap_'):
-            newoptions[var] = getattr(c,var)
+            val = getattr(c,var)
+            if not val is None:
+                newoptions[var] = val
         
     return newoptions
 
