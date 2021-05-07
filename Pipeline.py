@@ -11,6 +11,7 @@ from autoprofutils.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
 from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Write_Prof import WriteProf
+from autoprofutils.Write_Fi import WriteFi
 from autoprofutils.Ellipse_Model import EllipseModel_Fix, EllipseModel_General
 from autoprofutils.Radial_Profiles import Radial_Profiles
 from autoprofutils.Axial_Profiles import Axial_Profiles
@@ -55,6 +56,7 @@ class Isophote_Pipeline(object):
                                  'isophoteinit': Isophote_Initialize,
                                  'isophoteinit mean': Isophote_Initialize_mean,
                                  'plot image': Plot_Galaxy_Image,
+                                 'writefi': WriteFi,
                                  'isophotefit': Isophote_Fit_FFT_Robust,
                                  'isophotefit mean': Isophote_Fit_FFT_mean,
                                  'isophotefit forced': Isophote_Fit_Forced,
