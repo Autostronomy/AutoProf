@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, _iso_line, AddLogo, autocmap
+from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, _iso_line, AddLogo, autocmap, _average, _scatter, flux_to_sb
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -52,9 +52,10 @@ def Axial_Profiles(IMG, results, options):
                         sb[key][-1].append(99.999)
                         sbE[key][-1].append(99.999)
                         continue
-                    medflux = np.median(flux[CHOOSE])
-                    sb[key][-1].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(options['ap_pixscale'])) if medflux > 0 else 99.999)
-                    sbE[key][-1].append((2.5*iqr(flux[CHOOSE], rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(np.sum(CHOOSE))*medflux*np.log(10))) if medflux > 0 else 99.999)
+                    medflux = _average(flux[CHOOSE], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+                    scatflux = _scatter(flux[CHOOSE], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+                    sb[key][-1].append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
+                    sbE[key][-1].append((2.5*scatflux / (np.sqrt(np.sum(CHOOSE))*medflux*np.log(10))) if medflux > 0 else 99.999)
                     
 
     with open('%s%s_axial_profile_AP.prof' % ((options['ap_saveto'] if 'ap_saveto' in options else ''), options['ap_name']), 'w') as f:

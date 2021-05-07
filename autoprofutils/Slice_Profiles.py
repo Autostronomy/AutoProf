@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_between, LSBImage, _iso_line, AddLogo, autocmap, Sigma_Clip_Upper
+from autoprofutils.SharedFunctions import _iso_between, LSBImage, _iso_line, AddLogo, autocmap, Sigma_Clip_Upper, _average, _scatter, flux_to_sb
 from scipy.stats import iqr
 import matplotlib.pyplot as plt
 import logging
@@ -55,20 +55,22 @@ def Slice_Profile(IMG, results, options):
         isovals = F[np.logical_and(X >= windows[i], X < windows[i+1])]
         isovals_sclip = Sigma_Clip_Upper(isovals, iterations = 10, nsigma = 5)
 
-        medflux = np.median(isovals)
-        medflux_sclip = np.median(isovals_sclip)
+        medflux = _average(isovals, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        scatflux = _scatter(isovals, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        medflux_sclip = _average(isovals_sclip, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        scatflux_sclip = _scatter(isovals_sclip, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
 
-        sb.append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(options['ap_pixscale'])) if medflux > 0 else 99.999)
-        sb_e.append((2.5*iqr(isovals, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
-        sb_sclip.append((-2.5*np.log10(medflux_sclip) + zeropoint + 5*np.log10(options['ap_pixscale'])) if medflux_sclip > 0 else 99.999)
-        sb_sclip_e.append((2.5*iqr(isovals_sclip, rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(len(isovals))*medflux_sclip*np.log(10))) if medflux_sclip > 0 else 99.999)
-
+        sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
+        sb_e.append((2.5*scatflux / (np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
+        sb_sclip.append(flux_to_sb(medflux_sclip, options['ap_pixscale'], zeropoint) if medflux_sclip > 0 else 99.999)
+        sb_sclip_e.append((2.5*scatflux_sclip / (np.sqrt(len(isovals))*medflux_sclip*np.log(10))) if medflux_sclip > 0 else 99.999)
     
     with open('%s%s_slice_profile_AP.prof' % ((options['ap_saveto'] if 'ap_saveto' in options else ''), options['ap_name']), 'w') as f:
         f.write('# flux sum: %f\n' % (np.sum(F[np.logical_and(X >= 0, X <= use_length)])))
-        f.write('# flux mean: %f\n' % (np.mean(F[np.logical_and(X >= 0, X <= use_length)])))
+        f.write('# flux mean: %f\n' % (_average(F[np.logical_and(X >= 0, X <= use_length)], 'mean')))
+        f.write('# flux median: %f\n' % (_average(F[np.logical_and(X >= 0, X <= use_length)], 'median')))
+        f.write('# flux mode: %f\n' % (_average(F[np.logical_and(X >= 0, X <= use_length)], 'mode')))
         f.write('# flux std: %f\n' % (np.std(F[np.logical_and(X >= 0, X <= use_length)])))
-        f.write('# flux median: %f\n' % (np.median(F[np.logical_and(X >= 0, X <= use_length)])))
         f.write('# flux 16-84%% range: %f\n' % (iqr(F[np.logical_and(X >= 0, X <= use_length)], rng = [16,84])))
         f.write('R,sb,sb_e,sb_sclip,sb_sclip_e\n')
         f.write('arcsec,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2\n')
