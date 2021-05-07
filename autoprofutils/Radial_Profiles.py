@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, AddLogo
+from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, AddLogo, _average, _scatter, flux_to_sb
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -53,9 +53,10 @@ def Radial_Profiles(IMG, results, options):
                 sb[sa_i].append(99.999)
                 sbE[sa_i].append(99.999)
                 continue
-            medflux = np.median(isovals[0][aselect])
-            sb[sa_i].append((-2.5*np.log10(medflux) + zeropoint + 5*np.log10(options['ap_pixscale'])) if medflux > 0 else 99.999)
-            sbE[sa_i].append((2.5*iqr(isovals[0][aselect], rng = (31.731/2, 100 - 31.731/2)) / (2*np.sqrt(np.sum(aselect))*medflux*np.log(10))) if medflux > 0 else 99.999)
+            medflux = _average(isovals[0][aselect], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+            scatflux = _scatter(isovals[0][aselect], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+            sb[sa_i].append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
+            sbE[sa_i].append((2.5*scatflux / (np.sqrt(np.sum(aselect))*medflux*np.log(10))) if medflux > 0 else 99.999)
 
     newprofheader = results['prof header']
     newprofunits = results['prof units']
