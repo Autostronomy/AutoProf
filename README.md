@@ -234,6 +234,10 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_isoclip_iterations: Maximum number of sigma clipping iterations to perform. The default is infinity, so the sigma clipping procedure repeats until convergence (int)
 - ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_iterations* x sigma) are removed from the isophote (float) 
 
+#### Forced Photometry
+- ap_forced_pa_shift: global rotation to apply to all forced isophotes. Useful if the base image and the forced image are rotated relative to each other. Likely
+  		      will also need to re-center the galaxy, which can be done by modifying *ap_new_pipeline_steps*. Default is zero. (float) 
+
 #### Radial Profiles
 - ap_radialprofiles_nwedges: number of radial wedges to sample. Recommended choosing a power of 2 (int)
 - ap_radialprofiles_width: User set width of radial sampling in degrees. Default value is 15 degrees (float)

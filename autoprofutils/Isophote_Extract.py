@@ -171,7 +171,9 @@ def Isophote_Extract_Forced(IMG, results, options):
         Ee = np.zeros(len(results['fit R']))
         PAe = np.zeros(len(results['fit R']))
 
-    return IMG, _Generate_Profile(IMG, results, np.array(results['fit R']), np.array(results['fit ellip']), Ee, np.array(results['fit pa']), PAe, options)
+    return IMG, _Generate_Profile(IMG, results, np.array(results['fit R']),
+                                  np.array(results['fit ellip']), Ee,
+                                  (np.array(results['fit pa']) + (options['ap_forced_pa_shift'] if 'ap_forced_pa_shift' in options else 0.)) % np.pi, PAe, options)
     
     
 def Isophote_Extract(IMG, results, options):
