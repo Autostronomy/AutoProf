@@ -5,7 +5,7 @@ from autoprofutils.Plotting_Steps import Plot_Galaxy_Image
 from autoprofutils.Background import Background_Mode, Background_DilatedSources, Background_Unsharp, Background_Basic
 from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
 from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
-from autoprofutils.Crop import Crop
+from autoprofutils.ImageTransform import Crop
 from autoprofutils.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean
 from autoprofutils.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask
