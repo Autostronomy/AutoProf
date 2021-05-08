@@ -10,6 +10,10 @@ ap_isoband_width = 0.05
 ap_samplegeometricscale = 0.05
 ap_truncate_evaluation = True
 
+ap_slice_anchor = {'x': 1700., 'y': 1350.}
+ap_slice_length = 300.
+ap_isoclip = True
+
 def My_Edgon_Fit_Method(IMG, results, options):
     N = 100
     return IMG, {'fit ellip': np.array([results['init ellip']]*N),
@@ -20,5 +24,5 @@ def My_Edgon_Fit_Method(IMG, results, options):
 ap_new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: ('edgeon' if results['init ellip'] > 0.8 else 'standard',{}),
 		           'edgeonfit': My_Edgon_Fit_Method}
 ap_new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],
-		         'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof'],
+		         'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof', 'plot image', 'ellipsemodel general', 'ellipsemodel', 'axialprofiles', 'radialprofiles', 'sliceprofile'],
 		         'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'axialprofiles', 'radsample']}

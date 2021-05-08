@@ -22,7 +22,7 @@ def Plot_Galaxy_Image(IMG, results, options):
         center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
 
     if 'prof data' in results:
-        edge = 1.2*results['prof data']['R'][-1]/options['pixscale']
+        edge = 1.2*results['prof data']['R'][-1]/options['ap_pixscale']
     elif 'init R' in results:
         edge = 3*results['init R']
     elif 'fit R' in results:
