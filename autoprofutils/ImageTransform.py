@@ -27,3 +27,25 @@ def Crop(IMG, results, options):
               center[1] - cropto[1]//2:center[1] + cropto[1]//2]
 
     return IMG, {}
+
+def MinMaxNorm(IMG, results, options):
+    """
+    Perform a min max norm on the image, normalising all pixels to values
+    within the closed interval [0, 1].
+    """
+    IMG = (IMG - np.min(IMG))/(np.max(IMG) - np.min(IMG))
+
+    return IMG, {}
+
+def PercentileClip(IMG, results, options):
+    """
+    Perform an upper bound percentile clip on the image.
+
+    ap_percentileclip states the percentile to clip pixels at.
+    We default to 99.9%.
+    """
+    percentile = options['ap_percentileclip'] if 'ap_percentileclip' in options else 99.9
+    p = np.percentile(IMG, percentile)
+    IMG = np.where(IMG <= p, IMG, p)
+
+    return IMG, {'clipped at': p}
