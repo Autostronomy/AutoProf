@@ -48,7 +48,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     ```
     This will test a basic AutoProf run on a single galaxy, forced photometry of the galaxy on itself, and batch photometry for multiple images (which are actually the same in this case), and pipeline decision tree construction, respectively. You can also run all of these tests in one command by executing the *runtests.sh* script in bash.
 1. Check the diagnostic plots to see what AutoProf can do! You should get a fit that looks like this one, and a whole lot more images to show what is going on.
-   ![fitted galaxy image][fit_ellipse_testimage.jpg]
+   ![AutoProf fitted galaxy image](fit_ellipse_testimage.jpg "AutoProf fitted galaxy image")
 
 ### Issues
 
