@@ -55,10 +55,9 @@ def Background_Mode(IMG, results, options):
     uncertainty = noise / np.sqrt(np.sum((values-bkgrnd) < 0))
     if not np.isfinite(uncertainty):
         uncertainty = noise / np.sqrt(len(values))
-    print(bkgrnd, noise, uncertainty, 20*noise, -5*noise, np.sum(np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -5*noise)), np.sum(np.logical_and((values) < 20*noise, (values) > -5*noise)))
+    
     if 'ap_doplot' in options and options['ap_doplot']:    
         hist, bins = np.histogram(values[np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -5*noise)], bins = max(10,int(np.sqrt(len(values))/2)))
-        print(np.sum(hist))
         plt.figure(figsize = (5,5))
         plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
         plt.axvline(bkgrnd, color = 'r', label = 'sky level: %.5e' % bkgrnd)
