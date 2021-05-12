@@ -14,7 +14,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag
+from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag, PA_shift_convention
 
 def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     
@@ -150,9 +150,10 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
                   [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
         LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        fitlim = results['fit R'][-1] if 'fit R' in results else np.inf
         for i in range(len(useR)):
             plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
-                                        usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < results['fit R'][-1] else '--'))
+                                        usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < fitlim else '--'))
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
@@ -164,16 +165,31 @@ def Isophote_Extract_Forced(IMG, results, options):
     """
     Run isophote data extraction given exact specification for pa and ellip profiles.
     """
-    if 'fit ellip_err' in results and (not results['fit ellip_err'] is None) and 'fit pa_err' in results and (not results['fit pa_err'] is None):
-        Ee = np.array(results['fit ellip_err'])
-        PAe = np.array(results['fit pa_err'])
-    else:
-        Ee = np.zeros(len(results['fit R']))
-        PAe = np.zeros(len(results['fit R']))
 
-    return IMG, _Generate_Profile(IMG, results, np.array(results['fit R']),
-                                  np.array(results['fit ellip']), Ee,
-                                  (np.array(results['fit pa']) + (options['ap_forced_pa_shift'] if 'ap_forced_pa_shift' in options else 0.)) % np.pi, PAe, options)
+    with open(options['ap_forcing_profile'], 'r') as f:
+        raw = f.readlines()
+        for i,l in enumerate(raw):
+            if l[0] != '#':
+                readfrom = i
+                break
+        header = list(h.strip() for h in raw[readfrom].split(','))
+        force = dict((h,[]) for h in header)
+        for l in raw[readfrom+2:]:
+            for d, h in zip(l.split(','), header):
+                force[h].append(float(d.strip()))
+
+    force['pa'] = PA_shift_convention(np.array(force['pa']), deg = True) * np.pi/180
+    
+    if 'ellip_e' in force and 'pa_e' in force:
+        Ee = np.array(force['ellip_e'])
+        PAe = np.array(force['pa_e'])*np.pi/180
+    else:
+        Ee = np.zeros(len(force['R']))
+        PAe = np.zeros(len(force['R']))
+
+    return IMG, _Generate_Profile(IMG, results, np.array(force['R'])/options['ap_pixscale'],
+                                  np.array(force['ellip']), Ee,
+                                  (np.array(force['pa']) + (options['ap_forced_pa_shift'] if 'ap_forced_pa_shift' in options else 0.)) % np.pi, PAe, options)
     
     
 def Isophote_Extract(IMG, results, options):
@@ -204,12 +220,11 @@ def Isophote_Extract(IMG, results, options):
     
     # Interpolate profile values, when extrapolating just take last point
     E = _x_to_eps(np.interp(R, results['fit R'], _inv_x_to_eps(results['fit ellip'])))
-    E[R < results['fit R'][0]] = results['fit ellip'][0] #R[R < results['fit R'][0]] * results['fit ellip'][0] / results['fit R'][0]
-    E[R < results['psf fwhm']] = R[R < results['psf fwhm']] * results['fit ellip'][0] / results['psf fwhm']
+    E[R < results['fit R'][0]] = results['fit ellip'][0]
     E[R > results['fit R'][-1]] = results['fit ellip'][-1]
     tmp_pa_s = np.interp(R, results['fit R'], np.sin(2*results['fit pa']))
     tmp_pa_c = np.interp(R, results['fit R'], np.cos(2*results['fit pa']))
-    PA = _x_to_pa(((np.arctan(tmp_pa_s/tmp_pa_c) + (np.pi*(tmp_pa_c < 0))) % (2*np.pi))/2)#_x_to_pa(np.interp(R, results['fit R'], results['fit pa']))
+    PA = _x_to_pa(((np.arctan(tmp_pa_s/tmp_pa_c) + (np.pi*(tmp_pa_c < 0))) % (2*np.pi))/2)
     PA[R < results['fit R'][0]] = _x_to_pa(results['fit pa'][0])
     PA[R > results['fit R'][-1]] = _x_to_pa(results['fit pa'][-1])
 

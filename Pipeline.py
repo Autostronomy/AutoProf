@@ -6,7 +6,7 @@ from autoprofutils.Background import Background_Mode, Background_DilatedSources,
 from autoprofutils.PSF import PSF_IRAF, PSF_StarFind
 from autoprofutils.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
 from autoprofutils.ImageTransform import Crop
-from autoprofutils.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean
+from autoprofutils.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean
 from autoprofutils.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask
 from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
@@ -56,6 +56,7 @@ class Isophote_Pipeline(object):
                                  'center OfMass': Center_OfMass,
                                  'crop': Crop,
                                  'isophoteinit': Isophote_Initialize,
+                                 'isophoteinit forced': Isophote_Init_Forced,
                                  'isophoteinit mean': Isophote_Initialize_mean,
                                  'plot image': Plot_Galaxy_Image,
                                  'writefi': WriteFi,
@@ -256,8 +257,8 @@ class Isophote_Pipeline(object):
             c = importlib.import_module(use_config)
 
         if 'forced' in c.ap_process_mode:
-            self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit',
-                                                      'isophotefit forced', 'isophoteextract forced', 'writeprof'])
+            self.UpdatePipeline(new_pipeline_steps = ['background', 'psf', 'center forced', 'isophoteinit forced',
+                                                      'isophoteextract forced', 'writeprof'])
             
         try:
             self.UpdatePipeline(new_pipeline_methods = c.ap_new_pipeline_methods)

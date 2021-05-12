@@ -14,6 +14,25 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from time import time
 
+def Isophote_Init_Forced(IMG, results, options):
+    with open(options['ap_forcing_profile'][:-4] + 'aux', 'r') as f:
+        for line in f.readlines():
+            if 'global ellipticity' in line:
+                ellip = float(line[line.find(':')+1:line.find('+-')].strip())
+                ellip_err = float(line[line.find('+-')+2:line.find(',')].strip())
+                pa = PA_shift_convention(float(line[line.find('pa:')+3:line.find('+-', line.find('pa:'))].strip()), deg = True)*np.pi/180
+                pa_err = float(line[line.find('+-', line.find('pa:')) + 2: line.find('deg')].strip())*np.pi/180
+                R = float(line[line.find('size:')+5:line.find('pix', line.find('size:'))].strip())
+                break
+
+    auxmessage = 'global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix' % (ellip, ellip_err,
+                                                                                           PA_shift_convention(pa)*180/np.pi,
+                                                                                           pa_err*180/np.pi, R)
+        
+    return IMG, {'init ellip': ellip, 'init ellip_err': ellip_err, 'init pa': pa,
+                 'init pa_err': pa_err, 'init R': R, 'auxfile initialize': auxmessage}
+    
+
 def _fitEllip_loss(e, dat, r, p, c, n):
     isovals = _iso_extract(dat,r,e,p,c, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
     coefs = fft(isovals)
