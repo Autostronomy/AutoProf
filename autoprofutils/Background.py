@@ -41,15 +41,9 @@ def Background_Mode(IMG, results, options):
         bkgrnd = options['ap_set_background']
         logging.info('%s: Background set by user: %.4e' % (options['ap_name'], bkgrnd))
     else:
-        bkgrnd = Smooth_Mode(values)
-        # # set the starting point for the sky level optimization at the median pixel flux
-        # start = np.quantile(values, 0.40)
-        # # set the smoothing scale equal to roughly 0.5% of the width of the data
-        # scale = iqr(values,rng = [30,70])/10
-        
         # # Fit the peak of the smoothed histogram
-        # res = minimize(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
-        # bkgrnd = res.x[0]
+        bkgrnd = Smooth_Mode(values)
+        
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
     if 'ap_set_background_noise' in options:
         noise = options['ap_set_background_noise']
@@ -61,9 +55,10 @@ def Background_Mode(IMG, results, options):
     uncertainty = noise / np.sqrt(np.sum((values-bkgrnd) < 0))
     if not np.isfinite(uncertainty):
         uncertainty = noise / np.sqrt(len(values))
-
+    print(bkgrnd, noise, uncertainty, 20*noise, -5*noise, np.sum(np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -5*noise)), np.sum(np.logical_and((values) < 20*noise, (values) > -5*noise)))
     if 'ap_doplot' in options and options['ap_doplot']:    
-        hist, bins = np.histogram(values[np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -5*noise)], bins = 1000)
+        hist, bins = np.histogram(values[np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -5*noise)], bins = max(10,int(np.sqrt(len(values))/2)))
+        print(np.sum(hist))
         plt.figure(figsize = (5,5))
         plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
         plt.axvline(bkgrnd, color = 'r', label = 'sky level: %.5e' % bkgrnd)

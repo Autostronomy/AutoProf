@@ -6,5 +6,5 @@ ap_name = 'testimage'
 ap_pixscale = 0.262
 ap_zeropoint = 22.5
 ap_doplot = True
-ap_truncate_evaluation = True
 ap_isoclip = True
+ap_truncate_evaluation = True
