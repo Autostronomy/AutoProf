@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, AddLogo, Angle_Median
+from autoprofutils.SharedFunctions import _iso_extract, AddLogo, Angle_Median, flux_to_sb
 from photutils.centroids import centroid_2dg, centroid_com, centroid_1dg
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -23,7 +23,8 @@ def Center_Forced(IMG, results, options):
         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
     if 'ap_set_center' in options:
         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
-        return IMG, {'center': deepcopy(options['ap_set_center'])}
+        sb0 = flux_to_sb(_iso_extract(IMG - results['background'], 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+        return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
     try:
         with open(options['ap_forcing_profile'][:-4] + 'aux', 'r') as f:
@@ -37,8 +38,10 @@ def Center_Forced(IMG, results, options):
             else:
                 logging.warning('%s: Forced center failed! Using image center (or guess).' % options['ap_name'])
     except:
-        logging.warning('%s: Forced center failed! Using image center (or guess).' % options['ap_name'])        
-    return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y'])}
+        logging.warning('%s: Forced center failed! Using image center (or guess).' % options['ap_name'])
+    sb0 = flux_to_sb(_iso_extract(IMG - results['background'], 0., 0.,0., current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+    return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y']),
+                 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
     
 def Center_2DGaussian(IMG, results, options):
     """
@@ -180,7 +183,8 @@ def Center_HillClimb(IMG, results, options):
         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
     if 'ap_set_center' in options:
         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
-        return IMG, {'center': deepcopy(options['ap_set_center'])}
+        sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+        return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
     dat = IMG - results['background']
 
@@ -276,8 +280,9 @@ def Center_HillClimb(IMG, results, options):
         axarr[1].set_yticks([])
         plt.savefig('%sCenter_path_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
         plt.close()
-        
-    return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y'])}
+
+    sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+    return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
 
 def _hillclimb_mean_loss(x, IMG, PSF, noise):

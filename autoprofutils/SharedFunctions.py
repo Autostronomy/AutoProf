@@ -359,8 +359,8 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
     theta = (theta + pa) % (2*np.pi)
     
     if sma < rad_interp: 
-        box = [[max(0,int(c['x']-sma-2)), min(IMG.shape[1],int(c['x']+sma+2))],
-               [max(0,int(c['y']-sma-2)), min(IMG.shape[0],int(c['y']+sma+2))]]
+        box = [[max(0,int(c['x']-sma-5)), min(IMG.shape[1],int(c['x']+sma+5))],
+               [max(0,int(c['y']-sma-5)), min(IMG.shape[0],int(c['y']+sma+5))]]
         f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
                                        np.arange(box[0][1] - box[0][0], dtype = np.float32),
                                        IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
@@ -754,4 +754,3 @@ def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, m
     else:
         return COG_profile, COG_lower, COG_upper
     
-'orthsample_parallel', 'orthsample_pa', 'radsample_variable_pa', 'radsample_expwidth', 'radsample_pa', 'radsample_width', 'radsample_nwedges', 'iso_interpolate_start', 'isoband_start'
