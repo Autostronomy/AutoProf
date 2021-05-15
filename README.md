@@ -633,6 +633,12 @@ Similar to the standard isophote fitting method, except flux values along isopho
 
 Wrapper for the photutils isophote fitting method which is based on Jedzejewski 1987.
 
+### Isophote Extraction - photutils
+
+**pipeline label: 'isophoteextract photutils'**
+
+Wrapper for the photutils isophote extraction method which returns the mean intensity along each isophote. This method can be called without a fitting step (e.g. 'isophotefit photutils') as it will do it's own fitting.
+
 ### Masking - Bad Pixels
 
 **pipeline label: 'mask badpixels'**
