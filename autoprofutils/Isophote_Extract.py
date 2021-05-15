@@ -1,5 +1,6 @@
 import numpy as np
-from photutils.isophote import EllipseSample, Ellipse, EllipseGeometry, Isophote, IsophoteList
+from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, IsophoteList
+from photutils.isophote import Ellipse as Photutils_Ellipse
 from scipy.optimize import minimize
 from scipy.stats import iqr
 from scipy.fftpack import fft, ifft
@@ -241,3 +242,114 @@ def Isophote_Extract(IMG, results, options):
         PAe = np.zeros(len(R))
     
     return IMG, _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options)
+
+def Isophote_Extract_Photutils(IMG, results, options):
+
+    params = ['R', 'SB', 'SB_e', 'totmag', 'ellip', 'ellip_e', 'pa', 'pa_e', 'a3', 'a3_e', 'b3', 'b3_e', 'a4', 'a4_e', 'b4', 'b4_e']
+        
+    SBprof_data = dict((h,[]) for h in params)
+    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag',
+                    'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'a3': 'unitless', 'a3_e': 'unitless',
+                    'b3': 'unitless', 'b3_e': 'unitless', 'a4': 'unitless', 'a4_e': 'unitless', 'b4': 'unitless', 'b4_e': 'unitless'}
+    SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f',
+                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'a3': '%.3f', 'a3_e': '%.3f',
+                     'b3': '%.3f', 'b3_e': '%.3f', 'a4': '%.3f', 'a4_e': '%.3f', 'b4': '%.3f', 'b4_e': '%.3f'}
+    zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
+    res = {}
+    dat = IMG - results['background']
+    if not 'fit R' in results and not 'fit photutils isolist' in results:
+        geo = EllipseGeometry(x0 = results['center']['x'],
+                              y0 = results['center']['y'],
+                              sma = results['init R']/2,
+                              eps = results['init ellip'],
+                              pa = results['init pa'])
+        ellipse = Photutils_Ellipse(dat, geometry = geo)
+
+        isolist = ellipse.fit_image(fix_center = True, linear = False)
+        res.update({'fit photutils isolist': isolist,
+                    'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]})
+    elif not 'fit photutils isolist' in results:
+        list_iso = []
+        for i in range(len(results['fit R'])):
+            # Container for ellipse geometry
+            geo = EllipseGeometry(sma = results['fit R'][i],
+                                  x0 = results['center']['x'], y0 = results['center']['y'],
+                                  eps = results['fit ellip'][i], pa = results['fit pa'][i])
+            # Extract the isophote information
+            ES = EllipseSample(dat, sma = results['fit R'][i], geometry = geo)
+            ES.update(fixed_parameters = None)
+            list_iso.append(Isophote(ES, niter = 30, valid = True, stop_code = 0))
+        
+        isolist = IsophoteList(list_iso)
+        res.update({'fit photutils isolist': isolist,
+                    'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]})
+    else:
+        isolist = results['fit photutils isolist']
+    
+    for i in range(len(isolist.sma)):
+        print(isolist.sample[i].mean, isolist.sample[i].values)
+        SBprof_data['R'].append(isolist.sma[i]*options['ap_pixscale'])
+        SBprof_data['SB'].append(flux_to_sb(isolist.intens[i], options['ap_pixscale'], zeropoint)) 
+        SBprof_data['SB_e'].append(2.5*isolist.int_err[i]/(isolist.intens[i] * np.log(10))) 
+        SBprof_data['totmag'].append(flux_to_mag(isolist.tflux_e[i], zeropoint)) 
+        SBprof_data['ellip'].append(isolist.eps[i]) 
+        SBprof_data['ellip_e'].append(isolist.ellip_err[i]) 
+        SBprof_data['pa'].append(isolist.pa[i]*180/np.pi) 
+        SBprof_data['pa_e'].append(isolist.pa_err[i]*180/np.pi) 
+        SBprof_data['a3'].append(isolist.a3[i])
+        SBprof_data['a3_e'].append(isolist.a3_err[i]) 
+        SBprof_data['b3'].append(isolist.b3[i])
+        SBprof_data['b3_e'].append(isolist.b3_err[i]) 
+        SBprof_data['a4'].append(isolist.a4[i])
+        SBprof_data['a4_e'].append(isolist.a4_err[i]) 
+        SBprof_data['b4'].append(isolist.b4[i])
+        SBprof_data['b4_e'].append(isolist.b4_err[i])
+        for k in SBprof_data.keys():
+            if not np.isfinite(SBprof_data[k][-1]):
+                SBprof_data[k][-1] = 99.999
+    res.update({'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format})
+    
+    if 'ap_doplot' in options and options['ap_doplot']:
+        CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
+        if np.sum(CHOOSE) < 5:
+            CHOOSE = np.ones(len(CHOOSE), dtype = bool)
+        errscale = 1.
+        if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.5):
+            errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
+        lnlist = []
+        lnlist.append(plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
+                                   elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale))
+        plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     np.array(SBprof_data['SB'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     yerr = np.array(SBprof_data['SB_e'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'limegreen')
+        plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
+        plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
+        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
+        lnlist.append(plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise))
+        plt.gca().invert_yaxis()
+        plt.tick_params(labelsize = 14)
+        labs = [l.get_label() for l in lnlist]
+        plt.legend(lnlist, labs, fontsize = 11)
+        plt.tight_layout()
+        if not ('ap_nologo' in options and options['ap_nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphotometry_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.close()                
+
+        useR = np.array(SBprof_data['R'])[CHOOSE]/options['ap_pixscale']
+        useE = np.array(SBprof_data['ellip'])[CHOOSE]
+        usePA = np.array(SBprof_data['pa'])[CHOOSE]
+        ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(IMG.shape[1],int(results['center']['x']+useR[-1]*1.2))],
+                  [max(0,int(results['center']['y']-useR[-1]*1.2)), min(IMG.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
+        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+        fitlim = results['fit R'][-1] if 'fit R' in results else np.inf
+        for i in range(len(useR)):
+            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
+                                        usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < fitlim else '--'))
+        if not ('ap_nologo' in options and options['ap_nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.close()
+            
+    return IMG, res

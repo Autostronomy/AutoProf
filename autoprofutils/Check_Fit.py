@@ -27,11 +27,14 @@ def Check_Fit(IMG, results, options):
     count_initrelative = 0
     f2_compare = []
     f1_compare = []
-    for i in range(len(results['fit R'])):
-        init_isovals = _iso_extract(dat,results['fit R'][i],results['init ellip'],
+    checkson = {'R': results['fit R'] if 'fit R' in results else results['prof data']['R'],
+                'pa': results['fit pa'] if 'fit pa' in results else results['prof data']['pa'],
+                'ellip': results['fit ellip'] if 'fit ellip' in results else results['prof data']['ellip']}
+    for i in range(len(checkson)):
+        init_isovals = _iso_extract(dat,checkson['R'][i],results['init ellip'],
                                     results['init pa'],use_center)
-        isovals = _iso_extract(dat,results['fit R'][i],results['fit ellip'][i],
-                               results['fit pa'][i],use_center)
+        isovals = _iso_extract(dat,checkson['R'][i],checkson['ellip'][i],
+                               checkson['pa'][i],use_center)
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
 
         if np.median(isovals) < (iqr(isovals)-results['background noise']):
@@ -43,22 +46,22 @@ def Check_Fit(IMG, results, options):
         
     f1_compare = np.array(f1_compare)
     f2_compare = np.array(f2_compare)
-    if count_variable > (0.2*len(results['fit R'])):
+    if count_variable > (0.2*len(checkson['R'])):
         logging.warning('%s: Possible failed fit! flux values highly variable along isophotes' % options['ap_name'])
         tests['isophote variability'] = False
     else:
         tests['isophote variability'] = True
-    if count_initrelative > (0.5*len(results['fit R'])):
+    if count_initrelative > (0.5*len(checkson['R'])):
         logging.warning('%s: Possible failed fit! flux values highly variable relative to initialization' % options['ap_name'])
         tests['initial fit compare'] = False
     else:
         tests['initial fit compare'] = True
-    if np.sum(f2_compare > 0.3) > 2 or np.sum(f2_compare > 0.2) > (0.3*len(results['fit R'])) or np.sum(f2_compare > 0.1) > (0.8*len(results['fit R'])):
+    if np.sum(f2_compare > 0.3) > 2 or np.sum(f2_compare > 0.2) > (0.3*len(checkson['R'])) or np.sum(f2_compare > 0.1) > (0.8*len(checkson['R'])):
         logging.warning('%s: Possible failed fit! poor convergence of FFT coefficients' % options['ap_name'])
         tests['FFT coefficients'] = False
     else:
         tests['FFT coefficients'] = True
-    if np.sum(f1_compare > 0.3) > 2 or np.sum(f1_compare > 0.2) > (0.3*len(results['fit R'])) or np.sum(f1_compare > 0.1) > (0.8*len(results['fit R'])):
+    if np.sum(f1_compare > 0.3) > 2 or np.sum(f1_compare > 0.2) > (0.3*len(checkson['R'])) or np.sum(f1_compare > 0.1) > (0.8*len(checkson['R'])):
         logging.warning('%s: Possible failed fit! possible failed center or lopsided galaxy' % options['ap_name'])
         tests['Light symmetry'] = False
     else:

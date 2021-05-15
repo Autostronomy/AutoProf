@@ -34,7 +34,7 @@ def Photutils_Fit(IMG, results, options):
 
     isolist = ellipse.fit_image(fix_center = True, linear = False)
     res = {'fit R': isolist.sma[1:], 'fit ellip': isolist.eps[1:], 'fit ellip_err': isolist.ellip_err[1:],
-           'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:], 'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]}
+           'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:], 'fit photutils isolist': isolist, 'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]}
     
     if 'ap_doplot' in options and options['ap_doplot']:
         ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['y']+res['fit R'][-1]*1.2))],

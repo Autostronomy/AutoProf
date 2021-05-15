@@ -9,7 +9,7 @@ from autoprofutils.ImageTransform import Crop
 from autoprofutils.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced
 from autoprofutils.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean
 from autoprofutils.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask
-from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced
+from autoprofutils.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced, Isophote_Extract_Photutils
 from autoprofutils.Check_Fit import Check_Fit
 from autoprofutils.Write_Prof import WriteProf
 from autoprofutils.Write_Fi import WriteFi
@@ -68,6 +68,7 @@ class Isophote_Pipeline(object):
                                  'starmask': Star_Mask_IRAF,
                                  'mask segmentation map': Mask_Segmentation_Map,
                                  'isophoteextract': Isophote_Extract,
+                                 'isophoteextract photutils': Isophote_Extract_Photutils,
                                  'isophoteextract forced': Isophote_Extract_Forced,
                                  'checkfit': Check_Fit,
                                  'writeprof': WriteProf,
