@@ -70,7 +70,7 @@ def Background_Mode(IMG, results, options):
             yy = np.array(list(map(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), xx)))
             yy *= np.sum(hist) * (xx[-1] - xx[0]) / (trapz(x = xx, y = yy) * (len(bins)-1))
             plt.plot(xx, np.log10(yy), color = 'r', linewidth = 1.5, linestyle = '--', label = 'Smoothed Profile')
-        plt.xlim([-5*noise, 20*noise])
+        plt.xlim([bkgrnd-5*noise, bkgrnd+20*noise])
         plt.legend(fontsize = 12)
         plt.tick_params(labelsize = 12)
         plt.xlabel('Pixel Flux', fontsize = 16)

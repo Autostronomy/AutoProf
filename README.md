@@ -70,6 +70,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     ```python
     #!/wherever/your/python3/is/installed
     ```
+* If you are using python 3.9 you may have difficulties installing photutils. For now you will have to revert to python 3.8
 
 For other issues contact connor.stone@queensu.ca for help. The code has been tested on Linux and Mac machines.
 
