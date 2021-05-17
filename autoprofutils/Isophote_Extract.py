@@ -81,10 +81,20 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     # Compute Curve of Growth from SB profile
     cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* options['ap_pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
                                         Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
-    cogE[cog > 99] = 99.999
+    if cog is None:
+        cog = 99.999*np.ones(len(R))
+        cogE = 99.999*np.ones(len(R))
+    else:
+        cog[np.logical_not(np.isfinite(cog))] == 99.999
+        cogE[cog > 99] = 99.999
     cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * options['ap_pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
                                               Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
-    cogfixE[cogfix > 99] = 99.999
+    if cogfix is None:
+        cogfix = 99.999*np.ones(len(R))
+        cogfixE = 99.999*np.ones(len(R))
+    else:
+        cogfix[np.logical_not(np.isfinite(cogfix))] == 99.999
+        cogfixE[cogfix > 99] = 99.999
     
     # For each radius evaluation, write the profile parameters
     params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
@@ -128,6 +138,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         #              elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
         plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
         plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
+        plt.xlim([0,None])
         bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
         lnlist.append(plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise))
         plt.gca().invert_yaxis()
@@ -258,6 +269,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
     res = {}
     dat = IMG - results['background']
     if not 'fit R' in results and not 'fit photutils isolist' in results:
+        logging.info('%s: photutils fitting and extracting image data' % options['ap_name'])
         geo = EllipseGeometry(x0 = results['center']['x'],
                               y0 = results['center']['y'],
                               sma = results['init R']/2,
@@ -269,8 +281,11 @@ def Isophote_Extract_Photutils(IMG, results, options):
         res.update({'fit photutils isolist': isolist,
                     'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]})
     elif not 'fit photutils isolist' in results:
+        logging.info('%s: photutils extracting image data' % options['ap_name'])
         list_iso = []
         for i in range(len(results['fit R'])):
+            if results['fit R'][i] <= 0:
+                continue
             # Container for ellipse geometry
             geo = EllipseGeometry(sma = results['fit R'][i],
                                   x0 = results['center']['x'], y0 = results['center']['y'],
@@ -287,7 +302,6 @@ def Isophote_Extract_Photutils(IMG, results, options):
         isolist = results['fit photutils isolist']
     
     for i in range(len(isolist.sma)):
-        print(isolist.sample[i].mean, isolist.sample[i].values)
         SBprof_data['R'].append(isolist.sma[i]*options['ap_pixscale'])
         SBprof_data['SB'].append(flux_to_sb(isolist.intens[i], options['ap_pixscale'], zeropoint)) 
         SBprof_data['SB_e'].append(2.5*isolist.int_err[i]/(isolist.intens[i] * np.log(10))) 
@@ -325,6 +339,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
                      elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'limegreen')
         plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
         plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
+        plt.xlim([0,None])
         bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
         lnlist.append(plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise))
         plt.gca().invert_yaxis()
