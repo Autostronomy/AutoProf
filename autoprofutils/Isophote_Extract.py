@@ -256,13 +256,13 @@ def Isophote_Extract(IMG, results, options):
 
 def Isophote_Extract_Photutils(IMG, results, options):
 
-    params = ['R', 'SB', 'SB_e', 'totmag', 'ellip', 'ellip_e', 'pa', 'pa_e', 'a3', 'a3_e', 'b3', 'b3_e', 'a4', 'a4_e', 'b4', 'b4_e']
+    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'a3', 'a3_e', 'b3', 'b3_e', 'a4', 'a4_e', 'b4', 'b4_e']
         
     SBprof_data = dict((h,[]) for h in params)
-    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag',
+    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
                     'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'a3': 'unitless', 'a3_e': 'unitless',
                     'b3': 'unitless', 'b3_e': 'unitless', 'a4': 'unitless', 'a4_e': 'unitless', 'b4': 'unitless', 'b4_e': 'unitless'}
-    SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f',
+    SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
                      'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'a3': '%.3f', 'a3_e': '%.3f',
                      'b3': '%.3f', 'b3_e': '%.3f', 'a4': '%.3f', 'a4_e': '%.3f', 'b4': '%.3f', 'b4_e': '%.3f'}
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
@@ -303,9 +303,10 @@ def Isophote_Extract_Photutils(IMG, results, options):
     
     for i in range(len(isolist.sma)):
         SBprof_data['R'].append(isolist.sma[i]*options['ap_pixscale'])
-        SBprof_data['SB'].append(flux_to_sb(isolist.intens[i], options['ap_pixscale'], zeropoint)) 
+        SBprof_data['SB'].append(flux_to_sb(np.median(isolist.sample[i].values[2]), options['ap_pixscale'], zeropoint)) 
         SBprof_data['SB_e'].append(2.5*isolist.int_err[i]/(isolist.intens[i] * np.log(10))) 
         SBprof_data['totmag'].append(flux_to_mag(isolist.tflux_e[i], zeropoint)) 
+        SBprof_data['totmag_e'].append(2.5*isolist.rms[i]/(np.sqrt(isolist.npix_e[i])*isolist.tflux_e[i] * np.log(10))) 
         SBprof_data['ellip'].append(isolist.eps[i]) 
         SBprof_data['ellip_e'].append(isolist.ellip_err[i]) 
         SBprof_data['pa'].append(isolist.pa[i]*180/np.pi) 

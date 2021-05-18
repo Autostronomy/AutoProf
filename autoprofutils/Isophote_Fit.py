@@ -111,7 +111,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     ######################################################################
     shrink = 0
     while shrink < 5:
-        sample_radii = [3*results['psf fwhm']/2]
+        sample_radii = [max(1.,results['psf fwhm']/2)]
         while sample_radii[-1] < (max(IMG.shape)/2):
             isovals = _iso_extract(dat,sample_radii[-1],results['init ellip'],
                                    results['init pa'],results['center'], more = False, mask = mask)

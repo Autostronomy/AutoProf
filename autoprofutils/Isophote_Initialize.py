@@ -50,7 +50,7 @@ def Isophote_Initialize(IMG, results, options):
     # Initial attempt to find size of galaxy in image
     # based on when isophotes SB values start to get
     # close to the background noise level
-    circ_ellipse_radii = [results['psf fwhm']]
+    circ_ellipse_radii = [1.]
     allphase = []
     dat = IMG - results['background']
 

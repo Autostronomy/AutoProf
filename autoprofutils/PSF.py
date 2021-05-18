@@ -13,7 +13,7 @@ from scipy.fftpack import fft, ifft
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, StarFind, AddLogo
+from autoprofutils.SharedFunctions import _iso_extract, StarFind, AddLogo, LSBImage
 from copy import deepcopy
 
 def PSF_IRAF(IMG, results, options):
@@ -30,8 +30,8 @@ def PSF_IRAF(IMG, results, options):
         fwhm_guess = max(1., 1./options['ap_pixscale'])
 
     edge_mask = np.zeros(IMG.shape, dtype = bool)
-    edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
-              int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
+    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
+              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = True
     
     dat = IMG - results['background']
     # photutils wrapper for IRAF star finder
@@ -76,8 +76,8 @@ def PSF_StarFind(IMG, results, options):
         fwhm_guess = max(1., 1./options['ap_pixscale'])
 
     edge_mask = np.zeros(IMG.shape, dtype = bool)
-    edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
-              int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
+    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
+              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = True
     stars = StarFind(IMG - results['background'], fwhm_guess, results['background noise'],
                      edge_mask, # peakmax = (options['ap_overflowval']-results['background'])*0.95 if 'ap_overflowval' in options else None,
                      maxstars = 50)
@@ -87,39 +87,14 @@ def PSF_StarFind(IMG, results, options):
     while np.sum(stars['deformity'] < def_clip) < max(10,2*len(stars['fwhm'])/3):
         def_clip += 0.1
     if 'ap_doplot' in options and options['ap_doplot']:
-        plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
-                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        plt.axis('off')
+        LSBImage(IMG - results['background'], results['background noise'])
         for i in range(len(stars['fwhm'])):
             plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 16/options['ap_pixscale'], 16/options['ap_pixscale'],
                                         0, fill = False, linewidth = 0.5, color = 'r' if stars['deformity'][i] >= def_clip else 'y'))
+        plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sPSF_Stars_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
-
-    if 'ap_paperplots' in options and options['ap_paperplots']:    
-        # paper plot
-        N = np.argsort(stars['deformity'])
-        figscale = max(stars['fwhm'][N[:9]])*2
-        fig, axarr = plt.subplots(3,3, figsize = (6,6))
-        plt.subplots_adjust(hspace = 0.01, wspace = 0.01, left = 0.05, right = 0.95, top = 0.95, bottom = 0.05)
-        count = 0
-        for i in range(3):
-            for j in range(3):
-                ranges = [[int(stars['x'][N[count]]-figscale),1+int(stars['x'][N[count]]+figscale)],
-                          [int(stars['y'][N[count]]-figscale),1+int(stars['y'][N[count]]+figscale)]]
-                axarr[i][j].imshow(np.clip(IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]] - results['background'], a_min = 0, a_max = None), origin = 'lower',
-                                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()), extent = (0,1,0,1))
-                axarr[i][j].add_patch(Ellipse(((stars['x'][N[count]]-ranges[0][0])/(ranges[0][1]-ranges[0][0]),
-                                               (stars['y'][N[count]]-ranges[1][0])/(ranges[1][1]-ranges[1][0])),
-                                              stars['fwhm'][N[count]]/(ranges[0][1]-ranges[0][0]),
-                                              stars['fwhm'][N[count]]/(ranges[1][1]-ranges[1][0]),
-                                              0, fill = False, linewidth = 1, color = 'r'))
-                axarr[i][j].set_xticks([])
-                axarr[i][j].set_yticks([])
-                count += 1
-        plt.savefig('%sPSF_Best_Stars_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
 
     psf = np.median(stars['fwhm'][stars['deformity'] < def_clip])
