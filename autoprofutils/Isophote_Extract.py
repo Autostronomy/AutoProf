@@ -41,8 +41,9 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     end_prof = None
     for i in range(len(R)):
         isobandwidth = R[i]*(options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.025)
+        isisophoteband = False
         if medflux > (results['background noise']*(options['ap_isoband_start'] if 'ap_isoband_start' in options else 2)) or isobandwidth < 0.5:
-            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask,
+            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, more = True,
                                    rad_interp = (options['ap_iso_interpolate_start'] if 'ap_iso_interpolate_start' in options else 5)*results['psf fwhm'],
                                    sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                    sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
@@ -53,7 +54,8 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
                                       sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                       sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
         else:
-            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'], mask = mask,
+            isisophoteband = True
+            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'], mask = mask, more = True,
                                    sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                    sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                    sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
@@ -62,15 +64,23 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
                                       sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                       sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
         isotot = np.sum(_iso_between(dat, 0, R[i], E[i], PA[i], results['center'], mask = mask))
-        medflux = _average(isovals, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
-        scatflux = _scatter(isovals, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
-        medfluxfix = _average(isovalsfix, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
-        scatfluxfix = _scatter(isovalsfix, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
-        
+        medflux = _average(isovals[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        scatflux = _scatter(isovals[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        medfluxfix = _average(isovalsfix[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        scatfluxfix = _scatter(isovalsfix[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        if 'ap_fouriermodes' in options and options['ap_fouriermodes']:
+            if mask is None and (not 'ap_isoclip' in options or not options['ap_isoclip']) and not isisophoteband:
+                coefs = fft(isovals[0])
+            else:
+                N = int(max(100, np.sqrt(len(isovals[0]))))
+                theta = np.linspace(0,2*np.pi*(1.-1./N), N)
+                coefs = fft(np.interp(theta, isovals[1], isovals[0], period = 2*np.pi))
+            
+                
         sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
-        sbE.append((2.5*scatflux / (np.sqrt(len(isovals))*medflux*np.log(10))) if medflux > 0 else 99.999)
+        sbE.append((2.5*scatflux / (np.sqrt(len(isovals[0]))*medflux*np.log(10))) if medflux > 0 else 99.999)
         sbfix.append(flux_to_sb(medfluxfix, options['ap_pixscale'], zeropoint) if medfluxfix > 0 else 99.999)
-        sbfixE.append((2.5*scatfluxfix / (np.sqrt(len(isovalsfix))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
+        sbfixE.append((2.5*scatfluxfix / (np.sqrt(len(isovalsfix[0]))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
         cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else 99.999)
         if medflux <= 0:
             count_neg += 1
