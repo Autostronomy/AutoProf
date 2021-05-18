@@ -35,6 +35,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     cogdirect = []
     sbfix = []
     sbfixE = []
+    Fmodes = []
 
     count_neg = 0
     medflux = np.inf
@@ -68,14 +69,15 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         scatflux = _scatter(isovals[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
         medfluxfix = _average(isovalsfix[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
         scatfluxfix = _scatter(isovalsfix[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
-        if 'ap_fouriermodes' in options and options['ap_fouriermodes']:
+        if 'ap_fouriermodes' in options and options['ap_fouriermodes'] > 0:
             if mask is None and (not 'ap_isoclip' in options or not options['ap_isoclip']) and not isisophoteband:
                 coefs = fft(isovals[0])
             else:
                 N = int(max(100, np.sqrt(len(isovals[0]))))
                 theta = np.linspace(0,2*np.pi*(1.-1./N), N)
                 coefs = fft(np.interp(theta, isovals[1], isovals[0], period = 2*np.pi))
-            
+            Fmodes.append({'a': [np.abs(coefs[0])/len(coefs)] + list(np.real(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + len(coefs)*results['background noise'])),
+                           'b': [np.abs(coefs[0])/len(coefs)] + list(np.imag(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + len(coefs)*results['background noise']))})
                 
         sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
         sbE.append((2.5*scatflux / (np.sqrt(len(isovals[0]))*medflux*np.log(10))) if medflux > 0 else 99.999)
@@ -131,6 +133,14 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     SBprof_data['SB_fix_e'] = list(sbfixE)
     SBprof_data['totmag_fix'] = list(cogfix)
     SBprof_data['totmag_fix_e'] = list(cogfixE)
+
+    if 'ap_fouriermodes' in options:
+        for i in range(int(options['ap_fouriermodes']+1)):
+            aa, bb = 'a%i' % i, 'b%i' % i
+            params += [aa, bb]
+            SBprof_units.update({aa: 'flux' if i == 0 else 'a%i/F0' % i, bb: 'flux' if i == 0 else 'b%i/F0' % i})
+            SBprof_format.update({aa: '%.4f', bb: '%.4f'})
+            SBprof_data[aa]
 
     if 'ap_doplot' in options and options['ap_doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
