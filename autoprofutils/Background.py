@@ -64,12 +64,6 @@ def Background_Mode(IMG, results, options):
         plt.axvline(bkgrnd, color = '#84DCCF', label = 'sky level: %.5e' % bkgrnd)
         plt.axvline(bkgrnd - noise, color = '#84DCCF', linewidth = 0.7, linestyle = '--', label = '1$\\sigma$ noise/pix: %.5e' % noise)
         plt.axvline(bkgrnd + noise, color = '#84DCCF', linewidth = 0.7, linestyle = '--')
-        if 'ap_paperplots' in options and options['ap_paperplots']:
-            xx = np.linspace(-5*noise, 20*noise, 200)
-            scale = iqr(values,rng = [30,70]) / max(1.,np.log10(len(values))/2) #/10
-            yy = np.array(list(map(lambda x: -np.sum(np.exp(-((values - x)/scale)**2)), xx)))
-            yy *= np.sum(hist) * (xx[-1] - xx[0]) / (trapz(x = xx, y = yy) * (len(bins)-1))
-            plt.plot(xx, np.log10(yy), color = 'r', linewidth = 1.5, linestyle = '--', label = 'Smoothed Profile')
         plt.xlim([bkgrnd-5*noise, bkgrnd+20*noise])
         plt.legend(fontsize = 12)
         plt.tick_params(labelsize = 12)

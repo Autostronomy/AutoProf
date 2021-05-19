@@ -162,8 +162,8 @@ def Center_OfMass(IMG, results, options):
 
 def _hillclimb_loss(x, IMG, PSF, noise):
     center_loss = 0
-    for rr in range(4):
-        isovals = _iso_extract(IMG,(rr+0.5)*PSF,0.,
+    for rr in range(3):
+        isovals = _iso_extract(IMG,(rr+1.)*PSF/2,0.,
                                0.,{'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
         coefs = fft(isovals)
         center_loss += np.abs(coefs[1])/(len(isovals)*(max(0,np.median(isovals)) + noise))
@@ -223,7 +223,7 @@ def Center_HillClimb(IMG, results, options):
             dist = results['psf fwhm']
         current_center['x'] += dist*np.cos(direction)
         current_center['y'] += dist*np.sin(direction)
-        if abs(dist) < (0.25*results['psf fwhm']):
+        if abs(dist) < (0.5*results['psf fwhm']):
             small_update_count += 1
         else:
             small_update_count = 0

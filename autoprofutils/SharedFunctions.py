@@ -46,6 +46,7 @@ for i in range(len(cmaplist)):
     cdict['green'].append([cpoints[i], int(cmaplist[i][3:5],16)/256,int(cmaplist[i][3:5],16)/256])
     cdict['blue'].append([cpoints[i], int(cmaplist[i][5:7],16)/256,int(cmaplist[i][5:7],16)/256])
 autocmap = LinearSegmentedColormap('autocmap', cdict)
+autocolours = {'red1': '#D95D39', 'blue1': '#84DCCF', 'blue2': '#6F8AB7', 'redrange': ['#720026', '#A0213F', '#ce4257', '#E76154', '#ff9b54', '#ffd1b1']}
     
 def LSBImage(dat, noise):
     plt.figure(figsize = (6,6))
@@ -508,7 +509,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
             R.append(R[-1] + fwhm_guess/5)
             isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
             coefs = fft(isovals)
-            deformity.append(np.sum(np.abs(coefs[1:int(len(coefs)/2)])) / np.sqrt(np.abs(coefs[0])))
+            deformity.append(np.sum(np.abs(coefs[1:5])) / np.sqrt(np.abs(coefs[0])))
             # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
             #     badcount += 1
             flux.append(np.median(isovals))
