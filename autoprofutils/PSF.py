@@ -91,7 +91,7 @@ def PSF_StarFind(IMG, results, options):
         LSBImage(IMG - results['background'], results['background noise'])
         for i in range(len(stars['fwhm'])):
             plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 20*psf, 20*psf,
-                                        0, fill = False, linewidth = 1.5, color = autocolours['red1'] if stars['deformity'][i] >= def_clip else autocolours['blue2']))
+                                        0, fill = False, linewidth = 1.5, color = autocolours['red1'] if stars['deformity'][i] >= def_clip else autocolours['blue1']))
         plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
