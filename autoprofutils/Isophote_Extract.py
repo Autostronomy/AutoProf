@@ -67,8 +67,8 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         isotot = np.sum(_iso_between(dat, 0, R[i], E[i], PA[i], results['center'], mask = mask))
         medflux = _average(isovals[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
         scatflux = _scatter(isovals[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
-        medfluxfix = _average(isovalsfix[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
-        scatfluxfix = _scatter(isovalsfix[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        medfluxfix = _average(isovalsfix, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+        scatfluxfix = _scatter(isovalsfix, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
         if 'ap_fouriermodes' in options and options['ap_fouriermodes'] > 0:
             if mask is None and (not 'ap_isoclip' in options or not options['ap_isoclip']) and not isisophoteband:
                 coefs = fft(isovals[0])
@@ -76,13 +76,13 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
                 N = int(max(100, np.sqrt(len(isovals[0]))))
                 theta = np.linspace(0,2*np.pi*(1.-1./N), N)
                 coefs = fft(np.interp(theta, isovals[1], isovals[0], period = 2*np.pi))
-            Fmodes.append({'a': [np.abs(coefs[0])/len(coefs)] + list(np.real(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + len(coefs)*results['background noise'])),
-                           'b': [np.abs(coefs[0])/len(coefs)] + list(np.imag(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + len(coefs)*results['background noise']))})
+            Fmodes.append({'a': [np.abs(coefs[0])/len(coefs)] + list(np.real(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + np.sqrt(len(coefs))*results['background noise'])),
+                           'b': [np.abs(coefs[0])/len(coefs)] + list(np.imag(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + np.sqrt(len(coefs))*results['background noise']))})
                 
         sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
         sbE.append((2.5*scatflux / (np.sqrt(len(isovals[0]))*medflux*np.log(10))) if medflux > 0 else 99.999)
         sbfix.append(flux_to_sb(medfluxfix, options['ap_pixscale'], zeropoint) if medfluxfix > 0 else 99.999)
-        sbfixE.append((2.5*scatfluxfix / (np.sqrt(len(isovalsfix[0]))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
+        sbfixE.append((2.5*scatfluxfix / (np.sqrt(len(isovalsfix))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
         cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else 99.999)
         if medflux <= 0:
             count_neg += 1
@@ -140,7 +140,8 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             params += [aa, bb]
             SBprof_units.update({aa: 'flux' if i == 0 else 'a%i/F0' % i, bb: 'flux' if i == 0 else 'b%i/F0' % i})
             SBprof_format.update({aa: '%.4f', bb: '%.4f'})
-            SBprof_data[aa]
+            SBprof_data[aa] = list(F['a'][i] for F in Fmodes)
+            SBprof_data[bb] = list(F['b'][i] for F in Fmodes)
 
     if 'ap_doplot' in options and options['ap_doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)

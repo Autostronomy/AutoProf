@@ -226,6 +226,7 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_isoband_start: The radius (in pixels) at which to begin sampling a band of pixels to compute SB instead of sampling a line of pixels near the isophote (float)
 - ap_isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- *ap_isoband_width**R for each radius. default value is 0.025 (float)
 - ap_truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
+- ap_extractfull: Tells AutoProf to extend the isophotal solution to the edge of the image. Will be overridden by *ap_truncate_evaluation* (bool)
 - ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF (float)
 - ap_isoaverage_method: Select the method used to compute the averafge flux along an isophote. Choose from 'mean', 'median', and 'mode' where median is the default.
   			In general, median is fast and robust to a few outliers. Mode is slow but robust to more outliers. Mean is fast and accurate in low S/N regimes
@@ -235,7 +236,9 @@ In your config file, do not use any of these names unless you intend for AutoPro
   	      of sigma clipping are performed until convergence or *ap_isoclip_iterations* iterations are reached. Sigma clipping is a useful substitute for masking
 	      objects, though careful masking is better. Also an aggressive sigma clip may bias results. (bool)
 - ap_isoclip_iterations: Maximum number of sigma clipping iterations to perform. The default is infinity, so the sigma clipping procedure repeats until convergence (int)
-- ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_iterations* x sigma) are removed from the isophote (float) 
+- ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_iterations* x sigma) are removed from the isophote (float)
+- ap_fouriermodes: integer for number of fourier modes to extract along fitted isophotes. Most popular is 4, which identifies boxy/disky isophotes. The outputted
+  		   values are computed as a_i = real(F_i)/abs(F_0) where F_i is a fourier coefficient (int)
 
 #### Forced Photometry
 - ap_forced_pa_shift: global rotation to apply to all forced isophotes. Useful if the base image and the forced image are rotated relative to each other. Likely

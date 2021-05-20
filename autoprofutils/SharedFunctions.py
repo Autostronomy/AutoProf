@@ -355,8 +355,15 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
     X = sma*np.cos(theta)
     Y = sma*(1-eps)*np.sin(theta)
     # rotate ellipse by PA
-    X,Y = (X*np.cos(pa) - Y*np.sin(pa), X*np.sin(pa) + Y*np.cos(pa))
+    X,Y = (X*np.cos(pa) - Y*np.sin(pa) + c['x'], X*np.sin(pa) + Y*np.cos(pa) + c['y'])
     theta = (theta + pa) % (2*np.pi)
+
+    # Reject samples from outside the image
+    BORDER = np.logical_and(np.logical_and(X >= 0, X < (IMG.shape[1]-1)),
+                            np.logical_and(Y >= 0, Y < (IMG.shape[0]-1)))
+    X = X[BORDER]
+    Y = Y[BORDER]
+    theta = theta[BORDER]
     
     if sma < rad_interp: 
         box = [[max(0,int(c['x']-sma-5)), min(IMG.shape[1],int(c['x']+sma+5))],
@@ -364,18 +371,15 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
         f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
                                        np.arange(box[0][1] - box[0][0], dtype = np.float32),
                                        IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
-        flux = f_interp(Y + c['y'] - box[1][0],
-                        X + c['x'] - box[0][0], grid = False)
+        flux = f_interp(Y - box[1][0], X - box[0][0], grid = False)
     else:
-        # note uses values at edge when past image boundary, possible fixme?
-        flux = IMG[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
-                   np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)]
+        # round to integers and sample pixels values
+        flux = IMG[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]
     # CHOOSE holds bolean array for which flux values to keep, initialized as None for no clipping
     CHOOSE = None
     # Mask pixels if a mask is given
     if not mask is None:
-        CHOOSE = np.logical_not(mask[np.clip(np.rint(Y + c['y']), a_min = 0, a_max = IMG.shape[0]-1).astype(int),
-                                     np.clip(np.rint(X + c['x']), a_min = 0, a_max = IMG.shape[1]-1).astype(int)])
+        CHOOSE = np.logical_not(mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)])
     # Perform sigma clipping if requested
     if sigmaclip:
         sclim = Sigma_Clip_Upper(flux, sclip_iterations, sclip_nsigma)
