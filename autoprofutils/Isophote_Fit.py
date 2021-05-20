@@ -17,7 +17,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage, AddLogo, PA_shift_convention
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage, AddLogo, PA_shift_convention, autocolours
 
 def Photutils_Fit(IMG, results, options):
     """
@@ -192,18 +192,18 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys', norm = ImageNormalize(stretch=LogStretch())) 
         for i in range(len(sample_radii)):
             plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
-                                        pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = 'r'))
+                                        pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = autocolours['red1']))
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
         
         plt.scatter(sample_radii, ellip, color = 'r', label = 'ellip')
-        plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa/$np.pi$')
+        plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa/$\\pi$')
         show_ellip = _ellip_smooth(sample_radii, ellip, deg = 5)
         show_pa = _pa_smooth(sample_radii, pa, deg = 5)
         plt.plot(sample_radii, show_ellip, color = 'orange', linewidth = 2, linestyle='--', label = 'smooth ellip')
-        plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'smooth pa/$np.pi$')
+        plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'smooth pa/$\\pi$')
         #plt.xscale('log')
         plt.legend()
         if not ('ap_nologo' in options and options['ap_nologo']):
