@@ -10,6 +10,7 @@ ap_isoband_width = 0.05
 ap_samplegeometricscale = 0.05
 ap_truncate_evaluation = True
 
+ap_fouriermodes = 4
 ap_slice_anchor = {'x': 1700., 'y': 1350.}
 ap_slice_length = 300.
 ap_isoclip = True
