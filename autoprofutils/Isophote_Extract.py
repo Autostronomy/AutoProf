@@ -32,6 +32,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
 
     sb = []
     sbE = []
+    pixels = []
     cogdirect = []
     sbfix = []
     sbfixE = []
@@ -81,6 +82,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
                 
         sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
         sbE.append((2.5*scatflux / (np.sqrt(len(isovals[0]))*medflux*np.log(10))) if medflux > 0 else 99.999)
+        pixels.append(len(isovals[0]))
         sbfix.append(flux_to_sb(medfluxfix, options['ap_pixscale'], zeropoint) if medfluxfix > 0 else 99.999)
         sbfixE.append((2.5*scatfluxfix / (np.sqrt(len(isovalsfix))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
         cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else 99.999)
@@ -109,14 +111,14 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         cogfixE[cogfix > 99] = 99.999
     
     # For each radius evaluation, write the profile parameters
-    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
+    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
         
     SBprof_data = dict((h,None) for h in params)
     SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
-                    'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'totmag_direct': 'mag',
+                    'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'totmag_direct': 'mag',
                     'SB_fix': 'mag*arcsec^-2', 'SB_fix_e': 'mag*arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
     SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
-                    'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'totmag_direct': '%.4f',
+                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'pixels': '%i', 'totmag_direct': '%.4f',
                      'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
     
     SBprof_data['R'] = list(R[:end_prof] * options['ap_pixscale'])
@@ -128,6 +130,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     SBprof_data['ellip_e'] = list(Ee[:end_prof])
     SBprof_data['pa'] = list(PA[:end_prof]*180/np.pi)
     SBprof_data['pa_e'] = list(PAe[:end_prof]*180/np.pi)
+    SBprof_data['pixels'] = list(pixels)
     SBprof_data['totmag_direct'] = list(cogdirect)
     SBprof_data['SB_fix'] = list(sbfix)
     SBprof_data['SB_fix_e'] = list(sbfixE)
