@@ -25,5 +25,5 @@ def My_Edgon_Fit_Method(IMG, results, options):
 ap_new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: ('edgeon' if results['init ellip'] > 0.8 else 'standard',{}),
 		           'edgeonfit': My_Edgon_Fit_Method}
 ap_new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],
-		         'standard': ['isophotefit', 'isophoteextract', 'checkfit', 'writeprof', 'plot image', 'ellipsemodel general', 'ellipsemodel', 'axialprofiles', 'radialprofiles', 'sliceprofile'],
+		         'standard': ['isophotefit', 'starmask', 'isophoteextract', 'checkfit', 'writeprof', 'plot image', 'ellipsemodel general', 'ellipsemodel', 'axialprofiles', 'radialprofiles', 'sliceprofile'],
 		         'edgeon': ['edgeonfit', 'isophoteextract', 'writeprof', 'axialprofiles', 'radsample']}

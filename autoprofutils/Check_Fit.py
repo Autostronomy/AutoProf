@@ -30,8 +30,8 @@ def Check_Fit(IMG, results, options):
     checkson = {'R': results['fit R'] if 'fit R' in results else results['prof data']['R'],
                 'pa': results['fit pa'] if 'fit pa' in results else results['prof data']['pa'],
                 'ellip': results['fit ellip'] if 'fit ellip' in results else results['prof data']['ellip']}
-    for i in range(len(checkson)):
-        init_isovals = _iso_extract(dat,checkson['R'][i],results['init ellip'],
+    for i in range(len(checkson)): 
+        init_isovals = _iso_extract(dat,checkson['R'][i],results['init ellip'], # fixme, use mask
                                     results['init pa'],use_center)
         isovals = _iso_extract(dat,checkson['R'][i],checkson['ellip'][i],
                                checkson['pa'][i],use_center)
@@ -41,7 +41,7 @@ def Check_Fit(IMG, results, options):
             count_variable += 1
         if ((iqr(isovals) - results['background noise'])/(np.median(isovals)+results['background noise'])) > (iqr(init_isovals)/(np.median(init_isovals)+results['background noise'])):
             count_initrelative += 1
-        f2_compare.append(np.sum(np.abs(coefs[[2,4]]))/np.abs(coefs[0]))
+        f2_compare.append(np.sum(np.abs(coefs[2]))/np.abs(coefs[0]))
         f1_compare.append(np.abs(coefs[1])/np.abs(coefs[0]))
         
     f1_compare = np.array(f1_compare)

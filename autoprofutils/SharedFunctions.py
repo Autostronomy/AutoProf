@@ -276,7 +276,7 @@ def Smooth_Mode(v):
     # set the starting point for the optimization at the median
     start = np.median(v)
     # set the smoothing scale equal to roughly 0.5% of the width of the data
-    scale = iqr(v,rng = [30,70]) / max(1.,np.log10(len(v))/2) #/10
+    scale = iqr(v) / max(1.,np.log10(len(v))/2) #/10
     # Fit the peak of the smoothed histogram
     res = minimize(lambda x: -np.sum(np.exp(-((v - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
     return res.x[0]
@@ -505,18 +505,19 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
             continue
 
         # Extract flux as a function of radius
-        flux = [np.median(_iso_extract(IMG, 0.0, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))]
-        R = [0.5]
-        deformity = [1.]
+        local_flux = np.median(_iso_extract(IMG, (reject_size+1)*fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))
+        flux = [np.median(_iso_extract(IMG, 0.0, 0., 0., {'x': newcenter[0], 'y': newcenter[1]})) - local_flux]
+        R = [0.0]
+        deformity = [0.]
         badcount = 0
         while (flux[-1] > max(flux[0]/2, background_noise) or len(R) < 5) and len(R) < 50: #len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
-            R.append(R[-1] + fwhm_guess/5)
+            R.append(R[-1] + fwhm_guess/10)
             isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
             coefs = fft(isovals)
             deformity.append(np.sum(np.abs(coefs[1:5])) / np.sqrt(np.abs(coefs[0])))
             # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
             #     badcount += 1
-            flux.append(np.median(isovals))
+            flux.append(np.median(isovals) - local_flux)
         if len(R) >= 50:
             continue
         fwhm_fit = np.interp(flux[0]/2, list(reversed(flux)), list(reversed(R)))*2
@@ -531,7 +532,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
             centers = np.concatenate((centers,[newcenter]),axis = 0)
         deformities.append(deformity[-1])
         fwhms.append(deepcopy(fwhm_fit))
-        peaks.append(flux[0])
+        peaks.append(flux[0] + local_flux)
         # stop if max N stars reached
         if len(fwhms) >= maxstars:
             break
