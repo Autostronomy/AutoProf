@@ -73,22 +73,7 @@ def Check_Fit(IMG, results, options):
         tests['Light symmetry'] = False
     else:
         tests['Light symmetry'] = True
-        
-    # Compare integrated total magnitude with summed total magnitude
-    try:
-        SB = np.array(results['prof data']['SB'])
-        SBe = np.array(results['prof data']['SB_e'])
-        Mint = np.array(results['prof data']['totmag'])
-        Msum = np.array(results['prof data']['totmag_direct'])
-        CHOOSE = np.logical_and(SB < 99, SBe < 0.1)
-        if np.sum(np.abs(Mint[CHOOSE][-4:] - Msum[CHOOSE][-4:]) > 0.2) > 2:
-            logging.warning('%s: Possible failed fit! Inconsistent results for curve of growth, bad fit or foreground star' % options['ap_name'])
-            tests['curve of growth consistency'] = False
-        else:
-            tests['curve of growth consistency'] = True
-    except:
-        logging.info('%s: Check fit could not check SB profile consistency')
-    
+            
     res = {'checkfit': tests}
     for t in tests:
         res['auxfile checkfit %s' % t] = 'checkfit %s: %s' % (t, 'pass' if tests[t] else 'fail')
