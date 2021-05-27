@@ -61,7 +61,7 @@ def Isophote_Initialize(IMG, results, options):
         coefs = fft(isovals[0]) 
         allphase.append(coefs[2])
         # Stop when at 3 time background noise
-        if np.quantile(isovals[0], 0.8) < (3*results['background noise']) and len(circ_ellipse_radii) > 4:
+        if np.quantile(isovals[0], 0.8) < ((options['ap_fit_limit']+1 if 'ap_fit_limit' in options else 3)*results['background noise']) and len(circ_ellipse_radii) > 4:
             break
     logging.info('%s: init scale: %f pix' % (options['ap_name'], circ_ellipse_radii[-1]))
     # Find global position angle.

@@ -178,6 +178,7 @@ def Center_HillClimb(IMG, results, options):
     """
     
     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
+    dat = IMG - results['background']
     if 'ap_guess_center' in options:
         current_center = deepcopy(options['ap_guess_center'])
         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
@@ -185,8 +186,6 @@ def Center_HillClimb(IMG, results, options):
         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
         sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
         return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
-
-    dat = IMG - results['background']
 
     sampleradii = np.linspace(1,10,10) * results['psf fwhm']
 

@@ -1,7 +1,7 @@
 <img src="AP_logo.png" alt="AutoProf" width="300"/>
 
 AutoProf is a pipeline for basic and advanced non-parametric galaxy image analysis.
-Its design alows one to easily get started, but provides flexibility to explore new ideas and support advanced users.
+Its design allows for fast startup and provides flexibility to explore new ideas and support advanced users.
 It was written by [Connor Stone](https://connorjstone.com/) with contributions from
 [Nikhil Arora](https://orcid.org/0000-0002-3929-9316),
 [Stephane Courteau](https://www.physics.queensu.ca/facultysites/courteau/),
@@ -9,13 +9,12 @@ and [Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/).
 
 # Introduction
 
-This README explains basic use of the AutoProf code for extracting photometry
-from galaxy images. The photometry is extracted via elliptical isophotes which
-are fit with variable position angle and ellipticity, but a fixed center. The
+This README explains basic operations of the AutoProf code for extracting surface photometry
+from galaxy images. AutoProf extracts elliptical isophotes with variable position angle (PA) and ellipticity, with a fixed common center. The
 isophotes are found by minimizing low order Fourier coefficients along
 with regularization applied to minimize chaotic swings of isophote parameters.
 The regularization penalizes isophotes for having PA and ellipticity values
-very different from their neighbours.
+significantly different from their neighbours.
 
 # Installation
 
@@ -32,7 +31,7 @@ If you have difficulty running AutoProf, it is possible that one of these depend
     cd /where/you/want/AutoProf/to/live/
     git clone git@github.com:ConnorStoneAstro/AutoProf.git
     ```
-    If you are having difficulty cloning the package, it is also possible to download a zip file of the package from the github page.
+    If you experience difficulty cloning the package, you may download a zip file of the package from the github page.
 1. Set an environment variable and alias the AutoProf function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). 
     ```bash
     export AUTOPROF='/path/to/AutoProf/'

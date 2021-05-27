@@ -27,10 +27,17 @@ def Check_Fit(IMG, results, options):
     count_initrelative = 0
     f2_compare = []
     f1_compare = []
-    checkson = {'R': results['fit R'] if 'fit R' in results else results['prof data']['R'],
-                'pa': results['fit pa'] if 'fit pa' in results else results['prof data']['pa'],
-                'ellip': results['fit ellip'] if 'fit ellip' in results else results['prof data']['ellip']}
-    for i in range(len(checkson)): 
+    if 'fit R' in results:
+        checkson = {'R': results['fit R'],
+                    'pa': results['fit pa'],
+                    'ellip': results['fit ellip']}
+    else:
+        checkson = {'R': results['prof data']['R'],
+                    'pa': results['prof data']['pa'],
+                    'ellip': results['prof data']['ellip']}
+
+        
+    for i in range(len(checkson['R'])): 
         init_isovals = _iso_extract(dat,checkson['R'][i],results['init ellip'], # fixme, use mask
                                     results['init pa'],use_center)
         isovals = _iso_extract(dat,checkson['R'][i],checkson['ellip'][i],
@@ -56,12 +63,12 @@ def Check_Fit(IMG, results, options):
         tests['initial fit compare'] = False
     else:
         tests['initial fit compare'] = True
-    if np.sum(f2_compare > 0.3) > 2 or np.sum(f2_compare > 0.2) > (0.3*len(checkson['R'])) or np.sum(f2_compare > 0.1) > (0.8*len(checkson['R'])):
+    if np.sum(f2_compare > 0.2) > (0.1*len(checkson['R'])) or np.sum(f2_compare > 0.1) > (0.3*len(checkson['R'])) or np.sum(f2_compare > 0.05) > (0.8*len(checkson['R'])):
         logging.warning('%s: Possible failed fit! poor convergence of FFT coefficients' % options['ap_name'])
         tests['FFT coefficients'] = False
     else:
         tests['FFT coefficients'] = True
-    if np.sum(f1_compare > 0.3) > 2 or np.sum(f1_compare > 0.2) > (0.3*len(checkson['R'])) or np.sum(f1_compare > 0.1) > (0.8*len(checkson['R'])):
+    if np.sum(f1_compare > 0.2) > (0.1*len(checkson['R'])) or np.sum(f1_compare > 0.1) > (0.3*len(checkson['R'])) or np.sum(f1_compare > 0.05) > (0.8*len(checkson['R'])):
         logging.warning('%s: Possible failed fit! possible failed center or lopsided galaxy' % options['ap_name'])
         tests['Light symmetry'] = False
     else:

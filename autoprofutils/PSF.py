@@ -79,14 +79,13 @@ def PSF_StarFind(IMG, results, options):
     edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
               int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = True
     stars = StarFind(IMG - results['background'], fwhm_guess, results['background noise'],
-                     edge_mask, # peakmax = (options['ap_overflowval']-results['background'])*0.95 if 'ap_overflowval' in options else None,
-                     maxstars = 50)
+                     edge_mask,  maxstars = 50)
     if len(stars['fwhm']) <= 10:
         return IMG, {'psf fwhm': fwhm_guess}
     def_clip = 0.1
-    psf = np.median(stars['fwhm'][stars['deformity'] < def_clip])
     while np.sum(stars['deformity'] < def_clip) < max(10,len(stars['fwhm'])/2):
         def_clip += 0.1
+    psf = np.median(stars['fwhm'][stars['deformity'] < def_clip])
     if 'ap_doplot' in options and options['ap_doplot']:
         LSBImage(IMG - results['background'], results['background noise'])
         for i in range(len(stars['fwhm'])):
