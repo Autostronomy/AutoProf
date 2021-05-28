@@ -505,8 +505,10 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
             continue
 
         # Extract flux as a function of radius
-        local_flux = np.median(_iso_extract(IMG, (reject_size+1)*fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))
+        local_flux = np.median(_iso_extract(IMG, reject_size*fwhm_guess, 0., 0., {'x': newcenter[0], 'y': newcenter[1]}))
         flux = [np.median(_iso_extract(IMG, 0.0, 0., 0., {'x': newcenter[0], 'y': newcenter[1]})) - local_flux]
+        if (flux[0] - local_flux) < (detect_threshold*background_noise):
+            continue
         R = [0.0]
         deformity = [0.]
         badcount = 0
@@ -532,7 +534,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
             centers = np.concatenate((centers,[newcenter]),axis = 0)
         deformities.append(deformity[-1])
         fwhms.append(deepcopy(fwhm_fit))
-        peaks.append(flux[0] + local_flux)
+        peaks.append(flux[0])
         # stop if max N stars reached
         if len(fwhms) >= maxstars:
             break

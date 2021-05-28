@@ -142,32 +142,35 @@ def Star_Mask(IMG, results, options):
     dat = IMG - results['background']
 
     all_stars = StarFind(dat[ybounds[0]:ybounds[1], xbounds[0]:xbounds[1]],
-                         fwhm, results['background noise'], minsep = 3, reject_size = 3)
+                         fwhm, results['background noise'],detect_threshold = 10,
+                         minsep = 3, reject_size = 3)
     # iraffind = IRAFStarFinder(fwhm = fwhm, threshold = 10.*results['background noise'], brightest = 50)
     # irafsources = iraffind(dat[ybounds[0]:ybounds[1],
     #                            xbounds[0]:xbounds[1]])
     mask = np.zeros(IMG.shape, dtype = bool)
     # Mask star pixels and area around proportionate to their total flux
     XX,YY = np.meshgrid(range(IMG.shape[0]),range(IMG.shape[1]), indexing = 'ij')
-    for x,y,f,d in zip(all_stars['x'], all_stars['y'], all_stars['fwhm'], all_stars['deformity']):
+    for x,y,f,d,p in zip(all_stars['x'], all_stars['y'], all_stars['fwhm'], all_stars['deformity'], all_stars['peak']):
         if np.sqrt((x - (xbounds[1] - xbounds[0])/2)**2 + (y - (ybounds[1] - ybounds[0])/2)**2) < 10*results['psf fwhm']:
             continue
         # compute distance of every pixel to the identified star
         R = np.sqrt((YY-(x + xbounds[0]))**2 + (XX-(y + ybounds[0]))**2)
-        mask[R < (3*f)] = True 
+        mask[R < (max(np.log10(p/results['background noise']),2)*f)] = True 
 
     if 'mask' in results:
         mask = np.logical_or(mask, results['mask'])
         
     # Plot star mask for diagnostic purposes
     if 'ap_doplot' in options and options['ap_doplot']:
-        plt.imshow(np.clip(dat[ybounds[0]:ybounds[1],
-                               xbounds[0]:xbounds[1]],
-                           a_min = 0, a_max = None), origin = 'lower',
-                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+        LSBImage(dat[ybounds[0]:ybounds[1], xbounds[0]:xbounds[1]], results['background noise'])
+        # plt.imshow(np.clip(dat[ybounds[0]:ybounds[1],
+        #                        xbounds[0]:xbounds[1]],
+        #                    a_min = 0, a_max = None), origin = 'lower',
+        #            cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         dat = mask.astype(float)[ybounds[0]:ybounds[1], xbounds[0]:xbounds[1]]
         dat[dat == 0] = np.nan
         plt.imshow(dat, origin = 'lower', cmap = 'Reds_r', alpha = 0.7)
+        plt.tight_layout()
         plt.savefig('%smask_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
     
