@@ -48,8 +48,8 @@ def Check_Fit(IMG, results, options):
             count_variable += 1
         if ((iqr(isovals) - results['background noise'])/(np.median(isovals)+results['background noise'])) > (iqr(init_isovals)/(np.median(init_isovals)+results['background noise'])):
             count_initrelative += 1
-        f2_compare.append(np.sum(np.abs(coefs[2]))/np.abs(coefs[0]))
-        f1_compare.append(np.abs(coefs[1])/np.abs(coefs[0]))
+        f2_compare.append(np.sum(np.abs(coefs[2]))/(len(isovals)*(max(0,np.median(isovals) + results['background noise']))))
+        f1_compare.append(np.abs(coefs[1])/(len(isovals)*(max(0,np.median(isovals) + results['background noise']))))
         
     f1_compare = np.array(f1_compare)
     f2_compare = np.array(f2_compare)
