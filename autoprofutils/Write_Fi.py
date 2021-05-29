@@ -24,14 +24,14 @@ def WriteFi(IMG, results, options):
     
     # Write npy file
     if writeas == 'npy':
-        fi = saveto + options['ap_name'] + '_AP.000.npy'
+        fi = saveto + options['ap_name'] + '.000.npy'
         fi = _iterate_filename(fi)
         with open(fi, 'wb') as f:
             np.save(f, IMG)
 
     # Write fits file
     else:
-        fi = saveto + options['ap_name'] + '_AP.000.fits'
+        fi = saveto + options['ap_name'] + '.000.fits'
         fi = _iterate_filename(fi)
         hdu = fits.PrimaryHDU(IMG)
         hdulist = fits.HDUList([hdu])

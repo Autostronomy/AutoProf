@@ -6,4 +6,4 @@ ap_name = 'testforcedimage'
 ap_pixscale = 0.262
 ap_doplot = True
 ap_isoclip = True
-ap_forcing_profile = 'testimage_AP.prof'
+ap_forcing_profile = 'testimage.prof'

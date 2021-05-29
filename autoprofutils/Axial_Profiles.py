@@ -58,7 +58,7 @@ def Axial_Profiles(IMG, results, options):
                     sbE[key][-1].append((2.5*scatflux / (np.sqrt(np.sum(CHOOSE))*medflux*np.log(10))) if medflux > 0 else 99.999)
                     
 
-    with open('%s%s_axial_profile_AP.prof' % ((options['ap_saveto'] if 'ap_saveto' in options else ''), options['ap_name']), 'w') as f:
+    with open('%s%s_axial_profile.prof' % ((options['ap_saveto'] if 'ap_saveto' in options else ''), options['ap_name']), 'w') as f:
         f.write('R')
         for rd in [1,-1]:
             for ang in [1, -1]:

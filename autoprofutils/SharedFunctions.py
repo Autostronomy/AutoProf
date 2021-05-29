@@ -516,7 +516,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
             R.append(R[-1] + fwhm_guess/10)
             isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
             coefs = fft(isovals)
-            deformity.append(np.sum(np.abs(coefs[1:5])) / np.sqrt(np.abs(coefs[0])))
+            deformity.append(np.sum(np.abs(coefs[1:5])) / (len(isovals)*(max(np.median(isovals),0)+background_noise))) # np.sqrt(np.abs(coefs[0]))
             # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
             #     badcount += 1
             flux.append(np.median(isovals) - local_flux)

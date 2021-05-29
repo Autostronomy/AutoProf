@@ -65,7 +65,7 @@ def Slice_Profile(IMG, results, options):
         sb_sclip.append(flux_to_sb(medflux_sclip, options['ap_pixscale'], zeropoint) if medflux_sclip > 0 else 99.999)
         sb_sclip_e.append((2.5*scatflux_sclip / (np.sqrt(len(isovals))*medflux_sclip*np.log(10))) if medflux_sclip > 0 else 99.999)
     
-    with open('%s%s_slice_profile_AP.prof' % ((options['ap_saveto'] if 'ap_saveto' in options else ''), options['ap_name']), 'w') as f:
+    with open('%s%s_slice_profile.prof' % ((options['ap_saveto'] if 'ap_saveto' in options else ''), options['ap_name']), 'w') as f:
         f.write('# flux sum: %f\n' % (np.sum(F[np.logical_and(X >= 0, X <= use_length)])))
         f.write('# flux mean: %f\n' % (_average(F[np.logical_and(X >= 0, X <= use_length)], 'mean')))
         f.write('# flux median: %f\n' % (_average(F[np.logical_and(X >= 0, X <= use_length)], 'median')))

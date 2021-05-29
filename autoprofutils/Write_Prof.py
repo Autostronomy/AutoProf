@@ -14,7 +14,7 @@ def WriteProf(IMG, results, options):
     saveto = options['ap_saveto'] if 'ap_saveto' in options else './'
     
     # Write aux file
-    with open(saveto + options['ap_name'] + '_AP.aux', 'w') as f:
+    with open(saveto + options['ap_name'] + '.aux', 'w') as f:
         # write profile info
         f.write('written on: %s\n' % str(datetime.now()))
         f.write('name: %s\n' % str(options['ap_name']))
@@ -29,7 +29,7 @@ def WriteProf(IMG, results, options):
             
     # Write the profile
     delim = options['ap_delimiter'] if 'ap_delimiter' in options else ','
-    with open(saveto + options['ap_name'] + '_AP.prof', 'w') as f:
+    with open(saveto + options['ap_name'] + '.prof', 'w') as f:
         # Write profile header
         f.write(delim.join(results['prof header']) + '\n')
         if 'prof units' in results:
