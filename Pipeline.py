@@ -73,8 +73,8 @@ class Isophote_Pipeline(object):
                                  'isophoteextract forced': Isophote_Extract_Forced,
                                  'checkfit': Check_Fit,
                                  'writeprof': WriteProf,
-                                 'ellipsemodel': EllipseModel_Fix,
-                                 'ellipsemodel general': EllipseModel_General,
+                                 'ellipsemodel fixed': EllipseModel_Fix,
+                                 'ellipsemodel': EllipseModel_General,
                                  'radialprofiles': Radial_Profiles,
                                  'sliceprofile': Slice_Profile,
                                  'axialprofiles': Axial_Profiles}

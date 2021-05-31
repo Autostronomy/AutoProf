@@ -246,7 +246,7 @@ def Isophote_Extract(IMG, results, options):
     while (((R[-1] < options['ap_sampleendR'] if 'ap_sampleendR' in options else True) and R[-1] < 3*results['fit R'][-1]) or (options['ap_extractfull'] if 'ap_extractfull' in options else False)) and R[-1] < max(IMG.shape)/np.sqrt(2):
         if 'ap_samplestyle' in options and options['ap_samplestyle'] == 'geometric-linear':
             if len(R) > 1 and abs(R[-1] - R[-2]) >= (options['ap_samplelinearscale'] if 'ap_samplelinearscale' in options else 3*results['psf fwhm']):
-                R.append(R[-1] + (options['ap_samplelinearscale'] if 'ap_samplelinearscale' in options else results['psf fwhm']))
+                R.append(R[-1] + (options['ap_samplelinearscale'] if 'ap_samplelinearscale' in options else results['psf fwhm']/2))
             else:
                 R.append(R[-1]*(1. + (options['ap_samplegeometricscale'] if 'ap_samplegeometricscale' in options else 0.1)))
         elif 'ap_samplestyle' in options and options['ap_samplestyle'] == 'linear':

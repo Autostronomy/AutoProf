@@ -165,17 +165,17 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_forcing_profile: (required for forced photometry) file path to .prof file providing forced photometry PA and ellip values to apply to *ap_image_file* (string)
 
 #### High Level Parameters
-- ap_saveto: path to directory where final profile should be saved (string)
-- ap_name: name to use for the galaxy, this will be the name used in output files and in the log file (string)
-- ap_n_procs: number of processes to create when running in batch mode (int)
-- ap_doplot: Generate diagnostic plots during processing (bool).
-- ap_plotpath: Path to file where diagnostic plots should be written, see also *ap_doplot* (string)
+- ap_saveto: path to directory where final profile should be saved. Default is the current directory. (string)
+- ap_name: name to use for the galaxy, this will be the name used in output files and in the log file. Default is taken from the filename of the fits image. (string)
+- ap_n_procs: number of processes to create when running in batch mode. Default is 1. (int)
+- ap_doplot: Generate diagnostic plots during processing. Default is False. (bool).
+- ap_plotpath: Path to file where diagnostic plots should be written, see also *ap_doplot*. Default is current directory. (string)
 - ap_plotdpi: sets dpi for plots (default 300). Can be used to reduce file size, or to increase detail in images (int)
-- ap_hdulelement: index for hdul of fits file where image exists (int)
+- ap_hdulelement: index for hdul of fits file where image exists. Default is 0. (int)
 - ap_delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
 - ap_new_pipeline_methods: Allows user to set methods for the AutoProf pipeline analysis. See *Modifying Pipeline Methods* for more information (dict)
 - ap_new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
-- ap_zeropoint: Photometric zero point, AB magnitude is assumed if none given, corresponding to a zero point of 22.5 (float)
+- ap_zeropoint: Photometric zero point, default is 22.5 (float)
 - ap_nologo: tells AutoProf not to put it's logo on plots. Please only use this for figures that will be used in publications that don't allow logos (bool)
 
 #### Background
@@ -186,12 +186,12 @@ In your config file, do not use any of these names unless you intend for AutoPro
 			 to get an accurate background estimate (int)
 
 #### PSF
-- ap_guess_psf: initialization value for the PSF calculation in pixels. If not given, AutoProf will start with a guess of 1/*ap_pixscale* (float)
+- ap_guess_psf: initialization value for the PSF calculation in pixels. If not given, AutoProf will default with a guess of 1/*ap_pixscale* (float)
 - ap_set_psf: force AutoProf to use this PSF value (in pixels) instead of calculating its own. (float)
 
 #### Center
 - ap_guess_center: user provided starting point for center fitting. Center should be formatted as:
-		   {'x':float, 'y': float}, where the floats are the center coordinates in pixels. (dict)
+		   {'x':float, 'y': float}, where the floats are the center coordinates in pixels. If not given, Autoprof will default to a guess of the image center. (dict)
 - ap_set_center: user provided center for isophote fitting. Center should be formatted as:
 		   {'x':float, 'y': float}, where the floats are the center coordinates in pixels. (dict)
 - ap_centeringring: Size of ring to use when finding galaxy center, in units of PSF. Default value is 10, larger rings will be robust
@@ -208,27 +208,27 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_savemask: indicates if the star mask should be saved after fitting (bool)
 
 #### Isophote Fitting
-- ap_scale: growth scale when fitting isophotes, not the same as *ap_sample---scale* (float)
-- ap_fit_limit: noise level out to which to extend the fit in units of pixel background noise level (float)
+- ap_scale: growth scale when fitting isophotes, not the same as *ap_sample---scale*. Default is 0.2. (float)
+- ap_fit_limit: noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image. (float)
 - ap_regularize_scale: scale factor to apply to regularization coupling factor between isophotes.
   		       Default of 1, larger values make smoother fits, smaller values give more chaotic fits. (float)
 
 #### Isophote Sampling
 - ap_samplegeometricscale: growth scale for isophotes when sampling for the final output profile.
-                           Used when sampling geometrically (float)
+                           Used when sampling geometrically. Default is 0.1, meaning each isophote is 10\% further than the last. (float)
 - ap_samplelinearscale: growth scale (in pixels) for isophotes when sampling for the final output
-                      	profile. Used when sampling linearly (float)
+                      	profile. Used when sampling linearly. Default is 1 PSF length. (float)
 - ap_samplestyle: indicate if isophote sampling radii should grow linearly or geometrically. Can
                   also do geometric sampling at the center and linear sampling once geometric step
-		  size equals linear (string, ['linear', 'geometric', 'geometric-linear'])
+		  size equals linear. Default is geometric. (string, ['linear', 'geometric', 'geometric-linear'])
 - ap_sampleinitR: Starting radius (in pixels) for isophote sampling from the image. Note that
-   		  a starting radius of zero is not advised. (float)
-- ap_sampleendR: End radius (in pixels) for isophote sampling from the image (float)
-- ap_isoband_start: The radius (in pixels) at which to begin sampling a band of pixels to compute SB instead of sampling a line of pixels near the isophote (float)
-- ap_isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- *ap_isoband_width**R for each radius. default value is 0.025 (float)
+   		  a starting radius of zero is not advised. Default is 1 pixel or 1PSF, whichever is smaller. (float)
+- ap_sampleendR: End radius (in pixels) for isophote sampling from the image. Default is 3 times the fit radius, also see *ap_extractfull*. (float)
+- ap_isoband_start: The noise level at which to begin sampling a band of pixels to compute SB instead of sampling a line of pixels near the isophote in units of pixel flux noise. Default is 2, but will never initiate band averaging if the band width is less than half a pixel (float)
+- ap_isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- *ap_isoband_width* *R for each radius. default value is 0.025 (float)
 - ap_truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
 - ap_extractfull: Tells AutoProf to extend the isophotal solution to the edge of the image. Will be overridden by *ap_truncate_evaluation* (bool)
-- ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF (float)
+- ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF. Default is 5. (float)
 - ap_isoaverage_method: Select the method used to compute the averafge flux along an isophote. Choose from 'mean', 'median', and 'mode' where median is the default.
   			In general, median is fast and robust to a few outliers. Mode is slow but robust to more outliers. Mean is fast and accurate in low S/N regimes
 			where fluxes take on near integer values, but not robust to outliers. The mean should be used along with a mask to remove spurious objects
@@ -237,31 +237,31 @@ In your config file, do not use any of these names unless you intend for AutoPro
   	      of sigma clipping are performed until convergence or *ap_isoclip_iterations* iterations are reached. Sigma clipping is a useful substitute for masking
 	      objects, though careful masking is better. Also an aggressive sigma clip may bias results. (bool)
 - ap_isoclip_iterations: Maximum number of sigma clipping iterations to perform. The default is infinity, so the sigma clipping procedure repeats until convergence (int)
-- ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_iterations* x sigma) are removed from the isophote (float)
+- ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_nsigma* x sigma) are removed from the isophote. Default is 5. (float)
 - ap_fouriermodes: integer for number of fourier modes to extract along fitted isophotes. Most popular is 4, which identifies boxy/disky isophotes. The outputted
-  		   values are computed as a_i = real(F_i)/abs(F_0) where F_i is a fourier coefficient (int)
+  		   values are computed as a_i = real(F_i)/abs(F_0) where F_i is a fourier coefficient. Not activated by default as it adds to computation time. (int)
 
 #### Forced Photometry
 - ap_forced_pa_shift: global rotation to apply to all forced isophotes. Useful if the base image and the forced image are rotated relative to each other. Likely
   		      will also need to re-center the galaxy, which can be done by modifying *ap_new_pipeline_steps*. Default is zero. (float) 
 
 #### Radial Profiles
-- ap_radialprofiles_nwedges: number of radial wedges to sample. Recommended choosing a power of 2 (int)
+- ap_radialprofiles_nwedges: number of radial wedges to sample. Recommended choosing a power of 2, default is 4 (int)
 - ap_radialprofiles_width: User set width of radial sampling in degrees. Default value is 15 degrees (float)
-- ap_radialprofiles_pa: user set position angle at which to measure radial wedges relative to the global position angle, in degrees (float)
+- ap_radialprofiles_pa: user set position angle at which to measure radial wedges relative to the global position angle, in degrees. Default is 0. (float)
 - ap_radialprofiles_expwidth: tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radialprofiles_width* corresponds to the final width of the radial sampling (bool)
 - ap_radialprofiles_variable_pa: tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy (bool)
 
 #### Axial Profiles
-- ap_axialprofiles_pa: user set position angle at which to align the axial profiles relative to the global position angle, in degrees. A common choice would
-  		       be "90" which would then sample along the semi-major axis instead of the semi-minor axis. (float)
+- ap_axialprofiles_pa: user set position angle at which to align the axial profiles relative to the global position angle+90, in degrees. A common choice would
+  		       be "90" which would then sample along the semi-major axis instead of the semi-minor axis. default is 0, corresponding to the semi-minor axis.(float)
 
 #### Slice Profile
-- ap_slice_anchor: Coordinates for the starting point of the slice as a dictionary formatted "{'x': x-coord, 'y': y-coord}" in pixel units (dict)
-- ap_slice_pa: Position angle of the slice in degrees, counter-clockwise relative to the x-axis (float)
-- ap_slice_length: Length of the slice from anchor point in pixel units (float) 
-- ap_slice_width: Width of the slice in pixel units (float)
-- ap_slice_step: Distance between samples for the profile along the slice (float)
+- ap_slice_anchor: Coordinates for the starting point of the slice as a dictionary formatted "{'x': x-coord, 'y': y-coord}" in pixel units. Default is the center of the galaxy. (dict)
+- ap_slice_pa: Position angle of the slice in degrees, counter-clockwise relative to the x-axis. Default is the galaxy PA. (float)
+- ap_slice_length: Length of the slice from anchor point in pixel units. Default is the global galaxy PA/ellipse fit semi-major axis length. (float) 
+- ap_slice_width: Width of the slice in pixel units. Default is 10. (float)
+- ap_slice_step: Distance between samples for the profile along the slice. Default is the PSF, or one 100th of the length if PSF isn't available. (float)
 
 #### Ellipse Model
 - ap_ellipsemodel_resolution: scale factor for the ellipse model resolution. Above 1 increases the precision of the ellipse model (and computation time), between 0 and 1 decreases
@@ -354,6 +354,7 @@ Output format:
 ```python
 {'init ellip': , # Ellipticity of the global fit (float)
  'init pa': ,# Position angle of the global fit (float)
+ 'init R': ,# Semi-major axis length of global fit (float)
  'auxfile initialize': # optional, message for aux file to record the global ellipticity and postition angle (string)
 }
 ```
@@ -663,13 +664,13 @@ Reads in a user provided segmentation map and converts it into a mask. If a gala
 
 ### Ellipse Model - Fixed
 
-**pipeline label: 'ellipsemodel'**
+**pipeline label: 'ellipsemodel fixed'**
 
 Constructs a 2D model image of the galaxy based on the extracted surface brightness profile and the global ellipticity and position angle values.
 
 ### Ellipse Model - General
 
-**pipeline label: 'ellipsemodel general'**
+**pipeline label: 'ellipsemodel'**
 
 Constructs 2D model image of the galaxy based on the extracted surface brightness, ellipticity, and position angle profile.
 
@@ -689,4 +690,4 @@ Samples surface brightness values along lines parallel to the semi-minor axis.
 
 **pipeline label: 'sliceprofile'**
 
-Samples surface brightness values along a user specified line (slice) on the image.
+Samples surface brightness values along a user specified line (slice) on the image. Mostly just for diagnostic purposes. Can be defined entirely in pixel coordinates instead of coordinates relative to galaxy.
