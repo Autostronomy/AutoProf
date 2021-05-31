@@ -148,6 +148,8 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
 
     if 'ap_doplot' in options and options['ap_doplot']:
         CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
+        if np.sum(CHOOSE) < 5:
+            CHOOSE = np.ones(len(CHOOSE), dtype = bool)
         errscale = 1.
         if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.5):
             errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])

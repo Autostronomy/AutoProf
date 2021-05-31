@@ -194,6 +194,8 @@ In your config file, do not use any of these names unless you intend for AutoPro
 		   {'x':float, 'y': float}, where the floats are the center coordinates in pixels. (dict)
 - ap_set_center: user provided center for isophote fitting. Center should be formatted as:
 		   {'x':float, 'y': float}, where the floats are the center coordinates in pixels. (dict)
+- ap_centeringring: Size of ring to use when finding galaxy center, in units of PSF. Default value is 10, larger rings will be robust
+  		    to features (i.e., foreground stars), while smaller rings may be needed for small galaxies. (int)
 
 #### Masking
 - ap_badpixel_high: flux value that corresponds to a saturated pixel or bad pixel flag, all values above *ap_badpixel_high* will be masked

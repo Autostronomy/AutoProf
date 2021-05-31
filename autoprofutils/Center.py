@@ -164,7 +164,9 @@ def _hillclimb_loss(x, IMG, PSF, noise):
     center_loss = 0
     for rr in range(3):
         isovals = _iso_extract(IMG,(rr+1.)*PSF/2,0.,
-                               0.,{'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
+                               0.,{'x': np.clip(x[0], a_min = 2, a_max = IMG.shape[1]-3),
+                                   'y': np.clip(x[1], a_min = 2, a_max = IMG.shape[0]-3)},
+                               more = False, rad_interp = 10*PSF)
         coefs = fft(isovals)
         center_loss += np.abs(coefs[1])/(len(isovals)*(max(0,np.median(isovals)) + noise))
     return center_loss
@@ -187,7 +189,8 @@ def Center_HillClimb(IMG, results, options):
         sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
         return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
-    sampleradii = np.linspace(1,10,10) * results['psf fwhm']
+    searchring = int(options['ap_centeringring']) if 'ap_centeringring' in options else 10
+    sampleradii = np.linspace(1,searchring,searchring) * results['psf fwhm']
 
     track_centers = []
     small_update_count = 0
@@ -265,7 +268,7 @@ def Center_HillClimb(IMG, results, options):
         axarr[0].scatter(track_centers[:,0], track_centers[:,1], c = range(len(track_centers)), cmap = 'Reds')
         axarr[0].set_xticks([])
         axarr[0].set_yticks([])        
-        width = 10.
+        width = searchring
         ranges = [[int(current_center['x'] - width), int(current_center['x'] + width)],
                   [int(current_center['y'] - width), int(current_center['y'] + width)]]
         axarr[1].imshow(np.clip(dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]],a_min = 0, a_max = None),

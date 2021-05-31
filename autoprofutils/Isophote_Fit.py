@@ -180,7 +180,6 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     ######################################################################
     smooth_ellip = copy(ellip)
     smooth_pa = copy(pa)
-    ellip[:3] = min(ellip[:3])
     smooth_ellip = _ellip_smooth(sample_radii, smooth_ellip, 5)
     smooth_pa = _pa_smooth(sample_radii, smooth_pa, 5)
     
@@ -214,14 +213,14 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     # Compute errors
     ######################################################################
     ellip_err = np.zeros(len(ellip))
-    ellip_err[:2] = np.sqrt(np.sum((ellip[:4] - smooth_ellip[:4])**2)/4)
-    ellip_err[-1] = np.sqrt(np.sum((ellip[-4:] - smooth_ellip[-4:])**2)/4)
+    ellip_err[:2] = np.sqrt(np.sum((ellip[:5] - smooth_ellip[:5])**2)/4)
+    ellip_err[-2:] = np.sqrt(np.sum((ellip[-5:] - smooth_ellip[-5:])**2)/4)
     pa_err = np.zeros(len(pa))
-    pa_err[:2] = np.sqrt(np.sum((pa[:4] - smooth_pa[:4])**2)/4)
-    pa_err[-1] = np.sqrt(np.sum((pa[-4:] - smooth_pa[-4:])**2)/4)
-    for i in range(2,len(pa)-1):
-        ellip_err[i] = np.sqrt(np.sum((ellip[i-2:i+2] - smooth_ellip[i-2:i+2])**2)/4)
-        pa_err[i] = np.sqrt(np.sum((pa[i-2:i+2] - smooth_pa[i-2:i+2])**2)/4)
+    pa_err[:2] = np.sqrt(np.sum((pa[:5] - smooth_pa[:5])**2)/4)
+    pa_err[-2:] = np.sqrt(np.sum((pa[-5:] - smooth_pa[-5:])**2)/4)
+    for i in range(2,len(pa)-2):
+        ellip_err[i] = np.sqrt(np.sum((ellip[i-2:i+3] - smooth_ellip[i-2:i+3])**2)/4)
+        pa_err[i] = np.sqrt(np.sum((pa[i-2:i+3] - smooth_pa[i-2:i+3])**2)/4)
 
     res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
            'fit ellip_err': ellip_err, 'fit pa_err': pa_err,
