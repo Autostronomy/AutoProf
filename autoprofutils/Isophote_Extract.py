@@ -42,7 +42,10 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     medflux = np.inf
     end_prof = None
     for i in range(len(R)):
-        isobandwidth = R[i]*(options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.025)
+        if 'ap_isoband_fixed' in options:
+            isobandwidth = options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.5
+        else:
+            isobandwidth = R[i]*(options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.025)
         isisophoteband = False
         if medflux > (results['background noise']*(options['ap_isoband_start'] if 'ap_isoband_start' in options else 2)) or isobandwidth < 0.5:
             isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, more = True,

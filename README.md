@@ -226,6 +226,7 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_sampleendR: End radius (in pixels) for isophote sampling from the image. Default is 3 times the fit radius, also see *ap_extractfull*. (float)
 - ap_isoband_start: The noise level at which to begin sampling a band of pixels to compute SB instead of sampling a line of pixels near the isophote in units of pixel flux noise. Default is 2, but will never initiate band averaging if the band width is less than half a pixel (float)
 - ap_isoband_width: The relative size of the isophote bands to sample. flux values will be sampled at +- *ap_isoband_width* *R for each radius. default value is 0.025 (float)
+- ap_isoband_fixed: Use a fixed width for the size of the isobands, the width is set by *ap_isoband_width* which now has units of pixels, the default is 0.5 such that the full band has a width of 1 pixel. (bool)
 - ap_truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
 - ap_extractfull: Tells AutoProf to extend the isophotal solution to the edge of the image. Will be overridden by *ap_truncate_evaluation* (bool)
 - ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF. Default is 5. (float)
