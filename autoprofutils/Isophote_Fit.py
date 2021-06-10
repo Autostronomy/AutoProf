@@ -17,7 +17,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, LSBImage, AddLogo, PA_shift_convention, autocolours
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, Angle_Scatter, LSBImage, AddLogo, PA_shift_convention, autocolours
 
 def Photutils_Fit(IMG, results, options):
     """
@@ -76,7 +76,8 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
     else:
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.9), a_min = None))
-    
+
+    logging.info('lengths: R %.2f E %.2f PA %.2f isovals %i, coefs %i' % (R[i], E[i], PA[i], len(isovals), len(coefs)))
     f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
 
     reg_loss = 0
@@ -87,8 +88,28 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
         reg_loss += abs((E[i] - E[i-1])/(1 - E[i-1])) 
         reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.2))
 
-    return f2_loss*(1 + reg_loss*reg_scale) 
+    return f2_loss*(1 + reg_loss*reg_scale)
 
+def _FFT_Robust_Errors(dat, R, E, PA, C, noise, mask = None, reg_scale = 1., name = ''):
+
+    PA_err = np.zeros(len(R))
+    E_err = np.zeros(len(R))
+    for ri in range(len(R)):
+        temp_fits = []
+        for i in range(10):
+            low_ri = max(0, ri - 1)
+            high_ri = min(len(R) - 1, ri + 1)
+            temp_fits.append(minimize(lambda x: _FFT_Robust_loss(dat, [R[low_ri], R[ri]*(1 - 0.05 + i*0.1/9), R[high_ri]],
+                                                                 [E[low_ri], np.clip(x[0], 0,1), E[high_ri]],
+                                                                 [PA[low_ri], x[1] % np.pi, PA[high_ri]],
+                                                                 1, C, noise, mask = mask,
+                                                                 reg_scale = reg_scale, name = name),
+                                      x0 = [E[ri], PA[ri]], method = 'SLSQP', options = {'ftol': 0.001}).x)
+        temp_fits = np.array(temp_fits)
+        E_err[ri] = iqr(np.clip(temp_fits[:,0], 0, 1), rng = [16,84])/2
+        PA_err[ri] = Angle_Scatter(2*(temp_fits[:,1] % np.pi))/4. # multiply by 2 to get [0, 2pi] range
+    return E_err, PA_err
+        
 def Isophote_Fit_FFT_Robust(IMG, results, options):
     """
     Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
@@ -176,13 +197,13 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
             ellip[:i+1] = ellip[i+1]
             pa[:i+1] = pa[i+1]
 
-    # Smooth ellip and pa profile
+    # Compute errors
     ######################################################################
-    smooth_ellip = copy(ellip)
-    smooth_pa = copy(pa)
-    smooth_ellip = _ellip_smooth(sample_radii, smooth_ellip, 5)
-    smooth_pa = _pa_smooth(sample_radii, smooth_pa, 5)
+    ellip_err, pa_err = _FFT_Robust_Errors(dat, sample_radii, ellip, pa, use_center, results['background noise'],
+                                           mask = mask, reg_scale = regularize_scale, name = options['ap_name'])
     
+    # Plot fitting results
+    ######################################################################    
     if 'ap_doplot' in options and options['ap_doplot']:
         ranges = [[max(0,int(use_center['x']-sample_radii[-1]*1.2)), min(dat.shape[1],int(use_center['x']+sample_radii[-1]*1.2))],
                   [max(0,int(use_center['y']-sample_radii[-1]*1.2)), min(dat.shape[0],int(use_center['y']+sample_radii[-1]*1.2))]]
@@ -197,30 +218,17 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
         
-        plt.scatter(sample_radii, ellip, color = 'r', label = 'ellip')
-        plt.scatter(sample_radii, pa/np.pi, color = 'b', label = 'pa/$\\pi$')
-        show_ellip = _ellip_smooth(sample_radii, ellip, deg = 5)
-        show_pa = _pa_smooth(sample_radii, pa, deg = 5)
-        plt.plot(sample_radii, show_ellip, color = 'orange', linewidth = 2, linestyle='--', label = 'smooth ellip')
-        plt.plot(sample_radii, show_pa/np.pi, color = 'purple', linewidth = 2, linestyle='--', label = 'smooth pa/$\\pi$')
-        #plt.xscale('log')
+        plt.errorbar(np.array(sample_radii) * options['ap_pixscale'], ellip, yerr = ellip_err, color = autocolours['red1'], label = 'ellip [1-b/a]')
+        plt.errorbar(np.array(sample_radii) * options['ap_pixscale'], pa/np.pi, yerr = pa_err/np.pi, color = autocolours['blue1'], label = 'pa/$\\pi$')
+        plt.ylim([-0.01, 1.02])
+        plt.xlabel('Semi-major axis [arcsec]')
+        plt.ylabel('Elliptical Parameter Profile')
         plt.legend()
+        plt.tight_layout()
         if not ('ap_nologo' in options and options['ap_nologo']):
             AddLogo(plt.gcf())
         plt.savefig('%sphaseprofile_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
-
-    # Compute errors
-    ######################################################################
-    ellip_err = np.zeros(len(ellip))
-    ellip_err[:2] = np.sqrt(np.sum((ellip[:5] - smooth_ellip[:5])**2)/4)
-    ellip_err[-2:] = np.sqrt(np.sum((ellip[-5:] - smooth_ellip[-5:])**2)/4)
-    pa_err = np.zeros(len(pa))
-    pa_err[:2] = np.sqrt(np.sum((pa[:5] - smooth_pa[:5])**2)/4)
-    pa_err[-2:] = np.sqrt(np.sum((pa[-5:] - smooth_pa[-5:])**2)/4)
-    for i in range(2,len(pa)-2):
-        ellip_err[i] = np.sqrt(np.sum((ellip[i-2:i+3] - smooth_ellip[i-2:i+3])**2)/4)
-        pa_err[i] = np.sqrt(np.sum((pa[i-2:i+3] - smooth_pa[i-2:i+3])**2)/4)
 
     res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
            'fit ellip_err': ellip_err, 'fit pa_err': pa_err,

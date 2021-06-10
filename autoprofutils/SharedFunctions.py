@@ -581,16 +581,16 @@ def PA_shift_convention(pa, deg = False):
 
 def _x_to_eps(x):
     """
-    Internal, function to map the reals to the range (0.05,0.95)
+    Internal, function to map the reals to the range (0.0,1.0)
     as the range of reasonable ellipticity values.
     """
-    return 0.02 + 0.96*(0.5 + np.arctan(x-0.5)/np.pi) #0.02 + 0.96/(1. + np.exp(-(x - 0.5))) 
+    return (0.5 + np.arctan(x-0.5)/np.pi) #0.02 + 0.96/(1. + np.exp(-(x - 0.5))) 
 #
 def _inv_x_to_eps(eps):
     """
     Internal, inverse of _x_to_eps function
     """
-    return 0.5 + np.tan(np.pi*((eps - 0.02)/0.96 - 0.5)) #0.5 - np.log(0.96/(eps - 0.02) - 1.) 
+    return 0.5 + np.tan(np.pi*(eps - 0.5)) #0.5 - np.log(0.96/(eps - 0.02) - 1.) 
 
 
 def Read_Image(filename, options):
