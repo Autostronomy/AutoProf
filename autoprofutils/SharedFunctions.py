@@ -308,6 +308,10 @@ def interpolate_bicubic(dat, X, Y):
     return f_interp(Y, X, grid = False)
 
 def interpolate_Lanczos(dat, X, Y, scale):
+    """
+    Perform Lanczos interpolation on an image.
+    https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html
+    """
     flux = []
     XX, YY = np.meshgrid(np.arange(-scale + 1, scale + 1), np.arange(-scale + 1, scale + 1))
     
