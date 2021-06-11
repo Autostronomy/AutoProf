@@ -1,4 +1,5 @@
 from astropy.io import fits
+from astropy.table import Table
 import numpy as np
 import sys
 import os
@@ -29,19 +30,17 @@ def WriteProf(IMG, results, options):
             
     # Write the profile
     delim = options['ap_delimiter'] if 'ap_delimiter' in options else ','
-    with open(saveto + options['ap_name'] + '.prof', 'w') as f:
-        # Write profile header
-        f.write(delim.join(results['prof header']) + '\n')
-        if 'prof units' in results:
-            f.write(delim.join(results['prof units'][h] for h in results['prof header']) + '\n')
-        for i in range(len(results['prof data'][results['prof header'][0]])):
-            line = []
-            for h in results['prof header']:
-                if h == 'pa':
-                    line.append(results['prof format'][h] % PA_shift_convention(results['prof data'][h][i], deg = True))
-                else:
-                    line.append(results['prof format'][h] % results['prof data'][h][i])
-            f.write(delim.join(line) + '\n')
+    delim = options['ap_delimiter'] if 'ap_delimiter' in options else ','
+    results['prof data']['pa'] = list(PA_shift_convention(np.array(results['prof data']['pa']), deg = True))
+    T = Table(data = results['prof data'], names = results['prof header'])
+    if 'ap_profile_format' in options and options['ap_profile_format'].lower() == 'fits':
+        T.meta['UNITS'] = delim.join(results['prof units'][h] for h in results['prof header'])
+        T.write(saveto + options['ap_name'] + '_prof.fits', format = 'fits', overwrite = True)
+    else:
+        T.write(saveto + options['ap_name'] + '.prof', format = 'ascii.commented_header',
+                delimiter = delim, overwrite = True,
+                comment = '# ' + delim.join(results['prof units'][h] for h in results['prof header']) + '\n')
+    results['prof data']['pa'] = list(PA_shift_convention(np.array(results['prof data']['pa']), deg = True))
                 
     # Write the mask data, if provided
     if 'mask' in results and (not results['mask'] is None) and 'ap_savemask' in options and options['ap_savemask']:

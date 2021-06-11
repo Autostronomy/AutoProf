@@ -172,7 +172,6 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_plotpath: Path to file where diagnostic plots should be written, see also *ap_doplot*. Default is current directory. (string)
 - ap_plotdpi: sets dpi for plots (default 300). Can be used to reduce file size, or to increase detail in images (int)
 - ap_hdulelement: index for hdul of fits file where image exists. Default is 0. (int)
-- ap_delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
 - ap_new_pipeline_methods: Allows user to set methods for the AutoProf pipeline analysis. See *Modifying Pipeline Methods* for more information (dict)
 - ap_new_pipeline_steps: Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See *Modifying Pipeline Steps* for more information (list)
 - ap_zeropoint: Photometric zero point, default is 22.5 (float)
@@ -243,6 +242,10 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_isoclip_nsigma: Number of sigma above median to apply clipping. All values above (median + *ap_isoclip_nsigma* x sigma) are removed from the isophote. Default is 5. (float)
 - ap_fouriermodes: integer for number of fourier modes to extract along fitted isophotes. Most popular is 4, which identifies boxy/disky isophotes. The outputted
   		   values are computed as a_i = real(F_i)/abs(F_0) where F_i is a fourier coefficient. Not activated by default as it adds to computation time. (int)
+
+#### Write Profile
+- ap_delimiter: Delimiter character used to separate values in output profile. Will default to a comma (",") if not given (string)
+- ap_profile_format: Choose the output format for the profile, options are ['csv', 'fits']. Default is 'csv' (string)
 
 #### Forced Photometry
 - ap_forced_pa_shift: global rotation to apply to all forced isophotes. Useful if the base image and the forced image are rotated relative to each other. Likely
