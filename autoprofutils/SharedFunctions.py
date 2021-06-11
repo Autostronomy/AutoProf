@@ -362,7 +362,8 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
             return fluxes
         
 def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False,
-                 rad_interp = 30, interp_method = 'bicubic', sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
+                 rad_interp = 30, interp_method = 'bicubic', interp_window = 3, sigmaclip = False,
+                 sclip_iterations = 10, sclip_nsigma = 5):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
@@ -392,12 +393,9 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
         if interp_method == 'bicubic':
             flux = interpolate_bicubic(IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]], X - box[0][0], Y - box[1][0])
         elif interp_method == 'lanczos':
-            flux = interpolate_Lanczos(IMG, X, Y, 3)
-            flux2 = interpolate_bicubic(IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]], X - box[0][0], Y - box[1][0])
-        # f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
-        #                                np.arange(box[0][1] - box[0][0], dtype = np.float32),
-        #                                IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
-        # flux = f_interp(Y - box[1][0], X - box[0][0], grid = False)
+            flux = interpolate_Lanczos(IMG, X, Y, interp_window)
+        else:
+            raise ValueError('Unknown interpolate method %s. Should be one of lanczos or bicubic' % interp_method)
     else:
         # round to integers and sample pixels values
         flux = IMG[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]

@@ -229,7 +229,9 @@ In your config file, do not use any of these names unless you intend for AutoPro
 - ap_isoband_fixed: Use a fixed width for the size of the isobands, the width is set by *ap_isoband_width* which now has units of pixels, the default is 0.5 such that the full band has a width of 1 pixel. (bool)
 - ap_truncate_evaluation: Stop evaluating new isophotes once two negative flux isophotes have been recorded, presumed to have reached the end of the profile (bool)
 - ap_extractfull: Tells AutoProf to extend the isophotal solution to the edge of the image. Will be overridden by *ap_truncate_evaluation* (bool)
-- ap_iso_interpolate_start: Use a bi-cubic spline interpolation for isophotes with semi-major axis less than this number times the PSF. Default is 5. (float)
+- ap_iso_interpolate_start: Use a Lanczos interpolation for isophotes with semi-major axis less than this number times the PSF. Default is 5. (float)
+- ap_iso_interpolate_method: Select method for flux interpolation on image, options are 'lanczos' and 'bicubic'. Default is 'lanczos' with a window size of 3 (string)
+- ap_iso_interpolate_window: Window size for Lanczos interpolation, default is 3, meaning 3 pixels on either side of the sample point are used for interpolation (int)
 - ap_isoaverage_method: Select the method used to compute the averafge flux along an isophote. Choose from 'mean', 'median', and 'mode' where median is the default.
   			In general, median is fast and robust to a few outliers. Mode is slow but robust to more outliers. Mean is fast and accurate in low S/N regimes
 			where fluxes take on near integer values, but not robust to outliers. The mean should be used along with a mask to remove spurious objects

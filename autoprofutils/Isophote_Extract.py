@@ -52,6 +52,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, more = True,
                                    rad_interp = (options['ap_iso_interpolate_start'] if 'ap_iso_interpolate_start' in options else 5)*results['psf fwhm'],
                                    interp_method = (options['ap_iso_interpolate_method'] if 'ap_iso_interpolate_method' in options else 'lanczos'),
+                                   interp_window = (int(options['ap_iso_interpolate_window']) if 'ap_iso_interpolate_window' in options else 3),
                                    sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                    sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                    sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
