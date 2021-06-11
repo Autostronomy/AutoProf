@@ -301,6 +301,26 @@ def _scatter(v, method = 'median'):
     else:
         raise ValueError('Unrecognized average method: %s' % method)
 
+def interpolate_bicubic(dat, X, Y):
+    f_interp = RectBivariateSpline(np.arange(dat.shape[0], dtype = np.float32),
+                                   np.arange(dat.shape[1], dtype = np.float32),
+                                   dat)
+    return f_interp(Y, X, grid = False)
+
+def interpolate_Lanczos(dat, X, Y, scale):
+    flux = []
+    XX, YY = np.meshgrid(np.arange(-scale + 1, scale + 1), np.arange(-scale + 1, scale + 1))
+    
+    for i in range(len(X)):
+        chunk = dat[int(np.floor(Y[i])) - scale + 1: int(np.floor(Y[i])) + scale + 1,
+                    int(np.floor(X[i])) - scale + 1: int(np.floor(X[i])) + scale + 1]
+        Lx = np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i]))/scale) * XX
+        Ly = (np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i]))/scale) * YY.T).T
+        L = Lx * Ly
+        w = np.sum(L)
+        flux.append(np.sum(chunk*L)/w)
+    return np.array(flux)
+        
 def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
                  sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
 
@@ -342,7 +362,7 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
             return fluxes
         
 def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False,
-                 rad_interp = 30, sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
+                 rad_interp = 30, interp_method = 'bicubic', sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
     """
@@ -369,10 +389,15 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
     if sma < rad_interp: 
         box = [[max(0,int(c['x']-sma-5)), min(IMG.shape[1],int(c['x']+sma+5))],
                [max(0,int(c['y']-sma-5)), min(IMG.shape[0],int(c['y']+sma+5))]]
-        f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
-                                       np.arange(box[0][1] - box[0][0], dtype = np.float32),
-                                       IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
-        flux = f_interp(Y - box[1][0], X - box[0][0], grid = False)
+        if interp_method == 'bicubic':
+            flux = interpolate_bicubic(IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]], X - box[0][0], Y - box[1][0])
+        elif interp_method == 'lanczos':
+            flux = interpolate_Lanczos(IMG, X, Y, 3)
+            flux2 = interpolate_bicubic(IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]], X - box[0][0], Y - box[1][0])
+        # f_interp = RectBivariateSpline(np.arange(box[1][1] - box[1][0], dtype = np.float32),
+        #                                np.arange(box[0][1] - box[0][0], dtype = np.float32),
+        #                                IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]])
+        # flux = f_interp(Y - box[1][0], X - box[0][0], grid = False)
     else:
         # round to integers and sample pixels values
         flux = IMG[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]
