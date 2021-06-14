@@ -82,7 +82,7 @@ def sb_to_flux(sb, pixscale, zeropoint):
     return (pixscale**2)*10**(-(sb - zeropoint)/2.5)
 
 def mag_to_flux(mag, zeropoint):
-    return 10**(-(sb - zeropoint)/2.5)
+    return 10**(-(mag - zeropoint)/2.5)
 
 def magperarcsec2_to_mag(mu, a = None, b = None, A = None):
     """
@@ -691,6 +691,56 @@ def GetOptions(c):
         
     return newoptions
 
+def fluxdens_to_fluxsum(R, I, axisratio):
+    """
+    Integrate a flux density profile
+
+    R: semi-major axis length (arcsec)
+    I: flux density (flux/arcsec^2)
+    axisratio: b/a profile
+    """
+    
+    S = np.zeros(len(R))
+    S[0] = I[0] * np.pi * axisratio[0] * (R[0]**2)
+    for i in range(1, len(R)):
+        S[i] = trapz(2*np.pi*I[:i+1]*R[:i+1]*axisratio[:i+1],R[:i+1]) + S[0]
+    return S
+
+def fluxdens_to_fluxsum_errorprop(R, I, IE, axisratio, axisratioE = None, N = 100, symmetric_error = True):
+    """
+    Integrate a flux density profile
+
+    R: semi-major axis length (arcsec)
+    I: flux density (flux/arcsec^2)
+    axisratio: b/a profile
+    """
+    if axisratioE is None:
+        axisratioE = np.zeros(len(R))
+    
+    # Create container for the monte-carlo iterations
+    sum_results = np.zeros((N, len(R))) - 99.999
+    I_CHOOSE = np.logical_and(np.isfinite(I), I > 0)
+    if np.sum(I_CHOOSE) < 5:
+        return (None, None) if symmetric_error else (None, None, None)
+    sum_results[0][I_CHOOSE] = fluxdens_to_fluxsum(R[I_CHOOSE], I[I_CHOOSE], axisratio[I_CHOOSE])
+    for i in range(1,N):
+        # Randomly sampled SB profile
+        tempI = np.random.normal(loc = I, scale = IE)
+        # Randomly sampled axis ratio profile
+        tempq = np.clip(np.random.normal(loc = axisratio, scale = axisratioE), a_min = 1e-3, a_max = 1-1e-3)
+        # Compute COG with sampled data
+        sum_results[i][I_CHOOSE] = fluxdens_to_fluxsum(R[I_CHOOSE], tempI[I_CHOOSE], tempq[I_CHOOSE])
+
+    # Condense monte-carlo evaluations into profile and uncertainty envelope
+    sum_lower = sum_results[0] - np.quantile(sum_results, 0.317310507863/2, axis = 0)
+    sum_upper = np.quantile(sum_results, 1. - 0.317310507863/2, axis = 0) - sum_results[0]
+
+    # Return requested uncertainty format
+    if symmetric_error:
+        return sum_results[0], np.abs(sum_lower + sum_upper)/2
+    else:
+        return sum_results[0], sum_lower, sum_upper
+
 def SBprof_to_COG(R, SB, axisratio, method = 0):
     """
     Converts a surface brightness profile to a curve of growth by integrating
@@ -707,36 +757,36 @@ def SBprof_to_COG(R, SB, axisratio, method = 0):
     returns: magnitude values at each radius of the profile in mag
     """
     
-    m = np.zeros(len(R))
-    # Dummy band for conversions, cancelled out on return
-    band = 'r'
+    # m = np.zeros(len(R))
+    # # Dummy band for conversions, cancelled out on return
+    # band = 'r'
+    
+    # # Method 0 uses trapezoid method to integrate in flux space
+    # if method == 0:
+    #     # Compute the starting point assuming constant SB within first isophote
+    #     m[0] = magperarcsec2_to_mag(SB[0], A = np.pi*axisratio[0]*(R[0]**2))
+    #     # Dummy distance value for integral
+    #     D = 10
+    #     # Convert to flux space
+    #     I = muSB_to_ISB(np.array(SB), band)
+    #     # Ensure numpy array
+    #     axisratio = np.array(axisratio)
+    #     # Convert to physical radius using dummy distance
+    #     R = arcsec_to_pc(np.array(R), D)
+    #     # Integrate up to each radius in the profile
+    #     for i in range(1,len(R)):
+    #         m[i] = abs_mag_to_app_mag(L_to_mag(trapz(2*np.pi*I[:i+1]*R[:i+1]*axisratio[:i+1],R[:i+1]) + \
+    #                                            mag_to_L(app_mag_to_abs_mag(m[0], D), band), band),D)
+    # elif method == 1:
+    #     # Compute the starting point assuming constant SB within first isophote
+    #     m[0] = magperarcsec2_to_mag(SB[0], A = np.pi*axisratio[0]*(R[0]**2))
+    #     # Progress through each radius and add the contribution from each isophote individually
+    #     for i in range(1,len(R)):
+    #         m[i] = L_to_mag(mag_to_L(magperarcsec2_to_mag(SB[i], A = np.pi*axisratio[i]*(R[i]**2)), band) - \
+    #                         mag_to_L(magperarcsec2_to_mag(SB[i], A = np.pi*axisratio[i-1]*(R[i-1]**2)), band) + \
+    #                         mag_to_L(m[i-1], band), band)
 
-    # Method 0 uses trapezoid method to integrate in flux space
-    if method == 0:
-        # Compute the starting point assuming constant SB within first isophote
-        m[0] = magperarcsec2_to_mag(SB[0], A = np.pi*axisratio[0]*(R[0]**2))
-        # Dummy distance value for integral
-        D = 10
-        # Convert to flux space
-        I = muSB_to_ISB(np.array(SB), band)
-        # Ensure numpy array
-        axisratio = np.array(axisratio)
-        # Convert to physical radius using dummy distance
-        R = arcsec_to_pc(np.array(R), D)
-        # Integrate up to each radius in the profile
-        for i in range(1,len(R)):
-            m[i] = abs_mag_to_app_mag(L_to_mag(trapz(2*np.pi*I[:i+1]*R[:i+1]*axisratio[:i+1],R[:i+1]) + \
-                                               mag_to_L(app_mag_to_abs_mag(m[0], D), band), band),D)
-    elif method == 1:
-        # Compute the starting point assuming constant SB within first isophote
-        m[0] = magperarcsec2_to_mag(SB[0], A = np.pi*axisratio[0]*(R[0]**2))
-        # Progress through each radius and add the contribution from each isophote individually
-        for i in range(1,len(R)):
-            m[i] = L_to_mag(mag_to_L(magperarcsec2_to_mag(SB[i], A = np.pi*axisratio[i]*(R[i]**2)), band) - \
-                            mag_to_L(magperarcsec2_to_mag(SB[i], A = np.pi*axisratio[i-1]*(R[i-1]**2)), band) + \
-                            mag_to_L(m[i-1], band), band)
-
-    return m
+    return flux_to_mag(fluxdens_to_fluxsum(R, mag_to_flux(SB), axisratio))
 
 
 def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, method = 0, symmetric_error = True):
@@ -766,7 +816,7 @@ def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, m
         
     # Create container for the monte-carlo iterations
     COG_results = np.zeros((N, len(R))) + 99.999
-    SB_CHOOSE = np.logical_and(np.isfinite(SB), SB < 50)
+    SB_CHOOSE = np.logical_and(np.isfinite(SB), SB < 99)
     if np.sum(SB_CHOOSE) < 5:
         return (None, None) if symmetric_error else (None, None, None)
     COG_results[0][SB_CHOOSE] = SBprof_to_COG(R[SB_CHOOSE], SB[SB_CHOOSE], axisratio[SB_CHOOSE], method = method)
@@ -780,8 +830,8 @@ def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, m
 
     # Condense monte-carlo evaluations into profile and uncertainty envelope
     COG_profile = COG_results[0]
-    COG_lower = np.median(COG_results, axis = 0) - np.quantile(COG_results, 0.317310507863/2, axis = 0)
-    COG_upper = np.quantile(COG_results, 1. - 0.317310507863/2, axis = 0) - np.median(COG_results, axis = 0)
+    COG_lower = COG_profile - np.quantile(COG_results, 0.317310507863/2, axis = 0)
+    COG_upper = np.quantile(COG_results, 1. - 0.317310507863/2, axis = 0) - COG_profile
 
     # Return requested uncertainty format
     if symmetric_error:

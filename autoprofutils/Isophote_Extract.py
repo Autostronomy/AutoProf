@@ -15,7 +15,7 @@ import logging
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag, PA_shift_convention, autocolours
+from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag, PA_shift_convention, autocolours, fluxdens_to_fluxsum_errorprop, mag_to_flux
 
 def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     
@@ -52,7 +52,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, more = True,
                                    rad_interp = (options['ap_iso_interpolate_start'] if 'ap_iso_interpolate_start' in options else 5)*results['psf fwhm'],
                                    interp_method = (options['ap_iso_interpolate_method'] if 'ap_iso_interpolate_method' in options else 'lanczos'),
-                                   interp_window = (int(options['ap_iso_interpolate_window']) if 'ap_iso_interpolate_window' in options else 3),
+                                   interp_window = (int(options['ap_iso_interpolate_window']) if 'ap_iso_interpolate_window' in options else 5),
                                    sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                    sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                    sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
@@ -85,13 +85,20 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
                 coefs = fft(np.interp(theta, isovals[1], isovals[0], period = 2*np.pi))
             Fmodes.append({'a': [np.abs(coefs[0])/len(coefs)] + list(np.imag(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + np.sqrt(len(coefs))*results['background noise'])),
                            'b': [np.abs(coefs[0])/len(coefs)] + list(np.real(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + np.sqrt(len(coefs))*results['background noise']))})
-                
-        sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
-        sbE.append((2.5*scatflux / (np.sqrt(len(isovals[0]))*medflux*np.log(10))) if medflux > 0 else 99.999)
+
         pixels.append(len(isovals[0]))
-        sbfix.append(flux_to_sb(medfluxfix, options['ap_pixscale'], zeropoint) if medfluxfix > 0 else 99.999)
-        sbfixE.append((2.5*scatfluxfix / (np.sqrt(len(isovalsfix))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
-        cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else 99.999)
+        if 'ap_fluxunits' in options and options['ap_fluxunits'] == 'intensity':
+            sb.append(medflux * (10**(-zeropoint/2.5)) / options['ap_pixscale']**2)
+            sbE.append(scatflux / np.sqrt(len(isovals[0])))
+            sbfix.append(medfluxfix * (10**(-zeropoint/2.5)) / options['ap_pixscale']**2)
+            sbfixE.append(scatfluxfix / np.sqrt(len(isovalsfix)))
+            cogdirect.append(isotot * (10**(-zeropoint/2.5)))
+        else:
+            sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
+            sbE.append((2.5*scatflux / (np.sqrt(len(isovals[0]))*medflux*np.log(10))) if medflux > 0 else 99.999)
+            sbfix.append(flux_to_sb(medfluxfix, options['ap_pixscale'], zeropoint) if medfluxfix > 0 else 99.999)
+            sbfixE.append((2.5*scatfluxfix / (np.sqrt(len(isovalsfix))*medfluxfix*np.log(10))) if medfluxfix > 0 else 99.999)
+            cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else 99.999)
         if medflux <= 0:
             count_neg += 1
         if 'ap_truncate_evaluation' in options and options['ap_truncate_evaluation'] and count_neg >= 2:
@@ -99,23 +106,42 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             break
         
     # Compute Curve of Growth from SB profile
-    cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* options['ap_pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
-                                        Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
-    if cog is None:
-        cog = 99.999*np.ones(len(R))
-        cogE = 99.999*np.ones(len(R))
+    if 'ap_fluxunits' in options and options['ap_fluxunits'] == 'intensity':
+        cog, cogE = fluxdens_to_fluxsum_errorprop(R[:end_prof]* options['ap_pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
+                                                  Ee[:end_prof], N = 100, symmetric_error = True)
+        if cog is None:
+            cog = -99.999*np.ones(len(R))
+            cogE = -99.999*np.ones(len(R))
+        else:
+            cog[np.logical_not(np.isfinite(cog))] = -99.999
+            cogE[cog < 0] = -99.999
+        cogfix, cogfixE = fluxdens_to_fluxsum_errorprop(R[:end_prof] * options['ap_pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
+                                                        Ee[:end_prof], N = 100, symmetric_error = True)
+        if cogfix is None:
+            cogfix = -99.999*np.ones(len(R))
+            cogfixE = -99.999*np.ones(len(R))
+        else:
+            cogfix[np.logical_not(np.isfinite(cogfix))] = -99.999
+            cogfixE[cogfix < 0] = -99.999
     else:
-        cog[np.logical_not(np.isfinite(cog))] == 99.999
-        cogE[cog > 99] = 99.999
-    cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * options['ap_pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
-                                              Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
-    if cogfix is None:
-        cogfix = 99.999*np.ones(len(R))
-        cogfixE = 99.999*np.ones(len(R))
-    else:
-        cogfix[np.logical_not(np.isfinite(cogfix))] == 99.999
-        cogfixE[cogfix > 99] = 99.999
-    
+        cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* options['ap_pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
+                                            Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
+        if cog is None:
+            cog = 99.999*np.ones(len(R))
+            cogE = 99.999*np.ones(len(R))
+        else:
+            cog[np.logical_not(np.isfinite(cog))] = 99.999
+            cogE[cog > 99] = 99.999
+        cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * options['ap_pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
+                                                  Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
+        if cogfix is None:
+            cogfix = 99.999*np.ones(len(R))
+            cogfixE = 99.999*np.ones(len(R))
+        else:
+            cogfix[np.logical_not(np.isfinite(cogfix))] = 99.999
+            cogfixE[cogfix > 99] = 99.999
+
+            
     # For each radius evaluation, write the profile parameters
     params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
         
