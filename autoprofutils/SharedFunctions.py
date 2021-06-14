@@ -786,7 +786,7 @@ def SBprof_to_COG(R, SB, axisratio, method = 0):
     #                         mag_to_L(magperarcsec2_to_mag(SB[i], A = np.pi*axisratio[i-1]*(R[i-1]**2)), band) + \
     #                         mag_to_L(m[i-1], band), band)
 
-    return flux_to_mag(fluxdens_to_fluxsum(R, mag_to_flux(SB), axisratio))
+    return flux_to_mag(fluxdens_to_fluxsum(R, mag_to_flux(SB, 2.5), axisratio), 2.5)
 
 
 def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, method = 0, symmetric_error = True):
