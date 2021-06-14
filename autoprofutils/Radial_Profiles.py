@@ -60,7 +60,6 @@ def Radial_Profiles(IMG, results, options):
 
     newprofheader = results['prof header']
     newprofunits = results['prof units']
-    newprofformat = results['prof format']
     newprofdata = results['prof data']
     for sa_i in range(len(wedgeangles)):
         p1, p2 = ('SB_rad[%.1f]' % (wedgeangles[sa_i]*180/np.pi), 'SB_rad_e[%.1f]' % (wedgeangles[sa_i]*180/np.pi))
@@ -68,8 +67,6 @@ def Radial_Profiles(IMG, results, options):
         newprofheader.append(p2)
         newprofunits[p1] = 'mag*arcsec^-2'
         newprofunits[p2] = 'mag*arcsec^-2'
-        newprofformat[p1] = '%.4f'
-        newprofformat[p2] = '%.4f'
         newprofdata[p1] = sb[sa_i]
         newprofdata[p2] = sbE[sa_i]
         
@@ -124,4 +121,4 @@ def Radial_Profiles(IMG, results, options):
         plt.savefig('%sradial_profiles_wedges_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
         plt.close()
         
-    return IMG, {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata, 'prof format': newprofformat}
+    return IMG, {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata}

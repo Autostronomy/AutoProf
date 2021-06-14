@@ -120,46 +120,6 @@ def Center_1DGaussian(IMG, results, options):
     logging.info('%s Center found: x %.1f, y %.1f' % (options['ap_name'], x, y))    
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y'])}
 
-# def Center_OfMass(IMG, results, options):
-#     """
-#     Compute the pixel location of the galaxy center using a light weighted
-#     center of mass. Looking at 50 seeing lengths around the center of the
-#     image (images should already be mostly centered), finds the average
-#     light weighted center of the image.
-#     """
-    
-#     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
-#     if 'ap_guess_center' in options:
-#         current_center = deepcopy(options['ap_guess_center'])
-#         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
-#     if 'ap_set_center' in options:
-#         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
-#         return IMG, {'center': deepcopy(options['ap_set_center'])}
-    
-#     # Create mask to focus centering algorithm on the center of the image
-#     ranges = [[max(0,int(current_center['x'] - 50*results['psf fwhm'])), min(IMG.shape[1],int(current_center['x'] + 50*results['psf fwhm']))],
-#               [max(0,int(current_center['y'] - 50*results['psf fwhm'])), min(IMG.shape[0],int(current_center['y'] + 50*results['psf fwhm']))]]
-#     centralize_mask = np.ones(IMG.shape, dtype = bool)
-#     centralize_mask[ranges[1][0]:ranges[1][1],
-#                     ranges[0][0]:ranges[0][1]] = False
-    
-#     try:
-#         x, y = centroid_com(IMG - results['background'],
-#                             mask = centralize_mask)
-#         current_center = {'x': x, 'y': y}
-#     except:
-#         logging.warning('%s: 2D Gaussian center finding failed! using image center (or guess).' % options['ap_name'])
-    
-#     # Plot center value for diagnostic purposes
-#     if 'ap_doplot' in options and options['ap_doplot']:    
-#         plt.imshow(np.clip(IMG - results['background'],a_min = 0, a_max = None),
-#                    origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-#         plt.plot([y],[x], marker = 'x', markersize = 10, color = 'y')
-#         plt.savefig('%scenter_vis_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']))
-#         plt.close()
-#     logging.info('%s Center found: x %.1f, y %.1f' % (options['ap_name'], x, y))    
-#     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y'])}
-
 def Center_OfMass(IMG, results, options):
 
     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
@@ -299,47 +259,6 @@ def Center_HillClimb(IMG, results, options):
         current_center['x'] = res.x[0] + ranges[0][0]
         current_center['y'] = res.x[1] + ranges[1][0]
     track_centers.append([current_center['x'], current_center['y']])
-    # paper plot
-    if 'ap_paperplots' in options and options['ap_paperplots']:    
-        plt.imshow(np.clip(dat,a_min = 0, a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        plt.plot([current_center['x']],[current_center['y']], marker = 'x', markersize = 3, color = 'r')
-        for i in range(3):
-            plt.gca().add_patch(Ellipse((current_center['x'],current_center['y']), 2*((i+0.5)*results['psf fwhm']),
-                                        2*((i+0.5)*results['psf fwhm']),
-                                        0, fill = False, linewidth = 0.5, color = 'y'))
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%stest_center_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
-        track_centers = np.array(track_centers)
-        xwidth = 2*max(np.abs(track_centers[:,0] - current_center['x']))
-        ywidth = 2*max(np.abs(track_centers[:,1] - current_center['y']))
-        width = max(xwidth, ywidth)
-        ranges = [[int(current_center['x'] - width), int(current_center['x'] + width)],
-                  [int(current_center['y'] - width), int(current_center['y'] + width)]]
-        fig, axarr = plt.subplots(2,1, figsize = (3,6))
-        plt.subplots_adjust(hspace = 0.01, wspace = 0.01, left = 0.05, right = 0.95, top = 0.95, bottom = 0.05)
-        axarr[0].imshow(np.clip(dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]],a_min = 0, a_max = None),
-                        origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()),
-                        extent = [ranges[0][0],ranges[0][1],ranges[1][0]-1,ranges[1][1]-1])
-        axarr[0].plot(track_centers[:,0], track_centers[:,1], color = 'y')
-        axarr[0].scatter(track_centers[:,0], track_centers[:,1], c = range(len(track_centers)), cmap = 'Reds')
-        axarr[0].set_xticks([])
-        axarr[0].set_yticks([])        
-        width = searchring
-        ranges = [[int(current_center['x'] - width), int(current_center['x'] + width)],
-                  [int(current_center['y'] - width), int(current_center['y'] + width)]]
-        axarr[1].imshow(np.clip(dat[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]],a_min = 0, a_max = None),
-                        origin = 'lower', cmap = 'Greys_r',
-                        extent = [ranges[0][0],ranges[0][1],ranges[1][0]-1,ranges[1][1]-1])
-        axarr[1].plot(track_centers[:,0], track_centers[:,1], color = 'y')
-        axarr[1].scatter(track_centers[:,0], track_centers[:,1], c = range(len(track_centers)), cmap = 'Reds')
-        axarr[1].set_xlim(ranges[0])
-        axarr[1].set_ylim(np.array(ranges[1])-1)        
-        axarr[1].set_xticks([])
-        axarr[1].set_yticks([])
-        plt.savefig('%sCenter_path_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
-        plt.close()
 
     sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}

@@ -14,6 +14,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, StarFind, AddLogo, LSBImage, autocolours
+from autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
 from copy import deepcopy
 
 def PSF_IRAF(IMG, results, options):
@@ -52,16 +53,11 @@ def PSF_IRAF(IMG, results, options):
     if len(irafsources) < 5:
         return IMG, {'psf fwhm': fwhm_guess}
     
-    if 'ap_doplot' in options and options['ap_doplot']:    
-        plt.imshow(np.clip(IMG - results['background'], a_min = 0, a_max = None), origin = 'lower',
-                   cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        for i in range(len(irafsources['fwhm'])):
-            plt.gca().add_patch(Ellipse((irafsources['xcentroid'][i],irafsources['ycentroid'][i]), 16/options['ap_pixscale'], 16/options['ap_pixscale'],
-                                        0, fill = False, linewidth = 0.5, color = 'y'))
-        plt.savefig('%sPSF_Stars_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = 600)
-        plt.close()
-
     psf = np.median(irafsources['fwhm'])
+    
+    if 'ap_doplot' in options and options['ap_doplot']:
+        Plot_PSF_Stars(IMG, irafsources['xcentroid'], irafsources['ycentroid'], irafsources['fwhm'], psf, results, options)
+
     return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf}
 
 def PSF_StarFind(IMG, results, options):

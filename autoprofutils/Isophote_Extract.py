@@ -180,7 +180,6 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             aa, bb = 'a%i' % i, 'b%i' % i
             params += [aa, bb]
             SBprof_units.update({aa: 'flux' if i == 0 else 'a%i/F0' % i, bb: 'flux' if i == 0 else 'b%i/F0' % i})
-            SBprof_format.update({aa: '%.4f', bb: '%.4f'})
             SBprof_data[aa] = list(F['a'][i] for F in Fmodes)
             SBprof_data[bb] = list(F['b'][i] for F in Fmodes)
 
