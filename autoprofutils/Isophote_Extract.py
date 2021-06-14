@@ -16,6 +16,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag, PA_shift_convention, autocolours, fluxdens_to_fluxsum_errorprop, mag_to_flux
+from autoprofutils.Diagnostic_Plots import Plot_SB_Profile, Plot_I_Profile
 
 def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     
@@ -29,7 +30,8 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
         mask = None
     dat = IMG - results['background']
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
-
+    fluxunits = options['ap_fluxunits'] if 'ap_fluxunits' in options else 'mag'
+    
     sb = []
     sbE = []
     pixels = []
@@ -87,12 +89,12 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
                            'b': [np.abs(coefs[0])/len(coefs)] + list(np.real(coefs[1:int(max(options['ap_fouriermodes']+1,2))])/(np.abs(coefs[0]) + np.sqrt(len(coefs))*results['background noise']))})
 
         pixels.append(len(isovals[0]))
-        if 'ap_fluxunits' in options and options['ap_fluxunits'] == 'intensity':
-            sb.append(medflux * (10**(-zeropoint/2.5)) / options['ap_pixscale']**2)
+        if fluxunits == 'intensity':
+            sb.append(medflux / options['ap_pixscale']**2)
             sbE.append(scatflux / np.sqrt(len(isovals[0])))
-            sbfix.append(medfluxfix * (10**(-zeropoint/2.5)) / options['ap_pixscale']**2)
+            sbfix.append(medfluxfix / options['ap_pixscale']**2)
             sbfixE.append(scatfluxfix / np.sqrt(len(isovalsfix)))
-            cogdirect.append(isotot * (10**(-zeropoint/2.5)))
+            cogdirect.append(isotot)
         else:
             sb.append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
             sbE.append((2.5*scatflux / (np.sqrt(len(isovals[0]))*medflux*np.log(10))) if medflux > 0 else 99.999)
@@ -106,7 +108,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             break
         
     # Compute Curve of Growth from SB profile
-    if 'ap_fluxunits' in options and options['ap_fluxunits'] == 'intensity':
+    if fluxunits == 'intensity':
         cog, cogE = fluxdens_to_fluxsum_errorprop(R[:end_prof]* options['ap_pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
                                                   Ee[:end_prof], N = 100, symmetric_error = True)
         if cog is None:
@@ -143,31 +145,35 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
 
             
     # For each radius evaluation, write the profile parameters
-    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
+    if fluxunits == 'intensity':
+        params = ['R', 'I', 'I_e', 'totflux', 'totflux_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'totflux_direct', 'I_fix', 'I_fix_e', 'totflux_fix', 'totflux_fix_e']
+        
+        SBprof_units = {'R': 'arcsec', 'I': 'flux*arcsec^-2', 'I_e': 'flux*arcsec^-2', 'totflux': 'flux', 'totflux_e': 'flux',
+                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'totflux_direct': 'flux',
+                        'I_fix': 'flux*arcsec^-2', 'I_fix_e': 'flux*arcsec^-2', 'totflux_fix': 'flux', 'totflux_fix_e': 'flux'}
+    else:
+        params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'totmag_direct', 'SB_fix', 'SB_fix_e', 'totmag_fix', 'totmag_fix_e']
+        
+        SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
+                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'totmag_direct': 'mag',
+                        'SB_fix': 'mag*arcsec^-2', 'SB_fix_e': 'mag*arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
         
     SBprof_data = dict((h,None) for h in params)
-    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
-                    'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'totmag_direct': 'mag',
-                    'SB_fix': 'mag*arcsec^-2', 'SB_fix_e': 'mag*arcsec^-2', 'totmag_fix': 'mag', 'totmag_fix_e': 'mag'}
-    SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
-                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'pixels': '%i', 'totmag_direct': '%.4f',
-                     'SB_fix': '%.4f', 'SB_fix_e': '%.4f', 'totmag_fix': '%.4f', 'totmag_fix_e': '%.4f'}
-    
     SBprof_data['R'] = list(R[:end_prof] * options['ap_pixscale'])
-    SBprof_data['SB'] = list(sb)
-    SBprof_data['SB_e'] = list(sbE)
-    SBprof_data['totmag'] = list(cog)
-    SBprof_data['totmag_e'] = list(cogE)
+    SBprof_data['I' if fluxunits == 'intensity' else 'SB'] = list(sb)
+    SBprof_data['I_e' if fluxunits == 'intensity' else 'SB_e'] = list(sbE)
+    SBprof_data['totflux' if fluxunits == 'intensity' else 'totmag'] = list(cog)
+    SBprof_data['totflux_e' if fluxunits == 'intensity' else 'totmag_e'] = list(cogE)
     SBprof_data['ellip'] = list(E[:end_prof])
     SBprof_data['ellip_e'] = list(Ee[:end_prof])
     SBprof_data['pa'] = list(PA[:end_prof]*180/np.pi)
     SBprof_data['pa_e'] = list(PAe[:end_prof]*180/np.pi)
     SBprof_data['pixels'] = list(pixels)
-    SBprof_data['totmag_direct'] = list(cogdirect)
-    SBprof_data['SB_fix'] = list(sbfix)
-    SBprof_data['SB_fix_e'] = list(sbfixE)
-    SBprof_data['totmag_fix'] = list(cogfix)
-    SBprof_data['totmag_fix_e'] = list(cogfixE)
+    SBprof_data['totflux_direct' if fluxunits == 'intensity' else 'totmag_direct'] = list(cogdirect)
+    SBprof_data['I_fix' if fluxunits == 'intensity' else 'SB_fix'] = list(sbfix)
+    SBprof_data['I_fix_e' if fluxunits == 'intensity' else 'SB_fix_e'] = list(sbfixE)
+    SBprof_data['totflux_fix' if fluxunits == 'intensity' else 'totmag_fix'] = list(cogfix)
+    SBprof_data['totflux_fix_e' if fluxunits == 'intensity' else 'totmag_fix_e'] = list(cogfixE)
 
     if 'ap_fouriermodes' in options:
         for i in range(int(options['ap_fouriermodes']+1)):
@@ -179,57 +185,14 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             SBprof_data[bb] = list(F['b'][i] for F in Fmodes)
 
     if 'ap_doplot' in options and options['ap_doplot']:
-        CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
-        if np.sum(CHOOSE) < 5:
-            CHOOSE = np.ones(len(CHOOSE), dtype = bool)
-        errscale = 1.
-        if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.5):
-            errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
-        lnlist = []
-        lnlist.append(plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
-                                   elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = autocolours['red1'], label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale))
-        plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
-                     np.array(SBprof_data['SB'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
-                     yerr = np.array(SBprof_data['SB_e'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
-                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = autocolours['blue1'])
-        # plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['totmag'])[CHOOSE], yerr = np.array(SBprof_data['totmag_e'])[CHOOSE],
-        #              elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'orange', label = 'Curve of Growth')
-        plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
-        plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
-        plt.xlim([0,None])
-        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
-        lnlist.append(plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise))
-        plt.gca().invert_yaxis()
-        plt.tick_params(labelsize = 14)
-        # ax2 = plt.gca().twinx()
-        # lnlist += ax2.plot(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['pa'])[CHOOSE]/180, color = 'b', label = 'PA/180')
-        # lnlist += ax2.plot(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['ellip'])[CHOOSE], color = 'orange', linestyle = '--', label = 'ellipticity')
-        labs = [l.get_label() for l in lnlist]
-        plt.legend(lnlist, labs, fontsize = 11)
-        # ax2.set_ylabel('Position Angle, Ellipticity', fontsize = 16)
-        # ax2.tick_params(labelsize = 14)
-        plt.tight_layout()
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()                
-
-        useR = np.array(SBprof_data['R'])[CHOOSE]/options['ap_pixscale']
-        useE = np.array(SBprof_data['ellip'])[CHOOSE]
-        usePA = np.array(SBprof_data['pa'])[CHOOSE]
-        ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
-                  [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        fitlim = results['fit R'][-1] if 'fit R' in results else np.inf
-        for i in range(len(useR)):
-            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
-                                        usePA[i], fill = False, linewidth = 1.2*((i+1)/len(useR))**2, color = autocolours['blue1'] if (i % 4 == 0) else autocolours['red1'], linestyle = '-' if useR[i] < fitlim else '--'))
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
+        if fluxunits == 'intensity':
+            Plot_I_Profile(dat, np.array(SBprof_data['R']), np.array(SBprof_data['I']), np.array(SBprof_data['I_e']),
+                           np.array(SBprof_data['ellip']), np.array(SBprof_data['pa']), results, options)
+        else:
+            Plot_SB_Profile(dat, np.array(SBprof_data['R']), np.array(SBprof_data['SB']), np.array(SBprof_data['SB_e']),
+                            np.array(SBprof_data['ellip']), np.array(SBprof_data['pa']), results, options)
         
-    return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format}
+    return {'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data}
 
 def Isophote_Extract_Forced(IMG, results, options):
     """
@@ -314,16 +277,20 @@ def Isophote_Extract(IMG, results, options):
 
 def Isophote_Extract_Photutils(IMG, results, options):
 
-    params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'a3', 'a3_e', 'b3', 'b3_e', 'a4', 'a4_e', 'b4', 'b4_e']
-        
-    SBprof_data = dict((h,[]) for h in params)
-    SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
-                    'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'a3': 'unitless', 'a3_e': 'unitless',
-                    'b3': 'unitless', 'b3_e': 'unitless', 'a4': 'unitless', 'a4_e': 'unitless', 'b4': 'unitless', 'b4_e': 'unitless'}
-    SBprof_format = {'R': '%.4f', 'SB': '%.4f', 'SB_e': '%.4f', 'totmag': '%.4f', 'totmag_e': '%.4f',
-                     'ellip': '%.3f', 'ellip_e': '%.3f', 'pa': '%.2f', 'pa_e': '%.2f', 'a3': '%.3f', 'a3_e': '%.3f',
-                     'b3': '%.3f', 'b3_e': '%.3f', 'a4': '%.3f', 'a4_e': '%.3f', 'b4': '%.3f', 'b4_e': '%.3f'}
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
+    fluxunits = options['ap_fluxunits'] if 'ap_fluxunits' in options else 'mag'
+
+    if fluxunits == 'intensity':
+        params = ['R', 'I', 'I_e', 'totflux', 'totflux_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'a3', 'a3_e', 'b3', 'b3_e', 'a4', 'a4_e', 'b4', 'b4_e']
+        SBprof_units = {'R': 'arcsec', 'I': 'flux*arcsec^-2', 'I_e': 'flux*arcsec^-2', 'totflux': 'flux', 'totflux_e': 'flux',
+                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'a3': 'unitless', 'a3_e': 'unitless',
+                        'b3': 'unitless', 'b3_e': 'unitless', 'a4': 'unitless', 'a4_e': 'unitless', 'b4': 'unitless', 'b4_e': 'unitless'}
+    else:
+        params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'a3', 'a3_e', 'b3', 'b3_e', 'a4', 'a4_e', 'b4', 'b4_e']
+        SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
+                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'a3': 'unitless', 'a3_e': 'unitless',
+                        'b3': 'unitless', 'b3_e': 'unitless', 'a4': 'unitless', 'a4_e': 'unitless', 'b4': 'unitless', 'b4_e': 'unitless'}
+    SBprof_data = dict((h,[]) for h in params)
     res = {}
     dat = IMG - results['background']
     if not 'fit R' in results and not 'fit photutils isolist' in results:
@@ -361,10 +328,16 @@ def Isophote_Extract_Photutils(IMG, results, options):
     
     for i in range(len(isolist.sma)):
         SBprof_data['R'].append(isolist.sma[i]*options['ap_pixscale'])
-        SBprof_data['SB'].append(flux_to_sb(np.median(isolist.sample[i].values[2]), options['ap_pixscale'], zeropoint)) 
-        SBprof_data['SB_e'].append(2.5*isolist.int_err[i]/(isolist.intens[i] * np.log(10))) 
-        SBprof_data['totmag'].append(flux_to_mag(isolist.tflux_e[i], zeropoint)) 
-        SBprof_data['totmag_e'].append(2.5*isolist.rms[i]/(np.sqrt(isolist.npix_e[i])*isolist.tflux_e[i] * np.log(10))) 
+        if fluxunits == 'intensity':
+            SBprof_data['I'].append(np.median(isolist.sample[i].values[2]) / options['ap_pixscale']**2) 
+            SBprof_data['I_e'].append(isolist.int_err[i]) 
+            SBprof_data['totflux'].append(isolist.tflux_e[i]) 
+            SBprof_data['totflux_e'].append(isolist.rms[i]/np.sqrt(isolist.npix_e[i]))
+        else:
+            SBprof_data['SB'].append(flux_to_sb(np.median(isolist.sample[i].values[2]), options['ap_pixscale'], zeropoint)) 
+            SBprof_data['SB_e'].append(2.5*isolist.int_err[i]/(isolist.intens[i] * np.log(10))) 
+            SBprof_data['totmag'].append(flux_to_mag(isolist.tflux_e[i], zeropoint)) 
+            SBprof_data['totmag_e'].append(2.5*isolist.rms[i]/(np.sqrt(isolist.npix_e[i])*isolist.tflux_e[i] * np.log(10))) 
         SBprof_data['ellip'].append(isolist.eps[i]) 
         SBprof_data['ellip_e'].append(isolist.ellip_err[i]) 
         SBprof_data['pa'].append(isolist.pa[i]*180/np.pi) 
@@ -380,50 +353,14 @@ def Isophote_Extract_Photutils(IMG, results, options):
         for k in SBprof_data.keys():
             if not np.isfinite(SBprof_data[k][-1]):
                 SBprof_data[k][-1] = 99.999
-    res.update({'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data, 'prof format': SBprof_format})
+    res.update({'prof header': params, 'prof units': SBprof_units, 'prof data': SBprof_data})
     
     if 'ap_doplot' in options and options['ap_doplot']:
-        CHOOSE = np.logical_and(np.array(SBprof_data['SB']) < 99, np.array(SBprof_data['SB_e']) < 1)
-        if np.sum(CHOOSE) < 5:
-            CHOOSE = np.ones(len(CHOOSE), dtype = bool)
-        errscale = 1.
-        if np.all(np.array(SBprof_data['SB_e'])[CHOOSE] < 0.5):
-            errscale = 1/np.max(np.array(SBprof_data['SB_e'])[CHOOSE])
-        lnlist = []
-        lnlist.append(plt.errorbar(np.array(SBprof_data['R'])[CHOOSE], np.array(SBprof_data['SB'])[CHOOSE], yerr = errscale*np.array(SBprof_data['SB_e'])[CHOOSE],
-                                   elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'r', label = 'Surface Brightness (err$\\cdot$%.1f)' % errscale))
-        plt.errorbar(np.array(SBprof_data['R'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
-                     np.array(SBprof_data['SB'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
-                     yerr = np.array(SBprof_data['SB_e'])[np.logical_and(CHOOSE,np.arange(len(CHOOSE)) % 4 == 0)],
-                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = 'limegreen')
-        plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
-        plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
-        plt.xlim([0,None])
-        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
-        lnlist.append(plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise))
-        plt.gca().invert_yaxis()
-        plt.tick_params(labelsize = 14)
-        labs = [l.get_label() for l in lnlist]
-        plt.legend(lnlist, labs, fontsize = 11)
-        plt.tight_layout()
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()                
-
-        useR = np.array(SBprof_data['R'])[CHOOSE]/options['ap_pixscale']
-        useE = np.array(SBprof_data['ellip'])[CHOOSE]
-        usePA = np.array(SBprof_data['pa'])[CHOOSE]
-        ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(IMG.shape[1],int(results['center']['x']+useR[-1]*1.2))],
-                  [max(0,int(results['center']['y']-useR[-1]*1.2)), min(IMG.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        fitlim = results['fit R'][-1] if 'fit R' in results else np.inf
-        for i in range(len(useR)):
-            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
-                                        usePA[i], fill = False, linewidth = ((i+1)/len(useR))**2, color = 'limegreen' if (i % 4 == 0) else 'r', linestyle = '-' if useR[i] < fitlim else '--'))
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
+        if fluxunits == 'intensity':
+            Plot_I_Profile(dat, np.array(SBprof_data['R']), np.array(SBprof_data['I']), np.array(SBprof_data['I_e']),
+                           np.array(SBprof_data['ellip']), np.array(SBprof_data['pa']), results, options)
+        else:
+            Plot_SB_Profile(dat, np.array(SBprof_data['R']), np.array(SBprof_data['SB']), np.array(SBprof_data['SB_e']),
+                            np.array(SBprof_data['ellip']), np.array(SBprof_data['pa']), results, options)
             
     return IMG, res

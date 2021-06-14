@@ -87,15 +87,7 @@ def PSF_StarFind(IMG, results, options):
         def_clip += 0.1
     psf = np.median(stars['fwhm'][stars['deformity'] < def_clip])
     if 'ap_doplot' in options and options['ap_doplot']:
-        LSBImage(IMG - results['background'], results['background noise'])
-        for i in range(len(stars['fwhm'])):
-            plt.gca().add_patch(Ellipse((stars['x'][i],stars['y'][i]), 20*psf, 20*psf,
-                                        0, fill = False, linewidth = 1.5, color = autocolours['red1'] if stars['deformity'][i] >= def_clip else autocolours['blue1']))
-        plt.tight_layout()
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sPSF_Stars_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
+        Plot_PSF_Stars(IMG, stars['x'], stars['y'], stars['fwhm'], psf, results, options, flagstars = stars['deformity'] >= def_clip)
 
     logging.info('%s: found psf: %f with deformity clip of: %f' % (options['ap_name'],psf, def_clip))
     return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf}
