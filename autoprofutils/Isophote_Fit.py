@@ -38,16 +38,7 @@ def Photutils_Fit(IMG, results, options):
            'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:], 'fit photutils isolist': isolist, 'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]}
     
     if 'ap_doplot' in options and options['ap_doplot']:
-        ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['y']+res['fit R'][-1]*1.2))],
-                  [max(0,int(results['center']['x']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['x']+res['fit R'][-1]*1.2))]]
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        for i in range(len(res['fit R'])):
-            plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
-                                        res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = 300)
-        plt.close()                
+        Plot_Isophote_Fit(dat, res['fit R'], res['fit ellip'], res['fit pa'], res['fit ellip_err'], res['fit pa_err'], results, options)
 
     return IMG, res
 

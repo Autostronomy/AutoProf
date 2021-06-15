@@ -3,6 +3,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _iso_between, Angle_TwoAngles, LSBImage, AddLogo, _average, _scatter, flux_to_sb
+from autoprofutils.Diagnostic_Plots import Plot_Radial_Profiles
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -71,54 +72,6 @@ def Radial_Profiles(IMG, results, options):
         newprofdata[p2] = sbE[sa_i]
         
     if 'ap_doplot' in options and options['ap_doplot']:
-        CHOOSE = SBE < 0.2
-        firstbad = np.argmax(np.logical_not(CHOOSE))
-        if firstbad > 3:
-            CHOOSE[firstbad:] = False
-        ranges = [[max(0,int(results['center']['x']-1.5*R[CHOOSE][-1]-2)), min(IMG.shape[1],int(results['center']['x']+1.5*R[CHOOSE][-1]+2))],
-                  [max(0,int(results['center']['y']-1.5*R[CHOOSE][-1]-2)), min(IMG.shape[0],int(results['center']['y']+1.5*R[CHOOSE][-1]+2))]]
-        # cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
-        # colorind = np.arange(nwedges)/10
-        cmap = matplotlib.cm.get_cmap('hsv')
-        colorind = (np.linspace(0,1 - 1/nwedges,nwedges) + 0.1) % 1
-        for sa_i in range(len(wedgeangles)):
-            CHOOSE = np.logical_and(np.array(sb[sa_i]) < 99, np.array(sbE[sa_i]) < 1)
-            plt.errorbar(np.array(R)[CHOOSE]*options['ap_pixscale'], np.array(sb[sa_i])[CHOOSE], yerr = np.array(sbE[sa_i])[CHOOSE],
-                         elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = cmap(colorind[sa_i]), label = 'Wedge %.2f' % (wedgeangles[sa_i]*180/np.pi))
-        plt.xlabel('Radius [arcsec]', fontsize = 16)
-        plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
-        bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
-        plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel:\n%.1f mag arcsec$^{-2}$' % bkgrdnoise)
-        plt.gca().invert_yaxis()
-        plt.legend(fontsize = 15)
-        plt.tick_params(labelsize = 14)
-        plt.tight_layout()
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sradial_profiles_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
-
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-
-        # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
-        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
-        cx, cy = (results['center']['x'] - ranges[0][0], results['center']['y'] - ranges[1][0])
-        for sa_i in range(len(wedgeangles)):
-            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa), R*np.sin(wedgeangles[sa_i]+pa))
-            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 1.1)
-            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linewidth = 0.7)
-            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa + wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa + wedgewidth/2))
-            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
-            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
-            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa - wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa - wedgewidth/2))
-            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
-            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
-            
-        plt.xlim([0,ranges[0][1] - ranges[0][0]])
-        plt.ylim([0,ranges[1][1] - ranges[1][0]])
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sradial_profiles_wedges_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
+        Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options)
         
     return IMG, {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata}

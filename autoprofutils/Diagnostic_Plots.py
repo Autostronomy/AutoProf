@@ -4,10 +4,11 @@ from astropy.visualization.mpl_normalize import ImageNormalize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import matplotlib.cm as cm
+import matplotlib
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag, PA_shift_convention, autocolours, fluxdens_to_fluxsum_errorprop, mag_to_flux
+from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag, PA_shift_convention, autocolours, autocmap, fluxdens_to_fluxsum_errorprop, mag_to_flux
 
 def Plot_Background(values, bkgrnd, noise, results, options):
 
@@ -201,3 +202,130 @@ def Plot_I_Profile(dat, R, I, I_e, ellip, pa, results, options):
     plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
 
+
+def Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options):
+    
+    R = np.array(results['prof data']['R'])/options['ap_pixscale']
+    SBE = np.array(results['prof data']['SB_e'])
+    zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
+    CHOOSE = SBE < 0.2
+    firstbad = np.argmax(np.logical_not(CHOOSE))
+    if firstbad > 3:
+        CHOOSE[firstbad:] = False
+    ranges = [[max(0,int(results['center']['x']-1.5*R[CHOOSE][-1]-2)), min(dat.shape[1],int(results['center']['x']+1.5*R[CHOOSE][-1]+2))],
+              [max(0,int(results['center']['y']-1.5*R[CHOOSE][-1]-2)), min(dat.shape[0],int(results['center']['y']+1.5*R[CHOOSE][-1]+2))]]
+    # cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
+    # colorind = np.arange(nwedges)/10
+    cmap = cm.get_cmap('hsv')
+    colorind = (np.linspace(0,1 - 1/nwedges,nwedges) + 0.1) % 1
+    for sa_i in range(len(wedgeangles)):
+        CHOOSE = np.logical_and(np.array(sb[sa_i]) < 99, np.array(sbE[sa_i]) < 1)
+        plt.errorbar(np.array(R)[CHOOSE]*options['ap_pixscale'], np.array(sb[sa_i])[CHOOSE], yerr = np.array(sbE[sa_i])[CHOOSE],
+                     elinewidth = 1, linewidth = 0, marker = '.', markersize = 5, color = cmap(colorind[sa_i]), label = 'Wedge %.2f' % (wedgeangles[sa_i]*180/np.pi))
+    plt.xlabel('Radius [arcsec]', fontsize = 16)
+    plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
+    bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
+    plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel:\n%.1f mag arcsec$^{-2}$' % bkgrdnoise)
+    plt.gca().invert_yaxis()
+    plt.legend(fontsize = 15)
+    plt.tick_params(labelsize = 14)
+    plt.tight_layout()
+    if not ('ap_nologo' in options and options['ap_nologo']):
+        AddLogo(plt.gcf())
+    plt.savefig('%sradial_profiles_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.close()
+    
+    LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+    
+    # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
+    #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
+    cx, cy = (results['center']['x'] - ranges[0][0], results['center']['y'] - ranges[1][0])
+    for sa_i in range(len(wedgeangles)):
+        endx, endy = (R*np.cos(wedgeangles[sa_i]+pa), R*np.sin(wedgeangles[sa_i]+pa))
+        plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 1.1)
+        plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linewidth = 0.7)
+        endx, endy = (R*np.cos(wedgeangles[sa_i]+pa + wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa + wedgewidth/2))
+        plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
+        plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
+        endx, endy = (R*np.cos(wedgeangles[sa_i]+pa - wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa - wedgewidth/2))
+        plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
+        plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
+            
+    plt.xlim([0,ranges[0][1] - ranges[0][0]])
+    plt.ylim([0,ranges[1][1] - ranges[1][0]])
+    if not ('ap_nologo' in options and options['ap_nologo']):
+        AddLogo(plt.gcf())
+    plt.savefig('%sradial_profiles_wedges_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.close()
+
+
+def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
+
+    zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
+    count = 0
+    for rd in [1,-1]:
+        for ang in [1, -1]:
+            key = (rd,ang)
+            #cmap = matplotlib.cm.get_cmap('viridis_r')
+            norm = matplotlib.colors.Normalize(vmin=0, vmax=R[-1]*options['ap_pixscale'])
+            for pi, pR in enumerate(R):
+                if pi % 3 != 0:
+                    continue
+                CHOOSE = np.logical_and(np.array(sb[key][pi]) < 99, np.array(sbE[key][pi]) < 1)
+                plt.errorbar(np.array(R)[CHOOSE]*options['ap_pixscale'], np.array(sb[key][pi])[CHOOSE], yerr = np.array(sbE[key][pi])[CHOOSE],
+                             elinewidth = 1, linewidth = 0, marker = '.', markersize = 3, color = autocmap.reversed()(norm(pR*options['ap_pixscale'])))
+            plt.xlabel('%s-axis position on line [arcsec]' % ('Major' if 'ap_axialprof_parallel' in options and options['ap_axialprof_parallel'] else 'Minor'), fontsize = 16)
+            plt.ylabel('Surface Brightness [mag arcsec$^{-2}$]', fontsize = 16)
+            # cb1 = matplotlib.colorbar.ColorbarBase(plt.gca(), cmap=cmap,
+            #                                        norm=norm)
+            cb1 = plt.colorbar(matplotlib.cm.ScalarMappable(norm = norm, cmap = autocmap.reversed()))
+            cb1.set_label('%s-axis position of line [arcsec]'  % ('Minor' if 'ap_axialprof_parallel' in options and options['ap_axialprof_parallel'] else 'Major'), fontsize = 16)
+            # plt.colorbar()
+            bkgrdnoise = -2.5*np.log10(results['background noise']) + zeropoint + 2.5*np.log10(options['ap_pixscale']**2)
+            plt.axhline(bkgrdnoise, color = 'purple', linewidth = 0.5, linestyle = '--', label = '1$\\sigma$ noise/pixel: %.1f mag arcsec$^{-2}$' % bkgrdnoise)
+            plt.gca().invert_yaxis()
+            plt.legend(fontsize = 15)
+            plt.tick_params(labelsize = 14)
+            plt.title('%sR : pa%s90' % ('+' if rd > 0 else '-', '+' if ang > 0 else '-'), fontsize = 15)
+            plt.tight_layout()
+            if not ('ap_nologo' in options and options['ap_nologo']):
+                AddLogo(plt.gcf())
+            plt.savefig('%saxial_profile_q%i_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', count, options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+            plt.close()
+            count += 1
+
+
+    CHOOSE = np.array(results['prof data']['SB_e']) < 0.2
+    firstbad = np.argmax(np.logical_not(CHOOSE))
+    if firstbad > 3:
+        CHOOSE[firstbad:] = False
+    outto = np.array(results['prof data']['R'])[CHOOSE][-1]*1.5/options['ap_pixscale']
+    ranges = [[max(0,int(results['center']['x']-outto-2)), min(dat.shape[1],int(results['center']['x']+outto+2))],
+              [max(0,int(results['center']['y']-outto-2)), min(dat.shape[0],int(results['center']['y']+outto+2))]]
+    LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+    count = 0
+    cmap = matplotlib.cm.get_cmap('hsv')
+    colorind = (np.linspace(0,1 - 1/4,4) + 0.1) % 1
+    colours = list(cmap(c) for c in colorind) #['b', 'r', 'orange', 'limegreen']
+    for rd in [1,-1]:
+        for ang in [1, -1]:
+            key = (rd,ang)
+            branch_pa = (pa + ang*np.pi/2) % (2*np.pi)
+            for pi, pR in enumerate(R):
+                if pi % 3 != 0:
+                    continue
+                start = np.array([results['center']['x'] + ang*rd*pR*np.cos(pa + (0 if ang > 0 else np.pi)),
+                                  results['center']['y'] + ang*rd*pR*np.sin(pa + (0 if ang > 0 else np.pi))])
+                end = start + R[-1]*np.array([np.cos(branch_pa), np.sin(branch_pa)])
+                start -= np.array([ranges[0][0], ranges[1][0]])
+                end -= np.array([ranges[0][0], ranges[1][0]])
+                plt.plot([start[0],end[0]], [start[1],end[1]], linewidth = 0.5, color = colours[count], label = ('%sR : pa%s90' % ('+' if rd > 0 else '-', '+' if ang > 0 else '-')) if pi == 0 else None)
+            count += 1
+    plt.legend()
+    plt.xlim([0,ranges[0][1] - ranges[0][0]])
+    plt.ylim([0,ranges[1][1] - ranges[1][0]])
+    if not ('ap_nologo' in options and options['ap_nologo']):
+        AddLogo(plt.gcf())
+    plt.savefig('%saxial_profile_lines_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
+    plt.close()        
+    
