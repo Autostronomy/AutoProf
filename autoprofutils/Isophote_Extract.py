@@ -110,7 +110,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
     # Compute Curve of Growth from SB profile
     if fluxunits == 'intensity':
         cog, cogE = fluxdens_to_fluxsum_errorprop(R[:end_prof]* options['ap_pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
-                                                  Ee[:end_prof], N = 100, symmetric_error = True)
+                                                  np.abs(Ee[:end_prof]), N = 100, symmetric_error = True)
         if cog is None:
             cog = -99.999*np.ones(len(R))
             cogE = -99.999*np.ones(len(R))
@@ -118,7 +118,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             cog[np.logical_not(np.isfinite(cog))] = -99.999
             cogE[cog < 0] = -99.999
         cogfix, cogfixE = fluxdens_to_fluxsum_errorprop(R[:end_prof] * options['ap_pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
-                                                        Ee[:end_prof], N = 100, symmetric_error = True)
+                                                        np.abs(Ee[:end_prof]), N = 100, symmetric_error = True)
         if cogfix is None:
             cogfix = -99.999*np.ones(len(R))
             cogfixE = -99.999*np.ones(len(R))
@@ -127,7 +127,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             cogfixE[cogfix < 0] = -99.999
     else:
         cog, cogE = SBprof_to_COG_errorprop(R[:end_prof]* options['ap_pixscale'], np.array(sb), np.array(sbE), 1. - E[:end_prof],
-                                            Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
+                                            np.abs(Ee[:end_prof]), N = 100, method = 0, symmetric_error = True)
         if cog is None:
             cog = 99.999*np.ones(len(R))
             cogE = 99.999*np.ones(len(R))
@@ -135,7 +135,7 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             cog[np.logical_not(np.isfinite(cog))] = 99.999
             cogE[cog > 99] = 99.999
         cogfix, cogfixE = SBprof_to_COG_errorprop(R[:end_prof] * options['ap_pixscale'], np.array(sbfix), np.array(sbfixE), 1. - E[:end_prof],
-                                                  Ee[:end_prof], N = 100, method = 0, symmetric_error = True)
+                                                  np.abs(Ee[:end_prof]), N = 100, method = 0, symmetric_error = True)
         if cogfix is None:
             cogfix = 99.999*np.ones(len(R))
             cogfixE = 99.999*np.ones(len(R))

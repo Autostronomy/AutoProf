@@ -541,7 +541,11 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         badcount = 0
         while (flux[-1] > max(flux[0]/2, background_noise) or len(R) < 5) and len(R) < 50: #len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
             R.append(R[-1] + fwhm_guess/10)
-            isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
+            try:
+                isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
+            except:
+                R = np.zeros(101) # cause finder to skip this star
+                break
             coefs = fft(isovals)
             deformity.append(np.sum(np.abs(coefs[1:5])) / (len(isovals)*(max(np.median(isovals),0)+background_noise))) # np.sqrt(np.abs(coefs[0]))
             # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
@@ -822,9 +826,9 @@ def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, m
     COG_results[0][SB_CHOOSE] = SBprof_to_COG(R[SB_CHOOSE], SB[SB_CHOOSE], axisratio[SB_CHOOSE], method = method)
     for i in range(1,N):
         # Randomly sampled SB profile
-        tempSB = np.random.normal(loc = SB, scale = SBE)
+        tempSB = np.random.normal(loc = SB, scale = np.abs(SBE))
         # Randomly sampled axis ratio profile
-        tempq = np.random.normal(loc = axisratio, scale = axisratioE)
+        tempq = np.random.normal(loc = axisratio, scale = np.abs(axisratioE))
         # Compute COG with sampled data
         COG_results[i][SB_CHOOSE] = SBprof_to_COG(R[SB_CHOOSE], tempSB[SB_CHOOSE], tempq[SB_CHOOSE], method = method)
 
