@@ -36,8 +36,8 @@ def Isophote_Init_Forced(IMG, results, options):
 
 def _fitEllip_loss(e, dat, r, p, c, n):
     isovals = _iso_extract(dat,r,e,p,c, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
-    coefs = fft(isovals)
-    return np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals))+n))
+    coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
+    return  (iqr(isovals,rng=[16,84])/2 + np.abs(coefs[2]) / len(isovals))/(max(0,np.median(isovals))+n)
 
 def Isophote_Initialize(IMG, results, options):
     """

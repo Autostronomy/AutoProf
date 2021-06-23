@@ -62,7 +62,7 @@ def _pa_smooth(R, PA, deg):
 
 def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., name = ''):
 
-    isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True)
+    isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True, interp_method = 'bicubic')
     
     if mask is None:
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
@@ -139,7 +139,6 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     ellip = np.ones(len(sample_radii))*results['init ellip']
     pa = np.ones(len(sample_radii))*results['init pa']
     logging.debug('%s: sample radii: %s' % (options['ap_name'], str(sample_radii)))
-    
     # Fit isophotes
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
@@ -151,7 +150,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     count_nochange = 0
     use_center = copy(results['center'])
     I = np.array(range(len(sample_radii)))
-    while count < 300 and count_nochange < (3*len(sample_radii)):
+    while count < 300 and count_nochange < (3*(len(sample_radii)-1)):
         # Periodically include logging message
         if count % 10 == 0:
             logging.debug('%s: count: %i' % (options['ap_name'],count))
@@ -179,7 +178,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 count_nochange = 0
             else:
                 count_nochange += 1
-                
+
     logging.info('%s: Completed isohpote fit in %i itterations' % (options['ap_name'], count))
     # detect collapsed center
     ######################################################################
@@ -187,12 +186,11 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         if (_inv_x_to_eps(ellip[i]) - _inv_x_to_eps(ellip[i+1])) > 0.5:
             ellip[:i+1] = ellip[i+1]
             pa[:i+1] = pa[i+1]
-
+            
     # Compute errors
     ######################################################################
     ellip_err, pa_err = _FFT_Robust_Errors(dat, sample_radii, ellip, pa, use_center, results['background noise'],
                                            mask = mask, reg_scale = regularize_scale, name = options['ap_name'])
-    
     # Plot fitting results
     ######################################################################    
     if 'ap_doplot' in options and options['ap_doplot']:

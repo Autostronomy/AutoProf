@@ -313,11 +313,11 @@ def interpolate_Lanczos(dat, X, Y, scale):
     https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html
     """
     flux = []
-    XX, YY = np.meshgrid(np.arange(-scale + 1, scale + 1), np.arange(-scale + 1, scale + 1))
+    XX, YY = np.meshgrid(np.arange(round(-scale + 1), round(scale + 1)), np.arange(round(-scale + 1), round(scale + 1)))
     
     for i in range(len(X)):
-        chunk = dat[int(np.floor(Y[i])) - scale + 1: int(np.floor(Y[i])) + scale + 1,
-                    int(np.floor(X[i])) - scale + 1: int(np.floor(X[i])) + scale + 1]
+        chunk = dat[int(round(np.floor(Y[i]) - scale + 1)): int(round(np.floor(Y[i]) + scale + 1)),
+                    int(round(np.floor(X[i]) - scale + 1)): int(round(np.floor(X[i]) + scale + 1))]
         Lx = np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i]))/scale) * XX
         Ly = (np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i]))/scale) * YY.T).T
         L = Lx * Ly
@@ -366,7 +366,7 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
             return fluxes
         
 def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False,
-                 rad_interp = 30, interp_method = 'bicubic', interp_window = 3, sigmaclip = False,
+                 rad_interp = 30, interp_method = 'lanczos', interp_window = 5, sigmaclip = False,
                  sclip_iterations = 10, sclip_nsigma = 5):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
@@ -725,9 +725,9 @@ def fluxdens_to_fluxsum_errorprop(R, I, IE, axisratio, axisratioE = None, N = 10
     sum_results[0][I_CHOOSE] = fluxdens_to_fluxsum(R[I_CHOOSE], I[I_CHOOSE], axisratio[I_CHOOSE])
     for i in range(1,N):
         # Randomly sampled SB profile
-        tempI = np.random.normal(loc = I, scale = IE)
+        tempI = np.random.normal(loc = I, scale = np.abs(IE))
         # Randomly sampled axis ratio profile
-        tempq = np.clip(np.random.normal(loc = axisratio, scale = axisratioE), a_min = 1e-3, a_max = 1-1e-3)
+        tempq = np.clip(np.random.normal(loc = axisratio, scale = np.abs(axisratioE)), a_min = 1e-3, a_max = 1-1e-3)
         # Compute COG with sampled data
         sum_results[i][I_CHOOSE] = fluxdens_to_fluxsum(R[I_CHOOSE], tempI[I_CHOOSE], tempq[I_CHOOSE])
 

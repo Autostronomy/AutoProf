@@ -181,10 +181,11 @@ def Center_Peak(IMG, results, options):
 def _hillclimb_loss(x, IMG, PSF, noise):
     center_loss = 0
     for rr in range(3):
-        isovals = _iso_extract(IMG,(rr+1.)*PSF/2,0.,
-                               0.,{'x': np.clip(x[0], a_min = 2, a_max = IMG.shape[1]-3),
-                                   'y': np.clip(x[1], a_min = 2, a_max = IMG.shape[0]-3)},
-                               more = False, rad_interp = 10*PSF)
+        RR = (rr+1.)*PSF/2
+        isovals = _iso_extract(IMG,RR,0.,
+                               0.,{'x': np.clip(x[0], a_min = np.ceil(3+RR), a_max = np.floor(IMG.shape[1]-4-RR)),
+                                   'y': np.clip(x[1], a_min = np.ceil(3+RR), a_max = np.floor(IMG.shape[0]-4-RR))},
+                               more = False, rad_interp = 10*PSF, interp_method = 'lanczos', interp_window = 3)
         coefs = fft(isovals)
         center_loss += np.abs(coefs[1])/(len(isovals)*(max(0,np.median(isovals)) + noise))
     return center_loss
