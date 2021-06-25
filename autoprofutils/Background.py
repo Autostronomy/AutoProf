@@ -15,7 +15,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import AddLogo, Smooth_Mode
-
+from autoprofutils.Diagnostic_Plots import Plot_Background
 
 def Background_Mode(IMG, results, options):
     """
@@ -57,23 +57,8 @@ def Background_Mode(IMG, results, options):
     if not np.isfinite(uncertainty):
         uncertainty = noise / np.sqrt(len(values))
     
-    if 'ap_doplot' in options and options['ap_doplot']:    
-        hist, bins = np.histogram(values[np.logical_and((values-bkgrnd) < 20*noise, (values-bkgrnd) > -5*noise)], bins = max(10,int(np.sqrt(len(values))/2)))
-        plt.figure(figsize = (5,5))
-        plt.bar(bins[:-1], np.log10(hist), width = bins[1] - bins[0], color = 'k', label = 'pixel values')
-        plt.axvline(bkgrnd, color = '#84DCCF', label = 'sky level: %.5e' % bkgrnd)
-        plt.axvline(bkgrnd - noise, color = '#84DCCF', linewidth = 0.7, linestyle = '--', label = '1$\\sigma$ noise/pix: %.5e' % noise)
-        plt.axvline(bkgrnd + noise, color = '#84DCCF', linewidth = 0.7, linestyle = '--')
-        plt.xlim([bkgrnd-5*noise, bkgrnd+20*noise])
-        plt.legend(fontsize = 12)
-        plt.tick_params(labelsize = 12)
-        plt.xlabel('Pixel Flux', fontsize = 16)
-        plt.ylabel('log$_{10}$(count)', fontsize = 16)
-        plt.tight_layout()
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sBackground_hist_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()        
+    if 'ap_doplot' in options and options['ap_doplot']:
+        Plot_Background(values, bkgrnd, noise, results, options)
         
     return IMG, {'background': bkgrnd,
                  'background noise': noise,
@@ -114,6 +99,9 @@ def Background_DilatedSources(IMG, results, options):
     bkgrnd = options['ap_set_background'] if 'ap_set_background' in options else np.median(IMG[np.logical_not(mask)])
     noise = options['ap_set_background_noise'] if 'ap_set_background_noise' in options else iqr(IMG[np.logical_not(mask)],rng = [16,84])/2
     uncertainty = noise/np.sqrt(np.sum(np.logical_not(mask)))
+    
+    if 'ap_doplot' in options and options['ap_doplot']:
+        Plot_Background(IMG[np.logical_not(mask)].ravel(), bkgrnd, noise, results, options)
     return IMG, {'background': bkgrnd,
                  'background noise': noise,
                  'background uncertainty': uncertainty,
@@ -127,6 +115,8 @@ def Background_Basic(IMG, results, options):
     bkgrnd = options['ap_set_background'] if 'ap_set_background' in options else np.mean(IMG[mask])
     noise = options['ap_set_background_noise'] if 'ap_set_background_noise' in options else np.std(IMG[mask])
     uncertainty = noise / np.sqrt(len(IMG[mask].ravel()))
+    if 'ap_doplot' in options and options['ap_doplot']:
+        Plot_Background(IMG[mask].ravel(), bkgrnd, noise, results, options)
     return IMG, {'background': bkgrnd,
                  'background noise': noise,
                  'background uncertainty': uncertainty,

@@ -18,6 +18,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, Angle_TwoAngles, Angle_Scatter, LSBImage, AddLogo, PA_shift_convention, autocolours
+from autoprofutils.Diagnostic_Plots import Plot_Isophote_Fit
 
 def Photutils_Fit(IMG, results, options):
     """
@@ -37,16 +38,7 @@ def Photutils_Fit(IMG, results, options):
            'fit pa': isolist.pa[1:], 'fit pa_err': isolist.pa_err[1:], 'fit photutils isolist': isolist, 'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % isolist.sma[-1]}
     
     if 'ap_doplot' in options and options['ap_doplot']:
-        ranges = [[max(0,int(results['center']['y']-res['fit R'][-1]*1.2)), min(dat.shape[1],int(results['center']['y']+res['fit R'][-1]*1.2))],
-                  [max(0,int(results['center']['x']-res['fit R'][-1]*1.2)), min(dat.shape[0],int(results['center']['x']+res['fit R'][-1]*1.2))]]
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        for i in range(len(res['fit R'])):
-            plt.gca().add_patch(Ellipse((int(res['fit R'][-1]*1.2),int(res['fit R'][-1]*1.2)), 2*res['fit R'][i], 2*res['fit R'][i]*(1. - res['fit ellip'][i]),
-                                        res['fit pa'][i]*180/np.pi, fill = False, linewidth = 0.5, color = 'r'))
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = 300)
-        plt.close()                
+        Plot_Isophote_Fit(dat, res['fit R'], res['fit ellip'], res['fit pa'], res['fit ellip_err'], res['fit pa_err'], results, options)
 
     return IMG, res
 
@@ -70,7 +62,7 @@ def _pa_smooth(R, PA, deg):
 
 def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., name = ''):
 
-    isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True)
+    isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True, interp_method = 'bicubic')
     
     if mask is None:
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
@@ -147,7 +139,6 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     ellip = np.ones(len(sample_radii))*results['init ellip']
     pa = np.ones(len(sample_radii))*results['init pa']
     logging.debug('%s: sample radii: %s' % (options['ap_name'], str(sample_radii)))
-    
     # Fit isophotes
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
@@ -159,7 +150,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     count_nochange = 0
     use_center = copy(results['center'])
     I = np.array(range(len(sample_radii)))
-    while count < 300 and count_nochange < (3*len(sample_radii)):
+    while count < 300 and count_nochange < (3*(len(sample_radii)-1)):
         # Periodically include logging message
         if count % 10 == 0:
             logging.debug('%s: count: %i' % (options['ap_name'],count))
@@ -187,7 +178,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 count_nochange = 0
             else:
                 count_nochange += 1
-                
+
     logging.info('%s: Completed isohpote fit in %i itterations' % (options['ap_name'], count))
     # detect collapsed center
     ######################################################################
@@ -195,39 +186,15 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         if (_inv_x_to_eps(ellip[i]) - _inv_x_to_eps(ellip[i+1])) > 0.5:
             ellip[:i+1] = ellip[i+1]
             pa[:i+1] = pa[i+1]
-
+            
     # Compute errors
     ######################################################################
     ellip_err, pa_err = _FFT_Robust_Errors(dat, sample_radii, ellip, pa, use_center, results['background noise'],
                                            mask = mask, reg_scale = regularize_scale, name = options['ap_name'])
-    
     # Plot fitting results
     ######################################################################    
     if 'ap_doplot' in options and options['ap_doplot']:
-        ranges = [[max(0,int(use_center['x']-sample_radii[-1]*1.2)), min(dat.shape[1],int(use_center['x']+sample_radii[-1]*1.2))],
-                  [max(0,int(use_center['y']-sample_radii[-1]*1.2)), min(dat.shape[0],int(use_center['y']+sample_radii[-1]*1.2))]]
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
-        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys', norm = ImageNormalize(stretch=LogStretch())) 
-        for i in range(len(sample_radii)):
-            plt.gca().add_patch(Ellipse((use_center['x'] - ranges[0][0],use_center['y'] - ranges[1][0]), 2*sample_radii[i], 2*sample_radii[i]*(1. - ellip[i]),
-                                        pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = autocolours['red1']))
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
-        
-        plt.errorbar(np.array(sample_radii) * options['ap_pixscale'], ellip, yerr = ellip_err, color = autocolours['red1'], label = 'ellip [1-b/a]')
-        plt.errorbar(np.array(sample_radii) * options['ap_pixscale'], pa/np.pi, yerr = pa_err/np.pi, color = autocolours['blue1'], label = 'pa/$\\pi$')
-        plt.ylim([-0.01, 1.02])
-        plt.xlabel('Semi-major axis [arcsec]')
-        plt.ylabel('Elliptical Parameter Profile')
-        plt.legend()
-        plt.tight_layout()
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sphaseprofile_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()
+        Plot_Isophote_Fit(dat, sample_radii, ellip, pa, ellip_err, pa_err, results, options)
 
     res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
            'fit ellip_err': ellip_err, 'fit pa_err': pa_err,

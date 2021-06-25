@@ -222,7 +222,7 @@ def EllipseModel_General(IMG, results, options):
     MM = np.zeros(XX.shape, dtype = np.float32)
     Prox = np.zeros(XX.shape, dtype = np.float32) + np.inf
     WINDOW = [[0,XX.shape[0]],[0, XX.shape[1]]]
-    for r in reversed(np.logspace(np.log10(R[0]/2),np.log10(R[-1]),int(len(R)*2*(option['ap_ellipsemodel_resolution'] if 'ap_ellipsemodel_resolution' in options else 1)))):
+    for r in reversed(np.logspace(np.log10(R[0]/2),np.log10(R[-1]),int(len(R)*2*(options['ap_ellipsemodel_resolution'] if 'ap_ellipsemodel_resolution' in options else 1)))):
         if r < (R[-1]/2):
             WINDOW = [[max(0,int(results['center']['y'] - float(ranges[1][0]) - r*1.5)),min(XX.shape[0],int(results['center']['y'] - float(ranges[1][0]) + r*1.5))],
                       [max(0,int(results['center']['x'] - float(ranges[0][0]) - r*1.5)),min(XX.shape[1],int(results['center']['x'] - float(ranges[0][0]) + r*1.5))]]

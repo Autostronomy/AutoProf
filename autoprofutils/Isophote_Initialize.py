@@ -6,6 +6,7 @@ import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo, PA_shift_convention, Sigma_Clip_Upper, autocolours
+from autoprofutils.Diagnostic_Plots import Plot_Isophote_Init_Ellipse, Plot_Isophote_Init_Optimize
 import logging
 from copy import copy
 from astropy.visualization import SqrtStretch, LogStretch
@@ -35,8 +36,8 @@ def Isophote_Init_Forced(IMG, results, options):
 
 def _fitEllip_loss(e, dat, r, p, c, n):
     isovals = _iso_extract(dat,r,e,p,c, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
-    coefs = fft(isovals)
-    return np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals))+n))
+    coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
+    return  (iqr(isovals,rng=[16,84])/2 + np.abs(coefs[2]) / len(isovals))/(max(0,np.median(isovals))+n)
 
 def Isophote_Initialize(IMG, results, options):
     """
@@ -99,43 +100,8 @@ def Isophote_Initialize(IMG, results, options):
     circ_ellipse_radii = np.array(circ_ellipse_radii)
     
     if 'ap_doplot' in options and options['ap_doplot']:
-
-        ranges = [[max(0,int(results['center']['x']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[1],int(results['center']['x']+circ_ellipse_radii[-1]*1.5))],
-                  [max(0,int(results['center']['y']-circ_ellipse_radii[-1]*1.5)), min(dat.shape[0],int(results['center']['y']+circ_ellipse_radii[-1]*1.5))]]
-        
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),
-        #            origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
-        plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*circ_ellipse_radii[-1], 2*circ_ellipse_radii[-1]*(1. - ellip),
-                                    phase*180/np.pi, fill = False, linewidth = 1, color = autocolours['blue1']))
-        plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = autocolours['red1'])
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
-        plt.close()
-
-        fig, ax = plt.subplots(2,1, figsize = (6,6))
-        plt.subplots_adjust(hspace = 0.01, wspace = 0.01)
-        ax[0].plot(circ_ellipse_radii[:-1], ((-np.angle(allphase)/2) % np.pi)*180/np.pi, color = 'k')
-        ax[0].axhline(phase*180/np.pi, color = 'r')
-        ax[0].axhline((phase+pa_err)*180/np.pi, color = 'r', linestyle = '--')
-        ax[0].axhline((phase-pa_err)*180/np.pi, color = 'r', linestyle = '--')
-        #ax[0].axvline(circ_ellipse_radii[-2], color = 'orange', linestyle = '--')
-        ax[0].set_xlabel('Radius [pix]', fontsize = 16)
-        ax[0].set_ylabel('FFT$_{1}$ phase [deg]', fontsize = 16)
-        ax[0].tick_params(labelsize = 12)
-        ax[1].plot(test_ellip, test_f2, color = 'k')
-        ax[1].axvline(ellip, color = 'r')
-        ax[1].axvline(ellip + ellip_err, color = 'r', linestyle = '--')
-        ax[1].axvline(ellip - ellip_err, color = 'r', linestyle = '--')
-        ax[1].set_xlabel('Ellipticity [1 - b/a]', fontsize = 16)
-        ax[1].set_ylabel('Loss [FFT$_{2}$/med(flux)]', fontsize = 16)
-        ax[1].tick_params(labelsize = 14)
-        plt.tight_layout()
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
-        plt.close()
+        Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, options)
+        Plot_Isophote_Init_Optimize(circ_ellipse_radii, allphase, phase, pa_err, test_ellip, test_f2, ellip, ellip_err, results, options)
 
     auxmessage = 'global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix' % (ellip, ellip_err,
                                                                                            PA_shift_convention(phase)*180/np.pi,

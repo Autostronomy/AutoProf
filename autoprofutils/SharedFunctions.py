@@ -313,11 +313,11 @@ def interpolate_Lanczos(dat, X, Y, scale):
     https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html
     """
     flux = []
-    XX, YY = np.meshgrid(np.arange(-scale + 1, scale + 1), np.arange(-scale + 1, scale + 1))
+    XX, YY = np.meshgrid(np.arange(round(-scale + 1), round(scale + 1)), np.arange(round(-scale + 1), round(scale + 1)))
     
     for i in range(len(X)):
-        chunk = dat[int(np.floor(Y[i])) - scale + 1: int(np.floor(Y[i])) + scale + 1,
-                    int(np.floor(X[i])) - scale + 1: int(np.floor(X[i])) + scale + 1]
+        chunk = dat[int(round(np.floor(Y[i]) - scale + 1)): int(round(np.floor(Y[i]) + scale + 1)),
+                    int(round(np.floor(X[i]) - scale + 1)): int(round(np.floor(X[i]) + scale + 1))]
         Lx = np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i]))/scale) * XX
         Ly = (np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i]))/scale) * YY.T).T
         L = Lx * Ly
@@ -366,7 +366,7 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
             return fluxes
         
 def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False,
-                 rad_interp = 30, interp_method = 'bicubic', interp_window = 3, sigmaclip = False,
+                 rad_interp = 30, interp_method = 'lanczos', interp_window = 5, sigmaclip = False,
                  sclip_iterations = 10, sclip_nsigma = 5):
     """
     Internal, basic function for extracting the pixel fluxes along and isophote
@@ -541,7 +541,11 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         badcount = 0
         while (flux[-1] > max(flux[0]/2, background_noise) or len(R) < 5) and len(R) < 50: #len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
             R.append(R[-1] + fwhm_guess/10)
-            isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
+            try:
+                isovals = _iso_extract(IMG, R[-1], 0., 0., {'x': newcenter[0], 'y': newcenter[1]})
+            except:
+                R = np.zeros(101) # cause finder to skip this star
+                break
             coefs = fft(isovals)
             deformity.append(np.sum(np.abs(coefs[1:5])) / (len(isovals)*(max(np.median(isovals),0)+background_noise))) # np.sqrt(np.abs(coefs[0]))
             # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
@@ -725,9 +729,9 @@ def fluxdens_to_fluxsum_errorprop(R, I, IE, axisratio, axisratioE = None, N = 10
     sum_results[0][I_CHOOSE] = fluxdens_to_fluxsum(R[I_CHOOSE], I[I_CHOOSE], axisratio[I_CHOOSE])
     for i in range(1,N):
         # Randomly sampled SB profile
-        tempI = np.random.normal(loc = I, scale = IE)
+        tempI = np.random.normal(loc = I, scale = np.abs(IE))
         # Randomly sampled axis ratio profile
-        tempq = np.clip(np.random.normal(loc = axisratio, scale = axisratioE), a_min = 1e-3, a_max = 1-1e-3)
+        tempq = np.clip(np.random.normal(loc = axisratio, scale = np.abs(axisratioE)), a_min = 1e-3, a_max = 1-1e-3)
         # Compute COG with sampled data
         sum_results[i][I_CHOOSE] = fluxdens_to_fluxsum(R[I_CHOOSE], tempI[I_CHOOSE], tempq[I_CHOOSE])
 
@@ -822,9 +826,9 @@ def SBprof_to_COG_errorprop(R, SB, SBE, axisratio, axisratioE = None, N = 100, m
     COG_results[0][SB_CHOOSE] = SBprof_to_COG(R[SB_CHOOSE], SB[SB_CHOOSE], axisratio[SB_CHOOSE], method = method)
     for i in range(1,N):
         # Randomly sampled SB profile
-        tempSB = np.random.normal(loc = SB, scale = SBE)
+        tempSB = np.random.normal(loc = SB, scale = np.abs(SBE))
         # Randomly sampled axis ratio profile
-        tempq = np.random.normal(loc = axisratio, scale = axisratioE)
+        tempq = np.random.normal(loc = axisratio, scale = np.abs(axisratioE))
         # Compute COG with sampled data
         COG_results[i][SB_CHOOSE] = SBprof_to_COG(R[SB_CHOOSE], tempSB[SB_CHOOSE], tempq[SB_CHOOSE], method = method)
 
