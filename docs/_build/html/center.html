@@ -189,18 +189,15 @@ Taking the average direction, flux values are sampled from the current center ou
 A parabola is fit to the flux values and the center is then updated to the maximum of the parabola.
 This is repeated until the update steps become negligible.
 At this point, a Nelder-Mead simplex optimizer is used for fine tuning to find a minimum in FFT first coefficient magnitude.</p>
-<p>Output format:
-.. code-block:: python</p>
-<blockquote>
-<div><dl>
-<dt>{‘center’: {‘x’: , # x coordinate of the center (pix)</dt><dd><blockquote>
-<div><p>‘y’: }, # y coordinate of the center (pix)</p>
-</div></blockquote>
-<p>‘auxfile center’: # optional, message for aux file to record galaxy center (string)</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
+<p>Output format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>
+
+ <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record galaxy center (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="config-parameters">
 <h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>

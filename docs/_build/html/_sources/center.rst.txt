@@ -16,6 +16,7 @@ This is repeated until the update steps become negligible.
 At this point, a Nelder-Mead simplex optimizer is used for fine tuning to find a minimum in FFT first coefficient magnitude.
 
 Output format:
+
 .. code-block:: python
    
    {'center': {'x': , # x coordinate of the center (pix)
