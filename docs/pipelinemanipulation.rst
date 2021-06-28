@@ -12,6 +12,7 @@ In this way you can add to or alter the methods used by AutoProf in it's pipelin
 Each of the methods in *How Does AutoProf Work?* has a pipeline label, this is how the code identifies the functions and their outputs.
 Thus, one can create their own version of any method and modify the pipeline by assigning the function to that label.
 For example, if you wrote a new center finding method, you could update the pipeline by including:
+
 .. code-block:: python
    
   ap_new_pipeline_methods = {'center': My_Center_Finding_Method}
@@ -22,6 +23,7 @@ However, AutoProf will only look for methods that are in the *pipeline_steps* ob
 
 Every function in the pipeline has the same template.
 To add a new function, or replace an existing one, you must format it as:
+
 .. code-block:: python
    
   def My_New_Function(IMG, results, options):
@@ -45,17 +47,20 @@ In this way you can alter the order of operations used by AutoProf in it's pipel
 
 Each function must be run in a specific order as they often rely on the output from another step.
 The basic pipeline step order is:
+
 .. code-block:: python
    
   ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
 
 For forced photometry the default pipeline step order is:
+
 .. code-block:: python
    
   ['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
 
 If you would like to change this behaviour, just provide a *ap_new_pipeline_steps* list.
 For example if you wished to use forced photometry but you want to re-fit the center you can change *center forced* back to *center* with:
+
 .. code-block:: python
    
   ap_new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
@@ -64,6 +69,7 @@ in your config file.
 
 You can create your own order, or add in new functions by supplying a new list.
 For example, if you had your own method to run after the centering function you could do so by including:
+
 .. code-block:: python
    
   ap_new_pipeline_methods = {'mymethod': My_New_Method}

@@ -192,25 +192,22 @@ If enough isophotes are flagged then the fit may have failed.</p>
 If many of the isophotes have large FFT coefficients, or if a few of the isophotes have very large FFT coefficients then the fit is flagged as potentially failed.</p>
 <p>A third check is similar to the first, except that it compares the interquartile range from the fitted isophotes to those using just the global position angle and ellipticity values.</p>
 <p>Finally, the fourth check compares the total magnitude of the galaxy based on integrating the surface brightness profile against a simple sum of the flux within the isophotes (with a star mask applied).</p>
-<p>Output format:
-.. code-block:: python</p>
-<blockquote>
-<div><dl>
-<dt>{‘checkfit’: {‘anything’: , # True if the test was passed, False if the test failed (bool)</dt><dd><blockquote>
-<div><p>‘you’: , # True if the test was passed, False if the test failed (bool)
-‘want’: , # True if the test was passed, False if the test failed (bool)
-‘to’: , # True if the test was passed, False if the test failed (bool)
-‘put’: }, # True if the test was passed, False if the test failed (bool)</p>
-</div></blockquote>
-<p>‘auxfile checkfit anything’: ,# optional aux file message for pass/fail of test (string)
-‘auxfile checkfit you’: ,# optional aux file message for pass/fail of test (string)
-‘auxfile checkfit want’: ,# optional aux file message for pass/fail of test (string)
-‘auxfile checkfit to’: ,# optional aux file message for pass/fail of test (string)
-‘auxfile checkfit put’: # optional aux file message for pass/fail of test (string)</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
+<p>Output format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;checkfit&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;anything&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+              <span class="s1">&#39;you&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+              <span class="s1">&#39;want&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+              <span class="s1">&#39;to&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+              <span class="s1">&#39;put&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+
+ <span class="s1">&#39;auxfile checkfit anything&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+ <span class="s1">&#39;auxfile checkfit you&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+ <span class="s1">&#39;auxfile checkfit want&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+ <span class="s1">&#39;auxfile checkfit to&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+ <span class="s1">&#39;auxfile checkfit put&#39;</span><span class="p">:</span> <span class="c1"># optional aux file message for pass/fail of test (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="config-parameters">
 <h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>

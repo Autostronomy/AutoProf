@@ -186,17 +186,15 @@
 First, the method extracts the border of the image, taking all pixels that are within 1/5th the image width of the edge.
 Then it constructs a density profile in flux space and finds the peak.
 This peak is used as the background level, a few rounds of sigma clipping are applied to remove bright signals before taking the background noise level (measured as an interquartile range).</p>
-<p>Output format:
-.. code-block:: python</p>
-<blockquote>
-<div><dl class="simple">
-<dt>{‘background’: , # flux value representing the background level (float)</dt><dd><p>‘background noise’: ,# measure of scatter around the background level (float)
-‘background uncertainty’: ,# optional, uncertainty on background level (float)
-‘auxfile background’: # optional, message for aux file to record background level (string)</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
+<p>Output format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># flux value representing the background level (float)</span>
+ <span class="s1">&#39;background noise&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># measure of scatter around the background level (float)</span>
+ <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional, uncertainty on background level (float)</span>
+ <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record background level (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="config-parameters">
 <h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>

@@ -22,6 +22,7 @@ An uncertainty for each ellipticity and position angle value is determined by ta
 This is a very rough estimate of the uncertainty, but works sufficiently well in the outskirts.
 
 Output format:
+
 .. code-block:: python
    
   {'fit R': , # Semi-major axis for ellip and pa profile (list)

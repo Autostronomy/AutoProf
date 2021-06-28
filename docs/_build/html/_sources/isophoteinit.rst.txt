@@ -17,6 +17,7 @@ To compute the error on position angle we use the standard deviation of the oute
 For ellipticity the error is computed by optimizing the ellipticity for multiple isophotes within 1 PSF length of each other.
 
 Output format:
+
 .. code-block:: python
    
   {'init ellip': , # Ellipticity of the global fit (float)

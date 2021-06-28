@@ -189,17 +189,15 @@ The average direction for the outer isophotes is taken as the position angle of 
 Second, with fixed position angle the ellipticity is optimized to minimize the amplitude of the second FFT coefficient relative to the median flux in an isophote.</p>
 <p>To compute the error on position angle we use the standard deviation of the outer values from step one.
 For ellipticity the error is computed by optimizing the ellipticity for multiple isophotes within 1 PSF length of each other.</p>
-<p>Output format:
-.. code-block:: python</p>
-<blockquote>
-<div><dl class="simple">
-<dt>{‘init ellip’: , # Ellipticity of the global fit (float)</dt><dd><p>‘init pa’: ,# Position angle of the global fit (float)
-‘init R’: ,# Semi-major axis length of global fit (float)
-‘auxfile initialize’: # optional, message for aux file to record the global ellipticity and postition angle (string)</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
+<p>Output format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;init ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity of the global fit (float)</span>
+ <span class="s1">&#39;init pa&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Position angle of the global fit (float)</span>
+ <span class="s1">&#39;init R&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Semi-major axis length of global fit (float)</span>
+ <span class="s1">&#39;auxfile initialize&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="config-parameters">
 <h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>

@@ -15,6 +15,7 @@ For any sampling beyond the outer radius from the *Isophotal Fitting* step, a co
 Within 1 PSF, a circular isophote is used.
 
 Output format:
+
 .. code-block:: python
    
   {'prof header': , # List of strings indicating the order to write the .prof file data (list)

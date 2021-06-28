@@ -14,6 +14,7 @@ This is recorded as the FWHM for that star. A collection of 50 stars are identif
 half are kept, a median is taken as the image PSF.
 
 Output format:
+
 .. code-block:: python
    
   {'psf fwhm': ,# estimate of the fwhm of the PSF (float)

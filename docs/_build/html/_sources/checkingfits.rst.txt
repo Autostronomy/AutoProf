@@ -23,6 +23,7 @@ A third check is similar to the first, except that it compares the interquartile
 Finally, the fourth check compares the total magnitude of the galaxy based on integrating the surface brightness profile against a simple sum of the flux within the isophotes (with a star mask applied).
 
 Output format:
+
 .. code-block:: python
    
   {'checkfit': {'anything': , # True if the test was passed, False if the test failed (bool)

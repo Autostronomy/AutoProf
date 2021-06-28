@@ -15,6 +15,7 @@ Note, the new branch can even be the branch you started on so watch out for infi
 For example, in a large sample, one may wish to process edge-on galaxies differently than the others, but it may not be clear which galaxies fit the edge-on criteria until the photometry is done.
 In this example, one could have AutoProf perform photometry up to the point of the *isophoteinit* step, then the rest of the functions could be chosen based on the ellipticity of the initialized ellipse.
 To make this work one could add:
+
 .. code-block:: python
    
   def My_Edgeon_Fit_Method(IMG, results, options):

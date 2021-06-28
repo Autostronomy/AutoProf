@@ -188,17 +188,15 @@ Geometric sampling is the default as it is faster.
 Once the sampling profile of semi-major axis values has been chosen, the function interpolates (spline) the position angle and ellipticity profiles at the requested values.
 For any sampling beyond the outer radius from the <em>Isophotal Fitting</em> step, a constant value is used.
 Within 1 PSF, a circular isophote is used.</p>
-<p>Output format:
-.. code-block:: python</p>
-<blockquote>
-<div><dl class="simple">
-<dt>{‘prof header’: , # List of strings indicating the order to write the .prof file data (list)</dt><dd><p>‘prof units’: , # Dictionary with keys from header, values are strings that give the units for each variable (dict)
-‘prof data’: , # Dictionary with keys from header, values are lists with the data (dict)
-‘prof format’: # Dictionary with keys from header, values are format strings for precision of writing the data (dict)</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
+<p>Output format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># List of strings indicating the order to write the .prof file data (list)</span>
+ <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Dictionary with keys from header, values are strings that give the units for each variable (dict)</span>
+ <span class="s1">&#39;prof data&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Dictionary with keys from header, values are lists with the data (dict)</span>
+ <span class="s1">&#39;prof format&#39;</span><span class="p">:</span> <span class="c1"># Dictionary with keys from header, values are format strings for precision of writing the data (dict)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="config-parameters">
 <h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>

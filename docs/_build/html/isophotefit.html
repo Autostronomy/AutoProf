@@ -193,19 +193,17 @@ Thus, all the isophotes are coupled and tend to fit smoothly varying isophotes.
 When the optimization has completed three rounds without any isophotes updating, the profile is assumed to have converged.</p>
 <p>An uncertainty for each ellipticity and position angle value is determined by taking the RMS between the fitted values and a smoothed polynomial fit values for 4 points.
 This is a very rough estimate of the uncertainty, but works sufficiently well in the outskirts.</p>
-<p>Output format:
-.. code-block:: python</p>
-<blockquote>
-<div><dl class="simple">
-<dt>{‘fit R’: , # Semi-major axis for ellip and pa profile (list)</dt><dd><p>‘fit ellip’: , # Ellipticity values at each corresponding R value (list)
-‘fit ellip_err’: , # Optional, uncertainty on ellipticity values (list)
-‘fit pa’: , # Position angle values at each corresponding R value (list)
-‘fit pa_err’: , # Optional, uncertainty on position angle values (list)
-‘auxfile fitlimit’: # optional, message ofr aux file to record fitting limit semi-major axis (string)</p>
-</dd>
-</dl>
-<p>}</p>
-</div></blockquote>
+<p>Output format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Semi-major axis for ellip and pa profile (list)</span>
+ <span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity values at each corresponding R value (list)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Optional, uncertainty on ellipticity values (list)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Position angle values at each corresponding R value (list)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Optional, uncertainty on position angle values (list)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, message ofr aux file to record fitting limit semi-major axis (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="config-parameters">
 <h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>

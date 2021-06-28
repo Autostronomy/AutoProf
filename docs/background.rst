@@ -13,6 +13,7 @@ Then it constructs a density profile in flux space and finds the peak.
 This peak is used as the background level, a few rounds of sigma clipping are applied to remove bright signals before taking the background noise level (measured as an interquartile range).
 
 Output format:
+
 .. code-block:: python
    
    {'background': , # flux value representing the background level (float)

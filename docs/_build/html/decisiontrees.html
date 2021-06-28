@@ -186,24 +186,21 @@ When switching branches, AutoProf will start at the beginning of the new branch.
 Note, the new branch can even be the branch you started on so watch out for infinite loops!</p>
 <p>For example, in a large sample, one may wish to process edge-on galaxies differently than the others, but it may not be clear which galaxies fit the edge-on criteria until the photometry is done.
 In this example, one could have AutoProf perform photometry up to the point of the <em>isophoteinit</em> step, then the rest of the functions could be chosen based on the ellipticity of the initialized ellipse.
-To make this work one could add:
-.. code-block:: python</p>
-<blockquote>
-<div><dl>
-<dt>def My_Edgeon_Fit_Method(IMG, results, options):</dt><dd><p>N = 100
-return IMG, {‘fit ellip’: np.array([results[‘init ellip’]]*N), ‘fit pa’: np.array([results[‘init pa’]]*N),</p>
-<blockquote>
-<div><p>‘fit ellip_err’: np.array([0.05]*N), ‘fit pa_err’: np.array([5*np.pi/180]*N),
-‘fit R’: np.logspace(0,np.log10(results[‘init R’]*2),N)}</p>
-</div></blockquote>
-</dd>
-<dt>ap_new_pipeline_methods = {‘branch edgeon’: lambda IMG,results,options: (‘edgeon’ if results[‘init ellip’] &gt; 0.8 else ‘standard’, {}),</dt><dd><p>‘edgeonfit’: My_Edgeon_Fit_Method}</p>
-</dd>
-<dt>ap_new_pipeline_steps = {‘head’: [‘background’, ‘psf’, ‘center’, ‘isophoteinit’, ‘branch edgeon’],</dt><dd><p>‘standard’: [‘isophotefit’, ‘isophoteextract’, ‘checkfit’, ‘writeprof’],
-‘edgeon’: [‘edgeonfit’, ‘isophoteextract’, ‘writeprof’, ‘axialprofiles’, ‘radialprofiles’]}</p>
-</dd>
-</dl>
-</div></blockquote>
+To make this work one could add:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">My_Edgeon_Fit_Method</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;init ellip&#39;</span><span class="p">]]</span><span class="o">*</span><span class="n">N</span><span class="p">),</span> <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;init pa&#39;</span><span class="p">]]</span><span class="o">*</span><span class="n">N</span><span class="p">),</span>
+                 <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.05</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="p">),</span> <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="p">),</span>
+                 <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;init R&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">),</span><span class="n">N</span><span class="p">)}</span>
+
+<span class="n">ap_new_pipeline_methods</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;branch edgeon&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">IMG</span><span class="p">,</span><span class="n">results</span><span class="p">,</span><span class="n">options</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;edgeon&#39;</span> <span class="k">if</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;init ellip&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span> <span class="k">else</span> <span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="p">{}),</span>
+                           <span class="s1">&#39;edgeonfit&#39;</span><span class="p">:</span> <span class="n">My_Edgeon_Fit_Method</span><span class="p">}</span>
+
+<span class="n">ap_new_pipeline_steps</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;head&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteinit&#39;</span><span class="p">,</span> <span class="s1">&#39;branch edgeon&#39;</span><span class="p">],</span>
+                         <span class="s1">&#39;standard&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;isophotefit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract&#39;</span><span class="p">,</span> <span class="s1">&#39;checkfit&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">],</span>
+                         <span class="s1">&#39;edgeon&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;edgeonfit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">,</span> <span class="s1">&#39;axialprofiles&#39;</span><span class="p">,</span> <span class="s1">&#39;radialprofiles&#39;</span><span class="p">]}</span>
+</pre></div>
+</div>
 <p>in the config file. This config file would apply a standard pipeline for face-on or moderately inclined galaxies, but a special pipeline for edge-on galaxies which includes a user defined fitting function <em>My_Edgeon_Fit_Method</em>, axial profiles, and radial profiles. This example is included in the test folder as the <em>test_tree_config.py</em> example config file.</p>
 </div>
 
