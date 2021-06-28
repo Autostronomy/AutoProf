@@ -43,27 +43,24 @@ Getting Started
     citation.rst
     license.rst
 
-..
-   User Documentation
-   ==================
+User Documentation
+==================
 
-   .. toctree::
-       :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-       background.rst
-       detection.rst
-       grouping.rst
-       aperture.rst
-       psf.rst
-       epsf.rst
-       psf_matching.rst
-       segmentation.rst
-       centroids.rst
-       morphology.rst
-       isophote.rst
-       geometry.rst
-       datasets.rst
-       utils.rst
+   background.rst
+   psf.rst
+   center.rst
+   isophoteinit.rst
+   isophotefit.rst
+   isophoteextracting.rst
+   checkingfits.rst
+   writeprofile.rst
+   pipelinemanipulation.rst
+   decisiontrees.rst
+   extramethods.rst
+   
 
 |br|
 
