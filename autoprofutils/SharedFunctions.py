@@ -63,7 +63,7 @@ def LSBImage(dat, noise):
     plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
     
 def AddLogo(fig, loc = [0.8,0.01,0.844/5, 0.185/5], white = False):
-    im = plt.imread(get_sample_data(os.environ['AUTOPROF'] + ('AP_logo_white.png' if white else 'AP_logo.png')))
+    im = plt.imread(get_sample_data(os.environ['AUTOPROF'] + 'docs/_static/' + ('AP_logo_white.png' if white else 'AP_logo.png')))
     newax = fig.add_axes(loc, zorder=1000)
     if white:
         newax.imshow(np.zeros(im.shape) + np.array([0,0,0,1]))

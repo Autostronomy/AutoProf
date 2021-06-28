@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Installation &mdash; AutoProf 0.8 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="AutoProf" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> AutoProf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-install">Basic Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#issues">Issues</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>numpy, scipy, matplotlib, astropy, photutils, scikit-learn</p>
+<p>If you have difficulty running AutoProf, it is possible that one of these dependencies is not in its latest (Python3) version and you should try updating.</p>
+</div>
+<div class="section" id="basic-install">
+<h2>Basic Install<a class="headerlink" href="#basic-install" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><dl class="simple">
+<dt>Download the package from: <a class="reference external" href="https://github.com/ConnorStoneAstro/AutoProf">AutoProf</a>::</dt><dd><p>cd /where/you/want/AutoProf/to/live/
+git clone <a class="reference external" href="mailto:git&#37;&#52;&#48;github&#46;com">git<span>&#64;</span>github<span>&#46;</span>com</a>:ConnorStoneAstro/AutoProf.git</p>
+</dd>
+</dl>
+<p>If you experience difficulty cloning the package, you may download a zip file of the package from the github page.</p>
+</li>
+<li><dl class="simple">
+<dt>Set an environment variable and alias the AutoProf function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). ::</dt><dd><p>export AUTOPROF=’/path/to/AutoProf/’
+alias autoprof=’/path/to/AutoProf/autoprof.py’</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Run the test cases to see that all is well::</dt><dd><p>cd /path/to/AutoProf/test/
+autoprof test_config.py
+autoprof test_forced_config.py Forced.log
+autoprof test_batch_config.py Batch.log
+autoprof test_tree_config.py Tree.log</p>
+</dd>
+</dl>
+<p>This will test a basic AutoProf run on a single galaxy, forced photometry of the galaxy on itself, and batch photometry for multiple images (which are actually the same in this case), and pipeline decision tree construction, respectively. You can also run all of these tests in one command by executing the <em>runtests.sh</em> script in bash.</p>
+</li>
+</ol>
+<p>#. Check the diagnostic plots to see what AutoProf can do! You should get a fit that looks like this one, and a whole lot more images to show what is going on.
+.. image:: _static/fit_ellipse_testimage.jpg</p>
+</div>
+<div class="section" id="issues">
+<h2>Issues<a class="headerlink" href="#issues" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Each analysis run should end with the words “Processing Complete!” if you don’t get that, then the pipeline probably crashed at some point, check the log file (probably called <em>AutoProf.log</em>) for more information</p></li>
+<li><dl class="simple">
+<dt>If you get <em>Permission Denied</em>, it is possible that the file is not listed as executable and you need to run::</dt><dd><p>cd /path/to/AutoProf/
+chmod 755 autoprof.py</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>If you have everything set up, but are getting strange errors such as <em>ImportError: No module named photutils</em> even when photutils is already installed it is possible that your python3 installation lives somewhere unusual. Try executing::</dt><dd><p>which python3</p>
+</dd>
+<dt>to see where your python3 installation lives. If the result is something other than <em>/usr/bin/python3</em> then you need to make a small edit to the <em>autoprof.py</em> file. In the first line make the change from::</dt><dd><p>#!/bin/bash/python3</p>
+</dd>
+<dt>to instead be::</dt><dd><p>#!/wherever/your/python3/is/installed</p>
+</dd>
+</dl>
+</li>
+<li><p>If you are using python 3.9 you may have difficulties installing photutils. For now you will have to revert to python 3.8</p></li>
+</ul>
+<p>For other issues contact <a class="reference external" href="mailto:connor&#46;stone&#37;&#52;&#48;queensu&#46;ca">connor<span>&#46;</span>stone<span>&#64;</span>queensu<span>&#46;</span>ca</a> for help. The code has been tested on Linux (mint) and Mac machines.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="index.html" class="btn btn-neutral float-left" title="AutoProf" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Connor Stone.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
