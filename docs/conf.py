@@ -17,6 +17,8 @@ sys.path.insert(0, os.path.abspath('../autoprofutils'))
 import sphinx_rtd_theme
 import autoprofutils
 
+import numpy, matplotlib, photutils, scipy, astropy, sklearn
+
 # -- Project information -----------------------------------------------------
 
 project = 'AutoProf'
@@ -60,4 +62,4 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 
-autodoc_mock_imports = ['numpy', 'scipy', 'matplotlib', 'astropy', 'photutils', 'scikit-learn']
+autodoc_mock_imports = ['numpy', 'scipy', 'matplotlib', 'astropy', 'photutils', 'sklearn']
