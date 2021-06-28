@@ -89,7 +89,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started-on-a-single-image">Getting Started On A Single Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-processing-modes">Other Processing Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-autoprof-in-batch-mode">Running AutoProf In Batch Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forced-photometry">Forced Photometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-forced-photometry">Batch Forced Photometry</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">GNU GENERAL PUBLIC LICENSE</a></li>
@@ -162,6 +169,109 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>AutoProf is a <code class="xref py py-func docutils literal notranslate"><span class="pre">Pipeline()</span></code> building utility</p>
+<div class="section" id="getting-started-on-a-single-image">
+<h2>Getting Started On A Single Image<a class="headerlink" href="#getting-started-on-a-single-image" title="Permalink to this headline">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode</dt>
+<dd class="field-odd"><p>image</p>
+</dd>
+</dl>
+<p>The fastest way to run AutoProf for yourself will be for a single image.
+The steps below describe how to get AutoProf to run on an image that you provide.
+To run in batch mode for many images there isn’t much to change, but that will be described later.</p>
+<ol class="arabic">
+<li><p>Copy the <em>test_config.py</em> script from the AutoProf test directory to the directory with your image.</p></li>
+<li><dl class="simple">
+<dt>In the config file, edit the following lines::</dt><dd><p>ap_pixscale = # your image scale in arcsec/pix
+ap_image_file = # filename of your image</p>
+</dd>
+</dl>
+<p>and change any other options as they pertain to your image. If you aren’t sure what to do, you can just remove an option from the config file. All that is truly needed to get started is <em>ap_process_mode</em>, <em>ap_pixscale</em>, and <em>ap_image_file</em>.</p>
+</li>
+<li><dl class="simple">
+<dt>Run AutoProf on the configuration file::</dt><dd><p>autoprof config.py</p>
+</dd>
+</dl>
+</li>
+<li><p>Check the .prof file for the surface brightness profile.</p></li>
+</ol>
+<p>Check the .aux file for extra information, including checks on the success of the fit.
+Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
+Also, look at the diagnostic plots to see if the fit appears to have worked.</p>
+<p>Note that AutoProf has a list of arguments that it is expecting (see <em>List Of AutoProf Arguments</em> for a full list) and it only checks for those.
+You can therefore make any variables or functions you need in the config file to construct your list of image files so long as they don’t conflict with any of the expected AutoProf arguments.</p>
+</div>
+<div class="section" id="other-processing-modes">
+<h2>Other Processing Modes<a class="headerlink" href="#other-processing-modes" title="Permalink to this headline">¶</a></h2>
+<p>There are 4 main processing modes for AutoProf: image, image list, forced image, forced image list.
+The subsections below will outline how to use each mode.</p>
+</div>
+<div class="section" id="running-autoprof-in-batch-mode">
+<h2>Running AutoProf In Batch Mode<a class="headerlink" href="#running-autoprof-in-batch-mode" title="Permalink to this headline">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode</dt>
+<dd class="field-odd"><p>image list</p>
+</dd>
+</dl>
+<p>Running AutoProf in batch mode is relatively simple once you have learned how to work with a single image.
+For an example batch processing config file, see the <em>test_batch_config.py</em> file in the AutoProf test directory.
+You must modify the <em>ap_process_mode</em> command to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_process_mode</span> <span class="o">=</span> <span class="s1">&#39;image list&#39;</span>
+</pre></div>
+</div>
+<p>Then, some config parameters will need to be turned into lists.
+The <em>ap_image_file</em> variable should now be a list of image files, instead of a single string.
+Any other config parameter can be made into a list or left as a single value.
+If a parameter is a list, it must be the same length as the <em>ap_image_file</em> list, if it is a single value then that value will be used for all instances.
+For example, the <em>ap_pixscale</em> variable can be left as a float value and AutoProf will use that same value for all images.</p>
+<p>Also unique to batch processing is the availability of parallel processing with the <em>ap_n_procs</em> variable.
+Since image analysis is an “embarrassingly parallel problem” AutoProf can analyze many images simultaneously.
+It is suggested that you set <em>ap_n_procs</em> equal to the number of processors you have, although you may need to experiment.
+Especially if you don’t have much ram, this may be the limiting factor.</p>
+</div>
+<div class="section" id="forced-photometry">
+<h2>Forced Photometry<a class="headerlink" href="#forced-photometry" title="Permalink to this headline">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode</dt>
+<dd class="field-odd"><p>forced image</p>
+</dd>
+</dl>
+<p>Forced photometry allows one to take an isophotal solution from one image and apply it (kind of) blindly to another image.
+An example forced photometry config file can be found in AutoProf test directory and is named <em>test_forced_config.py</em> which will only work once <em>test_config.py</em> has been run.
+Forced photometry can be used for multi-band images from the same telescope, or between telescopes.
+One may need to adjust for different pixel scales, or have to re-center between images, but the ultimate goal is to apply the same ellipticity and position angle profile to the galaxy in each band.
+Running forced photometry is very similar to the other processing modes with one extra required parameter (the pre-fit .prof file).</p>
+<ol class="arabic simple">
+<li><p>Copy the <em>test_forced_config.py</em> script to the directory with your image.</p></li>
+<li><dl class="simple">
+<dt>In the config file, edit the following lines::</dt><dd><p>ap_pixscale = # your image scale in arcsec/pix
+ap_image_file = # filename of your image
+ap_forcing_profile = # filename for the .prof output</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Run AutoProf on the configuration file::</dt><dd><p>autoprof forced_config.py</p>
+</dd>
+</dl>
+</li>
+<li><p>Check the .prof file for the surface brightness profile.</p></li>
+</ol>
+<p>Check the .aux file for extra information, including checks on the success of the fit.
+Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
+Also, look at the diagnostic plots to see if the fit appears to have aligned properly with the new image.</p>
+</div>
+<div class="section" id="batch-forced-photometry">
+<h2>Batch Forced Photometry<a class="headerlink" href="#batch-forced-photometry" title="Permalink to this headline">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode</dt>
+<dd class="field-odd"><p>forced image list</p>
+</dd>
+</dl>
+<p>You may be able to guess at this point.
+To run forced photometry in batch mode, start with a single image forced photometry config file and convert single values into lists wherever necessary.</p>
+</div>
 </div>
 
 
