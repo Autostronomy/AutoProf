@@ -1,5 +1,0 @@
-========
-AutoProf
-========
-
-Test documentation here
