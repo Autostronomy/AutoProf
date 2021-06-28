@@ -13,20 +13,23 @@ Basic Install
 -------------
 
 1. Download the package from: `AutoProf <https://github.com/ConnorStoneAstro/AutoProf>`_::
-    cd /where/you/want/AutoProf/to/live/
-    git clone git@github.com:ConnorStoneAstro/AutoProf.git
+     cd /where/you/want/AutoProf/to/live/
+     git clone git@github.com:ConnorStoneAstro/AutoProf.git
+   
    If you experience difficulty cloning the package, you may download a zip file of the package from the github page.
 #. Set an environment variable and alias the AutoProf function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). ::
-    export AUTOPROF='/path/to/AutoProf/'
-    alias autoprof='/path/to/AutoProf/autoprof.py'
+     export AUTOPROF='/path/to/AutoProf/'
+     alias autoprof='/path/to/AutoProf/autoprof.py'
 #. Run the test cases to see that all is well::
-    cd /path/to/AutoProf/test/
-    autoprof test_config.py
-    autoprof test_forced_config.py Forced.log
-    autoprof test_batch_config.py Batch.log
-    autoprof test_tree_config.py Tree.log
+     cd /path/to/AutoProf/test/
+     autoprof test_config.py
+     autoprof test_forced_config.py Forced.log
+     autoprof test_batch_config.py Batch.log
+     autoprof test_tree_config.py Tree.log
+   
    This will test a basic AutoProf run on a single galaxy, forced photometry of the galaxy on itself, and batch photometry for multiple images (which are actually the same in this case), and pipeline decision tree construction, respectively. You can also run all of these tests in one command by executing the *runtests.sh* script in bash.
 #. Check the diagnostic plots to see what AutoProf can do! You should get a fit that looks like this one, and a whole lot more images to show what is going on.
+
 .. image:: _static/fit_ellipse_testimage.jpg
 
 Issues

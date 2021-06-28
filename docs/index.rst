@@ -38,11 +38,10 @@ Getting Started
     :maxdepth: 1
 
     install.rst
-    ..
-       getting_started.rst
-       contributing.rst
-       citation.rst
-       license.rst
+    getting_started.rst
+    contributing.rst
+    citation.rst
+    license.rst
 
 ..
    User Documentation
