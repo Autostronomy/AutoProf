@@ -2,7 +2,9 @@
 Getting Started
 ===============
 
-AutoProf is a :func:`~Pipeline` building utility
+AutoProf is a :py:class:`~Pipeline` building utility
+
+testing :py:func:`~autoprofutils.Background.Background_Mode` another one
 
 Getting Started On A Single Image
 ---------------------------------
@@ -15,11 +17,13 @@ To run in batch mode for many images there isn't much to change, but that will b
 
 1. Copy the *test_config.py* script from the AutoProf test directory to the directory with your image. 
 #. In the config file, edit the following lines::
+   
     ap_pixscale = # your image scale in arcsec/pix
     ap_image_file = # filename of your image
      
    and change any other options as they pertain to your image. If you aren't sure what to do, you can just remove an option from the config file. All that is truly needed to get started is *ap_process_mode*, *ap_pixscale*, and *ap_image_file*.
 #. Run AutoProf on the configuration file::
+   
     autoprof config.py
      
 #. Check the .prof file for the surface brightness profile.
@@ -72,11 +76,13 @@ Running forced photometry is very similar to the other processing modes with one
 
 1. Copy the *test_forced_config.py* script to the directory with your image. 
 #. In the config file, edit the following lines::
+   
     ap_pixscale = # your image scale in arcsec/pix
     ap_image_file = # filename of your image
     ap_forcing_profile = # filename for the .prof output
      
 #. Run AutoProf on the configuration file::
+   
     autoprof forced_config.py
      
 #. Check the .prof file for the surface brightness profile.

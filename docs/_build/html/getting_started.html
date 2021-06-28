@@ -169,7 +169,8 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>AutoProf is a <code class="xref py py-func docutils literal notranslate"><span class="pre">Pipeline()</span></code> building utility</p>
+<p>AutoProf is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Pipeline</span></code> building utility</p>
+<p>testing <code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Mode()</span></code> another one</p>
 <div class="section" id="getting-started-on-a-single-image">
 <h2>Getting Started On A Single Image<a class="headerlink" href="#getting-started-on-a-single-image" title="Permalink to this headline">¶</a></h2>
 <dl class="field-list simple">
@@ -182,17 +183,17 @@ The steps below describe how to get AutoProf to run on an image that you provide
 To run in batch mode for many images there isn’t much to change, but that will be described later.</p>
 <ol class="arabic">
 <li><p>Copy the <em>test_config.py</em> script from the AutoProf test directory to the directory with your image.</p></li>
-<li><dl class="simple">
-<dt>In the config file, edit the following lines::</dt><dd><p>ap_pixscale = # your image scale in arcsec/pix
-ap_image_file = # filename of your image</p>
-</dd>
-</dl>
+<li><p>In the config file, edit the following lines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_pixscale</span> <span class="o">=</span> <span class="c1"># your image scale in arcsec/pix</span>
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="c1"># filename of your image</span>
+</pre></div>
+</div>
 <p>and change any other options as they pertain to your image. If you aren’t sure what to do, you can just remove an option from the config file. All that is truly needed to get started is <em>ap_process_mode</em>, <em>ap_pixscale</em>, and <em>ap_image_file</em>.</p>
 </li>
-<li><dl class="simple">
-<dt>Run AutoProf on the configuration file::</dt><dd><p>autoprof config.py</p>
-</dd>
-</dl>
+<li><p>Run AutoProf on the configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autoprof</span> <span class="n">config</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
 </li>
 <li><p>Check the .prof file for the surface brightness profile.</p></li>
 </ol>
@@ -242,19 +243,19 @@ An example forced photometry config file can be found in AutoProf test directory
 Forced photometry can be used for multi-band images from the same telescope, or between telescopes.
 One may need to adjust for different pixel scales, or have to re-center between images, but the ultimate goal is to apply the same ellipticity and position angle profile to the galaxy in each band.
 Running forced photometry is very similar to the other processing modes with one extra required parameter (the pre-fit .prof file).</p>
-<ol class="arabic simple">
+<ol class="arabic">
 <li><p>Copy the <em>test_forced_config.py</em> script to the directory with your image.</p></li>
-<li><dl class="simple">
-<dt>In the config file, edit the following lines::</dt><dd><p>ap_pixscale = # your image scale in arcsec/pix
-ap_image_file = # filename of your image
-ap_forcing_profile = # filename for the .prof output</p>
-</dd>
-</dl>
+<li><p>In the config file, edit the following lines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_pixscale</span> <span class="o">=</span> <span class="c1"># your image scale in arcsec/pix</span>
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="c1"># filename of your image</span>
+<span class="n">ap_forcing_profile</span> <span class="o">=</span> <span class="c1"># filename for the .prof output</span>
+</pre></div>
+</div>
 </li>
-<li><dl class="simple">
-<dt>Run AutoProf on the configuration file::</dt><dd><p>autoprof forced_config.py</p>
-</dd>
-</dl>
+<li><p>Run AutoProf on the configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autoprof</span> <span class="n">forced_config</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
 </li>
 <li><p>Check the .prof file for the surface brightness profile.</p></li>
 </ol>
