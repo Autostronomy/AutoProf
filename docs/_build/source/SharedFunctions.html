@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>SharedFunctions module &mdash; AutoProf 0.8 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> AutoProf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AutoProf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>SharedFunctions module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/source/SharedFunctions.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-SharedFunctions">
+<span id="sharedfunctions-module"></span><h1>SharedFunctions module<a class="headerlink" href="#module-SharedFunctions" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.AddLogo">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">AddLogo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.8,</span> <span class="pre">0.01,</span> <span class="pre">0.1688,</span> <span class="pre">0.037]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">white</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.AddLogo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.Angle_Average">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_Average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.Angle_Average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the average for a list of angles, which may wrap around a cyclic boundary.</p>
+<p>a: list of angles in the range [0,2pi]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.Angle_Median">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_Median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.Angle_Median" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the median for a list of angles, which may wrap around a cyclic boundary.</p>
+<p>a: list of angles in the range [0,2pi]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.Angle_Scatter">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_Scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.Angle_Scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the scatter for a list of angles, which may wrap around a cyclic boundary.</p>
+<p>a: list of angles in the range [0,2pi]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.Angle_TwoAngles">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_TwoAngles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.Angle_TwoAngles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the angle between two vectors at angles a1 and a2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.GetOptions">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">GetOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.GetOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract all of the AutoProf user optionional parameters form the config file.
+User options are identified as any python object that starts with “ap_” in the
+variable name.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.ISB_to_muSB">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">ISB_to_muSB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.ISB_to_muSB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts surface brightness in Lsolar pc^-2 into mag arcsec^-2</p>
+<p>I: surface brightness, (L/Lsun) pc^-2
+band: Photometric band in which measurements were taken
+returns: surface brightness in mag arcsec^-2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.LSBImage">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">LSBImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.LSBImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.L_to_mag">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">L_to_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Le</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.L_to_mag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Absolute magnitude of a star given its luminosity and distance
+L: Luminosity in solar luminosities
+band: Photometric band in which measurements were taken
+Le: Uncertainty in luminosity
+zeropoint: user defined zero point</p>
+<p>returns: Absolute magnitude</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.PA_shift_convention">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">PA_shift_convention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.PA_shift_convention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alternates between standard mathematical convention for angles, and astronomical position angle convention.
+The standard convention is to measure angles counter-clockwise relative to the positive x-axis
+THe astronomical convention is to measure angles counter-clockwise relative to the positive y-axis</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.Read_Image">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Read_Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.Read_Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a galaxy image given a file name. In a fits image the data is assumed to exist in the
+primary HDU unless given ‘hdulelement’. In a numpy file, it is assumed that only one image
+is in the file.</p>
+<p>filename: A string containing the full path to an image file</p>
+<p>returns: Extracted image data as numpy 2D array</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.SBprof_to_COG">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">SBprof_to_COG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SB</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.SBprof_to_COG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a surface brightness profile to a curve of growth by integrating
+the SB profile in flux units then converting back to mag units. Two methods
+are implemented, one using the trapezoid method and one assuming constant
+SB between isophotes. Trapezoid method is in principle more accurate, but
+may become unstable with erratic data.</p>
+<p>R: Radius in arcsec
+SB: surface brightness in mag arcsec^-2
+axisratio: b/a indicating degree of isophote ellipticity
+method: 0 for trapezoid, 1 for constant</p>
+<p>returns: magnitude values at each radius of the profile in mag</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.SBprof_to_COG_errorprop">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">SBprof_to_COG_errorprop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SB</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SBE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratioE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.SBprof_to_COG_errorprop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a surface brightness profile to a curve of growth by integrating
+the SB profile in flux units then converting back to mag units. Two methods
+are implemented, one using the trapezoid method and one assuming constant
+SB between isophotes. Trapezoid method is in principle more accurate, but
+may become unstable with erratic data. An uncertainty profile is also
+computed, from a given SB uncertainty profile and optional axisratio
+uncertainty profile.</p>
+<p>R: Radius in arcsec
+SB: surface brightness in mag arcsec^-2
+SBE: surface brightness uncertainty relative mag arcsec^-2
+axisratio: b/a indicating degree of isophote ellipticity
+axisratioE: uncertainty in b/a
+N: number of iterations for computing uncertainty
+method: 0 for trapezoid, 1 for constant</p>
+<p>returns: magnitude and uncertainty profile in mag</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.Sigma_Clip_Upper">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Sigma_Clip_Upper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.Sigma_Clip_Upper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform sigma clipping on the “v” array. Each iteration involves
+computing the median and 16-84 range, these are used to clip beyond
+“nsigma” number of sigma above the median. This is repeated for
+“iterations” number of iterations, or until convergence if None.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.Smooth_Mode">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Smooth_Mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.Smooth_Mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.StarFind">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">StarFind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhm_guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background_noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peakmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minsep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reject_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxstars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.StarFind" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find stars in an image, determine their fwhm and peak flux values.</p>
+<p>IMG: image data as numpy 2D array
+fwhm_guess: A guess at the PSF fwhm, can be within a factor of 2 and everything should work
+background_noise: image background flux noise
+mask: masked pixels as numpy 2D array with same dimensions as IMG
+peakmax: maximum allowed peak flux value for a star, used to remove saturated pixels
+detect_threshold: threshold (in units of sigma) value for convolved image to consider a pixel as a star candidate.
+minsep: minimum allowed separation between stars, in units of fwhm_guess
+reject_size: reject stars with fitted FWHM greater than this times the fwhm_guess
+maxstars: stop once this number of stars have been found, this is for speed purposes</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.abs_mag_to_app_mag">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">abs_mag_to_app_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Me</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.abs_mag_to_app_mag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an absolute magnitude to an apparent magnitude
+M: Absolute magnitude at 10 parcecs
+D: Distance to object in parsecs
+returns: Apparent magnitude</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.app_mag_to_abs_mag">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">app_mag_to_abs_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">me</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.app_mag_to_abs_mag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an apparent magnitude to an absolute magnitude
+m: Apparent magnitude
+D: Distance to object in parsecs
+returns: Absolute magnitude at 10 parcecs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.arcsec_to_pc">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">arcsec_to_pc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thetae</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.arcsec_to_pc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a size in arcseconds to parsec</p>
+<p>theta: angle in arcsec
+D: distance in pc</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.flux_to_mag">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">flux_to_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.flux_to_mag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.flux_to_sb">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">flux_to_sb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.flux_to_sb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.fluxdens_to_fluxsum">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">fluxdens_to_fluxsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratio</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.fluxdens_to_fluxsum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrate a flux density profile</p>
+<p>R: semi-major axis length (arcsec)
+I: flux density (flux/arcsec^2)
+axisratio: b/a profile</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.fluxdens_to_fluxsum_errorprop">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">fluxdens_to_fluxsum_errorprop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratioE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.fluxdens_to_fluxsum_errorprop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrate a flux density profile</p>
+<p>R: semi-major axis length (arcsec)
+I: flux density (flux/arcsec^2)
+axisratio: b/a profile</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.halfmag">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">halfmag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.halfmag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the magnitude corresponding to half in log space.
+Effectively, converts to luminosity, divides by 2, then
+converts back to magnitude. Distance is not needed as it
+cancels out. Here is a basic walk through:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_1</span> <span class="o">-</span> <span class="n">m_ref</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="n">I_1</span><span class="o">/</span><span class="n">I_ref</span><span class="p">)</span>
+<span class="n">m_2</span> <span class="o">-</span> <span class="n">m_ref</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="n">I_1</span><span class="o">/</span><span class="mi">2</span><span class="n">I_ref</span><span class="p">)</span>
+            <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="n">I_1</span><span class="o">/</span><span class="n">I_ref</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">m_2</span> <span class="o">=</span> <span class="n">m_1</span> <span class="o">+</span> <span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.interpolate_Lanczos">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">interpolate_Lanczos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.interpolate_Lanczos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Lanczos interpolation on an image.
+<a class="reference external" href="https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html">https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.interpolate_bicubic">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">interpolate_bicubic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.interpolate_bicubic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.mag_to_L">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">mag_to_L</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.mag_to_L" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the luminosity (in solar luminosities) given the absolute magnitude and reference point.
+mag: Absolute magnitude
+band: Photometric band in which measurements were taken
+mage: uncertainty in absolute magnitude
+zeropoint: user defined zero point
+returns: Luminosity in solar luminosities</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.mag_to_flux">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">mag_to_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.mag_to_flux" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.mag_to_magperarcsec2">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">mag_to_magperarcsec2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.mag_to_magperarcsec2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts mag to mag/arcsec^2
+m: mag
+a: semi major axis radius (arcsec)
+b: semi minor axis radius (arcsec)
+A: pre-calculated area (arcsec^2)
+returns: mag/arcsec^2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.magperarcsec2_to_mag">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">magperarcsec2_to_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.magperarcsec2_to_mag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts mag/arcsec^2 to mag
+mu: mag/arcsec^2
+a: semi major axis radius (arcsec)
+b: semi minor axis radius (arcsec)
+A: pre-calculated area (arcsec^2)
+returns: mag</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.muSB_to_ISB">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">muSB_to_ISB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.muSB_to_ISB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts surface brightness in mag arcsec^-2 into Lsolar pc^-2</p>
+<p>mu: surface brightness, mag arcsec^-2
+band: Photometric band in which measurements were taken
+returns: surface brightness in (L/Lsun) pc^-2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.pc_to_arcsec">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">pc_to_arcsec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Re</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.pc_to_arcsec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a size in parsec to arcseconds</p>
+<p>R: length in pc
+D: distance in pc</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SharedFunctions.sb_to_flux">
+<span class="sig-prename descclassname"><span class="pre">SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">sb_to_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SharedFunctions.sb_to_flux" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Connor Stone.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
