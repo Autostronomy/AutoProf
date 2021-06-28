@@ -17,8 +17,6 @@ sys.path.insert(0, os.path.abspath('../autoprofutils'))
 import sphinx_rtd_theme
 import autoprofutils
 
-import numpy, matplotlib, photutils, scipy, astropy, sklearn
-
 # -- Project information -----------------------------------------------------
 
 project = 'AutoProf'
