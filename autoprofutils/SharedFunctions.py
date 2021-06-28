@@ -119,11 +119,12 @@ def halfmag(mag):
     Computes the magnitude corresponding to half in log space.
     Effectively, converts to luminosity, divides by 2, then
     converts back to magnitude. Distance is not needed as it
-    cancels out. Here is a basic walk through:
-    m_1 - m_ref = -2.5log10(I_1/I_ref)
-    m_2 - m_ref = -2.5log10(I_1/2I_ref)
-                = -2.5log10(I_1/I_ref) + 2.5log10(2)
-    m_2 = m_1 + 2.5log10(2)
+    cancels out. Here is a basic walk through::
+    
+      m_1 - m_ref = -2.5log10(I_1/I_ref)
+      m_2 - m_ref = -2.5log10(I_1/2I_ref)
+                  = -2.5log10(I_1/I_ref) + 2.5log10(2)
+      m_2 = m_1 + 2.5log10(2)
     """
 
     return mag + 2.5 * np.log10(2)
@@ -683,7 +684,7 @@ def Angle_Scatter(a):
 def GetOptions(c):
     """
     Extract all of the AutoProf user optionional parameters form the config file.
-    User options are identified as any python object that starts with "ap_" in the
+    User options are identified as any python object that starts with "ap\_" in the
     variable name.
     """
     newoptions = {}
