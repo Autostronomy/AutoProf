@@ -175,27 +175,27 @@
 <div class="section" id="basic-install">
 <h2>Basic Install<a class="headerlink" href="#basic-install" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><dl class="simple">
-<dt>Download the package from: <a class="reference external" href="https://github.com/ConnorStoneAstro/AutoProf">AutoProf</a>::</dt><dd><p>cd /where/you/want/AutoProf/to/live/
-git clone <a class="reference external" href="mailto:git&#37;&#52;&#48;github&#46;com">git<span>&#64;</span>github<span>&#46;</span>com</a>:ConnorStoneAstro/AutoProf.git</p>
-</dd>
-</dl>
+<li><p>Download the package from: <a class="reference external" href="https://github.com/ConnorStoneAstro/AutoProf">AutoProf</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">where</span><span class="o">/</span><span class="n">you</span><span class="o">/</span><span class="n">want</span><span class="o">/</span><span class="n">AutoProf</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">live</span><span class="o">/</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">ConnorStoneAstro</span><span class="o">/</span><span class="n">AutoProf</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
 <p>If you experience difficulty cloning the package, you may download a zip file of the package from the github page.</p>
 </li>
-<li><dl class="simple">
-<dt>Set an environment variable and alias the AutoProf function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). ::</dt><dd><p>export AUTOPROF=’/path/to/AutoProf/’
-alias autoprof=’/path/to/AutoProf/autoprof.py’</p>
-</dd>
-</dl>
+<li><p>Set an environment variable and alias the AutoProf function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">AUTOPROF</span><span class="o">=</span><span class="s1">&#39;/path/to/AutoProf/&#39;</span>
+<span class="n">alias</span> <span class="n">autoprof</span><span class="o">=</span><span class="s1">&#39;/path/to/AutoProf/autoprof.py&#39;</span>
+</pre></div>
+</div>
 </li>
-<li><dl class="simple">
-<dt>Run the test cases to see that all is well::</dt><dd><p>cd /path/to/AutoProf/test/
-autoprof test_config.py
-autoprof test_forced_config.py Forced.log
-autoprof test_batch_config.py Batch.log
-autoprof test_tree_config.py Tree.log</p>
-</dd>
-</dl>
+<li><p>Run the test cases to see that all is well:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">AutoProf</span><span class="o">/</span><span class="n">test</span><span class="o">/</span>
+<span class="n">autoprof</span> <span class="n">test_config</span><span class="o">.</span><span class="n">py</span>
+<span class="n">autoprof</span> <span class="n">test_forced_config</span><span class="o">.</span><span class="n">py</span> <span class="n">Forced</span><span class="o">.</span><span class="n">log</span>
+<span class="n">autoprof</span> <span class="n">test_batch_config</span><span class="o">.</span><span class="n">py</span> <span class="n">Batch</span><span class="o">.</span><span class="n">log</span>
+<span class="n">autoprof</span> <span class="n">test_tree_config</span><span class="o">.</span><span class="n">py</span> <span class="n">Tree</span><span class="o">.</span><span class="n">log</span>
+</pre></div>
+</div>
 <p>This will test a basic AutoProf run on a single galaxy, forced photometry of the galaxy on itself, and batch photometry for multiple images (which are actually the same in this case), and pipeline decision tree construction, respectively. You can also run all of these tests in one command by executing the <em>runtests.sh</em> script in bash.</p>
 </li>
 <li><p>Check the diagnostic plots to see what AutoProf can do! You should get a fit that looks like this one, and a whole lot more images to show what is going on.</p></li>
@@ -204,22 +204,26 @@ autoprof test_tree_config.py Tree.log</p>
 </div>
 <div class="section" id="issues">
 <h2>Issues<a class="headerlink" href="#issues" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
+<ul>
 <li><p>Each analysis run should end with the words “Processing Complete!” if you don’t get that, then the pipeline probably crashed at some point, check the log file (probably called <em>AutoProf.log</em>) for more information</p></li>
-<li><dl class="simple">
-<dt>If you get <em>Permission Denied</em>, it is possible that the file is not listed as executable and you need to run::</dt><dd><p>cd /path/to/AutoProf/
-chmod 755 autoprof.py</p>
-</dd>
-</dl>
+<li><p>If you get <em>Permission Denied</em>, it is possible that the file is not listed as executable and you need to run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">AutoProf</span><span class="o">/</span>
+<span class="n">chmod</span> <span class="mi">755</span> <span class="n">autoprof</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
 </li>
-<li><dl class="simple">
-<dt>If you have everything set up, but are getting strange errors such as <em>ImportError: No module named photutils</em> even when photutils is already installed it is possible that your python3 installation lives somewhere unusual. Try executing::</dt><dd><p>which python3</p>
-</dd>
-<dt>to see where your python3 installation lives. If the result is something other than <em>/usr/bin/python3</em> then you need to make a small edit to the <em>autoprof.py</em> file. In the first line make the change from::</dt><dd><p>#!/bin/bash/python3</p>
-</dd>
-<dt>to instead be::</dt><dd><p>#!/wherever/your/python3/is/installed</p>
-</dd>
-</dl>
+<li><p>If you have everything set up, but are getting strange errors such as <em>ImportError: No module named photutils</em> even when photutils is already installed it is possible that your python3 installation lives somewhere unusual. Try executing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">which</span> <span class="n">python3</span>
+</pre></div>
+</div>
+<p>to see where your python3 installation lives. If the result is something other than <em>/usr/bin/python3</em> then you need to make a small edit to the <em>autoprof.py</em> file. In the first line make the change from:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash/python3</span>
+</pre></div>
+</div>
+<p>to instead be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/wherever/your/python3/is/installed</span>
+</pre></div>
+</div>
 </li>
 <li><p>If you are using python 3.9 you may have difficulties installing photutils. For now you will have to revert to python 3.8</p></li>
 </ul>

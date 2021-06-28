@@ -2,9 +2,9 @@
 Getting Started
 ===============
 
-AutoProf is a :py:class:`~Pipeline` building utility
+AutoProf is a :class:`~Pipeline` building utility
 
-testing :py:func:`~autoprofutils.Background.Background_Mode` another one
+testing :meth:`~autoprofutils.Background.Background_Mode` another one
 
 Getting Started On A Single Image
 ---------------------------------
