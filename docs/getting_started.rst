@@ -2,7 +2,7 @@
 Getting Started
 ===============
 
-Test inline link to :py:func:`~autoprofutils.Background.Background_Mode` to see if that works. Also trying :func:`~autoprofutils.Background.Background_Mode` and also :meth:`~autoprofutils.Background.Background_Mode` and another :class:`~Pipeline` to see what we get.
+Test inline link to :py:func:`~autoprofutils.Background.Background_Mode` to see if that works. Also trying :func:`~autoprofutils.Background` and also :meth:`~autoprofutils.Background.Background_Mode` and another :class:`~Pipeline` to see what we get.
 
 
 
