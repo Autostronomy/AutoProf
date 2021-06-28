@@ -6,7 +6,10 @@ AutoProf is a :py:class:`~Pipeline` building utility
 
 testing :py:meth:`~autoprofutils.Background.Background_Mode` another one
 
+direct function
 .. autofunction:: autoprofutils.Background.Background_Mode
+
+.. automethod:: autoprofutils.Background.Background_Mode
 
 Getting Started On A Single Image
 ---------------------------------
