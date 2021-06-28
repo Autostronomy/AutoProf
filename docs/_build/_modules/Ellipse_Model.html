@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Ellipse_Model &mdash; AutoProf 0.8 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> AutoProf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../psf.html">PSF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../center.html">Center</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteinit.html">Isophote Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophotefit.html">Fitting Elliptical Isophotes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteextracting.html">SB Profile Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../checkingfits.html">Fit Success Checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extramethods.html">Extra Methods</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AutoProf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>Ellipse_Model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for Ellipse_Model</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">SmoothBivariateSpline</span><span class="p">,</span> <span class="n">interp2d</span><span class="p">,</span> <span class="n">Rbf</span><span class="p">,</span> <span class="n">UnivariateSpline</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
+<span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">autocmap</span><span class="p">,</span> <span class="n">LSBImage</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
+
+<div class="viewcode-block" id="EllipseModel_Fix"><a class="viewcode-back" href="../source/Ellipse_Model.html#Ellipse_Model.EllipseModel_Fix">[docs]</a><span class="k">def</span> <span class="nf">EllipseModel_Fix</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="n">zeropoint</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_zeropoint&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_zeropoint&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span>
+    <span class="n">pa</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;init pa&#39;</span><span class="p">]</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;init ellip&#39;</span><span class="p">]</span>
+    
+    <span class="n">CHOOSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;SB_fix_e&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.3</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;R&#39;</span><span class="p">])[</span><span class="n">CHOOSE</span><span class="p">]</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]</span>
+    <span class="n">SB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;SB_fix&#39;</span><span class="p">])[</span><span class="n">CHOOSE</span><span class="p">]</span>
+
+    <span class="n">Model</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">2</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">2</span><span class="p">))],</span>
+              <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">2</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">2</span><span class="p">))]]</span>
+    <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">))</span>
+    <span class="n">XX</span> <span class="o">-=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">YY</span> <span class="o">-=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="p">(</span><span class="n">XX</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">)</span> <span class="o">-</span> <span class="n">YY</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">),</span> <span class="n">XX</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">)</span> <span class="o">+</span> <span class="n">YY</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">))</span>
+    <span class="n">YY</span> <span class="o">/=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">eps</span>
+    <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">XX</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">YY</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">MM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">RR</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">R</span><span class="p">,</span> <span class="n">SB</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">RR</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">MM</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">MM</span> <span class="o">-</span> <span class="n">zeropoint</span> <span class="o">-</span> <span class="mi">5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]))</span><span class="o">/</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">MM</span><span class="p">[</span><span class="n">RR</span> <span class="o">&gt;</span> <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Model</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">MM</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">Header</span><span class="p">()</span>
+    <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">),</span>
+                         <span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">Model</span><span class="p">)])</span>
+    
+    <span class="n">hdul</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">_fixmodel.fits&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">))</span>
+        <span class="n">autocmap</span><span class="o">.</span><span class="n">set_under</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">showmodel</span> <span class="o">=</span> <span class="n">Model</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">showmodel</span><span class="p">[</span><span class="n">showmodel</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">showmodel</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="mf">3.5</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">showmodel</span><span class="p">[</span><span class="n">showmodel</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">showmodel</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">autocmap</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">(),</span> <span class="n">clip</span> <span class="o">=</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_nologo&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_nologo&#39;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">ellipsemodel_fix_</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotdpi&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotdpi&#39;</span><span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">IMG</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">Model</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;PuBu&#39;</span><span class="p">,</span>
+                   <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">),</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span><span class="n">a_min</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">a_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span><span class="mf">0.9999</span><span class="p">)),</span>
+                   <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">autocmap</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">(),</span> <span class="n">clip</span> <span class="o">=</span> <span class="kc">False</span><span class="p">),</span>
+           <span class="n">interpolation</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">clim</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-5</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>        
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_nologo&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_nologo&#39;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">ellipseresidual_fix_</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotdpi&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotdpi&#39;</span><span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        
+        <span class="c1"># plt.figure(figsize = (7,7))</span>
+        <span class="c1"># plt.imshow(np.clip(Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),</span>
+        <span class="c1">#            origin = &#39;lower&#39;, cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))</span>
+        <span class="c1"># plt.axis(&#39;off&#39;)</span>
+        <span class="c1"># plt.tight_layout()</span>
+        <span class="c1"># if not (&#39;ap_nologo&#39; in options and options[&#39;ap_nologo&#39;]):</span>
+        <span class="c1">#     AddLogo(plt.gcf())</span>
+        <span class="c1"># plt.savefig(&#39;%sellipsemodel_fix_%s.jpg&#39; % (options[&#39;ap_plotpath&#39;] if &#39;ap_plotpath&#39; in options else &#39;&#39;, options[&#39;ap_name&#39;]), dpi = options[&#39;ap_plotdpi&#39;] if &#39;ap_plotdpi&#39;in options else 300)</span>
+        <span class="c1"># plt.close()</span>
+        
+        <span class="c1"># residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results[&#39;background&#39;] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]</span>
+        <span class="c1"># plt.figure(figsize = (7,7))</span>
+        <span class="c1"># plt.imshow(residual, origin = &#39;lower&#39;, cmap = &#39;PuBu&#39;,</span>
+        <span class="c1">#            vmin = np.quantile(residual, 0.0001), vmax = 0)</span>
+        <span class="c1"># autocmap.set_under(&#39;k&#39;, alpha=0)</span>
+        <span class="c1"># plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),</span>
+        <span class="c1">#            origin = &#39;lower&#39;, cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),</span>
+        <span class="c1">#            interpolation = &#39;none&#39;, clim = [1e-5, None])        </span>
+        <span class="c1"># plt.axis(&#39;off&#39;)</span>
+        <span class="c1"># plt.tight_layout()</span>
+        <span class="c1"># if not (&#39;ap_nologo&#39; in options and options[&#39;ap_nologo&#39;]):</span>
+        <span class="c1">#     AddLogo(plt.gcf())</span>
+        <span class="c1"># plt.savefig(&#39;%sellipseresidual_fix_%s.jpg&#39; % (options[&#39;ap_plotpath&#39;] if &#39;ap_plotpath&#39; in options else &#39;&#39;, options[&#39;ap_name&#39;]), dpi = options[&#39;ap_plotdpi&#39;] if &#39;ap_plotdpi&#39;in options else 300)</span>
+        <span class="c1"># plt.close()</span>
+    
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;ellipse model&#39;</span><span class="p">:</span> <span class="n">Model</span><span class="p">}</span></div>
+    
+
+<span class="c1"># def EllipseModel_General(IMG, results, options):</span>
+    
+<span class="c1">#     zeropoint = options[&#39;ap_zeropoint&#39;] if &#39;ap_zeropoint&#39; in options else 22.5</span>
+    
+<span class="c1">#     CHOOSE = np.array(results[&#39;prof data&#39;][&#39;SB_e&#39;]) &lt; 0.5</span>
+<span class="c1">#     R = np.array(results[&#39;prof data&#39;][&#39;R&#39;])[CHOOSE]/options[&#39;ap_pixscale&#39;]</span>
+<span class="c1">#     SB = np.array(results[&#39;prof data&#39;][&#39;SB&#39;])[CHOOSE]</span>
+<span class="c1">#     SB_e = np.clip(np.array(results[&#39;prof data&#39;][&#39;SB_e&#39;])[CHOOSE], a_min = 1e-3, a_max = None)</span>
+<span class="c1">#     PA = np.array(results[&#39;prof data&#39;][&#39;pa&#39;])[CHOOSE]*np.pi/180</span>
+<span class="c1">#     ellip = np.array(results[&#39;prof data&#39;][&#39;ellip&#39;])[CHOOSE]</span>
+    
+<span class="c1">#     X = []</span>
+<span class="c1">#     Y = []</span>
+<span class="c1">#     XY_R = []</span>
+<span class="c1">#     M = []</span>
+<span class="c1">#     M_e = []</span>
+<span class="c1">#     for i in range(len(R)):</span>
+<span class="c1">#         N = max(4,int(R[i]))</span>
+<span class="c1">#         theta = np.linspace(0, 2*np.pi*(1 - 1/N), N)</span>
+<span class="c1">#         x = R[i]*np.cos(theta)</span>
+<span class="c1">#         y = R[i]*(1 - ellip[i])*np.sin(theta)</span>
+<span class="c1">#         x,y = (x*np.cos(PA[i]) - y*np.sin(PA[i]), x*np.sin(PA[i]) + y*np.cos(PA[i]))</span>
+<span class="c1">#         XY_R += list(np.sqrt(x**2 + y**2))</span>
+<span class="c1">#         X += list(x)</span>
+<span class="c1">#         Y += list(y)</span>
+<span class="c1">#         M += list(np.ones(len(x))*SB[i])</span>
+<span class="c1">#         M_e += list(np.ones(len(x))*SB_e[i])</span>
+
+<span class="c1">#     XY_R = np.array(XY_R)</span>
+<span class="c1">#     X = np.array(X)</span>
+<span class="c1">#     Y = np.array(Y)</span>
+<span class="c1">#     M = np.array(M)</span>
+    
+<span class="c1">#     ranges = [[max(0,int(results[&#39;center&#39;][&#39;x&#39;]-R[-1]-2)), min(IMG.shape[1],int(results[&#39;center&#39;][&#39;x&#39;]+R[-1]+2))],</span>
+<span class="c1">#               [max(0,int(results[&#39;center&#39;][&#39;y&#39;]-R[-1]-2)), min(IMG.shape[0],int(results[&#39;center&#39;][&#39;y&#39;]+R[-1]+2))]]</span>
+<span class="c1">#     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))</span>
+<span class="c1">#     S = deepcopy(XX.shape)</span>
+<span class="c1">#     XX -= results[&#39;center&#39;][&#39;x&#39;] - float(ranges[0][0])</span>
+<span class="c1">#     YY -= results[&#39;center&#39;][&#39;y&#39;] - float(ranges[1][0])</span>
+    
+<span class="c1">#     # MM = np.zeros(XX.shape)</span>
+<span class="c1">#     # for i in range(XX.shape[0]):</span>
+<span class="c1">#     #     CHOOSE = abs(Y - YY[i,int(YY.shape[1]/2)]) &lt; (10*results[&#39;psf fwhm&#39;])</span>
+<span class="c1">#     #     K = -((XX[i,:].reshape(XX.shape[1],-1) - X[CHOOSE])**2 + (YY[i,:].reshape(XX.shape[1],-1) - Y[CHOOSE])**2)/((1+np.sqrt(XY_R[CHOOSE]))*results[&#39;psf fwhm&#39;]/4)**2</span>
+<span class="c1">#     #     K = np.exp(K - (np.max(K,axis = 1)).reshape(K.shape[0],-1))</span>
+<span class="c1">#     #     MM[i,:] = np.sum(M[CHOOSE]*K,axis = 1) / np.sum(K,axis = 1)</span>
+
+<span class="c1">#     sp_interp = Rbf(X,Y,M, smooth = 1, function = &#39;linear&#39;) #interp2d(X,Y,M, fill_value = 0)</span>
+<span class="c1">#     MM = sp_interp(XX,YY) #np.reshape(sp_interp(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float)), XX.shape)</span>
+    
+<span class="c1">#     MM = 10**(-(MM - zeropoint - 5*np.log10(options[&#39;ap_pixscale&#39;]))/2.5)</span>
+    
+<span class="c1">#     XX, YY = (XX*np.cos(-PA[-1]) - YY*np.sin(-PA[-1]), XX*np.sin(-PA[-1]) + YY*np.cos(-PA[-1]))</span>
+<span class="c1">#     YY /= 1 - ellip[-1]</span>
+<span class="c1">#     RR = np.sqrt(XX**2 + YY**2)</span>
+<span class="c1">#     MM[RR &gt; R[-2]] = 0</span>
+    
+<span class="c1">#     Model = np.zeros(IMG.shape, dtype = np.float32)</span>
+<span class="c1">#     Model[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]] = MM</span>
+    
+<span class="c1">#     header = fits.Header()</span>
+<span class="c1">#     hdul = fits.HDUList([fits.PrimaryHDU(header=header),</span>
+<span class="c1">#                          fits.ImageHDU(Model)])</span>
+    
+<span class="c1">#     hdul.writeto(&#39;%s%s_model.fits&#39; % (options[&#39;ap_plotpath&#39;] if &#39;ap_plotpath&#39; in options else &#39;&#39;, options[&#39;ap_name&#39;]), overwrite = True)</span>
+
+<span class="c1">#     if &#39;ap_doplot&#39; in options and options[&#39;ap_doplot&#39;]:</span>
+<span class="c1">#         plt.figure(figsize = (7,7))</span>
+<span class="c1">#         plt.imshow(np.clip(Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),</span>
+<span class="c1">#                    origin = &#39;lower&#39;, cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))</span>
+<span class="c1">#         plt.axis(&#39;off&#39;)</span>
+<span class="c1">#         plt.tight_layout()</span>
+<span class="c1">#         if not (&#39;ap_nologo&#39; in options and options[&#39;ap_nologo&#39;]):</span>
+<span class="c1">#             AddLogo(plt.gcf())</span>
+<span class="c1">#         plt.savefig(&#39;%sellipsemodel_%s.jpg&#39; % (options[&#39;ap_plotpath&#39;] if &#39;ap_plotpath&#39; in options else &#39;&#39;, options[&#39;ap_name&#39;]), dpi = options[&#39;ap_plotdpi&#39;] if &#39;ap_plotdpi&#39;in options else 300)</span>
+<span class="c1">#         plt.close()</span>
+        
+<span class="c1">#         residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results[&#39;background&#39;] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]</span>
+<span class="c1">#         plt.figure(figsize = (7,7))</span>
+<span class="c1">#         plt.imshow(residual, origin = &#39;lower&#39;, cmap = &#39;PuBu&#39;,</span>
+<span class="c1">#                    vmin = np.quantile(residual, 0.0001), vmax = 0)</span>
+<span class="c1">#         autocmap.set_under(&#39;k&#39;, alpha=0)</span>
+<span class="c1">#         plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),</span>
+<span class="c1">#                    origin = &#39;lower&#39;, cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),</span>
+<span class="c1">#            interpolation = &#39;none&#39;, clim = [1e-5, None])        </span>
+<span class="c1">#         plt.axis(&#39;off&#39;)</span>
+<span class="c1">#         plt.tight_layout()</span>
+<span class="c1">#         if not (&#39;ap_nologo&#39; in options and options[&#39;ap_nologo&#39;]):</span>
+<span class="c1">#             AddLogo(plt.gcf())</span>
+<span class="c1">#         plt.savefig(&#39;%sellipseresidual_%s.jpg&#39; % (options[&#39;ap_plotpath&#39;] if &#39;ap_plotpath&#39; in options else &#39;&#39;, options[&#39;ap_name&#39;]), dpi = options[&#39;ap_plotdpi&#39;] if &#39;ap_plotdpi&#39;in options else 300)</span>
+<span class="c1">#         plt.close()</span>
+
+<span class="c1">#     if &#39;ap_paperplots&#39; in options and options[&#39;ap_paperplots&#39;]:    </span>
+<span class="c1">#         plt.figure(figsize = (7,7))</span>
+<span class="c1">#         LSBImage(IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results[&#39;background&#39;], results[&#39;background noise&#39;])</span>
+<span class="c1">#         plt.axis(&#39;off&#39;)</span>
+<span class="c1">#         plt.tight_layout()</span>
+<span class="c1">#         plt.savefig(&#39;%sclearimage_%s.jpg&#39; % (options[&#39;ap_plotpath&#39;] if &#39;ap_plotpath&#39; in options else &#39;&#39;, options[&#39;ap_name&#39;]), dpi = options[&#39;ap_plotdpi&#39;] if &#39;ap_plotdpi&#39;in options else 300)</span>
+<span class="c1">#         plt.close()</span>
+
+    
+<span class="c1">#     return IMG, {&#39;ellipse model&#39;: Model}</span>
+
+<div class="viewcode-block" id="EllipseModel_General"><a class="viewcode-back" href="../source/Ellipse_Model.html#Ellipse_Model.EllipseModel_General">[docs]</a><span class="k">def</span> <span class="nf">EllipseModel_General</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="n">zeropoint</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_zeropoint&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_zeropoint&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span>
+    
+    <span class="n">CHOOSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;SB_e&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.5</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;R&#39;</span><span class="p">])[</span><span class="n">CHOOSE</span><span class="p">]</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]</span>
+
+    <span class="n">sb</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;SB&#39;</span><span class="p">])[</span><span class="n">CHOOSE</span><span class="p">],</span> <span class="n">ext</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">pa</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;pa&#39;</span><span class="p">])[</span><span class="n">CHOOSE</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">),</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;ellip&#39;</span><span class="p">])[</span><span class="n">CHOOSE</span><span class="p">],</span> <span class="n">ext</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+    
+    <span class="n">ranges</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">2</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">2</span><span class="p">))],</span>
+              <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">2</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">2</span><span class="p">))]]</span>
+
+    <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+    <span class="n">XX</span> <span class="o">-=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">YY</span> <span class="o">-=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">MM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">XX</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">Prox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">XX</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">WINDOW</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="n">XX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="mi">0</span><span class="p">,</span> <span class="n">XX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_ellipsemodel_resolution&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_ellipsemodel_resolution&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)))):</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">WINDOW</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">r</span><span class="o">*</span><span class="mf">1.5</span><span class="p">)),</span><span class="nb">min</span><span class="p">(</span><span class="n">XX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">r</span><span class="o">*</span><span class="mf">1.5</span><span class="p">))],</span>
+                      <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">r</span><span class="o">*</span><span class="mf">1.5</span><span class="p">)),</span><span class="nb">min</span><span class="p">(</span><span class="n">XX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">r</span><span class="o">*</span><span class="mf">1.5</span><span class="p">))]]</span>
+            
+        <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">XX</span><span class="p">[</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">r</span><span class="p">)))</span> <span class="o">-</span> <span class="n">YY</span><span class="p">[</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">r</span><span class="p">))))</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> \
+                     <span class="p">((</span><span class="n">XX</span><span class="p">[</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">r</span><span class="p">)))</span> <span class="o">+</span> <span class="n">YY</span><span class="p">[</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">r</span><span class="p">))))</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">q</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">r</span><span class="p">)),</span><span class="n">a_min</span> <span class="o">=</span> <span class="mf">0.03</span><span class="p">,</span><span class="n">a_max</span> <span class="o">=</span> <span class="mi">1</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">RR</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span>
+        <span class="n">CLOSE</span> <span class="o">=</span> <span class="n">D</span> <span class="o">&lt;</span> <span class="n">Prox</span><span class="p">[</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">CLOSE</span><span class="p">):</span>
+            <span class="n">MM</span><span class="p">[</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]][</span><span class="n">CLOSE</span><span class="p">]</span> <span class="o">=</span> <span class="n">sb</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">RR</span><span class="p">[</span><span class="n">CLOSE</span><span class="p">]))</span>
+            <span class="n">Prox</span><span class="p">[</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">WINDOW</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]][</span><span class="n">CLOSE</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">CLOSE</span><span class="p">]</span>
+        
+    <span class="n">MM</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">MM</span> <span class="o">-</span> <span class="n">zeropoint</span> <span class="o">-</span> <span class="mi">5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]))</span><span class="o">/</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">XX</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span> <span class="o">-</span> <span class="n">YY</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))))</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">XX</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span> <span class="o">+</span> <span class="n">YY</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">pa</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))))</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">q</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span><span class="n">a_min</span> <span class="o">=</span> <span class="mf">0.03</span><span class="p">,</span><span class="n">a_max</span> <span class="o">=</span> <span class="mi">1</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">MM</span><span class="p">[</span><span class="n">RR</span> <span class="o">&gt;</span> <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="n">Model</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">Model</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">MM</span>
+    
+    <span class="n">header</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">Header</span><span class="p">()</span>
+    <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">),</span>
+                         <span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">Model</span><span class="p">)])</span>
+    
+    <span class="n">hdul</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">_genmodel.fits&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+        <span class="n">ranges</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">1.2</span><span class="p">))],</span>
+                  <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">1.2</span><span class="p">))]]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">))</span>
+        <span class="n">autocmap</span><span class="o">.</span><span class="n">set_under</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">showmodel</span> <span class="o">=</span> <span class="n">Model</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">showmodel</span><span class="p">[</span><span class="n">showmodel</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">showmodel</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="mf">3.5</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">showmodel</span><span class="p">[</span><span class="n">showmodel</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">showmodel</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">autocmap</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">(),</span> <span class="n">clip</span> <span class="o">=</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_nologo&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_nologo&#39;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">ellipsemodel_gen_</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotdpi&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotdpi&#39;</span><span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">IMG</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">Model</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;PuBu&#39;</span><span class="p">,</span>
+                   <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">),</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span><span class="n">a_min</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">a_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span><span class="mf">0.9999</span><span class="p">)),</span>
+                   <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">autocmap</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">(),</span> <span class="n">clip</span> <span class="o">=</span> <span class="kc">False</span><span class="p">),</span>
+           <span class="n">interpolation</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">clim</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-5</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>        
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_nologo&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_nologo&#39;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">ellipseresidual_gen_</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotdpi&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotdpi&#39;</span><span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="s1">&#39;ap_paperplots&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_paperplots&#39;</span><span class="p">]:</span>    
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">))</span>
+        <span class="n">LSBImage</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background noise&#39;</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">clearimage_</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotdpi&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotdpi&#39;</span><span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;ellipse model&#39;</span><span class="p">:</span> <span class="n">Model</span><span class="p">}</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Connor Stone.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

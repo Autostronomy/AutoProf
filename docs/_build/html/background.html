@@ -95,9 +95,21 @@
 <li class="toctree-l1"><a class="reference internal" href="license.html">GNU GENERAL PUBLIC LICENSE</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Background</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Background</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config-parameters">Config Parameters</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="psf.html">PSF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="center.html">Center</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isophoteinit.html">Isophote Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isophotefit.html">Fitting Elliptical Isophotes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isophoteextracting.html">SB Profile Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="checkingfits.html">Fit Success Checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
 </ul>
 
             
@@ -167,6 +179,27 @@
             
   <div class="section" id="background">
 <h1>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p><strong>pipeline label: background</strong></p>
+<p>The default background calculation is done by searching for the “mode” of the pixel flux values.
+First, the method extracts the border of the image, taking all pixels that are within 1/5th the image width of the edge.
+Then it constructs a density profile in flux space and finds the peak.
+This peak is used as the background level, a few rounds of sigma clipping are applied to remove bright signals before taking the background noise level (measured as an interquartile range).</p>
+<p>Output format:
+.. code-block:: python</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{‘background’: , # flux value representing the background level (float)</dt><dd><p>‘background noise’: ,# measure of scatter around the background level (float)
+‘background uncertainty’: ,# optional, uncertainty on background level (float)
+‘auxfile background’: # optional, message for aux file to record background level (string)</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+</div>
+<div class="section" id="config-parameters">
+<h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>ap_set_background</dt><dd><p>User provided background value in flux (float)</p>
 </dd>
@@ -177,6 +210,7 @@ in calculating the background, only use this option for large images where all p
 to get an accurate background estimate (int)</p>
 </dd>
 </dl>
+</div>
 </div>
 
 

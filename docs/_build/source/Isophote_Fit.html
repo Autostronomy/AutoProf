@@ -92,6 +92,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../citation.html">Citing AutoProf</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../psf.html">PSF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../center.html">Center</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteinit.html">Isophote Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophotefit.html">Fitting Elliptical Isophotes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteextracting.html">SB Profile Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../checkingfits.html">Fit Success Checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extramethods.html">Extra Methods</a></li>
+</ul>
 
             
           
@@ -162,7 +175,7 @@
 <span id="isophote-fit-module"></span><h1>Isophote_Fit module<a class="headerlink" href="#module-Isophote_Fit" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="Isophote_Fit.Isophote_Fit_FFT_Robust">
-<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_Robust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Isophote_Fit.Isophote_Fit_FFT_Robust" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_Robust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Isophote_Fit.html#Isophote_Fit_FFT_Robust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Isophote_Fit.Isophote_Fit_FFT_Robust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
 Included is a regularization term which penalizes isophotes for having large differences between parameters
 of adjacent isophotes.</p>
@@ -170,7 +183,7 @@ of adjacent isophotes.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Isophote_Fit.Isophote_Fit_FFT_mean">
-<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Isophote_Fit.Isophote_Fit_FFT_mean" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Isophote_Fit.html#Isophote_Fit_FFT_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Isophote_Fit.Isophote_Fit_FFT_mean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
 Included is a regularization term which penalizes isophotes for having large differences between parameters
 of adjacent isophotes.</p>
@@ -178,13 +191,13 @@ of adjacent isophotes.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Isophote_Fit.Isophote_Fit_Forced">
-<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Isophote_Fit.Isophote_Fit_Forced" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Isophote_Fit.html#Isophote_Fit_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Isophote_Fit.Isophote_Fit_Forced" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take isophotal fit from a given profile.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Isophote_Fit.Photutils_Fit">
-<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Photutils_Fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Isophote_Fit.Photutils_Fit" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Photutils_Fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Isophote_Fit.html#Photutils_Fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Isophote_Fit.Photutils_Fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to run the photutils automated isophote analysis on an image.</p>
 </dd></dl>
 

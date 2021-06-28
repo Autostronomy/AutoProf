@@ -34,6 +34,8 @@ AutoProf
 Getting Started
 ===============
 
+This documentation is a work in progress, further updates will come rapidly.
+
 .. toctree::
     :maxdepth: 1
 

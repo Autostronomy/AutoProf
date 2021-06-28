@@ -92,6 +92,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../citation.html">Citing AutoProf</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../psf.html">PSF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../center.html">Center</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteinit.html">Isophote Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophotefit.html">Fitting Elliptical Isophotes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteextracting.html">SB Profile Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../checkingfits.html">Fit Success Checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extramethods.html">Extra Methods</a></li>
+</ul>
 
             
           
@@ -162,7 +175,7 @@
 <span id="center-module"></span><h1>Center module<a class="headerlink" href="#module-Center" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="Center.Center_1DGaussian">
-<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_1DGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Center.Center_1DGaussian" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_1DGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Center.html#Center_1DGaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Center.Center_1DGaussian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the pixel location of the galaxy center using a photutils method.
 Looking at 100 seeing lengths around the center of the image (images
 should already be mostly centered), finds the galaxy center by fitting
@@ -171,20 +184,20 @@ several 1d Gaussians.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Center.Center_2DGaussian">
-<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_2DGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Center.Center_2DGaussian" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_2DGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Center.html#Center_2DGaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Center.Center_2DGaussian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the pixel location of the galaxy center by fitting
 a 2d Gaussian as implimented by the photutils package.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Center.Center_Forced">
-<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Center.Center_Forced" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Center.html#Center_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Center.Center_Forced" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes the center from an aux file, or given value.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Center.Center_HillClimb">
-<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_HillClimb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Center.Center_HillClimb" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_HillClimb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Center.html#Center_HillClimb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Center.Center_HillClimb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
 phases are averaged to find the direction of increasing flux. Flux values are sampled
 along this direction and a quadratic fit gives the maximum. This is iteratively
@@ -193,7 +206,7 @@ repeated until the step size becomes very small.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Center.Center_HillClimb_mean">
-<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_HillClimb_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Center.Center_HillClimb_mean" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_HillClimb_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Center.html#Center_HillClimb_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Center.Center_HillClimb_mean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
 phases are averaged to find the direction of increasing flux. Flux values are sampled
 along this direction and a quadratic fit gives the maximum. This is iteratively
@@ -202,12 +215,12 @@ repeated until the step size becomes very small.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Center.Center_OfMass">
-<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_OfMass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Center.Center_OfMass" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_OfMass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Center.html#Center_OfMass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Center.Center_OfMass" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Center.Center_Peak">
-<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_Peak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Center.Center_Peak" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Center.</span></span><span class="sig-name descname"><span class="pre">Center_Peak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Center.html#Center_Peak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Center.Center_Peak" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

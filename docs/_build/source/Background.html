@@ -92,6 +92,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../citation.html">Citing AutoProf</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../psf.html">PSF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../center.html">Center</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteinit.html">Isophote Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophotefit.html">Fitting Elliptical Isophotes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteextracting.html">SB Profile Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../checkingfits.html">Fit Success Checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extramethods.html">Extra Methods</a></li>
+</ul>
 
             
           
@@ -162,12 +175,12 @@
 <span id="background-module"></span><h1>Background module<a class="headerlink" href="#module-Background" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="Background.Background_Basic">
-<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_Basic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Background.Background_Basic" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_Basic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Background.html#Background_Basic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Background.Background_Basic" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Background.Background_DilatedSources">
-<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_DilatedSources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Background.Background_DilatedSources" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_DilatedSources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Background.html#Background_DilatedSources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Background.Background_DilatedSources" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute a global background value for an image. Performed by
 identifying pixels which are beyond 3 sigma above the average
 signal and masking them, also further masking a boarder
@@ -177,14 +190,14 @@ dictionary of parameters describing the background level.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Background.Background_Mode">
-<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_Mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Background.Background_Mode" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_Mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Background.html#Background_Mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Background.Background_Mode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute background by finding the peak in a smoothed histogram of flux values.
 This should correspond to the peak of the noise floor.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Background.Background_Unsharp">
-<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_Unsharp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Background.Background_Unsharp" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Background.</span></span><span class="sig-name descname"><span class="pre">Background_Unsharp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Background.html#Background_Unsharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Background.Background_Unsharp" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
