@@ -8,13 +8,56 @@ sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa
 
 def Check_Fit(IMG, results, options):
-    """
-    Check for failed fit with various measures.
-    1) compare iqr of isophotes with that of a simple global fit
-    2) compare iqr of isophotes with median flux to check for high variability
-    3) measure signal in 2nd and 4th FFT coefficient which should be minimal
-    4) measure signal in 1st FFT coefficient which should be minimal
-    5) Compare integrated SB profile with simple flux summing for total magnitude
+    """Check for cases of failed isophote fits.
+    
+    A variety of check methods are applied to ensure that the fit has
+    converged to a reasonable solution.  If a fit passes all of these
+    checks then it is typically an acceptable fit.  However if it
+    fails one or more of the checks then the fit likely either failed
+    or the galaxy has strong non-axisymmetric features (and the fit
+    itself may be acceptable).
+
+    One check samples the fitted isophotes and looks for cases with
+    high variability of flux values along the isophote.  This is done
+    by comparing the interquartile range to the median flux, if the
+    interquartile range is larger then that isophote is flagged.  If
+    enough isophotes are flagged then the fit may have failed.
+    
+    A second check operates similarly, checking the second and fourth
+    FFT coefficient amplitudes relative to the median flux.  If many
+    of the isophotes have large FFT coefficients, or if a few of the
+    isophotes have very large FFT coefficients then the fit is flagged
+    as potentially failed.
+    
+    A third check is similar to the first, except that it compares the
+    interquartile range from the fitted isophotes to those using just
+    the global position angle and ellipticity values.
+
+    A fourth check uses the first FFT coefficient to detect if the
+    light is biased to one side of the galaxy. Typically this
+    indicated either a failed center, or the galaxy has been disturbed
+    and is not lopsided.
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+      
+        {'checkfit': {'isophote variability': , # True if the test was passed, False if the test failed (bool)
+  	              'FFT coefficients': , # True if the test was passed, False if the test failed (bool)
+  	              'initial fit compare': , # True if the test was passed, False if the test failed (bool)
+	              'Light symmetry': }, # True if the test was passed, False if the test failed (bool)
+  
+         'auxfile checkfit isophote variability': ,# optional aux file message for pass/fail of test (string) 
+         'auxfile checkfit FFT coefficients': ,# optional aux file message for pass/fail of test (string) 
+         'auxfile checkfit initial fit compare': ,# optional aux file message for pass/fail of test (string) 
+         'auxfile checkfit Light symmetry': ,# optional aux file message for pass/fail of test (string) 
+  
+        }
+
     """
     tests = {}
     # subtract background from image during processing

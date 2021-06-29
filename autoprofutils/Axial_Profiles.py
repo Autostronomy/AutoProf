@@ -12,6 +12,75 @@ import matplotlib
 import logging
 
 def Axial_Profiles(IMG, results, options):
+    """Extracts SB profiles perpendicular to the major (or minor) axis.
+
+    For some applications, such as examining edge on galaxies, it is
+    beneficial to observe the vertical structure in a disk. This can
+    be achieved with the Axial Profiles method. It will construct a
+    series of lines, each one with a starting point on the major axis
+    of the galaxy and radiating perpendicular from it. The location of
+    these lines are, by default, geometrically spaced so that they can
+    gather more light in the fainter outskirts. Along a given line,
+    and SB profile is extracted, with the distance between points on
+    the profile also increasing geometrically, allowing more light
+    collection. The outputted profile is formatted similar to a
+    regular SB profile, except that there are many SB profiles with
+    each one having a corresponding distance from the center and
+    quadrant of the image. A diagnostic image is generated to aid in
+    identifying where each profile is extracted.
+    
+    Arguments
+    -----------------
+    ap_axialprof_pa: float
+      user set position angle at which to align the axial profiles
+      relative to the global position angle+90, in degrees. A common
+      choice would be "90" which would then sample along the
+      semi-major axis instead of the semi-minor axis.
+
+      :default:
+        0
+
+    ap_zeropoint: float
+      Photometric zero point
+
+      :default:
+        22.5
+
+    ap_samplestyle: string
+    
+      indicate if isophote sampling radii should grow linearly or
+      geometrically. Can also do geometric sampling at the center and
+      linear sampling once geometric step size equals linear. Options
+      are: 'linear', 'geometric', and 'geometric-linear'.
+
+      :default: 'geometric'
+
+    ap_isoaverage_method: string
+    
+      Select the method used to compute the averafge flux along an
+      isophote. Choose from 'mean', 'median', and 'mode'.  In general,
+      median is fast and robust to a few outliers. Mode is slow but
+      robust to more outliers. Mean is fast and accurate in low S/N
+      regimes where fluxes take on near integer values, but not robust
+      to outliers. The mean should be used along with a mask to remove
+      spurious objects such as foreground stars or galaxies, and
+      should always be used with caution.
+
+      :default: 'median'
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      No results provided as this method writes its own profile
+    
+      .. code-block:: python
+     
+        {}
+
+    """
 
     mask = results['mask'] if 'mask' in results else None
     pa = results['init pa'] + ((options['ap_axialprof_pa']*np.pi/180) if 'ap_axialprof_pa' in options else 0.) 

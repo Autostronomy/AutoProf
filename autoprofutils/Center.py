@@ -14,8 +14,68 @@ import logging
 from copy import copy, deepcopy
 
 def Center_Forced(IMG, results, options):
-    """
-    Takes the center from an aux file, or given value.
+    """Extracts previously fit center coordinates.
+
+    Extracts the center coordinates from an aux file for a previous
+    AutoProf fit. Can instead simply be given a set center value, just
+    like other centering methods. A given center will override teh
+    fitted aux file center.
+
+    Arguments
+    -----------------
+    
+    ap_guess_center: dict
+      user provided starting point for center fitting. Center should
+      be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None, use image center
+
+    ap_set_center: dict
+      user provided fixed center for rest of calculations. Center
+      should be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None
+
+    ap_forcing_profile: string
+      (required for forced photometry) file path to .prof file
+      providing forced photometry PA and ellip values to apply to
+      *ap_image_file*.
+
+      :defualt:
+        None
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+   
+        {'center': {'x': , # x coordinate of the center (pix)
+	            'y': }, # y coordinate of the center (pix)
+   
+         'auxfile center': # optional, message for aux file to record galaxy center (string)
+         'auxfile centeral sb': # optional, central surface brightness value (float)
+   
+        }
+
     """
     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
     if 'ap_guess_center' in options:
@@ -44,9 +104,68 @@ def Center_Forced(IMG, results, options):
                  'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
     
 def Center_2DGaussian(IMG, results, options):
-    """
-    Compute the pixel location of the galaxy center by fitting
-    a 2d Gaussian as implimented by the photutils package.
+    """Find galaxy center with a 2D gaussian fit to the image..
+    
+    Compute the pixel location of the galaxy center by fitting a 2d
+    Gaussian as implimented by the photutils package.
+
+    Arguments
+    -----------------
+    
+    ap_guess_center: dict
+      user provided starting point for center fitting. Center should
+      be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None, use image center
+
+    ap_set_center: dict
+      user provided fixed center for rest of calculations. Center
+      should be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None
+
+    ap_centeringring: int
+      Size of ring to use when finding galaxy center, in units of
+      PSF. Larger rings will give the 2D fit more data to work with
+      and allow for the starting position to be further from the true
+      galaxy center.  Smaller rings will include fewer spurious
+      objects, and can stop the 2D fit from being distracted by larger
+      nearby objects/galaxies.
+
+      :defualt:
+        50
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+   
+        {'center': {'x': , # x coordinate of the center (pix)
+	            'y': }, # y coordinate of the center (pix)
+   
+         'auxfile center': # optional, message for aux file to record galaxy center (string)
+   
+        }
+
     """
     
     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
@@ -58,8 +177,10 @@ def Center_2DGaussian(IMG, results, options):
         return IMG, {'center': deepcopy(options['ap_set_center'])}
     
     # Create mask to focus centering algorithm on the center of the image
-    ranges = [[max(0,int(current_center['x'] - 50*results['psf fwhm'])), min(IMG.shape[1],int(current_center['x'] + 50*results['psf fwhm']))],
-              [max(0,int(current_center['y'] - 50*results['psf fwhm'])), min(IMG.shape[0],int(current_center['y'] + 50*results['psf fwhm']))]]
+    ranges = [[max(0,int(current_center['x'] - (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm'])),
+               min(IMG.shape[1],int(current_center['x'] + (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm']))],
+              [max(0,int(current_center['y'] - (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm'])),
+               min(IMG.shape[0],int(current_center['y'] + (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm']))]]
     centralize_mask = np.ones(IMG.shape, dtype = bool)
     centralize_mask[ranges[1][0]:ranges[1][1],
                     ranges[0][0]:ranges[0][1]] = False
@@ -81,11 +202,70 @@ def Center_2DGaussian(IMG, results, options):
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y'])}
 
 def Center_1DGaussian(IMG, results, options):
-    """
-    Compute the pixel location of the galaxy center using a photutils method.
-    Looking at 100 seeing lengths around the center of the image (images
-    should already be mostly centered), finds the galaxy center by fitting
-    several 1d Gaussians.
+    """Find galaxy center with many 1D gaussian fits to the image..
+    
+    Compute the pixel location of the galaxy center using a photutils
+    method.  Looking at 100 seeing lengths around the center of the
+    image (images should already be mostly centered), finds the galaxy
+    center by fitting several 1d Gaussians.
+
+    Arguments
+    -----------------
+    
+    ap_guess_center: dict
+      user provided starting point for center fitting. Center should
+      be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None, use image center
+
+    ap_set_center: dict
+      user provided fixed center for rest of calculations. Center
+      should be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None
+
+    ap_centeringring: int
+      Size of ring to use when finding galaxy center, in units of
+      PSF. Larger rings will give the 1D fits more data to work with
+      and allow for the starting position to be further from the true
+      galaxy center.  Smaller rings will include fewer spurious
+      objects, and can stop the 1D fits from being distracted by
+      larger nearby objects/galaxies.
+
+      :defualt:
+        50
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+   
+        {'center': {'x': , # x coordinate of the center (pix)
+	            'y': }, # y coordinate of the center (pix)
+   
+         'auxfile center': # optional, message for aux file to record galaxy center (string)
+   
+        }
+
     """
     
     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
@@ -97,8 +277,10 @@ def Center_1DGaussian(IMG, results, options):
         return IMG, {'center': deepcopy(options['ap_set_center'])}
     
     # Create mask to focus centering algorithm on the center of the image
-    ranges = [[max(0,int(current_center['x'] - 50*results['psf fwhm'])), min(IMG.shape[1],int(current_center['x'] + 50*results['psf fwhm']))],
-              [max(0,int(current_center['y'] - 50*results['psf fwhm'])), min(IMG.shape[0],int(current_center['y'] + 50*results['psf fwhm']))]]
+    ranges = [[max(0,int(current_center['x'] - (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm'])),
+               min(IMG.shape[1],int(current_center['x'] + (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm']))],
+              [max(0,int(current_center['y'] - (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm'])),
+               min(IMG.shape[0],int(current_center['y'] + (options['ap_centeringring'] if 'ap_centeringring' in options else 50)*results['psf fwhm']))]]
     centralize_mask = np.ones(IMG.shape, dtype = bool)
     centralize_mask[ranges[1][0]:ranges[1][1],
                     ranges[0][0]:ranges[0][1]] = False
@@ -121,6 +303,72 @@ def Center_1DGaussian(IMG, results, options):
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y'])}
 
 def Center_OfMass(IMG, results, options):
+    """Find the light weighted galaxy center.
+
+    Iteratively computes the light weighted centroid within a window,
+    moves to the new center and computes the light weighted centroid
+    again.  The size of the search area is 10PSF by default. The
+    iterative process will continue until the center is updated by
+    less than 1/10th of the PSF size or when too mny iterations have
+    been reached.
+
+    Arguments
+    -----------------
+    ap_guess_center: dict
+      user provided starting point for center fitting. Center should
+      be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None, use image center
+
+    ap_set_center: dict
+      user provided fixed center for rest of calculations. Center
+      should be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None
+
+    ap_centeringring: int
+      Size of ring to use when finding galaxy center, in units of
+      PSF. Larger rings will allow for the starting position to be
+      further from the true galaxy center.  Smaller rings will include
+      fewer spurious objects, and can stop the centroid from being
+      distracted by larger nearby objects/galaxies.
+
+      :defualt:
+        10
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+   
+        {'center': {'x': , # x coordinate of the center (pix)
+	            'y': }, # y coordinate of the center (pix)
+   
+         'auxfile center': # optional, message for aux file to record galaxy center (string)
+         'auxfile centeral sb': # optional, central surface brightness value (float)
+   
+        }
+
+    """
 
     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
     dat = IMG - results['background']
@@ -191,11 +439,68 @@ def _hillclimb_loss(x, IMG, PSF, noise):
     return center_loss
 
 def Center_HillClimb(IMG, results, options):
-    """
+    """Follow locally increasing brightness (robust to PSF size objects) to find peak.
+    
     Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
     phases are averaged to find the direction of increasing flux. Flux values are sampled
     along this direction and a quadratic fit gives the maximum. This is iteratively
     repeated until the step size becomes very small.
+
+    Arguments
+    -----------------
+    
+    ap_guess_center: dict
+      user provided starting point for center fitting. Center should
+      be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None, use image center
+
+    ap_set_center: dict
+      user provided fixed center for rest of calculations. Center
+      should be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None
+
+    ap_centeringring: int
+      Size of ring to use when finding galaxy center, in units of
+      PSF. Larger rings will be robust to features (i.e., foreground
+      stars), while smaller rings may be needed for small galaxies.
+
+      :defualt:
+        10
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+   
+        {'center': {'x': , # x coordinate of the center (pix)
+	            'y': }, # y coordinate of the center (pix)
+   
+         'auxfile center': # optional, message for aux file to record galaxy center (string)
+         'auxfile centeral sb': # optional, central surface brightness value (float)
+   
+        }
+
     """
     
     current_center = {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}
@@ -275,11 +580,71 @@ def _hillclimb_mean_loss(x, IMG, PSF, noise):
     return center_loss
 
 def Center_HillClimb_mean(IMG, results, options):
-    """
-    Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
-    phases are averaged to find the direction of increasing flux. Flux values are sampled
-    along this direction and a quadratic fit gives the maximum. This is iteratively
-    repeated until the step size becomes very small.
+    """Follow locally increasing brightness (robust to PSF size objects) to find peak.
+    
+    Using 10 circular isophotes out to 10 times the PSF length, the
+    first FFT coefficient phases are averaged to find the direction of
+    increasing flux. Flux values are sampled along this direction and
+    a quadratic fit gives the maximum. This is iteratively repeated
+    until the step size becomes very small. This function is identical
+    to :func:`~autoprofutils.Center.Center_HillClimb` except that all
+    averages/scatters are mean/std based instead of median/iqr based.
+
+    Arguments
+    -----------------
+    
+    ap_guess_center: dict
+      user provided starting point for center fitting. Center should
+      be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None, use image center
+
+    ap_set_center: dict
+      user provided fixed center for rest of calculations. Center
+      should be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None
+
+    ap_centeringring: int
+      Size of ring to use when finding galaxy center, in units of
+      PSF. Larger rings will be robust to features (i.e., foreground
+      stars), while smaller rings may be needed for small galaxies.
+
+      :defualt:
+        10
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+   
+        {'center': {'x': , # x coordinate of the center (pix)
+	            'y': }, # y coordinate of the center (pix)
+   
+         'auxfile center': # optional, message for aux file to record galaxy center (string)
+         'auxfile centeral sb': # optional, central surface brightness value (float)
+   
+        }
+
     """
     current_center = {'x': IMG.shape[0]/2, 'y': IMG.shape[1]/2}
 
