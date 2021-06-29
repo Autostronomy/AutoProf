@@ -59,10 +59,10 @@ def Background_Mode(IMG, results, options):
 
     Returns
     -------
-    ndarray
-      IMG, unaltered galaxy image
+    IMG: ndarray
+      Unaltered galaxy image
     
-    dict
+    results: dict
       .. code-block:: python
      
         {'background': , # flux value representing the background level (float)
@@ -140,10 +140,10 @@ def Background_DilatedSources(IMG, results, options):
 
     Returns
     -------
-    ndarray
-      IMG, unaltered galaxy image
-        
-    dict
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
       .. code-block:: python
      
         {'background': , # flux value representing the background level (float)
@@ -221,10 +221,10 @@ def Background_Basic(IMG, results, options):
 
     Returns
     -------
-    ndarray
-      IMG, unaltered galaxy image
+    IMG: ndarray
+      Unaltered galaxy image
     
-    dict
+    results: dict
       .. code-block:: python
      
         {'background': , # flux value representing the background level (float)
@@ -278,10 +278,10 @@ def Background_Unsharp(IMG, results, options):
 
     Returns
     -------
-    ndarray
-      IMG, unaltered galaxy image
+    IMG: ndarray
+      Unaltered galaxy image
     
-    dict
+    results: dict
       .. code-block:: python
      
         {'background': , # flux image representing the variable background level (float)
