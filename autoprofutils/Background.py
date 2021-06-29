@@ -32,16 +32,17 @@ def Background_Mode(IMG, results, options):
 
     Config Parameters
     -----------------
-    
     ap_set_background: float
       User provided background value in flux
 
-      default: None
+      :default:
+        None
 
     ap_set_background_noise: float
       User provided background noise level in flux
 
-      default: None
+      :default:
+        None
 
     ap_background_speedup: int
       For large images, this can be millions of pixels, which is not
@@ -49,19 +50,20 @@ def Background_Mode(IMG, results, options):
       can provide a positive integer factor by which to reduce the
       number of pixels used in the calculation.
 
-      default: 1
+      :default:
+        1
 
     Returns
     -------
-    
-    .. code-block:: python
-   
-      {'background': , # flux value representing the background level (float)
-       'background noise': ,# measure of scatter around the background level (float)
-       'background uncertainty': ,# optional, uncertainty on background level (float)
-       'auxfile background': # optional, message for aux file to record background level (string)
-    
-      }    
+    dict
+      .. code-block:: python
+     
+        {'background': , # flux value representing the background level (float)
+         'background noise': ,# measure of scatter around the background level (float)
+         'background uncertainty': ,# optional, uncertainty on background level (float)
+         'auxfile background': # optional, message for aux file to record background level (string)
+      
+        }    
     """
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
