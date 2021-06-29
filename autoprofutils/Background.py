@@ -30,7 +30,11 @@ def Background_Mode(IMG, results, options):
     it is contaminated by faint sources. In truth the lower 1sigma is
     contaminated as well, though to a lesser extent.
 
-    Config Parameters
+    Note
+    ----
+      For best results, use a segmentation mask to remove sources.
+
+    Arguments
     -----------------
     ap_set_background: float
       User provided background value in flux
@@ -109,12 +113,40 @@ def Background_Mode(IMG, results, options):
                  'auxfile background': 'background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix' % (bkgrnd, uncertainty, noise)}
 
 def Background_DilatedSources(IMG, results, options):
-    """
+    """Compute the median flux after removing bright sources.
+    
     Compute a global background value for an image. Performed by
     identifying pixels which are beyond 3 sigma above the average
-    signal and masking them, also further masking a boarder
+    signal and masking them, also further masking a border
     of 20 pixels around the initial masked pixels. Returns a
     dictionary of parameters describing the background level.
+
+    Arguments
+    -----------------
+    ap_set_background: float
+      User provided background value in flux
+
+      :default:
+        None
+
+    ap_set_background_noise: float
+      User provided background noise level in flux
+
+      :default:
+        None
+
+    Returns
+    -------
+    
+    dict
+      .. code-block:: python
+     
+        {'background': , # flux value representing the background level (float)
+         'background noise': ,# measure of scatter around the background level (float)
+         'background uncertainty': ,# optional, uncertainty on background level (float)
+         'auxfile background': # optional, message for aux file to record background level (string)
+      
+        }
     """
 
     # Mask main body of image so only outer 1/5th is used
@@ -151,25 +183,104 @@ def Background_DilatedSources(IMG, results, options):
                  'auxfile background': 'background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix' % (bkgrnd, uncertainty, noise)}
 
 def Background_Basic(IMG, results, options):
-    mask = np.ones(IMG.shape, dtype = bool)
-    mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
-         int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = False
+    """Compute the mean flux in the border of an image.
+    
+    Takes all pixels in a 1/5th border of the image and computes the
+    mean. To compute the noise in the background level, we simply take
+    the standard deviation of the flux values. This background
+    estimation method is only for diagnostic purposes and will be
+    considerably biased on real astronomical images.
 
-    bkgrnd = options['ap_set_background'] if 'ap_set_background' in options else np.mean(IMG[mask])
-    noise = options['ap_set_background_noise'] if 'ap_set_background_noise' in options else np.std(IMG[mask])
-    uncertainty = noise / np.sqrt(len(IMG[mask].ravel()))
+    Arguments
+    -----------------
+    ap_set_background: float
+      User provided background value in flux
+
+      :default:
+        None
+
+    ap_set_background_noise: float
+      User provided background noise level in flux
+
+      :default:
+        None
+
+    ap_background_speedup: int
+      For large images, this can be millions of pixels, which is not
+      really needed to achieve an accurate background level, the user
+      can provide a positive integer factor by which to reduce the
+      number of pixels used in the calculation.
+
+      :default:
+        1
+
+    Returns
+    -------
+    dict
+      .. code-block:: python
+     
+        {'background': , # flux value representing the background level (float)
+         'background noise': ,# measure of scatter around the background level (float)
+         'background uncertainty': ,# optional, uncertainty on background level (float)
+         'auxfile background': # optional, message for aux file to record background level (string)
+      
+        }
+
+    """
+    mask = np.ones(IMG.shape, dtype = bool)
+    mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
+         int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = False
+    values = IMG[mask].flatten()
+    if len(values) < 1e3:
+        values = IMG.flatten()
+    if 'ap_background_speedup' in options and int(options['ap_background_speedup']) > 1:
+        values = values[::int(options['ap_background_speedup'])]
+    values = values[np.isfinite(values)]
+
+    bkgrnd = options['ap_set_background'] if 'ap_set_background' in options else np.mean(values)
+    noise = options['ap_set_background_noise'] if 'ap_set_background_noise' in options else np.std(values)
+    uncertainty = noise / np.sqrt(len(values))
     if 'ap_doplot' in options and options['ap_doplot']:
-        Plot_Background(IMG[mask].ravel(), bkgrnd, noise, results, options)
+        Plot_Background(values, bkgrnd, noise, results, options)
     return IMG, {'background': bkgrnd,
                  'background noise': noise,
                  'background uncertainty': uncertainty,
                  'auxfile background': 'background: %.5e +- %.2e flux/pix, noise: %.5e flux/pix' % (bkgrnd, uncertainty, noise)}
 
 def Background_Unsharp(IMG, results, options):
+    """creates a 2D background level using low order FFT coefficients.
+    
+    Takes the 2D FFT of an image and sets all coefficients above 3 to
+    zero. This creates a very smooth image which can be used as a
+    variable background level.  This can then be subtracted from
+    images to remove large bright sources, such as a nearby BGC or
+    bright star. However, this background estimation method will
+    likely also heavily bias flux value. Thus it can reasonably be
+    used to isolate a galaxy with a large overlapping partner for the
+    sake of fitting isophotes, but the extracted flux profile will be
+    unreliable.
+    
+    Arguments
+    -----------------
+    ap_background_unsharp_lowpass: int
+      User provided FFT coefficient cutoff for constructing unsharp image.
+
+      :default:
+        3
+
+    Returns
+    -------
+    dict
+      .. code-block:: python
+     
+        {'background': , # flux image representing the variable background level (float)
+        }
+
+    """
 
     coefs = fft2(IMG)
 
-    unsharp = 3
+    unsharp = int(options['ap_background_unsharp_lowpass']) if 'ap_background_unsharp_lowpass' in options else 3
     coefs[unsharp:-unsharp] = 0
     coefs[:,unsharp:-unsharp] = 0
 
