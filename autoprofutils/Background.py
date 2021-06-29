@@ -59,6 +59,9 @@ def Background_Mode(IMG, results, options):
 
     Returns
     -------
+    ndarray
+      IMG, unaltered galaxy image
+    
     dict
       .. code-block:: python
      
@@ -137,7 +140,9 @@ def Background_DilatedSources(IMG, results, options):
 
     Returns
     -------
-    
+    ndarray
+      IMG, unaltered galaxy image
+        
     dict
       .. code-block:: python
      
@@ -216,6 +221,9 @@ def Background_Basic(IMG, results, options):
 
     Returns
     -------
+    ndarray
+      IMG, unaltered galaxy image
+    
     dict
       .. code-block:: python
      
@@ -270,6 +278,9 @@ def Background_Unsharp(IMG, results, options):
 
     Returns
     -------
+    ndarray
+      IMG, unaltered galaxy image
+    
     dict
       .. code-block:: python
      
