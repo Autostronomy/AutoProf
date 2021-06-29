@@ -2,7 +2,7 @@
 Getting Started
 ===============
 
-Test inline link to :py:func:`~autoprofutils.Background.Background_Mode` to see if that works. Also trying :func:`~autoprofutils.Background` and also :meth:`~autoprofutils.Background.Background_Mode` and another :class:`~Pipeline` to see what we get.
+AutoProf is a :class:`Pipeline` building code at its core. However, the rich functionality provided by this framework is safely hidden beneath a simple to use exterior. As a beginning user, you need only provide the most basic information (path to an image, pixel scale, maybe the photometric zero point) and AutoProf will assume the rest. As you get better aquainted with the configuration file construction, you will be able to access more powerful functionality.
 
 Getting Started On A Single Image
 ---------------------------------

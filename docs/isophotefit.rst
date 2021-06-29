@@ -8,18 +8,30 @@ Description
 
 **pipeline label: isophotefit**
 
-A series of isophotes are constructed which grow geometrically until they begin to reach the background level.
-Then the algorithm iteratively updates the position angle and ellipticity of each isophote individually for many rounds.
-Each round updates every isophote in a random order.
-Each round cycles between three options: optimizing position angle, ellipticity, or both.
-To optimize the parameters, 5 values (pa, ellip, or both) are randomly sampled and the "loss" is computed.
-The loss is a combination of the relative amplitude of the second FFT coefficient (compared to the median flux), and a regularization term.
-The regularization term penalizes adjacent isophotes for having different position angle or ellipticity (using the l1 norm).
-Thus, all the isophotes are coupled and tend to fit smoothly varying isophotes.
-When the optimization has completed three rounds without any isophotes updating, the profile is assumed to have converged.
+The :func:`defualt isophotal fitting
+<~autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust>` routine
+simultaneously optimizes a collection of elliptical isophotes by
+minimizing the 2nd FFT coefficient power, regularized for
+robustness. A series of isophotes are constructed which grow
+geometrically until they begin to reach the background level.  Then
+the algorithm iteratively updates the position angle and ellipticity
+of each isophote individually for many rounds.  Each round updates
+every isophote in a random order.  Each round cycles between three
+options: optimizing position angle, ellipticity, or both.  To optimize
+the parameters, 5 values (pa, ellip, or both) are randomly sampled and
+the "loss" is computed.  The loss is a combination of the relative
+amplitude of the second FFT coefficient (compared to the median flux),
+and a regularization term.  The regularization term penalizes adjacent
+isophotes for having different position angle or ellipticity (using
+the l1 norm).  Thus, all the isophotes are coupled and tend to fit
+smoothly varying isophotes.  When the optimization has completed three
+rounds without any isophotes updating, the profile is assumed to have
+converged.
 
-An uncertainty for each ellipticity and position angle value is determined by taking the RMS between the fitted values and a smoothed polynomial fit values for 4 points.
-This is a very rough estimate of the uncertainty, but works sufficiently well in the outskirts.
+An uncertainty for each ellipticity and position angle value is
+determined by taking the RMS between the fitted values and a smoothed
+polynomial fit values for 4 points.  This is a very rough estimate of
+the uncertainty, but works sufficiently well in the outskirts.
 
 Output format:
 

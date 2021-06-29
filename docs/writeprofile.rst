@@ -7,6 +7,7 @@ Description
 
 **pipeline label: writeprof**
 
+The :func:`default profile writing <~autoprofutils.Write_Prof.WriteProf>` method is fairly straightforward, users can replace this step if they wish to take advantage of more exotic file storage formats.
 This step writes the results of the AutoProf pipeline analysis to a file.
 There are two files written, a *.prof* file containing the surface brightness profile and acompanying measurements, and a *.aux* file containing global results, messages, and setting used for the pipeline.
 The *.prof* file looks for specific keywords in the results dictionary: *prof header*, *prof units*, *prof data*, and *prof format*.

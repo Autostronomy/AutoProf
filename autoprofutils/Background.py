@@ -18,9 +18,50 @@ from autoprofutils.SharedFunctions import AddLogo, Smooth_Mode
 from autoprofutils.Diagnostic_Plots import Plot_Background
 
 def Background_Mode(IMG, results, options):
-    """
-    Compute background by finding the peak in a smoothed histogram of flux values.
-    This should correspond to the peak of the noise floor.
+    """Compute the mode flux in the border of an image.
+    
+    Takes all pixels in a 1/5th border of the image. Applies a
+    Gaussian smoothing length of log10(sqrt(N)) where N is the number
+    of sampled pixels. The peak of the smoothed distribution is found
+    using Nelder-Mead optimization. To compute the noise in the
+    background level, we take all flux values below the fitted
+    background level and compute the 31.73 - 100 percent range. This
+    corresponds to the lower 1sigma, we do not use the upper 1sigma as
+    it is contaminated by faint sources. In truth the lower 1sigma is
+    contaminated as well, though to a lesser extent.
+
+    Config Parameters
+    -----------------
+    
+    ap_set_background: float
+      User provided background value in flux
+
+      default: None
+
+    ap_set_background_noise: float
+      User provided background noise level in flux
+
+      default: None
+
+    ap_background_speedup: int
+      For large images, this can be millions of pixels, which is not
+      really needed to achieve an accurate background level, the user
+      can provide a positive integer factor by which to reduce the
+      number of pixels used in the calculation.
+
+      default: 1
+
+    Returns
+    -------
+    
+    .. code-block:: python
+   
+      {'background': , # flux value representing the background level (float)
+       'background noise': ,# measure of scatter around the background level (float)
+       'background uncertainty': ,# optional, uncertainty on background level (float)
+       'auxfile background': # optional, message for aux file to record background level (string)
+    
+      }    
     """
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.

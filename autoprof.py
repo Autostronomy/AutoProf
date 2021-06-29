@@ -2,7 +2,7 @@
 
 import os
 import sys
-os.environ['AUTOPROF'] = os.path.abspath('..')
+os.environ['AUTOPROF'] = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.environ['AUTOPROF'])
 from Pipeline import Isophote_Pipeline
 

@@ -7,7 +7,7 @@ Description
 
 **pipeline label: checkfit**
 
-A variety of checks are applied to ensure that the fit has converged to a reasonable solution.
+A variety of :func:`default check methods <~autoprofutils.Check_Fit.Check_Fit>` are applied to ensure that the fit has converged to a reasonable solution.
 If a fit passes all of these checks then it is typically an acceptable fit.
 However if it fails one or more of the checks then the fit likely either failed or the galaxy has strong non-axisymmetric features (and the fit itself may be acceptable).
 

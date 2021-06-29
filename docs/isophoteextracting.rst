@@ -7,12 +7,18 @@ Description
 
 **pipeline label: isophoteextract**
 
-The user may specify a variety of sampling arguments for the photometry extraction.
-For example, a start or end radius in pixels, or whether to sample geometrically or linearly in radius.
-Geometric sampling is the default as it is faster.
-Once the sampling profile of semi-major axis values has been chosen, the function interpolates (spline) the position angle and ellipticity profiles at the requested values.
-For any sampling beyond the outer radius from the *Isophotal Fitting* step, a constant value is used.
-Within 1 PSF, a circular isophote is used.
+The :func:`default SB profile extraction
+<~autoprofutils.Isophote_Extract.Isophote_Extract>` method is highly
+flexible, allowing users to test a variety of techniques on their data
+to determine the most robust. The user may specify a variety of
+sampling arguments for the photometry extraction.  For example, a
+start or end radius in pixels, or whether to sample geometrically or
+linearly in radius.  Geometric sampling is the default as it is
+faster.  Once the sampling profile of semi-major axis values has been
+chosen, the function interpolates (spline) the position angle and
+ellipticity profiles at the requested values.  For any sampling beyond
+the outer radius from the *Isophotal Fitting* step, a constant value
+is used.  Within 1 PSF, a circular isophote is used.
 
 Output format:
 
