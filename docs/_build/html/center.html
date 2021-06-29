@@ -182,22 +182,22 @@
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p><strong>pipeline label: center</strong></p>
-<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">default</span> <span class="pre">center</span></code>
-finding algorithm uses a robust hill climbing algorithm to find the
-local brightness peak, while ignoring peaks that are of similar scale
-as the psf. Depending on the specified parameters, this function will
-start at the center of the image or at a user specified center.  From
-the starting point, the function will create 10 circular isophotes out
-to 10 times the PSF size and sample flux values around each isophote.
-An FFT is taken for the flux values around each circular isophote and
-the phase of the first FFT coefficient is used to determine a
-direction on the image of increasing brightness.  Taking the average
-direction, flux values are sampled from the current center out to 10
-times the PSF.  A parabola is fit to the flux values and the center is
-then updated to the maximum of the parabola.  This is repeated until
-the update steps become negligible.  At this point, a Nelder-Mead
-simplex optimizer is used for fine tuning to find a minimum in FFT
-first coefficient magnitude.</p>
+<p>The <a class="reference internal" href="autoprofutils.html#autoprofutils.Center.Center_HillClimb" title="autoprofutils.Center.Center_HillClimb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a> finding algorithm
+uses a robust hill climbing algorithm to find the local brightness
+peak, while ignoring peaks that are of similar scale as the
+psf. Depending on the specified parameters, this function will start
+at the center of the image or at a user specified center.  From the
+starting point, the function will create 10 circular isophotes out to
+10 times the PSF size and sample flux values around each isophote.  An
+FFT is taken for the flux values around each circular isophote and the
+phase of the first FFT coefficient is used to determine a direction on
+the image of increasing brightness.  Taking the average direction,
+flux values are sampled from the current center out to 10 times the
+PSF.  A parabola is fit to the flux values and the center is then
+updated to the maximum of the parabola.  This is repeated until the
+update steps become negligible.  At this point, a Nelder-Mead simplex
+optimizer is used for fine tuning to find a minimum in FFT first
+coefficient magnitude.</p>
 <p>Output format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
             <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>

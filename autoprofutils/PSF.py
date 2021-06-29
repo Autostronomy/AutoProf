@@ -18,8 +18,39 @@ from autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
 from copy import deepcopy
 
 def PSF_IRAF(IMG, results, options):
-    """
-    Apply the photutils IRAF wrapper to the image to extract a PSF fwhm
+    """PSF routine which identifies stars and averages the FWHM.
+
+    Uses the photutil IRAF wrapper to identify stars in the image and
+    computes the average FWHM.
+
+    Arguments
+    -----------------
+    
+    ap_guess_psf: float
+      Initialization value for the PSF calculation in pixels. If not
+      given, AutoProf will default with a guess of 1/*ap_pixscale*
+
+      :default:
+        None, use 1 arcsec
+
+    ap_set_psf: float
+      force AutoProf to use this PSF value (in pixels) instead of
+      calculating its own.
+
+      :default:
+        None    
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'psf fwhm':  # FWHM of the average PSF for the image
+        }
+
     """
     if 'ap_set_psf' in options:
         logging.info('%s: PSF set by user: %.4e' % (options['ap_name'], options['ap_set_psf']))
@@ -61,6 +92,48 @@ def PSF_IRAF(IMG, results, options):
     return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf}
 
 def PSF_StarFind(IMG, results, options):
+    """PSF routine which identifies stars and averages the FWHM.
+
+    The PSF method uses an edge finding convolution filter to identify
+    candidate star pixels, then averages their FWHM. Randomly iterates
+    through the pixels and searches for a local maximum. An FFT is
+    used to identify non-circular star candidate (artifacts or
+    galaxies) which may have been picked up by the edge
+    finder. Circular apertures are placed around the star until half
+    the central flux value is reached, This is recorded as the FWHM
+    for that star. A collection of 50 stars are identified and the
+    most circular (by FFT coefficients) half are kept, a median is
+    taken as the image PSF.
+
+    Arguments
+    -----------------
+    
+    ap_guess_psf: float
+      Initialization value for the PSF calculation in pixels. If not
+      given, AutoProf will default with a guess of 1/*ap_pixscale*
+
+      :default:
+        None, use 1 arcsec
+
+    ap_set_psf: float
+      force AutoProf to use this PSF value (in pixels) instead of
+      calculating its own.
+
+      :default:
+        None    
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'psf fwhm':  # FWHM of the average PSF for the image
+        }
+
+    """
 
     if 'ap_set_psf' in options:
         logging.info('%s: PSF set by user: %.4e' % (options['ap_name'], options['ap_set_psf']))

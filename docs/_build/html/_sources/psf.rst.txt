@@ -7,16 +7,16 @@ Description
 
 **pipeline label: psf**
 
-The :func:`default psf <~autoprofutils.PSF.PSF_StarFind>` method uses
-an edge finding convolution filter to identify candidate star pixels,
-then averages their FWHM. Randomly iterates through the pixels and
-searches for a local maximum. An FFT is used to identify non-circular
-star candidate (artifacts or galaxies) which may have been picked up
-by the edge finder. Circular apertures are placed around the star
-until half the central flux value is reached, This is recorded as the
-FWHM for that star. A collection of 50 stars are identified and the
-most circular (by FFT coefficients) half are kept, a median is taken
-as the image PSF.
+The :func:`~autoprofutils.PSF.PSF_StarFind` method uses an edge
+finding convolution filter to identify candidate star pixels, then
+averages their FWHM. Randomly iterates through the pixels and searches
+for a local maximum. An FFT is used to identify non-circular star
+candidate (artifacts or galaxies) which may have been picked up by the
+edge finder. Circular apertures are placed around the star until half
+the central flux value is reached, This is recorded as the FWHM for
+that star. A collection of 50 stars are identified and the most
+circular (by FFT coefficients) half are kept, a median is taken as the
+image PSF.
 
 Output format:
 

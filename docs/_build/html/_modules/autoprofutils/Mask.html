@@ -90,7 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citing AutoProf</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">LICENSE</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../background.html">Background</a></li>
@@ -183,9 +183,59 @@
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">Read_Image</span><span class="p">,</span> <span class="n">LSBImage</span><span class="p">,</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">StarFind</span>
 
 <div class="viewcode-block" id="Bad_Pixel_Mask"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Mask.Bad_Pixel_Mask">[docs]</a><span class="k">def</span> <span class="nf">Bad_Pixel_Mask</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    construct a mask by identifying bad pixels as selected by basic</span>
-<span class="sd">    cutoff criteria.</span>
+    <span class="sd">&quot;&quot;&quot;Simple masking routine to clip pixels based on thresholds.</span>
+
+<span class="sd">    Creates a mask image using user provided limits on highest/lowest</span>
+<span class="sd">    pixels values allowed. Also users can reject pixels with a</span>
+<span class="sd">    specific value. This can be used on its own, or in combination</span>
+<span class="sd">    with other masking routines. Multiple Mask calls with perform</span>
+<span class="sd">    boolean-or operation.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_badpixel_high: float</span>
+<span class="sd">      flux value that corresponds to a saturated pixel or bad pixel</span>
+<span class="sd">      flag, all values above *ap_badpixel_high* will be masked if</span>
+<span class="sd">      using the *Bad_Pixel_Mask* pipeline method.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    ap_badpixel_low: float</span>
+<span class="sd">      flux value that corresponds to a bad pixel flag, all values</span>
+<span class="sd">      below *ap_badpixel_low* will be masked if using the</span>
+<span class="sd">      *Bad_Pixel_Mask* pipeline method.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    ap_badpixel_exact: float</span>
+<span class="sd">      flux value that corresponds to a precise bad pixel flag, all</span>
+<span class="sd">      values equal to *ap_badpixel_exact* will be masked if using the</span>
+<span class="sd">      *Bad_Pixel_Mask* pipeline method.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask: bool</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        False</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)    </span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">Mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
@@ -203,6 +253,43 @@
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span> <span class="n">Mask</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="Mask_Segmentation_Map"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Mask.Mask_Segmentation_Map">[docs]</a><span class="k">def</span> <span class="nf">Mask_Segmentation_Map</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reads the results from other masking routines into AutoProf.</span>
+
+<span class="sd">    Creates a mask from a supplied segmentation map. Such maps</span>
+<span class="sd">    typically number each source with an integer. In such a case,</span>
+<span class="sd">    AutoProf will check to see if the object center lands on one of</span>
+<span class="sd">    these segments, if so it will zero out that source-id before</span>
+<span class="sd">    converting the segmentation map into a mask. If the supplied image</span>
+<span class="sd">    is just a 0, 1 mask then AutoProf will take it as is.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_mask_file: string</span>
+<span class="sd">      path to fits file which is a mask for the image. Must have the same dimensions as the main image.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask: bool</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        False</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)    </span>
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="k">if</span> <span class="s1">&#39;ap_mask_file&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">or</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_mask_file&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span> 
@@ -242,9 +329,32 @@
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)}</span></div>
 
 <div class="viewcode-block" id="Star_Mask_IRAF"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Mask.Star_Mask_IRAF">[docs]</a><span class="k">def</span> <span class="nf">Star_Mask_IRAF</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Idenitfy the location of stars in the image and create a mask around</span>
-<span class="sd">    each star of pixels to be avoided in further processing.</span>
+    <span class="sd">&quot;&quot;&quot;Masking routine which identifies stars and masks a region around them.</span>
+
+<span class="sd">    An IRAF star finder wrapper (from photutils) is applied to the</span>
+<span class="sd">    image and then the identified sources are masked form the image.</span>
+<span class="sd">    The size of the mask depends on the flux in the source roughly as</span>
+<span class="sd">    sqrt(log(f)), thus an inverse of a Gaussian.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask: bool</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        False</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)    </span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">fwhm</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">]</span>
@@ -274,7 +384,7 @@
             <span class="c1"># Compute the flux of the star</span>
             <span class="c1">#f = np.sum(IMG[R &lt; 10*fwhm])</span>
             <span class="c1"># Compute radius to reach background noise level, assuming gaussian</span>
-            <span class="n">Rstar</span> <span class="o">=</span> <span class="p">(</span><span class="n">fwhm</span><span class="o">/</span><span class="mf">2.355</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">fwhm</span><span class="o">/</span><span class="mf">2.355</span><span class="p">)</span><span class="o">*</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;background noise&#39;</span><span class="p">])))</span> <span class="c1"># fixme double check</span>
+            <span class="n">Rstar</span> <span class="o">=</span> <span class="p">(</span><span class="n">fwhm</span><span class="o">/</span><span class="mf">2.355</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">fwhm</span><span class="o">/</span><span class="mf">2.355</span><span class="p">)</span><span class="o">*</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;background noise&#39;</span><span class="p">])))</span>
             <span class="n">mask</span><span class="p">[</span><span class="n">R</span> <span class="o">&lt;</span> <span class="n">Rstar</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span> 
 
     <span class="k">if</span> <span class="s1">&#39;mask&#39;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
@@ -295,9 +405,34 @@
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span> <span class="n">mask</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="Star_Mask"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Mask.Star_Mask">[docs]</a><span class="k">def</span> <span class="nf">Star_Mask</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Idenitfy the location of stars in the image and create a mask around</span>
-<span class="sd">    each star of pixels to be avoided in further processing.</span>
+    <span class="sd">&quot;&quot;&quot;Masking routine which identifies stars and masks a region around them.</span>
+
+<span class="sd">    Using an edge detecting convolutional filter, sources are</span>
+<span class="sd">    identified that are of similar scale as the PSF. These sources are</span>
+<span class="sd">    masked with a region roughly 2 times the FWHM of the source.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask: bool</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        False</span>
+
+<span class="sd">    starfind</span>
+<span class="sd">      :func:`autoprofutils.SharedFunctions.StarFind`</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)    </span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">fwhm</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">]</span>

@@ -90,7 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citing AutoProf</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">LICENSE</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../background.html">Background</a></li>
@@ -193,9 +193,30 @@
 <span class="kn">from</span> <span class="nn">autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_Isophote_Fit</span>
 
 <div class="viewcode-block" id="Photutils_Fit"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Fit.Photutils_Fit">[docs]</a><span class="k">def</span> <span class="nf">Photutils_Fit</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Function to run the photutils automated isophote analysis on an image.</span>
-<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="sd">&quot;&quot;&quot;Photutils elliptical isophote wrapper.</span>
+<span class="sd">    </span>
+<span class="sd">    This simply gives users access to the photutils isophote</span>
+<span class="sd">    fitting method. See: `photutils</span>
+<span class="sd">    &lt;https://photutils.readthedocs.io/en/stable/isophote.html&gt;`_ for</span>
+<span class="sd">    more information.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">     </span>
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+<span class="sd">         &#39;auxfile fitlimit&#39;: # optional, auxfile message (string)</span>
+<span class="sd">    </span>
+<span class="sd">        }    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span>
     <span class="n">geo</span> <span class="o">=</span> <span class="n">EllipseGeometry</span><span class="p">(</span><span class="n">x0</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">],</span>
@@ -274,10 +295,72 @@
     <span class="k">return</span> <span class="n">E_err</span><span class="p">,</span> <span class="n">PA_err</span>
         
 <div class="viewcode-block" id="Isophote_Fit_FFT_Robust"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_Robust</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.</span>
-<span class="sd">    Included is a regularization term which penalizes isophotes for having large differences between parameters</span>
-<span class="sd">    of adjacent isophotes.</span>
+    <span class="sd">&quot;&quot;&quot;Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</span>
+<span class="sd">    </span>
+<span class="sd">    The isophotal fitting routine simultaneously optimizes a</span>
+<span class="sd">    collection of elliptical isophotes by minimizing the 2nd FFT</span>
+<span class="sd">    coefficient power, regularized for robustness. A series of</span>
+<span class="sd">    isophotes are constructed which grow geometrically until they</span>
+<span class="sd">    begin to reach the background level.  Then the algorithm</span>
+<span class="sd">    iteratively updates the position angle and ellipticity of each</span>
+<span class="sd">    isophote individually for many rounds.  Each round updates every</span>
+<span class="sd">    isophote in a random order.  Each round cycles between three</span>
+<span class="sd">    options: optimizing position angle, ellipticity, or both.  To</span>
+<span class="sd">    optimize the parameters, 5 values (pa, ellip, or both) are</span>
+<span class="sd">    randomly sampled and the &quot;loss&quot; is computed.  The loss is a</span>
+<span class="sd">    combination of the relative amplitude of the second FFT</span>
+<span class="sd">    coefficient (compared to the median flux), and a regularization</span>
+<span class="sd">    term.  The regularization term penalizes adjacent isophotes for</span>
+<span class="sd">    having different position angle or ellipticity (using the l1</span>
+<span class="sd">    norm).  Thus, all the isophotes are coupled and tend to fit</span>
+<span class="sd">    smoothly varying isophotes.  When the optimization has completed</span>
+<span class="sd">    three rounds without any isophotes updating, the profile is</span>
+<span class="sd">    assumed to have converged.</span>
+
+<span class="sd">    An uncertainty for each ellipticity and position angle value is</span>
+<span class="sd">    determined by taking the RMS between the fitted values and a</span>
+<span class="sd">    smoothed polynomial fit values for 4 points.  This is a very rough</span>
+<span class="sd">    estimate of the uncertainty, but works sufficiently well in the</span>
+<span class="sd">    outskirts.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_scale: float</span>
+<span class="sd">      growth scale when fitting isophotes, not the same as *ap_sample---scale*.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        0.2</span>
+
+<span class="sd">    ap_fit_limit: float</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        2</span>
+
+<span class="sd">    ap_regularize_scale: float</span>
+<span class="sd">      scale factor to apply to regularization coupling factor between isophotes.</span>
+<span class="sd">      Default of 1, larger values make smoother fits, smaller values give more chaotic fits.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        1</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">     </span>
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+<span class="sd">         &#39;auxfile fitlimit&#39;: # optional, auxfile message (string)</span>
+<span class="sd">    </span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="s1">&#39;ap_scale&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
@@ -439,10 +522,54 @@
     <span class="k">return</span> <span class="n">f2_loss</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">reg_loss</span><span class="o">*</span><span class="n">reg_scale</span><span class="p">)</span> <span class="c1">#(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale</span>
 
 <div class="viewcode-block" id="Isophote_Fit_FFT_mean"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Fit.Isophote_Fit_FFT_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.</span>
-<span class="sd">    Included is a regularization term which penalizes isophotes for having large differences between parameters</span>
-<span class="sd">    of adjacent isophotes.</span>
+    <span class="sd">&quot;&quot;&quot;Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</span>
+
+<span class="sd">    Same as the standard isophote fitting routine, except uses less</span>
+<span class="sd">    robust mean/std measures. This is only intended for low S/N data</span>
+<span class="sd">    where pixels have low integer counts.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_scale: float</span>
+<span class="sd">      growth scale when fitting isophotes, not the same as</span>
+<span class="sd">      *ap_sample---scale*.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        0.2</span>
+
+<span class="sd">    ap_fit_limit: float</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel</span>
+<span class="sd">      background noise level. Default is 2, smaller values will end</span>
+<span class="sd">      fitting further out in the galaxy image.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        2</span>
+
+<span class="sd">    ap_regularize_scale: float</span>
+<span class="sd">      scale factor to apply to regularization coupling factor between</span>
+<span class="sd">      isophotes.  Default of 1, larger values make smoother fits,</span>
+<span class="sd">      smaller values give more chaotic fits.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        1</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">     </span>
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+<span class="sd">         &#39;auxfile fitlimit&#39;: # optional, auxfile message (string)</span>
+<span class="sd">    </span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="s1">&#39;ap_scale&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>

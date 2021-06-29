@@ -175,18 +175,30 @@
             
   <div class="section" id="decision-trees">
 <h1>Decision Trees<a class="headerlink" href="#decision-trees" title="Permalink to this headline">¶</a></h1>
-<p>AutoProf at its core is a pipeline building code, as such it has a more advanced feature for constructing complex pipelines: decision trees.
-In a decision tree pipeline, one can essentially construct a flow chart of decisions and corresponding methods to run and options to use.
-The beginning of the tree is always <em>‘head’</em> and AutoProf will continue to read those steps until it reaches a step containing the word <em>branch</em> (any other text can be included in the step name so you can write many different branches).
-At a branch step, AutoProf will provide the usual inputs, but the output should be a string or <em>None</em> and a dictionary of new options (if any).
-If <em>None</em> is returned then AutoProf carries on along the same branch it is already on.
-If a string is returned, then that is taken as the key from which to check for the next step in the pipeline steps object.
-An empty dictionary can be used to change no options.
-When switching branches, AutoProf will start at the beginning of the new branch.
-Note, the new branch can even be the branch you started on so watch out for infinite loops!</p>
-<p>For example, in a large sample, one may wish to process edge-on galaxies differently than the others, but it may not be clear which galaxies fit the edge-on criteria until the photometry is done.
-In this example, one could have AutoProf perform photometry up to the point of the <em>isophoteinit</em> step, then the rest of the functions could be chosen based on the ellipticity of the initialized ellipse.
-To make this work one could add:</p>
+<p>AutoProf at its core is a pipeline building code, as such it has a
+more advanced feature for constructing complex pipelines: decision
+trees.  In a decision tree pipeline, one can essentially construct a
+flow chart of decisions and corresponding methods to run and options
+to use.  The beginning of the tree is always <em>‘head’</em> and AutoProf
+will continue to read those steps until it reaches a step containing
+the word <em>branch</em> (any other text can be included in the step name so
+you can write many different branches).  At a branch step, AutoProf
+will provide the usual inputs, but the output should be a string or
+<em>None</em> and a dictionary of new options (if any).  If <em>None</em> is
+returned then AutoProf carries on along the same branch it is already
+on.  If a string is returned, then that is taken as the key from which
+to check for the next step in the pipeline steps object.  An empty
+dictionary can be used to change no options.  When switching branches,
+AutoProf will start at the beginning of the new branch.  Note, the new
+branch can even be the branch you started on so watch out for infinite
+loops!</p>
+<p>For example, in a large sample, one may wish to process edge-on
+galaxies differently than the others, but it may not be clear which
+galaxies fit the edge-on criteria until the photometry is done.  In
+this example, one could have AutoProf perform photometry up to the
+point of the <em>isophoteinit</em> step, then the rest of the functions could
+be chosen based on the ellipticity of the initialized ellipse.  To
+make this work one could add:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">My_Edgeon_Fit_Method</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;init ellip&#39;</span><span class="p">]]</span><span class="o">*</span><span class="n">N</span><span class="p">),</span> <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;init pa&#39;</span><span class="p">]]</span><span class="o">*</span><span class="n">N</span><span class="p">),</span>
@@ -201,7 +213,12 @@ To make this work one could add:</p>
                          <span class="s1">&#39;edgeon&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;edgeonfit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">,</span> <span class="s1">&#39;axialprofiles&#39;</span><span class="p">,</span> <span class="s1">&#39;radialprofiles&#39;</span><span class="p">]}</span>
 </pre></div>
 </div>
-<p>in the config file. This config file would apply a standard pipeline for face-on or moderately inclined galaxies, but a special pipeline for edge-on galaxies which includes a user defined fitting function <em>My_Edgeon_Fit_Method</em>, axial profiles, and radial profiles. This example is included in the test folder as the <em>test_tree_config.py</em> example config file.</p>
+<p>in the config file. This config file would apply a standard pipeline
+for face-on or moderately inclined galaxies, but a special pipeline
+for edge-on galaxies which includes a user defined fitting function
+<em>My_Edgeon_Fit_Method</em>, axial profiles, and radial profiles. This
+example is included in the test folder as the <em>test_tree_config.py</em>
+example config file.</p>
 </div>
 
 

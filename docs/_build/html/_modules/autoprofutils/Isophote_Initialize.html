@@ -90,7 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citing AutoProf</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">LICENSE</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../background.html">Background</a></li>
@@ -212,11 +212,46 @@
     <span class="k">return</span>  <span class="p">(</span><span class="n">iqr</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span><span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">84</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">+</span><span class="n">n</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Isophote_Initialize"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Initialize.Isophote_Initialize">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determine the global pa and ellipticity for a galaxy. First grow circular isophotes</span>
-<span class="sd">    until reaching near the noise floor, then evaluate the phase of the second FFT</span>
-<span class="sd">    coefficients and determine the average direction. Then fit an ellipticity for one</span>
-<span class="sd">    of the outer isophotes.</span>
+    <span class="sd">&quot;&quot;&quot;Fit global elliptical isophote to a galaxy image using FFT coefficients.</span>
+<span class="sd">    </span>
+<span class="sd">    A global position angle and ellipticity are fit in a two step</span>
+<span class="sd">    process.  First, a series of circular isophotes are geometrically</span>
+<span class="sd">    sampled until they approach the background level of the image.  An</span>
+<span class="sd">    FFT is taken for the flux values around each isophote and the</span>
+<span class="sd">    phase of the second coefficient is used to determine a direction.</span>
+<span class="sd">    The average direction for the outer isophotes is taken as the</span>
+<span class="sd">    position angle of the galaxy.  Second, with fixed position angle</span>
+<span class="sd">    the ellipticity is optimized to minimize the amplitude of the</span>
+<span class="sd">    second FFT coefficient relative to the median flux in an isophote.</span>
+
+<span class="sd">    To compute the error on position angle we use the standard</span>
+<span class="sd">    deviation of the outer values from step one.  For ellipticity the</span>
+<span class="sd">    error is computed by optimizing the ellipticity for multiple</span>
+<span class="sd">    isophotes within 1 PSF length of each other.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_fit_limit: float</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        2</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {&#39;init ellip&#39;: , # Ellipticity of the global fit (float)</span>
+<span class="sd">         &#39;init pa&#39;: ,# Position angle of the global fit (float)</span>
+<span class="sd">         &#39;init R&#39;: ,# Semi-major axis length of global fit (float)</span>
+<span class="sd">         &#39;auxfile initialize&#39;: # optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+<span class="sd">    </span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1">######################################################################</span>
@@ -288,11 +323,36 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">+</span><span class="n">n</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Isophote_Initialize_mean"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Initialize.Isophote_Initialize_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determine the global pa and ellipticity for a galaxy. First grow circular isophotes</span>
-<span class="sd">    until reaching near the noise floor, then evaluate the phase of the second FFT</span>
-<span class="sd">    coefficients and determine the average direction. Then fit an ellipticity for one</span>
-<span class="sd">    of the outer isophotes.</span>
+    <span class="sd">&quot;&quot;&quot;Fit global elliptical isophote to a galaxy image using FFT coefficients.</span>
+
+<span class="sd">    Same as the default isophote initialization routine, except uses</span>
+<span class="sd">    mean/std measures for low S/N applications.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_fit_limit: float</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel</span>
+<span class="sd">      background noise level. Default is 2, smaller values will end</span>
+<span class="sd">      fitting further out in the galaxy image.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        2</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {&#39;init ellip&#39;: , # Ellipticity of the global fit (float)</span>
+<span class="sd">         &#39;init pa&#39;: ,# Position angle of the global fit (float)</span>
+<span class="sd">         &#39;init R&#39;: ,# Semi-major axis length of global fit (float)</span>
+<span class="sd">         &#39;auxfile initialize&#39;: # optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+<span class="sd">    </span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1">######################################################################</span>

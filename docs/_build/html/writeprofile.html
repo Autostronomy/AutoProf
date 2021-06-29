@@ -182,18 +182,33 @@
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p><strong>pipeline label: writeprof</strong></p>
-<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">default</span> <span class="pre">profile</span> <span class="pre">writing</span></code> method is fairly straightforward, users can replace this step if they wish to take advantage of more exotic file storage formats.
-This step writes the results of the AutoProf pipeline analysis to a file.
-There are two files written, a <em>.prof</em> file containing the surface brightness profile and acompanying measurements, and a <em>.aux</em> file containing global results, messages, and setting used for the pipeline.
-The <em>.prof</em> file looks for specific keywords in the results dictionary: <em>prof header</em>, <em>prof units</em>, <em>prof data</em>, and <em>prof format</em>.
-There are the results from the isophotal fitting step.
-<em>prof header</em> gives the column names for the profile, <em>prof units</em> is a dictionary which gives the corresponding units for each column header key, <em>prof data</em> is a dictionary containing a list of values for each header key, and <em>prof format</em> is a dictionary which gives the python string format for values under each header key (for example ‘%.4f’ gives a number to 4 decimal places).
-The profile is written with comma (or a user specified delimiter) separation for each value, where each row corresponds to a given isophote at increasing semi-major axis values.</p>
-<p>The <em>.aux</em> file has a less strict format than the <em>.prof</em> file.
-The first line records the date and time that the file was written, the second line gives the name of the object as specified by the user or the filename.
-The next lines are taken from the results dictionary, any result key with <em>auxfile</em> in the name is taken as a message for the <em>.aux</em> file and written (in alphabetical order by key) to the file.
-See the pipeline step output formats for the messages that are included in the <em>.aux</em> file.
-Finally, a record of the user specified options is included for reference.</p>
+<p>The <a class="reference internal" href="autoprofutils.html#autoprofutils.Write_Prof.WriteProf" title="autoprofutils.Write_Prof.WriteProf"><code class="xref py py-func docutils literal notranslate"><span class="pre">WriteProf()</span></code></a> method is fairly
+straightforward, users can replace this step if they wish to take
+advantage of more exotic file storage formats.  This step writes the
+results of the AutoProf pipeline analysis to a file.  There are two
+files written, a <em>.prof</em> file containing the surface brightness
+profile and acompanying measurements, and a <em>.aux</em> file containing
+global results, messages, and setting used for the pipeline.  The
+<em>.prof</em> file looks for specific keywords in the results dictionary:
+<em>prof header</em>, <em>prof units</em>, <em>prof data</em>, and <em>prof format</em>.  There
+are the results from the isophotal fitting step.  <em>prof header</em> gives
+the column names for the profile, <em>prof units</em> is a dictionary which
+gives the corresponding units for each column header key, <em>prof data</em>
+is a dictionary containing a list of values for each header key, and
+<em>prof format</em> is a dictionary which gives the python string format for
+values under each header key (for example ‘%.4f’ gives a number to 4
+decimal places).  The profile is written with comma (or a user
+specified delimiter) separation for each value, where each row
+corresponds to a given isophote at increasing semi-major axis values.</p>
+<p>The <em>.aux</em> file has a less strict format than the <em>.prof</em> file.  The
+first line records the date and time that the file was written, the
+second line gives the name of the object as specified by the user or
+the filename.  The next lines are taken from the results dictionary,
+any result key with <em>auxfile</em> in the name is taken as a message for
+the <em>.aux</em> file and written (in alphabetical order by key) to the
+file.  See the pipeline step output formats for the messages that are
+included in the <em>.aux</em> file.  Finally, a record of the user specified
+options is included for reference.</p>
 <p>Output format:
 no results added from this step</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>

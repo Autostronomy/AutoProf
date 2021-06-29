@@ -182,16 +182,16 @@
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p><strong>pipeline label: psf</strong></p>
-<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">default</span> <span class="pre">psf</span></code> method uses
-an edge finding convolution filter to identify candidate star pixels,
-then averages their FWHM. Randomly iterates through the pixels and
-searches for a local maximum. An FFT is used to identify non-circular
-star candidate (artifacts or galaxies) which may have been picked up
-by the edge finder. Circular apertures are placed around the star
-until half the central flux value is reached, This is recorded as the
-FWHM for that star. A collection of 50 stars are identified and the
-most circular (by FFT coefficients) half are kept, a median is taken
-as the image PSF.</p>
+<p>The <a class="reference internal" href="autoprofutils.html#autoprofutils.PSF.PSF_StarFind" title="autoprofutils.PSF.PSF_StarFind"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_StarFind()</span></code></a> method uses an edge
+finding convolution filter to identify candidate star pixels, then
+averages their FWHM. Randomly iterates through the pixels and searches
+for a local maximum. An FFT is used to identify non-circular star
+candidate (artifacts or galaxies) which may have been picked up by the
+edge finder. Circular apertures are placed around the star until half
+the central flux value is reached, This is recorded as the FWHM for
+that star. A collection of 50 stars are identified and the most
+circular (by FFT coefficients) half are kept, a median is taken as the
+image PSF.</p>
 <p>Output format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># estimate of the fwhm of the PSF (float)</span>
  <span class="s1">&#39;auxfile psf&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record psf estimate (string)</span>

@@ -7,20 +7,32 @@ Description
 
 **pipeline label: checkfit**
 
-A variety of :func:`default check methods <~autoprofutils.Check_Fit.Check_Fit>` are applied to ensure that the fit has converged to a reasonable solution.
-If a fit passes all of these checks then it is typically an acceptable fit.
-However if it fails one or more of the checks then the fit likely either failed or the galaxy has strong non-axisymmetric features (and the fit itself may be acceptable).
+A variety of :func:`~autoprofutils.Check_Fit.Check_Fit` are applied to
+ensure that the fit has converged to a reasonable solution.  If a fit
+passes all of these checks then it is typically an acceptable fit.
+However if it fails one or more of the checks then the fit likely
+either failed or the galaxy has strong non-axisymmetric features (and
+the fit itself may be acceptable).
 
-One check samples the fitted isophotes and looks for cases with high variability of flux values along the isophote.
-This is done by comparing the interquartile range to the median flux, if the interquartile range is larger then that isophote is flagged.
-If enough isophotes are flagged then the fit may have failed.
+One check samples the fitted isophotes and looks for cases with high
+variability of flux values along the isophote.  This is done by
+comparing the interquartile range to the median flux, if the
+interquartile range is larger then that isophote is flagged.  If
+enough isophotes are flagged then the fit may have failed.
 
-A second check operates similarly, checking the second and fourth FFT coefficient amplitudes relative to the median flux.
-If many of the isophotes have large FFT coefficients, or if a few of the isophotes have very large FFT coefficients then the fit is flagged as potentially failed.
+A second check operates similarly, checking the second and fourth FFT
+coefficient amplitudes relative to the median flux.  If many of the
+isophotes have large FFT coefficients, or if a few of the isophotes
+have very large FFT coefficients then the fit is flagged as
+potentially failed.
 
-A third check is similar to the first, except that it compares the interquartile range from the fitted isophotes to those using just the global position angle and ellipticity values.
+A third check is similar to the first, except that it compares the
+interquartile range from the fitted isophotes to those using just the
+global position angle and ellipticity values.
 
-Finally, the fourth check compares the total magnitude of the galaxy based on integrating the surface brightness profile against a simple sum of the flux within the isophotes (with a star mask applied).
+Finally, the fourth check compares the total magnitude of the galaxy
+based on integrating the surface brightness profile against a simple
+sum of the flux within the isophotes (with a star mask applied).
 
 Output format:
 

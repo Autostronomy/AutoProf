@@ -8,10 +8,9 @@ Description
 
 **pipeline label: isophotefit**
 
-The :func:`defualt isophotal fitting
-<~autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust>` routine
-simultaneously optimizes a collection of elliptical isophotes by
-minimizing the 2nd FFT coefficient power, regularized for
+The :func:`~autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust`
+routine simultaneously optimizes a collection of elliptical isophotes
+by minimizing the 2nd FFT coefficient power, regularized for
 robustness. A series of isophotes are constructed which grow
 geometrically until they begin to reach the background level.  Then
 the algorithm iteratively updates the position angle and ellipticity

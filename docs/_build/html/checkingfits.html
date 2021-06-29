@@ -182,16 +182,28 @@
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p><strong>pipeline label: checkfit</strong></p>
-<p>A variety of <code class="xref py py-func docutils literal notranslate"><span class="pre">default</span> <span class="pre">check</span> <span class="pre">methods</span></code> are applied to ensure that the fit has converged to a reasonable solution.
-If a fit passes all of these checks then it is typically an acceptable fit.
-However if it fails one or more of the checks then the fit likely either failed or the galaxy has strong non-axisymmetric features (and the fit itself may be acceptable).</p>
-<p>One check samples the fitted isophotes and looks for cases with high variability of flux values along the isophote.
-This is done by comparing the interquartile range to the median flux, if the interquartile range is larger then that isophote is flagged.
-If enough isophotes are flagged then the fit may have failed.</p>
-<p>A second check operates similarly, checking the second and fourth FFT coefficient amplitudes relative to the median flux.
-If many of the isophotes have large FFT coefficients, or if a few of the isophotes have very large FFT coefficients then the fit is flagged as potentially failed.</p>
-<p>A third check is similar to the first, except that it compares the interquartile range from the fitted isophotes to those using just the global position angle and ellipticity values.</p>
-<p>Finally, the fourth check compares the total magnitude of the galaxy based on integrating the surface brightness profile against a simple sum of the flux within the isophotes (with a star mask applied).</p>
+<p>A variety of <a class="reference internal" href="autoprofutils.html#autoprofutils.Check_Fit.Check_Fit" title="autoprofutils.Check_Fit.Check_Fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">Check_Fit()</span></code></a> are applied to
+ensure that the fit has converged to a reasonable solution.  If a fit
+passes all of these checks then it is typically an acceptable fit.
+However if it fails one or more of the checks then the fit likely
+either failed or the galaxy has strong non-axisymmetric features (and
+the fit itself may be acceptable).</p>
+<p>One check samples the fitted isophotes and looks for cases with high
+variability of flux values along the isophote.  This is done by
+comparing the interquartile range to the median flux, if the
+interquartile range is larger then that isophote is flagged.  If
+enough isophotes are flagged then the fit may have failed.</p>
+<p>A second check operates similarly, checking the second and fourth FFT
+coefficient amplitudes relative to the median flux.  If many of the
+isophotes have large FFT coefficients, or if a few of the isophotes
+have very large FFT coefficients then the fit is flagged as
+potentially failed.</p>
+<p>A third check is similar to the first, except that it compares the
+interquartile range from the fitted isophotes to those using just the
+global position angle and ellipticity values.</p>
+<p>Finally, the fourth check compares the total magnitude of the galaxy
+based on integrating the surface brightness profile against a simple
+sum of the flux within the isophotes (with a star mask applied).</p>
 <p>Output format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;checkfit&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;anything&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
               <span class="s1">&#39;you&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>

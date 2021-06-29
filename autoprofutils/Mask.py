@@ -11,9 +11,59 @@ sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import Read_Image, LSBImage, AddLogo, StarFind
 
 def Bad_Pixel_Mask(IMG, results, options):
-    """
-    construct a mask by identifying bad pixels as selected by basic
-    cutoff criteria.
+    """Simple masking routine to clip pixels based on thresholds.
+
+    Creates a mask image using user provided limits on highest/lowest
+    pixels values allowed. Also users can reject pixels with a
+    specific value. This can be used on its own, or in combination
+    with other masking routines. Multiple Mask calls with perform
+    boolean-or operation.
+
+    Arguments
+    -----------------
+    ap_badpixel_high: float
+      flux value that corresponds to a saturated pixel or bad pixel
+      flag, all values above *ap_badpixel_high* will be masked if
+      using the *Bad_Pixel_Mask* pipeline method.
+
+      :default:
+        None
+    
+    ap_badpixel_low: float
+      flux value that corresponds to a bad pixel flag, all values
+      below *ap_badpixel_low* will be masked if using the
+      *Bad_Pixel_Mask* pipeline method.
+
+      :default:
+        None
+    
+    ap_badpixel_exact: float
+      flux value that corresponds to a precise bad pixel flag, all
+      values equal to *ap_badpixel_exact* will be masked if using the
+      *Bad_Pixel_Mask* pipeline method.
+
+      :default:
+        None
+
+    See Also
+    --------
+    ap_savemask: bool
+      indicates if the mask should be saved after fitting
+
+      :default:
+        False
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'mask':  # 2d mask image with boolean datatype (ndarray)    
+        }
+
     """
 
     Mask = np.zeros(IMG.shape, dtype = bool)
@@ -31,6 +81,43 @@ def Bad_Pixel_Mask(IMG, results, options):
     return IMG, {'mask': Mask}
 
 def Mask_Segmentation_Map(IMG, results, options):
+    """Reads the results from other masking routines into AutoProf.
+
+    Creates a mask from a supplied segmentation map. Such maps
+    typically number each source with an integer. In such a case,
+    AutoProf will check to see if the object center lands on one of
+    these segments, if so it will zero out that source-id before
+    converting the segmentation map into a mask. If the supplied image
+    is just a 0, 1 mask then AutoProf will take it as is.
+
+    Arguments
+    -----------------
+    ap_mask_file: string
+      path to fits file which is a mask for the image. Must have the same dimensions as the main image.
+
+      :default:
+        None
+
+    See Also
+    --------
+    ap_savemask: bool
+      indicates if the mask should be saved after fitting
+
+      :default:
+        False
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'mask':  # 2d mask image with boolean datatype (ndarray)    
+        }
+
+    """
     
     if 'ap_mask_file' not in options or options['ap_mask_file'] is None:
         mask = np.zeros(IMG.shape, dtype = bool) 
@@ -70,9 +157,32 @@ def Mask_Segmentation_Map(IMG, results, options):
     return IMG, {'mask': mask.astype(bool)}
 
 def Star_Mask_IRAF(IMG, results, options):
-    """
-    Idenitfy the location of stars in the image and create a mask around
-    each star of pixels to be avoided in further processing.
+    """Masking routine which identifies stars and masks a region around them.
+
+    An IRAF star finder wrapper (from photutils) is applied to the
+    image and then the identified sources are masked form the image.
+    The size of the mask depends on the flux in the source roughly as
+    sqrt(log(f)), thus an inverse of a Gaussian.
+
+    See Also
+    --------
+    ap_savemask: bool
+      indicates if the mask should be saved after fitting
+
+      :default:
+        False
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'mask':  # 2d mask image with boolean datatype (ndarray)    
+        }
+
     """
 
     fwhm = results['psf fwhm']
@@ -102,7 +212,7 @@ def Star_Mask_IRAF(IMG, results, options):
             # Compute the flux of the star
             #f = np.sum(IMG[R < 10*fwhm])
             # Compute radius to reach background noise level, assuming gaussian
-            Rstar = (fwhm/2.355)*np.sqrt(2*np.log(f/(np.sqrt(2*np.pi*fwhm/2.355)*results['background noise']))) # fixme double check
+            Rstar = (fwhm/2.355)*np.sqrt(2*np.log(f/(np.sqrt(2*np.pi*fwhm/2.355)*results['background noise'])))
             mask[R < Rstar] = True 
 
     if 'mask' in results:
@@ -123,9 +233,34 @@ def Star_Mask_IRAF(IMG, results, options):
     return IMG, {'mask': mask}
 
 def Star_Mask(IMG, results, options):
-    """
-    Idenitfy the location of stars in the image and create a mask around
-    each star of pixels to be avoided in further processing.
+    """Masking routine which identifies stars and masks a region around them.
+
+    Using an edge detecting convolutional filter, sources are
+    identified that are of similar scale as the PSF. These sources are
+    masked with a region roughly 2 times the FWHM of the source.
+
+    See Also
+    --------
+    ap_savemask: bool
+      indicates if the mask should be saved after fitting
+
+      :default:
+        False
+
+    starfind
+      :func:`autoprofutils.SharedFunctions.StarFind`
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'mask':  # 2d mask image with boolean datatype (ndarray)    
+        }
+
     """
 
     fwhm = results['psf fwhm']

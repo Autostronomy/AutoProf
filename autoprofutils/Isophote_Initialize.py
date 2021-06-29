@@ -40,11 +40,46 @@ def _fitEllip_loss(e, dat, r, p, c, n):
     return  (iqr(isovals,rng=[16,84])/2 + np.abs(coefs[2]) / len(isovals))/(max(0,np.median(isovals))+n)
 
 def Isophote_Initialize(IMG, results, options):
-    """
-    Determine the global pa and ellipticity for a galaxy. First grow circular isophotes
-    until reaching near the noise floor, then evaluate the phase of the second FFT
-    coefficients and determine the average direction. Then fit an ellipticity for one
-    of the outer isophotes.
+    """Fit global elliptical isophote to a galaxy image using FFT coefficients.
+    
+    A global position angle and ellipticity are fit in a two step
+    process.  First, a series of circular isophotes are geometrically
+    sampled until they approach the background level of the image.  An
+    FFT is taken for the flux values around each isophote and the
+    phase of the second coefficient is used to determine a direction.
+    The average direction for the outer isophotes is taken as the
+    position angle of the galaxy.  Second, with fixed position angle
+    the ellipticity is optimized to minimize the amplitude of the
+    second FFT coefficient relative to the median flux in an isophote.
+
+    To compute the error on position angle we use the standard
+    deviation of the outer values from step one.  For ellipticity the
+    error is computed by optimizing the ellipticity for multiple
+    isophotes within 1 PSF length of each other.
+
+    Arguments
+    -----------------
+    ap_fit_limit: float
+      noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.
+
+      :default:
+        2
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'init ellip': , # Ellipticity of the global fit (float)
+         'init pa': ,# Position angle of the global fit (float)
+         'init R': ,# Semi-major axis length of global fit (float)
+         'auxfile initialize': # optional, message for aux file to record the global ellipticity and postition angle (string)
+    
+        }
+
     """
 
     ######################################################################
@@ -116,11 +151,36 @@ def _fitEllip_mean_loss(e, dat, r, p, c, n):
     return np.abs(coefs[2]) / (len(isovals)*(max(0,np.mean(isovals))+n))
 
 def Isophote_Initialize_mean(IMG, results, options):
-    """
-    Determine the global pa and ellipticity for a galaxy. First grow circular isophotes
-    until reaching near the noise floor, then evaluate the phase of the second FFT
-    coefficients and determine the average direction. Then fit an ellipticity for one
-    of the outer isophotes.
+    """Fit global elliptical isophote to a galaxy image using FFT coefficients.
+
+    Same as the default isophote initialization routine, except uses
+    mean/std measures for low S/N applications.
+
+    Arguments
+    -----------------
+    ap_fit_limit: float
+      noise level out to which to extend the fit in units of pixel
+      background noise level. Default is 2, smaller values will end
+      fitting further out in the galaxy image.
+
+      :default:
+        2
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'init ellip': , # Ellipticity of the global fit (float)
+         'init pa': ,# Position angle of the global fit (float)
+         'init R': ,# Semi-major axis length of global fit (float)
+         'auxfile initialize': # optional, message for aux file to record the global ellipticity and postition angle (string)
+    
+        }
+
     """
 
     ######################################################################

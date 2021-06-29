@@ -182,18 +182,20 @@
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p><strong>pipeline label: isophoteinit</strong></p>
-<p>In the <code class="xref py py-func docutils literal notranslate"><span class="pre">default</span> <span class="pre">isophote</span> <span class="pre">initialization</span></code>, a global
-position angle and ellipticity are fit in a two step process.  First,
-a series of circular isophotes are geometrically sampled until they
-approach the background level of the image.  An FFT is taken for the
-flux values around each isophote and the phase of the second
+<p>In the <a class="reference internal" href="autoprofutils.html#autoprofutils.Isophote_Initialize.Isophote_Initialize" title="autoprofutils.Isophote_Initialize.Isophote_Initialize"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Initialize()</span></code></a>,
+a global position angle and ellipticity are fit in a two step process.
+First, a series of circular isophotes are geometrically sampled until
+they approach the background level of the image.  An FFT is taken for
+the flux values around each isophote and the phase of the second
 coefficient is used to determine a direction.  The average direction
 for the outer isophotes is taken as the position angle of the galaxy.
 Second, with fixed position angle the ellipticity is optimized to
 minimize the amplitude of the second FFT coefficient relative to the
 median flux in an isophote.</p>
-<p>To compute the error on position angle we use the standard deviation of the outer values from step one.
-For ellipticity the error is computed by optimizing the ellipticity for multiple isophotes within 1 PSF length of each other.</p>
+<p>To compute the error on position angle we use the standard deviation
+of the outer values from step one.  For ellipticity the error is
+computed by optimizing the ellipticity for multiple isophotes within 1
+PSF length of each other.</p>
 <p>Output format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;init ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity of the global fit (float)</span>
  <span class="s1">&#39;init pa&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Position angle of the global fit (float)</span>

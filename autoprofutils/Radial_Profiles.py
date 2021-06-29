@@ -12,6 +12,71 @@ import matplotlib
 import logging
 
 def Radial_Profiles(IMG, results, options):
+    """Extracts SB profiles along lines radiating from the galaxy center.
+
+    For some applications, such as examining edge on galaxies, it is
+    beneficial to observe the structure in a disk as well as (or
+    instead of) the average isophotal profile. This can done with
+    radial profiles which sample along lines radiating form the galaxy
+    center. These lines are by default placed on the 4 semi-axes of
+    the galaxy. The lines are actually wedges with increasing width as
+    a function of radius. This helps keep roughly constant S/N in the
+    bins, allowing the profile to extend far into the outskirts of a
+    galaxy. The user may increase the number of wedgest to extract
+    more stucture from the galaxy, however at some point the wedges
+    will begin to cross each other. AutoProf will warn the user when
+    this happens, but will carry on anyway.
+    
+    Arguments
+    -----------------
+    ap_radialprofiles_nwedges: int
+      number of radial wedges to sample. Recommended choosing a power of 2.
+
+      :default:
+        4
+
+    ap_radialprofiles_width: float
+      User set width of radial sampling wedges in degrees.
+
+      :default:
+        15
+
+    ap_radialprofiles_pa: float
+      user set position angle at which to measure radial wedges relative to the global position angle, in degrees.
+
+      :default:
+        0
+
+    ap_radialprofiles_expwidth: bool
+      tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radialprofiles_width* corresponds to the final width of the radial sampling.
+
+      :default:
+        False
+
+    ap_radialprofiles_variable_pa: bool
+      tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy.
+
+      :default:
+        False
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      No results provided as this method writes its own profile
+    
+      .. code-block:: python
+     
+        {'prof header': , # Previously extracted SB profile, with extra columns appended for radial profiles (list)
+         'prof units': , # Previously extracted SB profile, with extra units appended for radial profiles (dict)
+         'prof data': # Previously extracted SB profile, with extra columns appended for radial profiles (dict)
+    
+        }
+
+    """
+    
 
     mask = results['mask'] if 'mask' in results else None
     nwedges = options['ap_radialprofiles_nwedges'] if 'ap_radialprofiles_nwedges' in options else 4

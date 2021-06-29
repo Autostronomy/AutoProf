@@ -1498,17 +1498,136 @@ more information.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_Robust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Isophote_Fit.html#Isophote_Fit_FFT_Robust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
-Included is a regularization term which penalizes isophotes for having large differences between parameters
-of adjacent isophotes.</p>
+<dd><p>Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</p>
+<p>The isophotal fitting routine simultaneously optimizes a
+collection of elliptical isophotes by minimizing the 2nd FFT
+coefficient power, regularized for robustness. A series of
+isophotes are constructed which grow geometrically until they
+begin to reach the background level.  Then the algorithm
+iteratively updates the position angle and ellipticity of each
+isophote individually for many rounds.  Each round updates every
+isophote in a random order.  Each round cycles between three
+options: optimizing position angle, ellipticity, or both.  To
+optimize the parameters, 5 values (pa, ellip, or both) are
+randomly sampled and the “loss” is computed.  The loss is a
+combination of the relative amplitude of the second FFT
+coefficient (compared to the median flux), and a regularization
+term.  The regularization term penalizes adjacent isophotes for
+having different position angle or ellipticity (using the l1
+norm).  Thus, all the isophotes are coupled and tend to fit
+smoothly varying isophotes.  When the optimization has completed
+three rounds without any isophotes updating, the profile is
+assumed to have converged.</p>
+<p>An uncertainty for each ellipticity and position angle value is
+determined by taking the RMS between the fitted values and a
+smoothed polynomial fit values for 4 points.  This is a very rough
+estimate of the uncertainty, but works sufficiently well in the
+outskirts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as <em>ap_sample—scale</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between isophotes.
+Default of 1, larger values make smoother fits, smaller values give more chaotic fits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Isophote_Fit.Isophote_Fit_FFT_mean">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Isophote_Fit.html#Isophote_Fit_FFT_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Isophote_Fit.Isophote_Fit_FFT_mean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
-Included is a regularization term which penalizes isophotes for having large differences between parameters
-of adjacent isophotes.</p>
+<dd><p>Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</p>
+<p>Same as the standard isophote fitting routine, except uses less
+robust mean/std measures. This is only intended for low S/N data
+where pixels have low integer counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as
+<em>ap_sample—scale</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+background noise level. Default is 2, smaller values will end
+fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between
+isophotes.  Default of 1, larger values make smoother fits,
+smaller values give more chaotic fits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1520,7 +1639,30 @@ of adjacent isophotes.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Isophote_Fit.Photutils_Fit">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Photutils_Fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Isophote_Fit.html#Photutils_Fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Isophote_Fit.Photutils_Fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to run the photutils automated isophote analysis on an image.</p>
+<dd><p>Photutils elliptical isophote wrapper.</p>
+<p>This simply gives users access to the photutils isophote
+fitting method. See: <a class="reference external" href="https://photutils.readthedocs.io/en/stable/isophote.html">photutils</a> for
+more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1534,19 +1676,84 @@ of adjacent isophotes.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Isophote_Initialize.Isophote_Initialize">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Isophote_Initialize.</span></span><span class="sig-name descname"><span class="pre">Isophote_Initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Isophote_Initialize.html#Isophote_Initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Isophote_Initialize.Isophote_Initialize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine the global pa and ellipticity for a galaxy. First grow circular isophotes
-until reaching near the noise floor, then evaluate the phase of the second FFT
-coefficients and determine the average direction. Then fit an ellipticity for one
-of the outer isophotes.</p>
+<dd><p>Fit global elliptical isophote to a galaxy image using FFT coefficients.</p>
+<p>A global position angle and ellipticity are fit in a two step
+process.  First, a series of circular isophotes are geometrically
+sampled until they approach the background level of the image.  An
+FFT is taken for the flux values around each isophote and the
+phase of the second coefficient is used to determine a direction.
+The average direction for the outer isophotes is taken as the
+position angle of the galaxy.  Second, with fixed position angle
+the ellipticity is optimized to minimize the amplitude of the
+second FFT coefficient relative to the median flux in an isophote.</p>
+<p>To compute the error on position angle we use the standard
+deviation of the outer values from step one.  For ellipticity the
+error is computed by optimizing the ellipticity for multiple
+isophotes within 1 PSF length of each other.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;init ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity of the global fit (float)</span>
+ <span class="s1">&#39;init pa&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Position angle of the global fit (float)</span>
+ <span class="s1">&#39;init R&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Semi-major axis length of global fit (float)</span>
+ <span class="s1">&#39;auxfile initialize&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Isophote_Initialize.Isophote_Initialize_mean">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Isophote_Initialize.</span></span><span class="sig-name descname"><span class="pre">Isophote_Initialize_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Isophote_Initialize.html#Isophote_Initialize_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Isophote_Initialize.Isophote_Initialize_mean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine the global pa and ellipticity for a galaxy. First grow circular isophotes
-until reaching near the noise floor, then evaluate the phase of the second FFT
-coefficients and determine the average direction. Then fit an ellipticity for one
-of the outer isophotes.</p>
+<dd><p>Fit global elliptical isophote to a galaxy image using FFT coefficients.</p>
+<p>Same as the default isophote initialization routine, except uses
+mean/std measures for low S/N applications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+background noise level. Default is 2, smaller values will end
+fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;init ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity of the global fit (float)</span>
+ <span class="s1">&#39;init pa&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Position angle of the global fit (float)</span>
+ <span class="s1">&#39;init R&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Semi-major axis length of global fit (float)</span>
+ <span class="s1">&#39;auxfile initialize&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1555,27 +1762,173 @@ of the outer isophotes.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Mask.Bad_Pixel_Mask">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Mask.</span></span><span class="sig-name descname"><span class="pre">Bad_Pixel_Mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Mask.html#Bad_Pixel_Mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Mask.Bad_Pixel_Mask" title="Permalink to this definition">¶</a></dt>
-<dd><p>construct a mask by identifying bad pixels as selected by basic
-cutoff criteria.</p>
+<dd><p>Simple masking routine to clip pixels based on thresholds.</p>
+<p>Creates a mask image using user provided limits on highest/lowest
+pixels values allowed. Also users can reject pixels with a
+specific value. This can be used on its own, or in combination
+with other masking routines. Multiple Mask calls with perform
+boolean-or operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_badpixel_high</strong> (<em>float</em>) – <p>flux value that corresponds to a saturated pixel or bad pixel
+flag, all values above <em>ap_badpixel_high</em> will be masked if
+using the <em>Bad_Pixel_Mask</em> pipeline method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_badpixel_low</strong> (<em>float</em>) – <p>flux value that corresponds to a bad pixel flag, all values
+below <em>ap_badpixel_low</em> will be masked if using the
+<em>Bad_Pixel_Mask</em> pipeline method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_badpixel_exact</strong> (<em>float</em>) – <p>flux value that corresponds to a precise bad pixel flag, all
+values equal to <em>ap_badpixel_exact</em> will be masked if using the
+<em>Bad_Pixel_Mask</em> pipeline method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Mask.Mask_Segmentation_Map">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Mask.</span></span><span class="sig-name descname"><span class="pre">Mask_Segmentation_Map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Mask.html#Mask_Segmentation_Map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Mask.Mask_Segmentation_Map" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reads the results from other masking routines into AutoProf.</p>
+<p>Creates a mask from a supplied segmentation map. Such maps
+typically number each source with an integer. In such a case,
+AutoProf will check to see if the object center lands on one of
+these segments, if so it will zero out that source-id before
+converting the segmentation map into a mask. If the supplied image
+is just a 0, 1 mask then AutoProf will take it as is.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_mask_file</strong> (<em>string</em>) – <p>path to fits file which is a mask for the image. Must have the same dimensions as the main image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Mask.Star_Mask">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Mask.</span></span><span class="sig-name descname"><span class="pre">Star_Mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Mask.html#Star_Mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Mask.Star_Mask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Idenitfy the location of stars in the image and create a mask around
-each star of pixels to be avoided in further processing.</p>
+<dd><p>Masking routine which identifies stars and masks a region around them.</p>
+<p>Using an edge detecting convolutional filter, sources are
+identified that are of similar scale as the PSF. These sources are
+masked with a region roughly 2 times the FWHM of the source.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">starfind</span></code></dt><dd><p><a class="reference internal" href="#autoprofutils.SharedFunctions.StarFind" title="autoprofutils.SharedFunctions.StarFind"><code class="xref py py-func docutils literal notranslate"><span class="pre">autoprofutils.SharedFunctions.StarFind()</span></code></a></p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Mask.Star_Mask_IRAF">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Mask.</span></span><span class="sig-name descname"><span class="pre">Star_Mask_IRAF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Mask.html#Star_Mask_IRAF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Mask.Star_Mask_IRAF" title="Permalink to this definition">¶</a></dt>
-<dd><p>Idenitfy the location of stars in the image and create a mask around
-each star of pixels to be avoided in further processing.</p>
+<dd><p>Masking routine which identifies stars and masks a region around them.</p>
+<p>An IRAF star finder wrapper (from photutils) is applied to the
+image and then the identified sources are masked form the image.
+The size of the mask depends on the flux in the source roughly as
+sqrt(log(f)), thus an inverse of a Gaussian.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -1584,13 +1937,94 @@ each star of pixels to be avoided in further processing.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.PSF.PSF_IRAF">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.PSF.</span></span><span class="sig-name descname"><span class="pre">PSF_IRAF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/PSF.html#PSF_IRAF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.PSF.PSF_IRAF" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply the photutils IRAF wrapper to the image to extract a PSF fwhm</p>
+<dd><p>PSF routine which identifies stars and averages the FWHM.</p>
+<p>Uses the photutil IRAF wrapper to identify stars in the image and
+computes the average FWHM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use 1 arcsec</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span>  <span class="c1"># FWHM of the average PSF for the image</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.PSF.PSF_StarFind">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.PSF.</span></span><span class="sig-name descname"><span class="pre">PSF_StarFind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/PSF.html#PSF_StarFind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.PSF.PSF_StarFind" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>PSF routine which identifies stars and averages the FWHM.</p>
+<p>The PSF method uses an edge finding convolution filter to identify
+candidate star pixels, then averages their FWHM. Randomly iterates
+through the pixels and searches for a local maximum. An FFT is
+used to identify non-circular star candidate (artifacts or
+galaxies) which may have been picked up by the edge
+finder. Circular apertures are placed around the star until half
+the central flux value is reached, This is recorded as the FWHM
+for that star. A collection of 50 stars are identified and the
+most circular (by FFT coefficients) half are kept, a median is
+taken as the image PSF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use 1 arcsec</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span>  <span class="c1"># FWHM of the average PSF for the image</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-autoprofutils.Plotting_Steps">
@@ -1608,7 +2042,76 @@ Useful for inspecting images for spurious features</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.Radial_Profiles.Radial_Profiles">
 <span class="sig-prename descclassname"><span class="pre">autoprofutils.Radial_Profiles.</span></span><span class="sig-name descname"><span class="pre">Radial_Profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/Radial_Profiles.html#Radial_Profiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.Radial_Profiles.Radial_Profiles" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Extracts SB profiles along lines radiating from the galaxy center.</p>
+<p>For some applications, such as examining edge on galaxies, it is
+beneficial to observe the structure in a disk as well as (or
+instead of) the average isophotal profile. This can done with
+radial profiles which sample along lines radiating form the galaxy
+center. These lines are by default placed on the 4 semi-axes of
+the galaxy. The lines are actually wedges with increasing width as
+a function of radius. This helps keep roughly constant S/N in the
+bins, allowing the profile to extend far into the outskirts of a
+galaxy. The user may increase the number of wedgest to extract
+more stucture from the galaxy, however at some point the wedges
+will begin to cross each other. AutoProf will warn the user when
+this happens, but will carry on anyway.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_radialprofiles_nwedges</strong> (<em>int</em>) – <p>number of radial wedges to sample. Recommended choosing a power of 2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>4</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_width</strong> (<em>float</em>) – <p>User set width of radial sampling wedges in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>15</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_pa</strong> (<em>float</em>) – <p>user set position angle at which to measure radial wedges relative to the global position angle, in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_expwidth</strong> (<em>bool</em>) – <p>tell AutoProf to use exponentially increasing widths for radial samples. In this case <em>ap_radialprofiles_width</em> corresponds to the final width of the radial sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_variable_pa</strong> (<em>bool</em>) – <p>tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) – No results provided as this method writes its own profile</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Previously extracted SB profile, with extra columns appended for radial profiles (list)</span>
+ <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Previously extracted SB profile, with extra units appended for radial profiles (dict)</span>
+ <span class="s1">&#39;prof data&#39;</span><span class="p">:</span> <span class="c1"># Previously extracted SB profile, with extra columns appended for radial profiles (dict)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-autoprofutils.SharedFunctions">

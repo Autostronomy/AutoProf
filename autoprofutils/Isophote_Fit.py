@@ -21,9 +21,30 @@ from autoprofutils.SharedFunctions import _iso_extract, _x_to_pa, _x_to_eps, _in
 from autoprofutils.Diagnostic_Plots import Plot_Isophote_Fit
 
 def Photutils_Fit(IMG, results, options):
+    """Photutils elliptical isophote wrapper.
+    
+    This simply gives users access to the photutils isophote
+    fitting method. See: `photutils
+    <https://photutils.readthedocs.io/en/stable/isophote.html>`_ for
+    more information.
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+     
+        {'fit ellip': , # array of ellipticity values (ndarray)
+         'fit pa': , # array of PA values (ndarray)
+         'fit R': , # array of semi-major axis values (ndarray)
+         'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
+         'fit pa_err': , # optional, array of PA error values (ndarray)
+         'auxfile fitlimit': # optional, auxfile message (string)
+    
+        }    
     """
-    Function to run the photutils automated isophote analysis on an image.
-    """    
 
     dat = IMG - results['background']
     geo = EllipseGeometry(x0 = results['center']['x'],
@@ -102,10 +123,72 @@ def _FFT_Robust_Errors(dat, R, E, PA, C, noise, mask = None, reg_scale = 1., nam
     return E_err, PA_err
         
 def Isophote_Fit_FFT_Robust(IMG, results, options):
-    """
-    Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
-    Included is a regularization term which penalizes isophotes for having large differences between parameters
-    of adjacent isophotes.
+    """Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.
+    
+    The isophotal fitting routine simultaneously optimizes a
+    collection of elliptical isophotes by minimizing the 2nd FFT
+    coefficient power, regularized for robustness. A series of
+    isophotes are constructed which grow geometrically until they
+    begin to reach the background level.  Then the algorithm
+    iteratively updates the position angle and ellipticity of each
+    isophote individually for many rounds.  Each round updates every
+    isophote in a random order.  Each round cycles between three
+    options: optimizing position angle, ellipticity, or both.  To
+    optimize the parameters, 5 values (pa, ellip, or both) are
+    randomly sampled and the "loss" is computed.  The loss is a
+    combination of the relative amplitude of the second FFT
+    coefficient (compared to the median flux), and a regularization
+    term.  The regularization term penalizes adjacent isophotes for
+    having different position angle or ellipticity (using the l1
+    norm).  Thus, all the isophotes are coupled and tend to fit
+    smoothly varying isophotes.  When the optimization has completed
+    three rounds without any isophotes updating, the profile is
+    assumed to have converged.
+
+    An uncertainty for each ellipticity and position angle value is
+    determined by taking the RMS between the fitted values and a
+    smoothed polynomial fit values for 4 points.  This is a very rough
+    estimate of the uncertainty, but works sufficiently well in the
+    outskirts.
+
+    Arguments
+    -----------------
+    ap_scale: float
+      growth scale when fitting isophotes, not the same as *ap_sample---scale*.
+
+      :default:
+        0.2
+
+    ap_fit_limit: float
+      noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.
+
+      :default:
+        2
+
+    ap_regularize_scale: float
+      scale factor to apply to regularization coupling factor between isophotes.
+      Default of 1, larger values make smoother fits, smaller values give more chaotic fits.
+
+      :default:
+        1
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+     
+        {'fit ellip': , # array of ellipticity values (ndarray)
+         'fit pa': , # array of PA values (ndarray)
+         'fit R': , # array of semi-major axis values (ndarray)
+         'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
+         'fit pa_err': , # optional, array of PA error values (ndarray)
+         'auxfile fitlimit': # optional, auxfile message (string)
+    
+        }
+
     """
 
     if 'ap_scale' in options:
@@ -267,10 +350,54 @@ def _FFT_mean_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., name
     return f2_loss*(1 + reg_loss*reg_scale) #(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale
 
 def Isophote_Fit_FFT_mean(IMG, results, options):
-    """
-    Fit isophotes by minimizing the amplitude of the second FFT coefficient, relative to the local median flux.
-    Included is a regularization term which penalizes isophotes for having large differences between parameters
-    of adjacent isophotes.
+    """Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.
+
+    Same as the standard isophote fitting routine, except uses less
+    robust mean/std measures. This is only intended for low S/N data
+    where pixels have low integer counts.
+
+    Arguments
+    -----------------
+    ap_scale: float
+      growth scale when fitting isophotes, not the same as
+      *ap_sample---scale*.
+
+      :default:
+        0.2
+
+    ap_fit_limit: float
+      noise level out to which to extend the fit in units of pixel
+      background noise level. Default is 2, smaller values will end
+      fitting further out in the galaxy image.
+
+      :default:
+        2
+
+    ap_regularize_scale: float
+      scale factor to apply to regularization coupling factor between
+      isophotes.  Default of 1, larger values make smoother fits,
+      smaller values give more chaotic fits.
+
+      :default:
+        1
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+     
+        {'fit ellip': , # array of ellipticity values (ndarray)
+         'fit pa': , # array of PA values (ndarray)
+         'fit R': , # array of semi-major axis values (ndarray)
+         'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
+         'fit pa_err': , # optional, array of PA error values (ndarray)
+         'auxfile fitlimit': # optional, auxfile message (string)
+    
+        }
+
     """
 
     if 'ap_scale' in options:

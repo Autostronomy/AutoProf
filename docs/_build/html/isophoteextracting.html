@@ -182,17 +182,18 @@
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p><strong>pipeline label: isophoteextract</strong></p>
-<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">default</span> <span class="pre">SB</span> <span class="pre">profile</span> <span class="pre">extraction</span></code> method is highly
-flexible, allowing users to test a variety of techniques on their data
-to determine the most robust. The user may specify a variety of
-sampling arguments for the photometry extraction.  For example, a
-start or end radius in pixels, or whether to sample geometrically or
-linearly in radius.  Geometric sampling is the default as it is
-faster.  Once the sampling profile of semi-major axis values has been
-chosen, the function interpolates (spline) the position angle and
-ellipticity profiles at the requested values.  For any sampling beyond
-the outer radius from the <em>Isophotal Fitting</em> step, a constant value
-is used.  Within 1 PSF, a circular isophote is used.</p>
+<p>The <a class="reference internal" href="autoprofutils.html#autoprofutils.Isophote_Extract.Isophote_Extract" title="autoprofutils.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a> method is
+highly flexible, allowing users to test a variety of techniques on
+their data to determine the most robust. The user may specify a
+variety of sampling arguments for the photometry extraction.  For
+example, a start or end radius in pixels, or whether to sample
+geometrically or linearly in radius.  Geometric sampling is the
+default as it is faster.  Once the sampling profile of semi-major axis
+values has been chosen, the function interpolates (spline) the
+position angle and ellipticity profiles at the requested values.  For
+any sampling beyond the outer radius from the <em>Isophotal Fitting</em>
+step, a constant value is used.  Within 1 PSF, a circular isophote is
+used.</p>
 <p>Output format:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># List of strings indicating the order to write the .prof file data (list)</span>
  <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Dictionary with keys from header, values are strings that give the units for each variable (dict)</span>
