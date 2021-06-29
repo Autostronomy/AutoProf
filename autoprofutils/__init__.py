@@ -1,18 +1,18 @@
-import Axial_Profiles
-import Background
-import Center
-import Check_Fit
-import Diagnostic_Plots
-import Ellipse_Model
-import ImageTransform
-import Isophote_Extract
-import Isophote_Fit
-import Isophote_Initialize
-import Mask
-import PSF
-import Plotting_Steps
-import Radial_Profiles
-import SharedFunctions
-import Slice_Profiles
-import Write_Fi
-import Write_Prof
+from . import Axial_Profiles
+from . import Background
+from . import Center
+from . import Check_Fit
+from . import Diagnostic_Plots
+from . import Ellipse_Model
+from . import ImageTransform
+from . import Isophote_Extract
+from . import Isophote_Fit
+from . import Isophote_Initialize
+from . import Mask
+from . import PSF
+from . import Plotting_Steps
+from . import Radial_Profiles
+from . import SharedFunctions
+from . import Slice_Profiles
+from . import Write_Fi
+from . import Write_Prof

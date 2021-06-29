@@ -15,7 +15,7 @@ def WriteProf(IMG, results, options):
     saveto = options['ap_saveto'] if 'ap_saveto' in options else './'
     
     # Write aux file
-    with open(saveto + options['ap_name'] + '.aux', 'w') as f:
+    with open(os.path.join(saveto, options['ap_name'] + '.aux'), 'w') as f:
         # write profile info
         f.write('written on: %s\n' % str(datetime.now()))
         f.write('name: %s\n' % str(options['ap_name']))
@@ -35,9 +35,9 @@ def WriteProf(IMG, results, options):
     T = Table(data = results['prof data'], names = results['prof header'])
     if 'ap_profile_format' in options and options['ap_profile_format'].lower() == 'fits':
         T.meta['UNITS'] = delim.join(results['prof units'][h] for h in results['prof header'])
-        T.write(saveto + options['ap_name'] + '_prof.fits', format = 'fits', overwrite = True)
+        T.write(os.path.join(saveto, options['ap_name'] + '_prof.fits'), format = 'fits', overwrite = True)
     else:
-        T.write(saveto + options['ap_name'] + '.prof', format = 'ascii.commented_header',
+        T.write(os.path.join(saveto, options['ap_name'] + '.prof'), format = 'ascii.commented_header',
                 delimiter = delim, overwrite = True,
                 comment = '# ' + delim.join(results['prof units'][h] for h in results['prof header']) + '\n')
     results['prof data']['pa'] = list(PA_shift_convention(np.array(results['prof data']['pa']), deg = True))

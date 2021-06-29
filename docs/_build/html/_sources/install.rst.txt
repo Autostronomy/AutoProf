@@ -18,9 +18,8 @@ Basic Install
      git clone git@github.com:ConnorStoneAstro/AutoProf.git
    
    If you experience difficulty cloning the package, you may download a zip file of the package from the github page.
-#. Set an environment variable and alias the AutoProf function. To make this permanent, include these lines in your .bashrc file (or equivalent for your OS). ::
+#. Alias the AutoProf function. To make this permanent, include this lines in your .bashrc file (or equivalent for your OS). ::
    
-     export AUTOPROF='/path/to/AutoProf/'
      alias autoprof='/path/to/AutoProf/autoprof.py'
    
 #. Run the test cases to see that all is well::

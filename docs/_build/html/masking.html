@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>AutoProf &mdash; AutoProf 0.8 documentation</title>
+  <title>Maksing &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -40,8 +40,7 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="install.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -55,7 +54,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> AutoProf
+            <a href="index.html" class="icon icon-home"> AutoProf
           
 
           
@@ -120,7 +119,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">AutoProf</a>
+          <a href="index.html">AutoProf</a>
         
       </nav>
 
@@ -151,15 +150,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>AutoProf</li>
+      <li>Maksing</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/masking.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -172,64 +171,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <style media="screen" type="text/css">
-  h1 {display:none;}
-</style><div class="section" id="autoprof">
-<h1>AutoProf<a class="headerlink" href="#autoprof" title="Permalink to this headline">¶</a></h1>
-<img src="_static/AP_logo.png";" width="495"/><p><div style="min-height:0.1em;"></div></p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>If you use AutoProf for a project that leads to a publication,
-whether directly or as a dependency of another package, please
-include an <a class="reference internal" href="citation.html"><span class="doc">acknowledgment and/or citation</span></a>.</p>
+  <div class="section" id="maksing">
+<h1>Maksing<a class="headerlink" href="#maksing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Coming soon</p>
 </div>
-<p><div style="min-height:0.1em;"></div></p>
-<div class="section" id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
-<p>AutoProf is a pipeline for basic and advanced non-parametric galaxy image analysis.
-Its design allows for fast startup and provides flexibility to explore new ideas and support advanced users.
-It was written by <a class="reference external" href="https://connorjstone.com/">Connor Stone</a> with contributions from
-<a class="reference external" href="https://orcid.org/0000-0002-3929-9316">Nikhil Arora</a>,
-<a class="reference external" href="https://www.physics.queensu.ca/facultysites/courteau/">Stephane Courteau</a>,
-and <a class="reference external" href="https://www.cfht.hawaii.edu/~jcc/">Jean-Charles Cuillandre</a>.</p>
-<p>This documentation is a work in progress, further updates will come rapidly.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+<div class="section" id="config-parameters">
+<h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>ap_badpixel_high: flux value that corresponds to a saturated pixel or bad pixel flag, all values above <em>ap_badpixel_high</em> will be masked</dt><dd><p>if using the <em>Bad_Pixel_Mask</em> pipeline method. (float)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>ap_badpixel_low: flux value that corresponds to a bad pixel flag, all values below <em>ap_badpixel_low</em> will be masked</dt><dd><p>if using the <em>Bad_Pixel_Mask</em> pipeline method. (float)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>ap_badpixel_exact: flux value that corresponds to a precise bad pixel flag, all values equal to <em>ap_badpixel_exact</em> will be masked</dt><dd><p>if using the <em>Bad_Pixel_Mask</em> pipeline method. (float)</p>
+</dd>
+</dl>
+</li>
+<li><p>ap_mask_file: path to fits file which is a mask for the image. Must have the same dimensions as the main image (string)</p></li>
+<li><p>ap_savemask: indicates if the star mask should be saved after fitting (bool)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="user-documentation">
-<h2>User Documentation<a class="headerlink" href="#user-documentation" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
-<li class="toctree-l1"><a class="reference internal" href="psf.html">PSF</a></li>
-<li class="toctree-l1"><a class="reference internal" href="center.html">Center</a></li>
-<li class="toctree-l1"><a class="reference internal" href="isophoteinit.html">Isophote Initialization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="isophotefit.html">Fitting Elliptical Isophotes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="isophoteextracting.html">SB Profile Extraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="checkingfits.html">Fit Success Checks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="writeprofile.html">Writing The Profile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
-<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
-</ul>
-</div>
-<p><div style="min-height:0.1em;"></div></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Like much astronomy software, AutoProf is an evolving package.
-I try to keep the API stable and consistent, however I will make
-changes to the interface if it considerably improves things
-going forward. Please contact <a class="reference external" href="mailto:connor&#46;stone&#37;&#52;&#48;queensu&#46;ca">connor<span>&#46;</span>stone<span>&#64;</span>queensu<span>&#46;</span>ca</a> if you experience
-issues. If you would like to be notified of major changes send an email
-with the subject line “AUTOPROF MAILING LIST”.</p>
-</div>
 </div>
 </div>
 
@@ -238,9 +206,6 @@ with the subject line “AUTOPROF MAILING LIST”.</p>
            
           </div>
           <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
 
   <hr/>
 

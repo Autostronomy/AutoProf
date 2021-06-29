@@ -2,7 +2,6 @@
 AutoProf Pipeline Control
 =========================
 
-
 Modifying Pipeline Methods
 --------------------------
 

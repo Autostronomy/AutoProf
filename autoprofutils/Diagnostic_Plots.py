@@ -26,7 +26,7 @@ def Plot_Background(values, bkgrnd, noise, results, options):
     plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sBackground_hist_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'Background_hist_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()        
 
 def Plot_PSF_Stars(IMG, stars_x, stars_y, stars_fwhm, psf, results, options, flagstars = None):
@@ -37,7 +37,7 @@ def Plot_PSF_Stars(IMG, stars_x, stars_y, stars_fwhm, psf, results, options, fla
     plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sPSF_Stars_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'PSF_Stars_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
 
 
@@ -53,7 +53,7 @@ def Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, o
     plt.plot([results['center']['x'] - ranges[0][0]],[results['center']['y'] - ranges[1][0]], marker = 'x', markersize = 3, color = autocolours['red1'])
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sinitialize_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'initialize_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
     plt.close()
     
 def Plot_Isophote_Init_Optimize(circ_ellipse_radii, allphase, phase, pa_err, test_ellip, test_f2, ellip, ellip_err, results, options):
@@ -77,7 +77,7 @@ def Plot_Isophote_Init_Optimize(circ_ellipse_radii, allphase, phase, pa_err, tes
     plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sinitialize_ellipse_optimize_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'initialize_ellipse_optimize_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
     plt.close()
 
 
@@ -93,7 +93,7 @@ def Plot_Isophote_Fit(dat, sample_radii, ellip, pa, ellip_err, pa_err, results, 
                                     pa[i]*180/np.pi, fill = False, linewidth = ((i+1)/len(sample_radii))**2, color = autocolours['red1']))
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'fit_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
         
     plt.errorbar(np.array(sample_radii) * options['ap_pixscale'], ellip, yerr = ellip_err, color = autocolours['red1'], label = 'ellip [1-b/a]')
@@ -105,7 +105,7 @@ def Plot_Isophote_Fit(dat, sample_radii, ellip, pa, ellip_err, pa_err, results, 
     plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sphaseprofile_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'phaseprofile_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
     
 
@@ -140,7 +140,7 @@ def Plot_SB_Profile(dat, R, SB, SB_e, ellip, pa, results, options):
     plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sphotometry_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()                
 
     useR = R[CHOOSE]/options['ap_pixscale']
@@ -155,7 +155,7 @@ def Plot_SB_Profile(dat, R, SB, SB_e, ellip, pa, results, options):
                                     usePA[i], fill = False, linewidth = 1.2*((i+1)/len(useR))**2, color = autocolours['blue1'] if (i % 4 == 0) else autocolours['red1'], linestyle = '-' if useR[i] < fitlim else '--'))
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
 
 
@@ -184,7 +184,7 @@ def Plot_I_Profile(dat, R, I, I_e, ellip, pa, results, options):
     plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sphotometry_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()                
 
     useR = R[CHOOSE]/options['ap_pixscale']
@@ -199,7 +199,7 @@ def Plot_I_Profile(dat, R, I, I_e, ellip, pa, results, options):
                                     usePA[i], fill = False, linewidth = 1.2*((i+1)/len(useR))**2, color = autocolours['blue1'] if (i % 4 == 0) else autocolours['red1'], linestyle = '-' if useR[i] < fitlim else '--'))
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sphotometry_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
 
 
@@ -232,7 +232,7 @@ def Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, res
     plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sradial_profiles_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'radial_profiles_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
     
     LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
@@ -255,7 +255,7 @@ def Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, res
     plt.ylim([0,ranges[1][1] - ranges[1][0]])
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%sradial_profiles_wedges_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'radial_profiles_wedges_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
 
 
@@ -290,7 +290,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
             plt.tight_layout()
             if not ('ap_nologo' in options and options['ap_nologo']):
                 AddLogo(plt.gcf())
-            plt.savefig('%saxial_profile_q%i_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', count, options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+            plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'axial_profile_q%i_%s.jpg' % (count, options['ap_name'])), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
             plt.close()
             count += 1
 
@@ -326,6 +326,6 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
     plt.ylim([0,ranges[1][1] - ranges[1][0]])
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig('%saxial_profile_lines_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'axial_profile_lines_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
     plt.close()        
     
