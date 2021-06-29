@@ -284,7 +284,7 @@ def Background_Unsharp(IMG, results, options):
     results: dict
       .. code-block:: python
      
-        {'background': , # flux image representing the variable background level (float)
+        {'background': , # flux image representing the variable background level (ndarray)
         }
 
     """

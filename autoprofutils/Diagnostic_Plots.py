@@ -329,3 +329,34 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
     plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'axial_profile_lines_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi' in options else 300)
     plt.close()        
     
+
+def Plot_EllipseModel(IMG, Model, R, results, options):
+
+    ranges = [[max(0,int(results['center']['x']-R[-1]*1.2)), min(IMG.shape[1],int(results['center']['x']+R[-1]*1.2))],
+              [max(0,int(results['center']['y']-R[-1]*1.2)), min(IMG.shape[0],int(results['center']['y']+R[-1]*1.2))]]
+    plt.figure(figsize = (7,7))
+    autocmap.set_under('k', alpha=0)
+    showmodel = Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]].copy()
+    showmodel[showmodel > 0] += np.max(showmodel)/(10**3.5) - np.min(showmodel[showmodel > 0])
+    plt.imshow(showmodel, origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False))
+    plt.axis('off')
+    plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
+    if not ('ap_nologo' in options and options['ap_nologo']):
+        AddLogo(plt.gcf())
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'ellipsemodel_gen_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.close()
+        
+    residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
+    plt.figure(figsize = (7,7))
+    plt.imshow(residual, origin = 'lower', cmap = 'PuBu',
+               vmin = np.quantile(residual, 0.0001), vmax = 0)
+    plt.imshow(np.clip(residual,a_min = 0, a_max = np.quantile(residual,0.9999)),
+               origin = 'lower', cmap = autocmap, norm = ImageNormalize(stretch=LogStretch(), clip = False),
+               interpolation = 'none', clim = [1e-5, None])        
+    plt.axis('off')
+    plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
+    if not ('ap_nologo' in options and options['ap_nologo']):
+        AddLogo(plt.gcf())
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'ellipseresidual_gen_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.close()
+    
