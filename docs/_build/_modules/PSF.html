@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>PSF &mdash; AutoProf 0.8 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> AutoProf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../psf.html">PSF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../center.html">Center</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteinit.html">Isophote Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophotefit.html">Fitting Elliptical Isophotes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../isophoteextracting.html">SB Profile Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../checkingfits.html">Fit Success Checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extramethods.html">Extra Methods</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AutoProf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>PSF</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PSF</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">photutils</span> <span class="kn">import</span> <span class="n">DAOStarFinder</span><span class="p">,</span> <span class="n">IRAFStarFinder</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Ellipse</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span><span class="p">,</span> <span class="n">multivariate_normal</span>
+<span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
+<span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">_iso_extract</span><span class="p">,</span> <span class="n">StarFind</span><span class="p">,</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">LSBImage</span><span class="p">,</span> <span class="n">autocolours</span>
+<span class="kn">from</span> <span class="nn">autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_PSF_Stars</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<div class="viewcode-block" id="PSF_IRAF"><a class="viewcode-back" href="../source/PSF.html#PSF.PSF_IRAF">[docs]</a><span class="k">def</span> <span class="nf">PSF_IRAF</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply the photutils IRAF wrapper to the image to extract a PSF fwhm</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;ap_set_psf&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: PSF set by user: </span><span class="si">%.4e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_psf&#39;</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_psf&#39;</span><span class="p">]}</span>
+    <span class="k">elif</span> <span class="s1">&#39;ap_guess_psf&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: PSF initialized by user: </span><span class="si">%.4e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_guess_psf&#39;</span><span class="p">]))</span>
+        <span class="n">fwhm_guess</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_guess_psf&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fwhm_guess</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">])</span>
+
+    <span class="n">edge_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
+    <span class="n">edge_mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">),</span>
+              <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+    
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span>
+    <span class="c1"># photutils wrapper for IRAF star finder</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sources</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">psf_iter</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">psf_guess</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="ow">and</span> <span class="n">sources</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="n">iraffind</span> <span class="o">=</span> <span class="n">IRAFStarFinder</span><span class="p">(</span><span class="n">fwhm</span> <span class="o">=</span> <span class="n">psf_iter</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mf">6.</span><span class="o">*</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;background noise&#39;</span><span class="p">],</span> <span class="n">brightest</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span>
+            <span class="n">irafsources</span> <span class="o">=</span> <span class="n">iraffind</span><span class="o">.</span><span class="n">find_stars</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">edge_mask</span><span class="p">)</span>
+            <span class="n">psf_iter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">irafsources</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">irafsources</span><span class="p">[</span><span class="s1">&#39;sharpness&#39;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mf">0.95</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">irafsources</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">])</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">fwhm_guess</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">irafsources</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">fwhm_guess</span><span class="p">}</span>
+    
+    <span class="n">psf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">irafsources</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">])</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+        <span class="n">Plot_PSF_Stars</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">irafsources</span><span class="p">[</span><span class="s1">&#39;xcentroid&#39;</span><span class="p">],</span> <span class="n">irafsources</span><span class="p">[</span><span class="s1">&#39;ycentroid&#39;</span><span class="p">],</span> <span class="n">irafsources</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">],</span> <span class="n">psf</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">psf</span><span class="p">,</span> <span class="s1">&#39;auxfile psf&#39;</span><span class="p">:</span> <span class="s1">&#39;psf fwhm: </span><span class="si">%.3f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="n">psf</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="PSF_StarFind"><a class="viewcode-back" href="../source/PSF.html#PSF.PSF_StarFind">[docs]</a><span class="k">def</span> <span class="nf">PSF_StarFind</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="s1">&#39;ap_set_psf&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: PSF set by user: </span><span class="si">%.4e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_psf&#39;</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_psf&#39;</span><span class="p">]}</span>
+    <span class="k">elif</span> <span class="s1">&#39;ap_guess_psf&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: PSF initialized by user: </span><span class="si">%.4e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_guess_psf&#39;</span><span class="p">]))</span>
+        <span class="n">fwhm_guess</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_guess_psf&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fwhm_guess</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">])</span>
+
+    <span class="n">edge_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
+    <span class="n">edge_mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">),</span>
+              <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">stars</span> <span class="o">=</span> <span class="n">StarFind</span><span class="p">(</span><span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">],</span> <span class="n">fwhm_guess</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background noise&#39;</span><span class="p">],</span>
+                     <span class="n">edge_mask</span><span class="p">,</span>  <span class="n">maxstars</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">fwhm_guess</span><span class="p">}</span>
+    <span class="n">def_clip</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;deformity&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">def_clip</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">def_clip</span> <span class="o">+=</span> <span class="mf">0.1</span>
+    <span class="n">psf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">][</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;deformity&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">def_clip</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+        <span class="n">Plot_PSF_Stars</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">],</span> <span class="n">psf</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">flagstars</span> <span class="o">=</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;deformity&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">def_clip</span><span class="p">)</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: found psf: </span><span class="si">%f</span><span class="s1"> with deformity clip of: </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span><span class="n">psf</span><span class="p">,</span> <span class="n">def_clip</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">psf</span><span class="p">,</span> <span class="s1">&#39;auxfile psf&#39;</span><span class="p">:</span> <span class="s1">&#39;psf fwhm: </span><span class="si">%.3f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="n">psf</span><span class="p">}</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Connor Stone.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

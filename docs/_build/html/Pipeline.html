@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Pipeline module &mdash; AutoProf 0.8 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> AutoProf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="psf.html">PSF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="center.html">Center</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isophoteinit.html">Isophote Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isophotefit.html">Fitting Elliptical Isophotes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isophoteextracting.html">SB Profile Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="checkingfits.html">Fit Success Checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Pipeline module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/Pipeline.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-Pipeline">
+<span id="pipeline-module"></span><h1>Pipeline module<a class="headerlink" href="#module-Pipeline" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Pipeline.Isophote_Pipeline">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pipeline.</span></span><span class="sig-name descname"><span class="pre">Isophote_Pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loggername</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pipeline.html#Isophote_Pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pipeline.Isophote_Pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pipeline.Isophote_Pipeline.Process_ConfigFile">
+<span class="sig-name descname"><span class="pre">Process_ConfigFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pipeline.html#Isophote_Pipeline.Process_ConfigFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pipeline.Isophote_Pipeline.Process_ConfigFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads in a configuration file and sets parameters for the pipeline. The configuration
+file should have variables corresponding to the desired parameters to be set.</p>
+<p>congig_file: string path to configuration file</p>
+<p>returns: timing of each pipeline step if successful. Else returns 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pipeline.Isophote_Pipeline.Process_Image">
+<span class="sig-name descname"><span class="pre">Process_Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pipeline.html#Isophote_Pipeline.Process_Image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pipeline.Isophote_Pipeline.Process_Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function which runs the pipeline for a single image. Each sub-function of the pipeline is run
+in order and the outputs are passed along. If multiple images are given, the pipeline is
+excecuted on the first image and the isophotes are applied to the others.</p>
+<p>returns list of times for each pipeline step if successful. else returns 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pipeline.Isophote_Pipeline.Process_List">
+<span class="sig-name descname"><span class="pre">Process_List</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pipeline.html#Isophote_Pipeline.Process_List"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pipeline.Isophote_Pipeline.Process_List" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper function to run “Process_Image” in parallel for many images.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pipeline.Isophote_Pipeline.UpdatePipeline">
+<span class="sig-name descname"><span class="pre">UpdatePipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_pipeline_methods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_pipeline_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pipeline.html#Isophote_Pipeline.UpdatePipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pipeline.Isophote_Pipeline.UpdatePipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>modify steps in the AutoProf pipeline.</p>
+<dl class="simple">
+<dt>new_pipeline_methods: update the dictionary of methods used by the pipeline. This can either add</dt><dd><p>new methods or replace existing ones.</p>
+</dd>
+<dt>new_pipeline_steps: update the list of pipeline step strings. These strings refer to keys in</dt><dd><p>pipeline_methods. It is posible to add/remove/rearrange steps here. Alternatively
+one can supply a dictionary with current pipeline steps as keys and new pipeline
+steps as values, the corresponding steps will be replaced.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Connor Stone.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
