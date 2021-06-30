@@ -2,7 +2,7 @@
 Default AutoProf Pipeline
 =========================
 
-In the :doc:`getting_started` section, we learned how to run |AutoProf|,
+In the :doc:`getting_started` section, we learned how to run AutoProf,
 now we will dive into what is actually happening. Here you will learn
 what is going on by default, and some of the ways that you can change
 the setting to suit your project.
@@ -174,5 +174,3 @@ running AutoProf:
 .. code-block:: bash
    
   autoprof config.py newlogfilename.log
-
-.. |AutoProf| image:: _static/AP_logo.png

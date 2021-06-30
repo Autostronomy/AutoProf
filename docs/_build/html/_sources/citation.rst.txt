@@ -1,5 +1,6 @@
+===============
 Citing AutoProf
----------------
+===============
 
 If you use AutoProf for a project that leads to a publication,
 whether directly or as a dependency of another package, please include
@@ -30,3 +31,5 @@ supplied here:
    adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv210613809S},
    adsnote = {Provided by the SAO/NASA Astrophysics Data System}
    }
+
+These links will be updated when the paper is published.

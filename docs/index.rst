@@ -74,3 +74,4 @@ User Documentation
     going forward. Please contact connor.stone@queensu.ca if you experience
     issues. If you would like to be notified of major changes send an email
     with the subject line "AUTOPROF MAILING LIST".
+

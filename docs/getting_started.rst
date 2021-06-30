@@ -30,7 +30,7 @@ Check the .aux file for extra information, including checks on the success of th
 Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
 Also, look at the diagnostic plots to see if the fit appears to have worked.
 
-Note that AutoProf has a list of arguments that it is expecting (see *List Of AutoProf Arguments* for a full list) and it only checks for those.
+Note that AutoProf has a list of arguments that it is expecting and it only checks for those.
 You can therefore make any variables or functions you need in the config file to construct your list of image files so long as they don't conflict with any of the expected AutoProf arguments.
 
 
@@ -105,4 +105,3 @@ Batch Forced Photometry
 
 You may be able to guess at this point.
 To run forced photometry in batch mode, start with a single image forced photometry config file and convert single values into lists wherever necessary.
-

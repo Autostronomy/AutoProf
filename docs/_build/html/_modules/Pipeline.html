@@ -90,7 +90,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../citation.html">Citing AutoProf</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../license.html">GNU GENERAL PUBLIC LICENSE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extramethods.html">Extra Methods</a></li>
 </ul>
 
             
@@ -191,7 +197,7 @@
 <span class="kn">from</span> <span class="nn">astropy.io.fits.verify</span> <span class="kn">import</span> <span class="n">VerifyWarning</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">VerifyWarning</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Isophote_Pipeline"><a class="viewcode-back" href="../source/Pipeline.html#Pipeline.Isophote_Pipeline">[docs]</a><span class="k">class</span> <span class="nc">Isophote_Pipeline</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Pipeline"><a class="viewcode-back" href="../Pipeline.html#Pipeline.Isophote_Pipeline">[docs]</a><span class="k">class</span> <span class="nc">Isophote_Pipeline</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loggername</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -245,7 +251,7 @@
         <span class="c1"># Start the logger</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;AutoProf.log&#39;</span> <span class="k">if</span> <span class="n">loggername</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">loggername</span><span class="p">,</span> <span class="n">filemode</span> <span class="o">=</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Isophote_Pipeline.UpdatePipeline"><a class="viewcode-back" href="../source/Pipeline.html#Pipeline.Isophote_Pipeline.UpdatePipeline">[docs]</a>    <span class="k">def</span> <span class="nf">UpdatePipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pipeline_methods</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">new_pipeline_steps</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Pipeline.UpdatePipeline"><a class="viewcode-back" href="../Pipeline.html#Pipeline.Isophote_Pipeline.UpdatePipeline">[docs]</a>    <span class="k">def</span> <span class="nf">UpdatePipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pipeline_methods</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">new_pipeline_steps</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        modify steps in the AutoProf pipeline.</span>
 
@@ -267,7 +273,7 @@
                 <span class="k">assert</span> <span class="s1">&#39;head&#39;</span> <span class="ow">in</span> <span class="n">new_pipeline_steps</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span> <span class="o">=</span> <span class="n">new_pipeline_steps</span></div>
             
-<div class="viewcode-block" id="Isophote_Pipeline.Process_Image"><a class="viewcode-back" href="../source/Pipeline.html#Pipeline.Isophote_Pipeline.Process_Image">[docs]</a>    <span class="k">def</span> <span class="nf">Process_Image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="p">{}):</span>
+<div class="viewcode-block" id="Isophote_Pipeline.Process_Image"><a class="viewcode-back" href="../Pipeline.html#Pipeline.Isophote_Pipeline.Process_Image">[docs]</a>    <span class="k">def</span> <span class="nf">Process_Image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function which runs the pipeline for a single image. Each sub-function of the pipeline is run</span>
 <span class="sd">        in order and the outputs are passed along. If multiple images are given, the pipeline is</span>
@@ -336,7 +342,7 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Processing Complete! (at </span><span class="si">%.1f</span><span class="s1"> sec)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">timers</span></div>
     
-<div class="viewcode-block" id="Isophote_Pipeline.Process_List"><a class="viewcode-back" href="../source/Pipeline.html#Pipeline.Isophote_Pipeline.Process_List">[docs]</a>    <span class="k">def</span> <span class="nf">Process_List</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Pipeline.Process_List"><a class="viewcode-back" href="../Pipeline.html#Pipeline.Isophote_Pipeline.Process_List">[docs]</a>    <span class="k">def</span> <span class="nf">Process_List</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrapper function to run &quot;Process_Image&quot; in parallel for many images.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -390,7 +396,7 @@
         <span class="c1"># Return the success/fail indicators for every Process_Image excecution</span>
         <span class="k">return</span> <span class="n">res</span></div>
         
-<div class="viewcode-block" id="Isophote_Pipeline.Process_ConfigFile"><a class="viewcode-back" href="../source/Pipeline.html#Pipeline.Isophote_Pipeline.Process_ConfigFile">[docs]</a>    <span class="k">def</span> <span class="nf">Process_ConfigFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Pipeline.Process_ConfigFile"><a class="viewcode-back" href="../Pipeline.html#Pipeline.Isophote_Pipeline.Process_ConfigFile">[docs]</a>    <span class="k">def</span> <span class="nf">Process_ConfigFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads in a configuration file and sets parameters for the pipeline. The configuration</span>
 <span class="sd">        file should have variables corresponding to the desired parameters to be set.</span>
