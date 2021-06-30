@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Plotting_Steps &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Plotting_Steps &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Plotting_Steps</li>
+      <li>pipeline_steps.Plotting_Steps</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Plotting_Steps</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Plotting_Steps</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -171,7 +171,7 @@
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">_iso_extract</span><span class="p">,</span> <span class="n">_x_to_eps</span><span class="p">,</span> <span class="n">_x_to_pa</span><span class="p">,</span> <span class="n">_inv_x_to_pa</span><span class="p">,</span> <span class="n">_inv_x_to_eps</span><span class="p">,</span> <span class="n">LSBImage</span><span class="p">,</span> <span class="n">Angle_Average</span><span class="p">,</span> <span class="n">Angle_Median</span><span class="p">,</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">PA_shift_convention</span><span class="p">,</span> <span class="n">Sigma_Clip_Upper</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
-<div class="viewcode-block" id="Plot_Galaxy_Image"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Plotting_Steps.Plot_Galaxy_Image">[docs]</a><span class="k">def</span> <span class="nf">Plot_Galaxy_Image</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Plot_Galaxy_Image"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Plotting_Steps.Plot_Galaxy_Image">[docs]</a><span class="k">def</span> <span class="nf">Plot_Galaxy_Image</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots an LSB image of the object without anything else drawn above it.</span>
 <span class="sd">    Useful for inspecting images for spurious features</span>

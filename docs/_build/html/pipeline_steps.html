@@ -1,0 +1,2119 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pipeline_steps package &mdash; AutoProf 0.8 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> AutoProf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>pipeline_steps package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/pipeline_steps.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pipeline-steps-package">
+<h1>pipeline_steps package<a class="headerlink" href="#pipeline-steps-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pipeline_steps.Axial_Profiles">
+<span id="pipeline-steps-axial-profiles-module"></span><h2>pipeline_steps.Axial_Profiles module<a class="headerlink" href="#module-pipeline_steps.Axial_Profiles" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Axial_Profiles.Axial_Profiles">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Axial_Profiles.</span></span><span class="sig-name descname"><span class="pre">Axial_Profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Axial_Profiles.html#Axial_Profiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Axial_Profiles.Axial_Profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts SB profiles perpendicular to the major (or minor) axis.</p>
+<p>For some applications, such as examining edge on galaxies, it is
+beneficial to observe the vertical structure in a disk. This can
+be achieved with the Axial Profiles method. It will construct a
+series of lines, each one with a starting point on the major axis
+of the galaxy and radiating perpendicular from it. The location of
+these lines are, by default, geometrically spaced so that they can
+gather more light in the fainter outskirts. Along a given line,
+and SB profile is extracted, with the distance between points on
+the profile also increasing geometrically, allowing more light
+collection. The outputted profile is formatted similar to a
+regular SB profile, except that there are many SB profiles with
+each one having a corresponding distance from the center and
+quadrant of the image. A diagnostic image is generated to aid in
+identifying where each profile is extracted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_axialprof_pa</strong> (<em>float</em>) – <p>user set position angle at which to align the axial profiles
+relative to the global position angle+90, in degrees. A common
+choice would be “90” which would then sample along the
+semi-major axis instead of the semi-minor axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>22.5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_samplestyle</strong> (<em>string</em>) – <p>indicate if isophote sampling radii should grow linearly or
+geometrically. Can also do geometric sampling at the center and
+linear sampling once geometric step size equals linear. Options
+are: ‘linear’, ‘geometric’, and ‘geometric-linear’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’geometric’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
+median is fast and robust to a few outliers. Mode is slow but
+robust to more outliers. Mean is fast and accurate in low S/N
+regimes where fluxes take on near integer values, but not robust
+to outliers. The mean should be used along with a mask to remove
+spurious objects such as foreground stars or galaxies, and
+should always be used with caution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’median’</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) – No results provided as this method writes its own profile</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Background">
+<span id="pipeline-steps-background-module"></span><h2>pipeline_steps.Background module<a class="headerlink" href="#module-pipeline_steps.Background" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Background.Background_Basic">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Background.</span></span><span class="sig-name descname"><span class="pre">Background_Basic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Background.html#Background_Basic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Background.Background_Basic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the mean flux in the border of an image.</p>
+<p>Takes all pixels in a 1/5th border of the image and computes the
+mean. To compute the noise in the background level, we simply take
+the standard deviation of the flux values. This background
+estimation method is only for diagnostic purposes and will be
+considerably biased on real astronomical images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_set_background</strong> (<em>float</em>) – <p>User provided background value in flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_background_noise</strong> (<em>float</em>) – <p>User provided background noise level in flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_background_speedup</strong> (<em>int</em>) – <p>For large images, this can be millions of pixels, which is not
+really needed to achieve an accurate background level, the user
+can provide a positive integer factor by which to reduce the
+number of pixels used in the calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># flux value representing the background level (float)</span>
+ <span class="s1">&#39;background noise&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># measure of scatter around the background level (float)</span>
+ <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional, uncertainty on background level (float)</span>
+ <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record background level (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Background.Background_DilatedSources">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Background.</span></span><span class="sig-name descname"><span class="pre">Background_DilatedSources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Background.html#Background_DilatedSources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Background.Background_DilatedSources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the median flux after removing bright sources.</p>
+<p>Compute a global background value for an image. Performed by
+identifying pixels which are beyond 3 sigma above the average
+signal and masking them, also further masking a border
+of 20 pixels around the initial masked pixels. Returns a
+dictionary of parameters describing the background level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_set_background</strong> (<em>float</em>) – <p>User provided background value in flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_background_noise</strong> (<em>float</em>) – <p>User provided background noise level in flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># flux value representing the background level (float)</span>
+ <span class="s1">&#39;background noise&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># measure of scatter around the background level (float)</span>
+ <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional, uncertainty on background level (float)</span>
+ <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record background level (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Background.Background_Mode">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Background.</span></span><span class="sig-name descname"><span class="pre">Background_Mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Background.html#Background_Mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Background.Background_Mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the mode flux in the border of an image.</p>
+<p>Takes all pixels in a 1/5th border of the image. Applies a
+Gaussian smoothing length of log10(sqrt(N)) where N is the number
+of sampled pixels. The peak of the smoothed distribution is found
+using Nelder-Mead optimization. To compute the noise in the
+background level, we take all flux values below the fitted
+background level and compute the 31.73 - 100 percent range. This
+corresponds to the lower 1sigma, we do not use the upper 1sigma as
+it is contaminated by faint sources. In truth the lower 1sigma is
+contaminated as well, though to a lesser extent.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For best results, use a segmentation mask to remove sources.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_set_background</strong> (<em>float</em>) – <p>User provided background value in flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_background_noise</strong> (<em>float</em>) – <p>User provided background noise level in flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_background_speedup</strong> (<em>int</em>) – <p>For large images, this can be millions of pixels, which is not
+really needed to achieve an accurate background level, the user
+can provide a positive integer factor by which to reduce the
+number of pixels used in the calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># flux value representing the background level (float)</span>
+ <span class="s1">&#39;background noise&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># measure of scatter around the background level (float)</span>
+ <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional, uncertainty on background level (float)</span>
+ <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record background level (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Background.Background_Unsharp">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Background.</span></span><span class="sig-name descname"><span class="pre">Background_Unsharp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Background.html#Background_Unsharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Background.Background_Unsharp" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates a 2D background level using low order FFT coefficients.</p>
+<p>Takes the 2D FFT of an image and sets all coefficients above 3 to
+zero. This creates a very smooth image which can be used as a
+variable background level.  This can then be subtracted from
+images to remove large bright sources, such as a nearby BGC or
+bright star. However, this background estimation method will
+likely also heavily bias flux value. Thus it can reasonably be
+used to isolate a galaxy with a large overlapping partner for the
+sake of fitting isophotes, but the extracted flux profile will be
+unreliable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_background_unsharp_lowpass</strong> (<em>int</em>) – <p>User provided FFT coefficient cutoff for constructing unsharp image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>3</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># flux image representing the variable background level (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Center">
+<span id="pipeline-steps-center-module"></span><h2>pipeline_steps.Center module<a class="headerlink" href="#module-pipeline_steps.Center" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Center.Center_1DGaussian">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Center.</span></span><span class="sig-name descname"><span class="pre">Center_1DGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Center.html#Center_1DGaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Center.Center_1DGaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find galaxy center with many 1D gaussian fits to the image..</p>
+<p>Compute the pixel location of the galaxy center using a photutils
+method.  Looking at 100 seeing lengths around the center of the
+image (images should already be mostly centered), finds the galaxy
+center by fitting several 1d Gaussians.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use image center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+should be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+PSF. Larger rings will give the 1D fits more data to work with
+and allow for the starting position to be further from the true
+galaxy center.  Smaller rings will include fewer spurious
+objects, and can stop the 1D fits from being distracted by
+larger nearby objects/galaxies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">defualt</dt>
+<dd class="field-odd"><p>50</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>
+
+ <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record galaxy center (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Center.Center_2DGaussian">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Center.</span></span><span class="sig-name descname"><span class="pre">Center_2DGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Center.html#Center_2DGaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Center.Center_2DGaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find galaxy center with a 2D gaussian fit to the image..</p>
+<p>Compute the pixel location of the galaxy center by fitting a 2d
+Gaussian as implimented by the photutils package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use image center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+should be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+PSF. Larger rings will give the 2D fit more data to work with
+and allow for the starting position to be further from the true
+galaxy center.  Smaller rings will include fewer spurious
+objects, and can stop the 2D fit from being distracted by larger
+nearby objects/galaxies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">defualt</dt>
+<dd class="field-odd"><p>50</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>
+
+ <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record galaxy center (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Center.Center_Forced">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Center.</span></span><span class="sig-name descname"><span class="pre">Center_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Center.html#Center_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Center.Center_Forced" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts previously fit center coordinates.</p>
+<p>Extracts the center coordinates from an aux file for a previous
+AutoProf fit. Can instead simply be given a set center value, just
+like other centering methods. A given center will override teh
+fitted aux file center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use image center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+should be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <p>(required for forced photometry) file path to .prof file
+providing forced photometry PA and ellip values to apply to
+<em>ap_image_file</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">defualt</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>
+
+ <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record galaxy center (string)</span>
+ <span class="s1">&#39;auxfile centeral sb&#39;</span><span class="p">:</span> <span class="c1"># optional, central surface brightness value (float)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Center.Center_HillClimb">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Center.</span></span><span class="sig-name descname"><span class="pre">Center_HillClimb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Center.html#Center_HillClimb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Center.Center_HillClimb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Follow locally increasing brightness (robust to PSF size objects) to find peak.</p>
+<p>Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
+phases are averaged to find the direction of increasing flux. Flux values are sampled
+along this direction and a quadratic fit gives the maximum. This is iteratively
+repeated until the step size becomes very small.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use image center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+should be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+PSF. Larger rings will be robust to features (i.e., foreground
+stars), while smaller rings may be needed for small galaxies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">defualt</dt>
+<dd class="field-odd"><p>10</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>
+
+ <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record galaxy center (string)</span>
+ <span class="s1">&#39;auxfile centeral sb&#39;</span><span class="p">:</span> <span class="c1"># optional, central surface brightness value (float)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Center.Center_HillClimb_mean">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Center.</span></span><span class="sig-name descname"><span class="pre">Center_HillClimb_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Center.html#Center_HillClimb_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Center.Center_HillClimb_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Follow locally increasing brightness (robust to PSF size objects) to find peak.</p>
+<p>Using 10 circular isophotes out to 10 times the PSF length, the
+first FFT coefficient phases are averaged to find the direction of
+increasing flux. Flux values are sampled along this direction and
+a quadratic fit gives the maximum. This is iteratively repeated
+until the step size becomes very small. This function is identical
+to <code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code> except that all
+averages/scatters are mean/std based instead of median/iqr based.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use image center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+should be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+PSF. Larger rings will be robust to features (i.e., foreground
+stars), while smaller rings may be needed for small galaxies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">defualt</dt>
+<dd class="field-odd"><p>10</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>
+
+ <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record galaxy center (string)</span>
+ <span class="s1">&#39;auxfile centeral sb&#39;</span><span class="p">:</span> <span class="c1"># optional, central surface brightness value (float)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Center.Center_OfMass">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Center.</span></span><span class="sig-name descname"><span class="pre">Center_OfMass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Center.html#Center_OfMass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Center.Center_OfMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the light weighted galaxy center.</p>
+<p>Iteratively computes the light weighted centroid within a window,
+moves to the new center and computes the light weighted centroid
+again.  The size of the search area is 10PSF by default. The
+iterative process will continue until the center is updated by
+less than 1/10th of the PSF size or when too mny iterations have
+been reached.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use image center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+should be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+PSF. Larger rings will allow for the starting position to be
+further from the true galaxy center.  Smaller rings will include
+fewer spurious objects, and can stop the centroid from being
+distracted by larger nearby objects/galaxies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">defualt</dt>
+<dd class="field-odd"><p>10</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># x coordinate of the center (pix)</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># y coordinate of the center (pix)</span>
+
+ <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record galaxy center (string)</span>
+ <span class="s1">&#39;auxfile centeral sb&#39;</span><span class="p">:</span> <span class="c1"># optional, central surface brightness value (float)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Center.Center_Peak">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Center.</span></span><span class="sig-name descname"><span class="pre">Center_Peak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Center.html#Center_Peak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Center.Center_Peak" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Check_Fit">
+<span id="pipeline-steps-check-fit-module"></span><h2>pipeline_steps.Check_Fit module<a class="headerlink" href="#module-pipeline_steps.Check_Fit" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Check_Fit.Check_Fit">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Check_Fit.</span></span><span class="sig-name descname"><span class="pre">Check_Fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Check_Fit.html#Check_Fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Check_Fit.Check_Fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check for cases of failed isophote fits.</p>
+<p>A variety of check methods are applied to ensure that the fit has
+converged to a reasonable solution.  If a fit passes all of these
+checks then it is typically an acceptable fit.  However if it
+fails one or more of the checks then the fit likely either failed
+or the galaxy has strong non-axisymmetric features (and the fit
+itself may be acceptable).</p>
+<p>One check samples the fitted isophotes and looks for cases with
+high variability of flux values along the isophote.  This is done
+by comparing the interquartile range to the median flux, if the
+interquartile range is larger then that isophote is flagged.  If
+enough isophotes are flagged then the fit may have failed.</p>
+<p>A second check operates similarly, checking the second and fourth
+FFT coefficient amplitudes relative to the median flux.  If many
+of the isophotes have large FFT coefficients, or if a few of the
+isophotes have very large FFT coefficients then the fit is flagged
+as potentially failed.</p>
+<p>A third check is similar to the first, except that it compares the
+interquartile range from the fitted isophotes to those using just
+the global position angle and ellipticity values.</p>
+<p>A fourth check uses the first FFT coefficient to detect if the
+light is biased to one side of the galaxy. Typically this
+indicated either a failed center, or the galaxy has been disturbed
+and is not lopsided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;checkfit&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;isophote variability&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+              <span class="s1">&#39;FFT coefficients&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+              <span class="s1">&#39;initial fit compare&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+              <span class="s1">&#39;Light symmetry&#39;</span><span class="p">:</span> <span class="p">},</span> <span class="c1"># True if the test was passed, False if the test failed (bool)</span>
+
+ <span class="s1">&#39;auxfile checkfit isophote variability&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+ <span class="s1">&#39;auxfile checkfit FFT coefficients&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+ <span class="s1">&#39;auxfile checkfit initial fit compare&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+ <span class="s1">&#39;auxfile checkfit Light symmetry&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># optional aux file message for pass/fail of test (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Ellipse_Model">
+<span id="pipeline-steps-ellipse-model-module"></span><h2>pipeline_steps.Ellipse_Model module<a class="headerlink" href="#module-pipeline_steps.Ellipse_Model" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Ellipse_Model.EllipseModel_Fix">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Ellipse_Model.</span></span><span class="sig-name descname"><span class="pre">EllipseModel_Fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Ellipse_Model.html#EllipseModel_Fix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Ellipse_Model.EllipseModel_Fix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a smooth model image of the galaxy with fixed PA/elliptiicty.</p>
+<p>Constructs a 2D model image of the galaxy based on the extracted
+surface brightness profile and the global ellipticity and position
+angle values. First the image is transformed by rotating and
+stretching until the global ellipse fit has been transformed into
+a circle.  The radial distance of every pixel from the galaxy
+center is then used on an interpolated SB profile to determine the
+corresponding SB value. The SB values are applied and converted
+from mag/arcsec^2 to flux units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>22.5</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;ellipse model&#39;</span><span class="p">:</span> <span class="c1"># 2d image with flux values for smooth model of galaxy</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Ellipse_Model.EllipseModel_General">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Ellipse_Model.</span></span><span class="sig-name descname"><span class="pre">EllipseModel_General</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Ellipse_Model.html#EllipseModel_General"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Ellipse_Model.EllipseModel_General" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a smooth model image of the galaxy with fixed PA/elliptiicty.</p>
+<p>Constructs a 2D model image of the galaxy based on the extracted
+surface brightness profile and the global ellipticity and position
+angle values. First the image is transformed by rotating and
+stretching until the global ellipse fit has been transformed into
+a circle.  The radial distance of every pixel from the galaxy
+center is then used on an interpolated SB profile to determine the
+corresponding SB value. The SB values are applied and converted
+from mag/arcsec^2 to flux units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>22.5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_ellipsemodel_resolution</strong> (<em>float</em>) – <p>scale factor for the ellipse model resolution. Above 1 increases
+the precision of the ellipse model (and computation time),
+between 0 and 1 decreases the resolution (and computation
+time). Note that the ellipse model resolution is defined
+logarithmically, so the center will always be more resolved</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;ellipse model&#39;</span><span class="p">:</span> <span class="c1"># 2d image with flux values for smooth model of galaxy</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Isophote_Extract">
+<span id="pipeline-steps-isophote-extract-module"></span><h2>pipeline_steps.Isophote_Extract module<a class="headerlink" href="#module-pipeline_steps.Isophote_Extract" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Extract.Isophote_Extract">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Extract.</span></span><span class="sig-name descname"><span class="pre">Isophote_Extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Extract.html#Isophote_Extract"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Extract.Isophote_Extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>General method for extracting SB profiles.</p>
+<p>The default SB profile extraction method is highly
+flexible, allowing users to test a variety of techniques on their data
+to determine the most robust. The user may specify a variety of
+sampling arguments for the photometry extraction.  For example, a
+start or end radius in pixels, or whether to sample geometrically or
+linearly in radius.  Geometric sampling is the default as it is
+faster.  Once the sampling profile of semi-major axis values has been
+chosen, the function interpolates (spline) the position angle and
+ellipticity profiles at the requested values.  For any sampling beyond
+the outer radius from the <em>Isophotal Fitting</em> step, a constant value
+is used.  Within 1 PSF, a circular isophote is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_samplegeometricscale</strong> (<em>float</em>) – <p>growth scale for isophotes when sampling for the final output
+profile.  Used when sampling geometrically. By default, each
+isophote is 10% further than the last.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.1</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_samplelinearscale</strong> (<em>float</em>) – <p>growth scale (in pixels) for isophotes when sampling for the
+final output profile. Used when sampling linearly. Default is 1
+PSF length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_samplestyle</strong> (<em>string</em>) – <p>indicate if isophote sampling radii should grow linearly or
+geometrically. Can also do geometric sampling at the center and
+linear sampling once geometric step size equals linear. Options
+are: ‘linear’, ‘geometric’, ‘geometric-linear’</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’geometric’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_sampleinitR</strong> (<em>float</em>) – <p>Starting radius (in pixels) for isophote sampling from the
+image. Note that a starting radius of zero is not
+advised. Default is 1 pixel or 1PSF, whichever is smaller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_sampleendR</strong> (<em>float</em>) – <p>End radius (in pixels) for isophote sampling from the
+image. Default is 3 times the fit radius, also see
+<em>ap_extractfull</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoband_start</strong> (<em>float</em>) – <p>The noise level at which to begin sampling a band of pixels to
+compute SB instead of sampling a line of pixels near the
+isophote in units of pixel flux noise. Will never initiate band
+averaging if the band width is less than half a pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoband_width</strong> (<em>float</em>) – <p>The relative size of the isophote bands to sample. flux values
+will be sampled at +- <em>ap_isoband_width</em> *R for each radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.025</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoband_fixed</strong> (<em>bool</em>) – <p>Use a fixed width for the size of the isobands, the width is set
+by <em>ap_isoband_width</em> which now has units of pixels, the default
+is 0.5 such that the full band has a width of 1 pixel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_truncate_evaluation</strong> (<em>bool</em>) – <p>Stop evaluating new isophotes once two negative flux isophotes
+have been recorded, presumed to have reached the end of the
+profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_extractfull</strong> (<em>bool</em>) – <p>Tells AutoProf to extend the isophotal solution to the edge of
+the image. Will be overridden by <em>ap_truncate_evaluation</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_iso_interpolate_start</strong> (<em>float</em>) – <p>Use a Lanczos interpolation for isophotes with semi-major axis
+less than this number times the PSF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_iso_interpolate_method</strong> (<em>string</em>) – <p>Select method for flux interpolation on image, options are
+‘lanczos’ and ‘bicubic’. Default is ‘lanczos’ with a window size
+of 3.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’lanczos’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em>) – <p>Window size for Lanczos interpolation, default is 3, meaning 3
+pixels on either side of the sample point are used for
+interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>3</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
+median is fast and robust to a few outliers. Mode is slow but
+robust to more outliers. Mean is fast and accurate in low S/N
+regimes where fluxes take on near integer values, but not robust
+to outliers. The mean should be used along with a mask to remove
+spurious objects such as foreground stars or galaxies, and
+should always be used with caution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’median’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoclip</strong> (<em>bool</em>) – <p>Perform sigma clipping along extracted isophotes. Removes flux
+samples from an isophote that deviate significantly from the
+median. Several iterations of sigma clipping are performed until
+convergence or <em>ap_isoclip_iterations</em> iterations are
+reached. Sigma clipping is a useful substitute for masking
+objects, though careful masking is better. Also an aggressive
+sigma clip may bias results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoclip_iterations</strong> (<em>int</em>) – <p>Maximum number of sigma clipping iterations to perform. The
+default is infinity, so the sigma clipping procedure repeats
+until convergence</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoclip_nsigma</strong> (<em>float</em>) – <p>Number of sigma above median to apply clipping. All values above
+(median + <em>ap_isoclip_nsigma</em> x sigma) are removed from the
+isophote.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_fouriermodes</strong> (<em>int</em>) – <p>integer for number of fourier modes to extract along fitted
+isophotes. Most popular is 4, which identifies boxy/disky
+isophotes. The outputted values are computed as a_i =
+real(F_i)/abs(F_0) where F_i is a fourier coefficient. Not
+activated by default as it adds to computation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># List object with strings giving the items in the header of the final SB profile (list)</span>
+ <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># dict object that links header strings to units (given as strings) for each variable (dict)</span>
+ <span class="s1">&#39;prof data&#39;</span><span class="p">:</span> <span class="c1"># dict object linking header strings to list objects containing the rows for a given variable (dict)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Extract.</span></span><span class="sig-name descname"><span class="pre">Isophote_Extract_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Extract.html#Isophote_Extract_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for extracting SB profiles that have been set by forced photometry.</p>
+<p>This is nearly identical to the general isophote extraction
+method, except that it does not choose which radii to sample the
+profile, instead it takes the radii, PA, and ellipticities as
+given.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_isoband_start</strong> (<em>float</em>) – <p>The noise level at which to begin sampling a band of pixels to
+compute SB instead of sampling a line of pixels near the
+isophote in units of pixel flux noise. Will never initiate band
+averaging if the band width is less than half a pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoband_width</strong> (<em>float</em>) – <p>The relative size of the isophote bands to sample. flux values
+will be sampled at +- <em>ap_isoband_width</em> *R for each radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.025</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoband_fixed</strong> (<em>bool</em>) – <p>Use a fixed width for the size of the isobands, the width is set
+by <em>ap_isoband_width</em> which now has units of pixels, the default
+is 0.5 such that the full band has a width of 1 pixel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_truncate_evaluation</strong> (<em>bool</em>) – <p>Stop evaluating new isophotes once two negative flux isophotes
+have been recorded, presumed to have reached the end of the
+profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_iso_interpolate_start</strong> (<em>float</em>) – <p>Use a Lanczos interpolation for isophotes with semi-major axis
+less than this number times the PSF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_iso_interpolate_method</strong> (<em>string</em>) – <p>Select method for flux interpolation on image, options are
+‘lanczos’ and ‘bicubic’. Default is ‘lanczos’ with a window size
+of 3.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’lanczos’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em>) – <p>Window size for Lanczos interpolation, default is 3, meaning 3
+pixels on either side of the sample point are used for
+interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>3</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
+median is fast and robust to a few outliers. Mode is slow but
+robust to more outliers. Mean is fast and accurate in low S/N
+regimes where fluxes take on near integer values, but not robust
+to outliers. The mean should be used along with a mask to remove
+spurious objects such as foreground stars or galaxies, and
+should always be used with caution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’median’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoclip</strong> (<em>bool</em>) – <p>Perform sigma clipping along extracted isophotes. Removes flux
+samples from an isophote that deviate significantly from the
+median. Several iterations of sigma clipping are performed until
+convergence or <em>ap_isoclip_iterations</em> iterations are
+reached. Sigma clipping is a useful substitute for masking
+objects, though careful masking is better. Also an aggressive
+sigma clip may bias results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoclip_iterations</strong> (<em>int</em>) – <p>Maximum number of sigma clipping iterations to perform. The
+default is infinity, so the sigma clipping procedure repeats
+until convergence</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoclip_nsigma</strong> (<em>float</em>) – <p>Number of sigma above median to apply clipping. All values above
+(median + <em>ap_isoclip_nsigma</em> x sigma) are removed from the
+isophote.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_fouriermodes</strong> (<em>int</em>) – <p>integer for number of fourier modes to extract along fitted
+isophotes. Most popular is 4, which identifies boxy/disky
+isophotes. The outputted values are computed as a_i =
+real(F_i)/abs(F_0) where F_i is a fourier coefficient. Not
+activated by default as it adds to computation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># List object with strings giving the items in the header of the final SB profile (list)</span>
+ <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># dict object that links header strings to units (given as strings) for each variable (dict)</span>
+ <span class="s1">&#39;prof data&#39;</span><span class="p">:</span> <span class="c1"># dict object linking header strings to list objects containing the rows for a given variable (dict)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Extract.</span></span><span class="sig-name descname"><span class="pre">Isophote_Extract_Photutils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Extract.html#Isophote_Extract_Photutils"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper of photutils method for extracting SB profiles.</p>
+<p>This simply gives users access to the photutils isophote
+extraction methods. The one exception is that SB values are taken
+as the median instead of the mean, as recomended in the photutils
+documentation. See: <a class="reference external" href="https://photutils.readthedocs.io/en/stable/isophote.html">photutils</a> for
+more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># List object with strings giving the items in the header of the final SB profile (list)</span>
+ <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># dict object that links header strings to units (given as strings) for each variable (dict)</span>
+ <span class="s1">&#39;prof data&#39;</span><span class="p">:</span> <span class="c1"># dict object linking header strings to list objects containing the rows for a given variable (dict)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Isophote_Fit">
+<span id="pipeline-steps-isophote-fit-module"></span><h2>pipeline_steps.Isophote_Fit module<a class="headerlink" href="#module-pipeline_steps.Isophote_Fit" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_Robust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Fit.html#Isophote_Fit_FFT_Robust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</p>
+<p>The isophotal fitting routine simultaneously optimizes a
+collection of elliptical isophotes by minimizing the 2nd FFT
+coefficient power, regularized for robustness. A series of
+isophotes are constructed which grow geometrically until they
+begin to reach the background level.  Then the algorithm
+iteratively updates the position angle and ellipticity of each
+isophote individually for many rounds.  Each round updates every
+isophote in a random order.  Each round cycles between three
+options: optimizing position angle, ellipticity, or both.  To
+optimize the parameters, 5 values (pa, ellip, or both) are
+randomly sampled and the “loss” is computed.  The loss is a
+combination of the relative amplitude of the second FFT
+coefficient (compared to the median flux), and a regularization
+term.  The regularization term penalizes adjacent isophotes for
+having different position angle or ellipticity (using the l1
+norm).  Thus, all the isophotes are coupled and tend to fit
+smoothly varying isophotes.  When the optimization has completed
+three rounds without any isophotes updating, the profile is
+assumed to have converged.</p>
+<p>An uncertainty for each ellipticity and position angle value is
+determined by taking the RMS between the fitted values and a
+smoothed polynomial fit values for 4 points.  This is a very rough
+estimate of the uncertainty, but works sufficiently well in the
+outskirts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as <em>ap_sample—scale</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between isophotes.
+Default of 1, larger values make smoother fits, smaller values give more chaotic fits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FFT_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Fit.html#Isophote_Fit_FFT_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</p>
+<p>Same as the standard isophote fitting routine, except uses less
+robust mean/std measures. This is only intended for low S/N data
+where pixels have low integer counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as
+<em>ap_sample—scale</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+background noise level. Default is 2, smaller values will end
+fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between
+isophotes.  Default of 1, larger values make smoother fits,
+smaller values give more chaotic fits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Fit.Isophote_Fit_Forced">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Fit.html#Isophote_Fit_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Fit.Isophote_Fit_Forced" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take isophotal fit from a given profile.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Fit.Photutils_Fit">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Photutils_Fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Fit.html#Photutils_Fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Fit.Photutils_Fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Photutils elliptical isophote wrapper.</p>
+<p>This simply gives users access to the photutils isophote
+fitting method. See: <a class="reference external" href="https://photutils.readthedocs.io/en/stable/isophote.html">photutils</a> for
+more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Isophote_Initialize">
+<span id="pipeline-steps-isophote-initialize-module"></span><h2>pipeline_steps.Isophote_Initialize module<a class="headerlink" href="#module-pipeline_steps.Isophote_Initialize" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Initialize.Isophote_Init_Forced">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Initialize.</span></span><span class="sig-name descname"><span class="pre">Isophote_Init_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Initialize.html#Isophote_Init_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Initialize.Isophote_Init_Forced" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Initialize.Isophote_Initialize">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Initialize.</span></span><span class="sig-name descname"><span class="pre">Isophote_Initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Initialize.html#Isophote_Initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Initialize.Isophote_Initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit global elliptical isophote to a galaxy image using FFT coefficients.</p>
+<p>A global position angle and ellipticity are fit in a two step
+process.  First, a series of circular isophotes are geometrically
+sampled until they approach the background level of the image.  An
+FFT is taken for the flux values around each isophote and the
+phase of the second coefficient is used to determine a direction.
+The average direction for the outer isophotes is taken as the
+position angle of the galaxy.  Second, with fixed position angle
+the ellipticity is optimized to minimize the amplitude of the
+second FFT coefficient relative to the median flux in an isophote.</p>
+<p>To compute the error on position angle we use the standard
+deviation of the outer values from step one.  For ellipticity the
+error is computed by optimizing the ellipticity for multiple
+isophotes within 1 PSF length of each other.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;init ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity of the global fit (float)</span>
+ <span class="s1">&#39;init pa&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Position angle of the global fit (float)</span>
+ <span class="s1">&#39;init R&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Semi-major axis length of global fit (float)</span>
+ <span class="s1">&#39;auxfile initialize&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Initialize.</span></span><span class="sig-name descname"><span class="pre">Isophote_Initialize_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Initialize.html#Isophote_Initialize_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit global elliptical isophote to a galaxy image using FFT coefficients.</p>
+<p>Same as the default isophote initialization routine, except uses
+mean/std measures for low S/N applications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+background noise level. Default is 2, smaller values will end
+fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;init ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity of the global fit (float)</span>
+ <span class="s1">&#39;init pa&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Position angle of the global fit (float)</span>
+ <span class="s1">&#39;init R&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Semi-major axis length of global fit (float)</span>
+ <span class="s1">&#39;auxfile initialize&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Mask">
+<span id="pipeline-steps-mask-module"></span><h2>pipeline_steps.Mask module<a class="headerlink" href="#module-pipeline_steps.Mask" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Mask.Bad_Pixel_Mask">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Mask.</span></span><span class="sig-name descname"><span class="pre">Bad_Pixel_Mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Mask.html#Bad_Pixel_Mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Mask.Bad_Pixel_Mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple masking routine to clip pixels based on thresholds.</p>
+<p>Creates a mask image using user provided limits on highest/lowest
+pixels values allowed. Also users can reject pixels with a
+specific value. This can be used on its own, or in combination
+with other masking routines. Multiple Mask calls with perform
+boolean-or operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_badpixel_high</strong> (<em>float</em>) – <p>flux value that corresponds to a saturated pixel or bad pixel
+flag, all values above <em>ap_badpixel_high</em> will be masked if
+using the <em>Bad_Pixel_Mask</em> pipeline method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_badpixel_low</strong> (<em>float</em>) – <p>flux value that corresponds to a bad pixel flag, all values
+below <em>ap_badpixel_low</em> will be masked if using the
+<em>Bad_Pixel_Mask</em> pipeline method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_badpixel_exact</strong> (<em>float</em>) – <p>flux value that corresponds to a precise bad pixel flag, all
+values equal to <em>ap_badpixel_exact</em> will be masked if using the
+<em>Bad_Pixel_Mask</em> pipeline method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Mask.Mask_Segmentation_Map">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Mask.</span></span><span class="sig-name descname"><span class="pre">Mask_Segmentation_Map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Mask.html#Mask_Segmentation_Map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Mask.Mask_Segmentation_Map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the results from other masking routines into AutoProf.</p>
+<p>Creates a mask from a supplied segmentation map. Such maps
+typically number each source with an integer. In such a case,
+AutoProf will check to see if the object center lands on one of
+these segments, if so it will zero out that source-id before
+converting the segmentation map into a mask. If the supplied image
+is just a 0, 1 mask then AutoProf will take it as is.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_mask_file</strong> (<em>string</em>) – <p>path to fits file which is a mask for the image. Must have the same dimensions as the main image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Mask.Star_Mask">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Mask.</span></span><span class="sig-name descname"><span class="pre">Star_Mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Mask.html#Star_Mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Mask.Star_Mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Masking routine which identifies stars and masks a region around them.</p>
+<p>Using an edge detecting convolutional filter, sources are
+identified that are of similar scale as the PSF. These sources are
+masked with a region roughly 2 times the FWHM of the source.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">starfind</span></code></dt><dd><p><a class="reference internal" href="autoprofutils.html#autoprofutils.SharedFunctions.StarFind" title="autoprofutils.SharedFunctions.StarFind"><code class="xref py py-func docutils literal notranslate"><span class="pre">autoprofutils.SharedFunctions.StarFind()</span></code></a></p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Mask.Star_Mask_IRAF">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Mask.</span></span><span class="sig-name descname"><span class="pre">Star_Mask_IRAF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Mask.html#Star_Mask_IRAF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Mask.Star_Mask_IRAF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Masking routine which identifies stars and masks a region around them.</p>
+<p>An IRAF star finder wrapper (from photutils) is applied to the
+image and then the identified sources are masked form the image.
+The size of the mask depends on the flux in the source roughly as
+sqrt(log(f)), thus an inverse of a Gaussian.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+</dd>
+</dl>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span>  <span class="c1"># 2d mask image with boolean datatype (ndarray)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.PSF">
+<span id="pipeline-steps-psf-module"></span><h2>pipeline_steps.PSF module<a class="headerlink" href="#module-pipeline_steps.PSF" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.PSF.PSF_IRAF">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.PSF.</span></span><span class="sig-name descname"><span class="pre">PSF_IRAF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/PSF.html#PSF_IRAF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.PSF.PSF_IRAF" title="Permalink to this definition">¶</a></dt>
+<dd><p>PSF routine which identifies stars and averages the FWHM.</p>
+<p>Uses the photutil IRAF wrapper to identify stars in the image and
+computes the average FWHM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use 1 arcsec</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span>  <span class="c1"># FWHM of the average PSF for the image</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.PSF.PSF_StarFind">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.PSF.</span></span><span class="sig-name descname"><span class="pre">PSF_StarFind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/PSF.html#PSF_StarFind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.PSF.PSF_StarFind" title="Permalink to this definition">¶</a></dt>
+<dd><p>PSF routine which identifies stars and averages the FWHM.</p>
+<p>The PSF method uses an edge finding convolution filter to identify
+candidate star pixels, then averages their FWHM. Randomly iterates
+through the pixels and searches for a local maximum. An FFT is
+used to identify non-circular star candidate (artifacts or
+galaxies) which may have been picked up by the edge
+finder. Circular apertures are placed around the star until half
+the central flux value is reached, This is recorded as the FWHM
+for that star. A collection of 50 stars are identified and the
+most circular (by FFT coefficients) half are kept, a median is
+taken as the image PSF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use 1 arcsec</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span>  <span class="c1"># FWHM of the average PSF for the image</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Plotting_Steps">
+<span id="pipeline-steps-plotting-steps-module"></span><h2>pipeline_steps.Plotting_Steps module<a class="headerlink" href="#module-pipeline_steps.Plotting_Steps" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Plotting_Steps.Plot_Galaxy_Image">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Plotting_Steps.</span></span><span class="sig-name descname"><span class="pre">Plot_Galaxy_Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Plotting_Steps.html#Plot_Galaxy_Image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Plotting_Steps.Plot_Galaxy_Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots an LSB image of the object without anything else drawn above it.
+Useful for inspecting images for spurious features</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Radial_Profiles">
+<span id="pipeline-steps-radial-profiles-module"></span><h2>pipeline_steps.Radial_Profiles module<a class="headerlink" href="#module-pipeline_steps.Radial_Profiles" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Radial_Profiles.Radial_Profiles">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Radial_Profiles.</span></span><span class="sig-name descname"><span class="pre">Radial_Profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Radial_Profiles.html#Radial_Profiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Radial_Profiles.Radial_Profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts SB profiles along lines radiating from the galaxy center.</p>
+<p>For some applications, such as examining edge on galaxies, it is
+beneficial to observe the structure in a disk as well as (or
+instead of) the average isophotal profile. This can done with
+radial profiles which sample along lines radiating form the galaxy
+center. These lines are by default placed on the 4 semi-axes of
+the galaxy. The lines are actually wedges with increasing width as
+a function of radius. This helps keep roughly constant S/N in the
+bins, allowing the profile to extend far into the outskirts of a
+galaxy. The user may increase the number of wedgest to extract
+more stucture from the galaxy, however at some point the wedges
+will begin to cross each other. AutoProf will warn the user when
+this happens, but will carry on anyway.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_radialprofiles_nwedges</strong> (<em>int</em>) – <p>number of radial wedges to sample. Recommended choosing a power of 2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>4</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_width</strong> (<em>float</em>) – <p>User set width of radial sampling wedges in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>15</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_pa</strong> (<em>float</em>) – <p>user set position angle at which to measure radial wedges relative to the global position angle, in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_expwidth</strong> (<em>bool</em>) – <p>tell AutoProf to use exponentially increasing widths for radial samples. In this case <em>ap_radialprofiles_width</em> corresponds to the final width of the radial sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_radialprofiles_variable_pa</strong> (<em>bool</em>) – <p>tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) – No results provided as this method writes its own profile</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Previously extracted SB profile, with extra columns appended for radial profiles (list)</span>
+ <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Previously extracted SB profile, with extra units appended for radial profiles (dict)</span>
+ <span class="s1">&#39;prof data&#39;</span><span class="p">:</span> <span class="c1"># Previously extracted SB profile, with extra columns appended for radial profiles (dict)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Slice_Profiles">
+<span id="pipeline-steps-slice-profiles-module"></span><h2>pipeline_steps.Slice_Profiles module<a class="headerlink" href="#module-pipeline_steps.Slice_Profiles" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Slice_Profiles.Slice_Profile">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Slice_Profiles.</span></span><span class="sig-name descname"><span class="pre">Slice_Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Slice_Profiles.html#Slice_Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Slice_Profiles.Slice_Profile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Write_Fi">
+<span id="pipeline-steps-write-fi-module"></span><h2>pipeline_steps.Write_Fi module<a class="headerlink" href="#module-pipeline_steps.Write_Fi" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Write_Fi.WriteFi">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Write_Fi.</span></span><span class="sig-name descname"><span class="pre">WriteFi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Write_Fi.html#WriteFi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Write_Fi.WriteFi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the galaxy image to disk.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps.Write_Prof">
+<span id="pipeline-steps-write-prof-module"></span><h2>pipeline_steps.Write_Prof module<a class="headerlink" href="#module-pipeline_steps.Write_Prof" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Write_Prof.WriteProf">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Write_Prof.</span></span><span class="sig-name descname"><span class="pre">WriteProf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Write_Prof.html#WriteProf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Write_Prof.WriteProf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the photometry information for disk given a photutils isolist object</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_steps">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pipeline_steps" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Connor Stone.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

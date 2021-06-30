@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Ellipse_Model &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Ellipse_Model &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Ellipse_Model</li>
+      <li>pipeline_steps.Ellipse_Model</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Ellipse_Model</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Ellipse_Model</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
 <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">SmoothBivariateSpline</span><span class="p">,</span> <span class="n">interp2d</span><span class="p">,</span> <span class="n">Rbf</span><span class="p">,</span> <span class="n">UnivariateSpline</span>
@@ -176,7 +176,7 @@
 <span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
 <span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
 
-<div class="viewcode-block" id="EllipseModel_Fix"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Ellipse_Model.EllipseModel_Fix">[docs]</a><span class="k">def</span> <span class="nf">EllipseModel_Fix</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="EllipseModel_Fix"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Ellipse_Model.EllipseModel_Fix">[docs]</a><span class="k">def</span> <span class="nf">EllipseModel_Fix</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Construct a smooth model image of the galaxy with fixed PA/elliptiicty.</span>
 
 <span class="sd">    Constructs a 2D model image of the galaxy based on the extracted</span>
@@ -244,7 +244,7 @@
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;ellipse model&#39;</span><span class="p">:</span> <span class="n">Model</span><span class="p">}</span></div>
     
 
-<div class="viewcode-block" id="EllipseModel_General"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Ellipse_Model.EllipseModel_General">[docs]</a><span class="k">def</span> <span class="nf">EllipseModel_General</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="EllipseModel_General"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Ellipse_Model.EllipseModel_General">[docs]</a><span class="k">def</span> <span class="nf">EllipseModel_General</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Construct a smooth model image of the galaxy with fixed PA/elliptiicty.</span>
 
 <span class="sd">    Constructs a 2D model image of the galaxy based on the extracted</span>

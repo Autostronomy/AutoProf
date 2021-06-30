@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Isophote_Extract &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Isophote_Extract &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Isophote_Extract</li>
+      <li>pipeline_steps.Isophote_Extract</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Isophote_Extract</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Isophote_Extract</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">EllipseSample</span><span class="p">,</span> <span class="n">EllipseGeometry</span><span class="p">,</span> <span class="n">Isophote</span><span class="p">,</span> <span class="n">IsophoteList</span>
 <span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">Ellipse</span> <span class="k">as</span> <span class="n">Photutils_Ellipse</span>
@@ -358,7 +358,7 @@
         
     <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="n">params</span><span class="p">,</span> <span class="s1">&#39;prof units&#39;</span><span class="p">:</span> <span class="n">SBprof_units</span><span class="p">,</span> <span class="s1">&#39;prof data&#39;</span><span class="p">:</span> <span class="n">SBprof_data</span><span class="p">}</span>
 
-<div class="viewcode-block" id="Isophote_Extract_Forced"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Extract.Isophote_Extract_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Extract_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Extract_Forced"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Extract_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Method for extracting SB profiles that have been set by forced photometry.</span>
 
 <span class="sd">    This is nearly identical to the general isophote extraction</span>
@@ -517,7 +517,7 @@
                                   <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s1">&#39;pa&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_forced_pa_shift&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_forced_pa_shift&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">))</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">PAe</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span></div>
     
     
-<div class="viewcode-block" id="Isophote_Extract"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Extract.Isophote_Extract">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Extract</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Extract"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Extract</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;General method for extracting SB profiles.</span>
 
 <span class="sd">    The default SB profile extraction method is highly</span>
@@ -744,7 +744,7 @@
     
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">_Generate_Profile</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">Ee</span><span class="p">,</span> <span class="n">PA</span><span class="p">,</span> <span class="n">PAe</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Isophote_Extract_Photutils"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Extract.Isophote_Extract_Photutils">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Extract_Photutils</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Extract_Photutils"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Extract_Photutils</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Wrapper of photutils method for extracting SB profiles.</span>
 
 <span class="sd">    This simply gives users access to the photutils isophote</span>

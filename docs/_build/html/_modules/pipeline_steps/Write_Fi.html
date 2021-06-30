@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Write_Fi &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Write_Fi &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Write_Fi</li>
+      <li>pipeline_steps.Write_Fi</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,14 +162,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Write_Fi</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Write_Fi</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
 
-<div class="viewcode-block" id="WriteFi"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Write_Fi.WriteFi">[docs]</a><span class="k">def</span> <span class="nf">WriteFi</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteFi"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Write_Fi.WriteFi">[docs]</a><span class="k">def</span> <span class="nf">WriteFi</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes the galaxy image to disk.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

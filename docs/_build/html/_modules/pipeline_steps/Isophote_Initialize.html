@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Isophote_Initialize &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Isophote_Initialize &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Isophote_Initialize</li>
+      <li>pipeline_steps.Isophote_Initialize</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Isophote_Initialize</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Isophote_Initialize</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">idct</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
@@ -180,7 +180,7 @@
 <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Ellipse</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 
-<div class="viewcode-block" id="Isophote_Init_Forced"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Initialize.Isophote_Init_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Init_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Init_Forced"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Init_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Init_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_forcing_profile&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;aux&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
             <span class="k">if</span> <span class="s1">&#39;global ellipticity&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
@@ -204,7 +204,7 @@
     <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">a_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span><span class="mf">0.85</span><span class="p">),</span> <span class="n">a_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">))</span>
     <span class="k">return</span>  <span class="p">(</span><span class="n">iqr</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span><span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">84</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">+</span><span class="n">n</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Isophote_Initialize"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Initialize.Isophote_Initialize">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Initialize"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Initialize">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Fit global elliptical isophote to a galaxy image using FFT coefficients.</span>
 <span class="sd">    </span>
 <span class="sd">    A global position angle and ellipticity are fit in a two step</span>
@@ -315,7 +315,7 @@
     <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">+</span><span class="n">n</span><span class="p">))</span>
 
-<div class="viewcode-block" id="Isophote_Initialize_mean"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Initialize.Isophote_Initialize_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Initialize_mean"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Fit global elliptical isophote to a galaxy image using FFT coefficients.</span>
 
 <span class="sd">    Same as the default isophote initialization routine, except uses</span>

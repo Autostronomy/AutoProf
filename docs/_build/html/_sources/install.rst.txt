@@ -20,7 +20,7 @@ Basic Install
    If you experience difficulty cloning the package, you may download a zip file of the package from the github page.
 #. Alias the AutoProf function. To make this permanent, include this lines in your .bashrc file (or equivalent for your OS). ::
    
-     alias autoprof='/path/to/AutoProf/autoprof.py'
+     alias autoprof='/path/to/AutoProf/autoprof/autoprof.py'
    
 #. Run the test cases to see that all is well::
    

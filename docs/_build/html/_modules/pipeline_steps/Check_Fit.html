@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Check_Fit &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Check_Fit &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Check_Fit</li>
+      <li>pipeline_steps.Check_Fit</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Check_Fit</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Check_Fit</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
 <span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span>
@@ -172,7 +172,7 @@
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">_iso_extract</span><span class="p">,</span> <span class="n">_x_to_pa</span><span class="p">,</span> <span class="n">_x_to_eps</span><span class="p">,</span> <span class="n">_inv_x_to_eps</span><span class="p">,</span> <span class="n">_inv_x_to_pa</span>
 
-<div class="viewcode-block" id="Check_Fit"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Check_Fit.Check_Fit">[docs]</a><span class="k">def</span> <span class="nf">Check_Fit</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Check_Fit"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Check_Fit.Check_Fit">[docs]</a><span class="k">def</span> <span class="nf">Check_Fit</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Check for cases of failed isophote fits.</span>
 <span class="sd">    </span>
 <span class="sd">    A variety of check methods are applied to ensure that the fit has</span>

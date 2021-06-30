@@ -61,7 +61,7 @@ For forced photometry the default pipeline step order is:
   ['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
 
 If you would like to change this behaviour, just provide a *ap_new_pipeline_steps* list.
-For example if you wished to use forced photometry but you want to re-fit the center you can change :func:`~autoprofutils.Center.Center_Forced` back to :func:`~autoprofutils.Center.Center_HillClimb` with:
+For example if you wished to use forced photometry but you want to re-fit the center you can change :func:`~pipeline_steps.Center.Center_Forced` back to :func:`~pipeline_steps.Center.Center_HillClimb` with:
 
 .. code-block:: python
    

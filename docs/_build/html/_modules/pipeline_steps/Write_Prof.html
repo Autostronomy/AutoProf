@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Write_Prof &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Write_Prof &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Write_Prof</li>
+      <li>pipeline_steps.Write_Prof</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Write_Prof</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Write_Prof</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
 <span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -172,7 +172,7 @@
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">PA_shift_convention</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
-<div class="viewcode-block" id="WriteProf"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Write_Prof.WriteProf">[docs]</a><span class="k">def</span> <span class="nf">WriteProf</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteProf"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Write_Prof.WriteProf">[docs]</a><span class="k">def</span> <span class="nf">WriteProf</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes the photometry information for disk given a photutils isolist object</span>
 <span class="sd">    &quot;&quot;&quot;</span>

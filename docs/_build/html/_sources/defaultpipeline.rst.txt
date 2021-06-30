@@ -22,28 +22,28 @@ a similarly size or larger object.
 
 Put plainly, the default AutoProf pipeline is as follows:
 
-1. Background: :func:`~autoprofutils.Background.Background_Mode`
-#. PSF: :func:`~autoprofutils.PSF.PSF_StarFind`
-#. Center: :func:`~autoprofutils.Center.Center_HillClimb`
-#. Initial Isophote: :func:`~autoprofutils.Isophote_Initialize.Isophote_Initialize`
-#. Fit Isophotes: :func:`~autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust`
-#. Extract SB Profile: :func:`~autoprofutils.Isophote_Extract.Isophote_Extract`
-#. Check Fit: :func:`~autoprofutils.Check_Fit.Check_Fit`
-#. Write the SB Profile: :func:`~autoprofutils.Write_Prof.WriteProf`
+1. Background: :func:`~pipeline_steps.Background.Background_Mode`
+#. PSF: :func:`~pipeline_steps.PSF.PSF_StarFind`
+#. Center: :func:`~pipeline_steps.Center.Center_HillClimb`
+#. Initial Isophote: :func:`~pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+#. Fit Isophotes: :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+#. Extract SB Profile: :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
+#. Check Fit: :func:`~pipeline_steps.Check_Fit.Check_Fit`
+#. Write the SB Profile: :func:`~pipeline_steps.Write_Prof.WriteProf`
 
 each function above links to a detailed description of the method, and
 the parameters that it accepts.
 
 The reason a boarder is needed around the galaxy is because the
-:func:`~autoprofutils.Background.Background_Mode` method uses a 1/5th
+:func:`~pipeline_steps.Background.Background_Mode` method uses a 1/5th
 border around the image to estimate the average background level.  The
 galaxy needs to be roughly centered on the image because
-:func:`~autoprofutils.Center.Center_HillClimb` starts at the image
+:func:`~pipeline_steps.Center.Center_HillClimb` starts at the image
 center by default, you can change this and give it alternate starting
 coordinates if you like.  The galaxy should be non-overlapping with
 large sources because that would violate the assumptions in the
-:func:`~autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust` step and
-the :func:`~autoprofutils.Isophote_Extract.Isophote_Extract` step.
+:func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust` step and
+the :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract` step.
 
 The final output should be two files: a profile and an aux file. The
 profile (.prof) contains the SB profile and a number of other
@@ -52,7 +52,7 @@ position angle, but also some other useful calculations. The profile
 is extended by certain options, for example you can choose to add
 Fourier coefficients to the profile (typically used to examing b4/a4),
 or you can run steps like the
-:func:`~autoprofutils.Radial_Profiles.Radial_Profiles` which will add
+:func:`~pipeline_steps.Radial_Profiles.Radial_Profiles` which will add
 more columns. The aux file contains global information such as the
 time when the fit completed, the settings used, the global
 PA/ellipticity, and any other diagnostic messages added by the various
@@ -65,13 +65,13 @@ Forced photometry allows a user to apply the solution from one image
 onto another image. The default forced photometry pipeline works as
 follows:
 
-1. Background: :func:`~autoprofutils.Background.Background_Mode`
-#. PSF: :func:`~autoprofutils.PSF.PSF_StarFind`
-#. Center: :func:`~autoprofutils.Center.Center_Forced`
-#. Initial Isophote: :func:`~autoprofutils.Isophote_Initialize.Isophote_Init_Forced`
-#. Fit Isophotes: :func:`~autoprofutils.Isophote_Fit.Isophote_Fit_Forced`
-#. Extract SB Profile: :func:`~autoprofutils.Isophote_Extract.Isophote_Extract_Forced`
-#. Write the SB Profile: :func:`~autoprofutils.Write_Prof.WriteProf`
+1. Background: :func:`~pipeline_steps.Background.Background_Mode`
+#. PSF: :func:`~pipeline_steps.PSF.PSF_StarFind`
+#. Center: :func:`~pipeline_steps.Center.Center_Forced`
+#. Initial Isophote: :func:`~pipeline_steps.Isophote_Initialize.Isophote_Init_Forced`
+#. Fit Isophotes: :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_Forced`
+#. Extract SB Profile: :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+#. Write the SB Profile: :func:`~pipeline_steps.Write_Prof.WriteProf`
 
 each function above links to a detailed description of the method, and
 the parameters that it accepts.
@@ -84,7 +84,7 @@ for the PSF, between observing nights and bands, the PSF can be very
 different so it is re-calculated. By default the previously fit center
 is used, however if you would like a new center to be fit, you can
 swap out this step with the :func:`standard centering
-<~autoprofutils.Center.Center_HillClimb>` method; this is explained in
+<~pipeline_steps.Center.Center_HillClimb>` method; this is explained in
 :doc:`pipelinemanipulation`. The global isophote fit, and the full
 isophote fit are of course taken from the original fit, the pixel
 scale can vary between images and AutoProf will adjust

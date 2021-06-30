@@ -2,9 +2,7 @@ from . import Axial_Profiles
 from . import Background
 from . import Center
 from . import Check_Fit
-from . import Diagnostic_Plots
 from . import Ellipse_Model
-from . import ImageTransform
 from . import Isophote_Extract
 from . import Isophote_Fit
 from . import Isophote_Initialize
@@ -12,7 +10,6 @@ from . import Mask
 from . import PSF
 from . import Plotting_Steps
 from . import Radial_Profiles
-from . import SharedFunctions
 from . import Slice_Profiles
 from . import Write_Fi
 from . import Write_Prof

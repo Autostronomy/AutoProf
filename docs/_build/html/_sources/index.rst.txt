@@ -41,7 +41,7 @@ It was written by `Connor Stone <https://connorjstone.com/>`_ with contributions
 `Stephane Courteau <https://www.physics.queensu.ca/facultysites/courteau/>`_,
 and `Jean-Charles Cuillandre <https://www.cfht.hawaii.edu/~jcc/>`_.
 
-This documentation is a work in progress, further updates will come rapidly.
+This documentation is a work in progress, further updates will come.
 
 .. toctree::
     :maxdepth: 1

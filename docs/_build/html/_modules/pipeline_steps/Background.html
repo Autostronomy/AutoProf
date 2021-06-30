@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Background &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Background &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Background</li>
+      <li>pipeline_steps.Background</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Background</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Background</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">photutils</span> <span class="kn">import</span> <span class="n">make_source_mask</span>
 <span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">EllipseSample</span><span class="p">,</span> <span class="n">Ellipse</span><span class="p">,</span> <span class="n">EllipseGeometry</span><span class="p">,</span> <span class="n">Isophote</span><span class="p">,</span> <span class="n">IsophoteList</span>
 <span class="kn">from</span> <span class="nn">astropy.stats</span> <span class="kn">import</span> <span class="n">sigma_clipped_stats</span>
@@ -182,7 +182,7 @@
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">Smooth_Mode</span>
 <span class="kn">from</span> <span class="nn">autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_Background</span>
 
-<div class="viewcode-block" id="Background_Mode"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Background.Background_Mode">[docs]</a><span class="k">def</span> <span class="nf">Background_Mode</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Background_Mode"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_Mode">[docs]</a><span class="k">def</span> <span class="nf">Background_Mode</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute the mode flux in the border of an image.</span>
 <span class="sd">    </span>
 <span class="sd">    Takes all pixels in a 1/5th border of the image. Applies a</span>
@@ -280,7 +280,7 @@
                  <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
                  <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="s1">&#39;background: </span><span class="si">%.5e</span><span class="s1"> +- </span><span class="si">%.2e</span><span class="s1"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s1"> flux/pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">)}</span></div>
 
-<div class="viewcode-block" id="Background_DilatedSources"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Background.Background_DilatedSources">[docs]</a><span class="k">def</span> <span class="nf">Background_DilatedSources</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Background_DilatedSources"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_DilatedSources">[docs]</a><span class="k">def</span> <span class="nf">Background_DilatedSources</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute the median flux after removing bright sources.</span>
 <span class="sd">    </span>
 <span class="sd">    Compute a global background value for an image. Performed by</span>
@@ -352,7 +352,7 @@
                  <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
                  <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="s1">&#39;background: </span><span class="si">%.5e</span><span class="s1"> +- </span><span class="si">%.2e</span><span class="s1"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s1"> flux/pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">)}</span></div>
 
-<div class="viewcode-block" id="Background_Basic"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Background.Background_Basic">[docs]</a><span class="k">def</span> <span class="nf">Background_Basic</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Background_Basic"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_Basic">[docs]</a><span class="k">def</span> <span class="nf">Background_Basic</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute the mean flux in the border of an image.</span>
 <span class="sd">    </span>
 <span class="sd">    Takes all pixels in a 1/5th border of the image and computes the</span>
@@ -420,7 +420,7 @@
                  <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
                  <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="s1">&#39;background: </span><span class="si">%.5e</span><span class="s1"> +- </span><span class="si">%.2e</span><span class="s1"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s1"> flux/pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">)}</span></div>
 
-<div class="viewcode-block" id="Background_Unsharp"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Background.Background_Unsharp">[docs]</a><span class="k">def</span> <span class="nf">Background_Unsharp</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Background_Unsharp"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_Unsharp">[docs]</a><span class="k">def</span> <span class="nf">Background_Unsharp</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;creates a 2D background level using low order FFT coefficients.</span>
 <span class="sd">    </span>
 <span class="sd">    Takes the 2D FFT of an image and sets all coefficients above 3 to</span>

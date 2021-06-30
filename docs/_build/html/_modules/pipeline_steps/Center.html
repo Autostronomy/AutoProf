@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Center &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Center &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Center</li>
+      <li>pipeline_steps.Center</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Center</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Center</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -178,7 +178,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
 
-<div class="viewcode-block" id="Center_Forced"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Center.Center_Forced">[docs]</a><span class="k">def</span> <span class="nf">Center_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Center_Forced"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Center.Center_Forced">[docs]</a><span class="k">def</span> <span class="nf">Center_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extracts previously fit center coordinates.</span>
 
 <span class="sd">    Extracts the center coordinates from an aux file for a previous</span>
@@ -268,7 +268,7 @@
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span> <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="s1">&#39;center x: </span><span class="si">%.2f</span><span class="s1"> pix, y: </span><span class="si">%.2f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
                  <span class="s1">&#39;auxfile central sb&#39;</span><span class="p">:</span> <span class="s1">&#39;central surface brightness: </span><span class="si">%.4f</span><span class="s1"> mag arcsec^-2&#39;</span> <span class="o">%</span> <span class="n">sb0</span><span class="p">}</span></div>
     
-<div class="viewcode-block" id="Center_2DGaussian"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Center.Center_2DGaussian">[docs]</a><span class="k">def</span> <span class="nf">Center_2DGaussian</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Center_2DGaussian"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Center.Center_2DGaussian">[docs]</a><span class="k">def</span> <span class="nf">Center_2DGaussian</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Find galaxy center with a 2D gaussian fit to the image..</span>
 <span class="sd">    </span>
 <span class="sd">    Compute the pixel location of the galaxy center by fitting a 2d</span>
@@ -366,7 +366,7 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Center found: x </span><span class="si">%.1f</span><span class="s1">, y </span><span class="si">%.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>    
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span> <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="s1">&#39;center x: </span><span class="si">%.2f</span><span class="s1"> pix, y: </span><span class="si">%.2f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])}</span></div>
 
-<div class="viewcode-block" id="Center_1DGaussian"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Center.Center_1DGaussian">[docs]</a><span class="k">def</span> <span class="nf">Center_1DGaussian</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Center_1DGaussian"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Center.Center_1DGaussian">[docs]</a><span class="k">def</span> <span class="nf">Center_1DGaussian</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Find galaxy center with many 1D gaussian fits to the image..</span>
 <span class="sd">    </span>
 <span class="sd">    Compute the pixel location of the galaxy center using a photutils</span>
@@ -467,7 +467,7 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Center found: x </span><span class="si">%.1f</span><span class="s1">, y </span><span class="si">%.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>    
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span> <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="s1">&#39;center x: </span><span class="si">%.2f</span><span class="s1"> pix, y: </span><span class="si">%.2f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])}</span></div>
 
-<div class="viewcode-block" id="Center_OfMass"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Center.Center_OfMass">[docs]</a><span class="k">def</span> <span class="nf">Center_OfMass</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Center_OfMass"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Center.Center_OfMass">[docs]</a><span class="k">def</span> <span class="nf">Center_OfMass</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Find the light weighted galaxy center.</span>
 
 <span class="sd">    Iteratively computes the light weighted centroid within a window,</span>
@@ -562,7 +562,7 @@
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span> <span class="s1">&#39;auxfile center&#39;</span><span class="p">:</span> <span class="s1">&#39;center x: </span><span class="si">%.2f</span><span class="s1"> pix, y: </span><span class="si">%.2f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span> <span class="s1">&#39;auxfile central sb&#39;</span><span class="p">:</span> <span class="s1">&#39;central surface brightness: </span><span class="si">%.4f</span><span class="s1"> mag arcsec^-2&#39;</span> <span class="o">%</span> <span class="n">sb0</span><span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="Center_Peak"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Center.Center_Peak">[docs]</a><span class="k">def</span> <span class="nf">Center_Peak</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Center_Peak"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Center.Center_Peak">[docs]</a><span class="k">def</span> <span class="nf">Center_Peak</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     
     <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">}</span>
     <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span>
@@ -603,7 +603,7 @@
         <span class="n">center_loss</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">+</span> <span class="n">noise</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">center_loss</span>
 
-<div class="viewcode-block" id="Center_HillClimb"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Center.Center_HillClimb">[docs]</a><span class="k">def</span> <span class="nf">Center_HillClimb</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Center_HillClimb"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Center.Center_HillClimb">[docs]</a><span class="k">def</span> <span class="nf">Center_HillClimb</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Follow locally increasing brightness (robust to PSF size objects) to find peak.</span>
 <span class="sd">    </span>
 <span class="sd">    Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient</span>
@@ -744,7 +744,7 @@
         <span class="n">center_loss</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">))))</span> 
     <span class="k">return</span> <span class="n">center_loss</span>
 
-<div class="viewcode-block" id="Center_HillClimb_mean"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Center.Center_HillClimb_mean">[docs]</a><span class="k">def</span> <span class="nf">Center_HillClimb_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Center_HillClimb_mean"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Center.Center_HillClimb_mean">[docs]</a><span class="k">def</span> <span class="nf">Center_HillClimb_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Follow locally increasing brightness (robust to PSF size objects) to find peak.</span>
 <span class="sd">    </span>
 <span class="sd">    Using 10 circular isophotes out to 10 times the PSF length, the</span>

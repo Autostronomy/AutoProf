@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.PSF &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.PSF &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.PSF</li>
+      <li>pipeline_steps.PSF</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.PSF</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.PSF</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">photutils</span> <span class="kn">import</span> <span class="n">DAOStarFinder</span><span class="p">,</span> <span class="n">IRAFStarFinder</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
@@ -182,7 +182,7 @@
 <span class="kn">from</span> <span class="nn">autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_PSF_Stars</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-<div class="viewcode-block" id="PSF_IRAF"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.PSF.PSF_IRAF">[docs]</a><span class="k">def</span> <span class="nf">PSF_IRAF</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="PSF_IRAF"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.PSF.PSF_IRAF">[docs]</a><span class="k">def</span> <span class="nf">PSF_IRAF</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;PSF routine which identifies stars and averages the FWHM.</span>
 
 <span class="sd">    Uses the photutil IRAF wrapper to identify stars in the image and</span>
@@ -256,7 +256,7 @@
 
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span> <span class="n">psf</span><span class="p">,</span> <span class="s1">&#39;auxfile psf&#39;</span><span class="p">:</span> <span class="s1">&#39;psf fwhm: </span><span class="si">%.3f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="n">psf</span><span class="p">}</span></div>
 
-<div class="viewcode-block" id="PSF_StarFind"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.PSF.PSF_StarFind">[docs]</a><span class="k">def</span> <span class="nf">PSF_StarFind</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="PSF_StarFind"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.PSF.PSF_StarFind">[docs]</a><span class="k">def</span> <span class="nf">PSF_StarFind</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;PSF routine which identifies stars and averages the FWHM.</span>
 
 <span class="sd">    The PSF method uses an edge finding convolution filter to identify</span>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>autoprofutils.Isophote_Fit &mdash; AutoProf 0.8 documentation</title>
+  <title>pipeline_steps.Isophote_Fit &mdash; AutoProf 0.8 documentation</title>
   
 
   
@@ -147,7 +147,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>autoprofutils.Isophote_Fit</li>
+      <li>pipeline_steps.Isophote_Fit</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for autoprofutils.Isophote_Fit</h1><div class="highlight"><pre>
+  <h1>Source code for pipeline_steps.Isophote_Fit</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
 <span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span>
@@ -185,7 +185,7 @@
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">_iso_extract</span><span class="p">,</span> <span class="n">_x_to_pa</span><span class="p">,</span> <span class="n">_x_to_eps</span><span class="p">,</span> <span class="n">_inv_x_to_eps</span><span class="p">,</span> <span class="n">_inv_x_to_pa</span><span class="p">,</span> <span class="n">Angle_TwoAngles</span><span class="p">,</span> <span class="n">Angle_Scatter</span><span class="p">,</span> <span class="n">LSBImage</span><span class="p">,</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">PA_shift_convention</span><span class="p">,</span> <span class="n">autocolours</span>
 <span class="kn">from</span> <span class="nn">autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_Isophote_Fit</span>
 
-<div class="viewcode-block" id="Photutils_Fit"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Fit.Photutils_Fit">[docs]</a><span class="k">def</span> <span class="nf">Photutils_Fit</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Photutils_Fit"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Fit.Photutils_Fit">[docs]</a><span class="k">def</span> <span class="nf">Photutils_Fit</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Photutils elliptical isophote wrapper.</span>
 <span class="sd">    </span>
 <span class="sd">    This simply gives users access to the photutils isophote</span>
@@ -287,7 +287,7 @@
         <span class="n">PA_err</span><span class="p">[</span><span class="n">ri</span><span class="p">]</span> <span class="o">=</span> <span class="n">Angle_Scatter</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">temp_fits</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span><span class="o">/</span><span class="mf">4.</span> <span class="c1"># multiply by 2 to get [0, 2pi] range</span>
     <span class="k">return</span> <span class="n">E_err</span><span class="p">,</span> <span class="n">PA_err</span>
         
-<div class="viewcode-block" id="Isophote_Fit_FFT_Robust"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Fit.Isophote_Fit_FFT_Robust">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_Robust</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Fit_FFT_Robust"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_Robust</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</span>
 <span class="sd">    </span>
 <span class="sd">    The isophotal fitting routine simultaneously optimizes a</span>
@@ -449,7 +449,7 @@
            <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="s1">&#39;fit limit semi-major axis: </span><span class="si">%.2f</span><span class="s1"> pix&#39;</span> <span class="o">%</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]}</span>
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">res</span></div>
 
-<div class="viewcode-block" id="Isophote_Fit_Forced"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Fit.Isophote_Fit_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Fit_Forced"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Take isophotal fit from a given profile.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -514,7 +514,7 @@
 
     <span class="k">return</span> <span class="n">f2_loss</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">reg_loss</span><span class="o">*</span><span class="n">reg_scale</span><span class="p">)</span> <span class="c1">#(np.abs(coefs[2])/(len(isovals)*(abs(np.median(isovals)))))*reg_loss*reg_scale</span>
 
-<div class="viewcode-block" id="Isophote_Fit_FFT_mean"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.Isophote_Fit.Isophote_Fit_FFT_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="Isophote_Fit_FFT_mean"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</span>
 
 <span class="sd">    Same as the standard isophote fitting routine, except uses less</span>

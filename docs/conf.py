@@ -14,9 +14,9 @@ import os
 import sys
 os.environ['AUTOPROF'] = os.path.abspath('..')
 sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../autoprofutils'))
+sys.path.insert(0, os.path.abspath('../autoprof/'))
 import sphinx_rtd_theme
-import autoprofutils
+#import autoprofutils
 
 # -- Project information -----------------------------------------------------
 

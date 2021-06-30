@@ -1,4 +1,4 @@
-AutoProf
+autoprof
 ========
 
 .. toctree::
@@ -7,3 +7,4 @@ AutoProf
    Pipeline
    autoprof
    autoprofutils
+   pipeline_steps
