@@ -39,6 +39,11 @@ def PSF_IRAF(IMG, results, options):
 
       :default:
         None    
+
+    References
+    ----------
+    - 'background'
+    - 'background noise'
     
     Returns
     -------
@@ -120,7 +125,12 @@ def PSF_StarFind(IMG, results, options):
       calculating its own.
 
       :default:
-        None    
+        None
+
+    References
+    ----------
+    - 'background'
+    - 'background noise'    
     
     Returns
     -------

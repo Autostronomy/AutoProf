@@ -65,6 +65,13 @@ def Isophote_Initialize(IMG, results, options):
       :default:
         2
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+        
     Returns
     -------
     IMG: ndarray
@@ -166,6 +173,13 @@ def Isophote_Initialize_mean(IMG, results, options):
       :default:
         2
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+        
     Returns
     -------
     IMG: ndarray

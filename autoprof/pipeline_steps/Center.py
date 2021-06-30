@@ -60,6 +60,11 @@ def Center_Forced(IMG, results, options):
       :defualt:
         None
 
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    
     Returns
     -------
     IMG: ndarray
@@ -110,8 +115,7 @@ def Center_2DGaussian(IMG, results, options):
     Gaussian as implimented by the photutils package.
 
     Arguments
-    -----------------
-    
+    -----------------    
     ap_guess_center: dict
       user provided starting point for center fitting. Center should
       be formatted as:
@@ -151,6 +155,11 @@ def Center_2DGaussian(IMG, results, options):
       :defualt:
         50
 
+    References
+    ----------
+    - 'background'
+    - 'psf fwhm'
+        
     Returns
     -------
     IMG: ndarray
@@ -210,8 +219,7 @@ def Center_1DGaussian(IMG, results, options):
     center by fitting several 1d Gaussians.
 
     Arguments
-    -----------------
-    
+    -----------------    
     ap_guess_center: dict
       user provided starting point for center fitting. Center should
       be formatted as:
@@ -251,6 +259,11 @@ def Center_1DGaussian(IMG, results, options):
       :defualt:
         50
 
+    References
+    ----------
+    - 'background'
+    - 'psf fwhm'
+            
     Returns
     -------
     IMG: ndarray
@@ -352,6 +365,11 @@ def Center_OfMass(IMG, results, options):
       :defualt:
         10
 
+    References
+    ----------
+    - 'background'
+    - 'psf fwhm'
+        
     Returns
     -------
     IMG: ndarray
@@ -447,8 +465,7 @@ def Center_HillClimb(IMG, results, options):
     repeated until the step size becomes very small.
 
     Arguments
-    -----------------
-    
+    -----------------    
     ap_guess_center: dict
       user provided starting point for center fitting. Center should
       be formatted as:
@@ -485,6 +502,12 @@ def Center_HillClimb(IMG, results, options):
       :defualt:
         10
 
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+        
     Returns
     -------
     IMG: ndarray
@@ -629,6 +652,12 @@ def Center_HillClimb_mean(IMG, results, options):
       :defualt:
         10
 
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+        
     Returns
     -------
     IMG: ndarray

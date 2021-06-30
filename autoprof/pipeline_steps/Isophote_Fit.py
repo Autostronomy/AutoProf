@@ -28,6 +28,14 @@ def Photutils_Fit(IMG, results, options):
     <https://photutils.readthedocs.io/en/stable/isophote.html>`_ for
     more information.
 
+    References
+    ----------
+    - 'background'
+    - 'center'
+    - 'init R'
+    - 'init ellip'
+    - 'init pa'
+        
     Returns
     -------
     IMG: ndarray
@@ -172,6 +180,16 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
       :default:
         1
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+    - 'mask' (optional)
+    - 'init ellip'
+    - 'init pa'
+        
     Returns
     -------
     IMG: ndarray
