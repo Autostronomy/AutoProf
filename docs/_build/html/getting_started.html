@@ -91,7 +91,6 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#getting-started-on-a-single-image">Getting Started On A Single Image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#main-config-parameters">Main Config Parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#other-processing-modes">Other Processing Modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-autoprof-in-batch-mode">Running AutoProf In Batch Mode</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#forced-photometry">Forced Photometry</a></li>
@@ -103,14 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
-<li class="toctree-l1"><a class="reference internal" href="psf.html">PSF</a></li>
-<li class="toctree-l1"><a class="reference internal" href="center.html">Center</a></li>
-<li class="toctree-l1"><a class="reference internal" href="isophoteinit.html">Isophote Initialization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="isophotefit.html">Fitting Elliptical Isophotes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="isophoteextracting.html">SB Profile Extraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="checkingfits.html">Fit Success Checks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="writeprofile.html">Writing The Profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
@@ -215,51 +207,6 @@ Check the .log file for messages about the progress of the fit, which are update
 Also, look at the diagnostic plots to see if the fit appears to have worked.</p>
 <p>Note that AutoProf has a list of arguments that it is expecting (see <em>List Of AutoProf Arguments</em> for a full list) and it only checks for those.
 You can therefore make any variables or functions you need in the config file to construct your list of image files so long as they don’t conflict with any of the expected AutoProf arguments.</p>
-</div>
-<div class="section" id="main-config-parameters">
-<h2>Main Config Parameters<a class="headerlink" href="#main-config-parameters" title="Permalink to this headline">¶</a></h2>
-<p><strong>Required Parameters</strong></p>
-<dl class="simple">
-<dt>ap_pixscale</dt><dd><p>pixel scale in arcsec/pixel (float)</p>
-</dd>
-<dt>ap_image_file</dt><dd><p>path to fits file with image data (string)</p>
-</dd>
-<dt>ap_process_mode</dt><dd><p>analysis mode for AutoProf to run in (string)</p>
-</dd>
-<dt>ap_forcing_profile</dt><dd><p>(required for forced photometry) file path to .prof file providing forced photometry PA and ellip values to apply to <em>ap_image_file</em> (string)</p>
-</dd>
-</dl>
-<p><strong>High Level Parameters</strong></p>
-<dl class="simple">
-<dt>ap_saveto</dt><dd><p>path to directory where final profile should be saved. Default is the current directory. (string)</p>
-</dd>
-<dt>ap_name</dt><dd><p>name to use for the galaxy, this will be the name used in output files and in the log file. Default is taken from the filename of the fits image. (string)</p>
-</dd>
-<dt>ap_n_procs</dt><dd><p>number of processes to create when running in batch mode. Default is 1. (int)</p>
-</dd>
-<dt>ap_doplot</dt><dd><p>Generate diagnostic plots during processing. Default is False. (bool).</p>
-</dd>
-<dt>ap_plotpath</dt><dd><p>Path to file where diagnostic plots should be written, see also <em>ap_doplot</em>. Default is current directory. (string)</p>
-</dd>
-<dt>ap_plotdpi</dt><dd><p>sets dpi for plots (default 300). Can be used to reduce file size, or to increase detail in images (int)</p>
-</dd>
-<dt>ap_hdulelement</dt><dd><p>index for hdul of fits file where image exists. Default is 0. (int)</p>
-</dd>
-<dt>ap_new_pipeline_methods</dt><dd><p>Allows user to set methods for the AutoProf pipeline analysis. See <em>Modifying Pipeline Methods</em> for more information (dict)</p>
-</dd>
-<dt>ap_new_pipeline_steps</dt><dd><p>Allows user to change the AutoProf analysis pipeline by adding, removing, or re-ordering steps. See <em>Modifying Pipeline Steps</em> for more information (list)</p>
-</dd>
-<dt>ap_zeropoint</dt><dd><p>Photometric zero point, default is 22.5 (float)</p>
-</dd>
-<dt>ap_nologo</dt><dd><p>tells AutoProf not to put it’s logo on plots. Please only use this for figures that will be used in publications that don’t allow logos (bool)</p>
-</dd>
-</dl>
-<p>There is one argument that AutoProf can take in the command line, which is the name of the log file.
-The log file stores information about everything that AutoProf is doing, this is useful for diagnostic purposes.
-By default, AutoProf will name the log file <em>AutoProf.log</em>, if you wish to make it a different filename then add the filename when running AutoProf:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>autoprof config.py newlogfilename.log
-</pre></div>
-</div>
 </div>
 <div class="section" id="other-processing-modes">
 <h2>Other Processing Modes<a class="headerlink" href="#other-processing-modes" title="Permalink to this headline">¶</a></h2>

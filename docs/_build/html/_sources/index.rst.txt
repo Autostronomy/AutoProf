@@ -58,14 +58,7 @@ User Documentation
 .. toctree::
    :maxdepth: 1
 
-   background.rst
-   psf.rst
-   center.rst
-   isophoteinit.rst
-   isophotefit.rst
-   isophoteextracting.rst
-   checkingfits.rst
-   writeprofile.rst
+   defaultpipeline.rst
    pipelinemanipulation.rst
    decisiontrees.rst
    extramethods.rst
