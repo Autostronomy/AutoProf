@@ -87,7 +87,7 @@ def EllipseModel_Fix(IMG, results, options):
     hdul.writeto(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', '%s_fixmodel.fits' % options['ap_name']), overwrite = True)
 
     if 'ap_doplot' in options and options['ap_doplot']:
-        Plot_EllipseModel(IMG, Model, R, results, options)
+        Plot_EllipseModel(IMG, Model, R, 'fix', results, options)
     
     return IMG, {'ellipse model': Model}
     
@@ -180,6 +180,6 @@ def EllipseModel_General(IMG, results, options):
     hdul.writeto(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', '%s_genmodel.fits' % options['ap_name']), overwrite = True)
 
     if 'ap_doplot' in options and options['ap_doplot']:
-        Plot_EllipseModel(IMG, Model, R, results, options)
+        Plot_EllipseModel(IMG, Model, R, 'gen', results, options)
 
     return IMG, {'ellipse model': Model}

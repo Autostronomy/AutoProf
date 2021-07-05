@@ -330,7 +330,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
     plt.close()        
     
 
-def Plot_EllipseModel(IMG, Model, R, results, options):
+def Plot_EllipseModel(IMG, Model, R, modeltype, results, options):
 
     ranges = [[max(0,int(results['center']['x']-R[-1]*1.2)), min(IMG.shape[1],int(results['center']['x']+R[-1]*1.2))],
               [max(0,int(results['center']['y']-R[-1]*1.2)), min(IMG.shape[0],int(results['center']['y']+R[-1]*1.2))]]
@@ -343,7 +343,7 @@ def Plot_EllipseModel(IMG, Model, R, results, options):
     plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'ellipsemodel_gen_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'ellipsemodel_%s_%s.jpg' % (modeltype,options['ap_name'])), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
         
     residual = IMG[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]] - results['background'] - Model[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]]
@@ -357,6 +357,6 @@ def Plot_EllipseModel(IMG, Model, R, results, options):
     plt.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.05)
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'ellipseresidual_gen_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'ellipseresidual_%s_%s.jpg' % (modeltype,options['ap_name'])), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
     
