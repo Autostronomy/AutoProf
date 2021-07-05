@@ -380,10 +380,6 @@ background level and compute the 31.73 - 100 percent range. This
 corresponds to the lower 1sigma, we do not use the upper 1sigma as
 it is contaminated by faint sources. In truth the lower 1sigma is
 contaminated as well, though to a lesser extent.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For best results, use a segmentation mask to remove sources.</p>
-</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -413,8 +409,14 @@ number of pixels used in the calculation.</p>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For best results, use a segmentation mask to remove sources.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
 <li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
 <li><p><strong>results</strong> (<em>dict</em>) –</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># flux value representing the background level (float)</span>
@@ -1023,16 +1025,34 @@ corresponding SB value. The SB values are applied and converted
 from mag/arcsec^2 to flux units.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>22.5</p>
 </dd>
 </dl>
-</p>
+</p></li>
+<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘center’</p></li>
+<li><p>‘init ellip’</p></li>
+<li><p>‘init pa’</p></li>
+<li><p>‘prof data’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
 <li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
 <li><p><strong>results</strong> (<em>dict</em>) –</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;ellipse model&#39;</span><span class="p">:</span> <span class="c1"># 2d image with flux values for smooth model of galaxy</span>
@@ -1117,6 +1137,20 @@ is used.  Within 1 PSF, a circular isophote is used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>22.5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
 <li><p><strong>ap_samplegeometricscale</strong> (<em>float</em>) – <p>growth scale for isophotes when sampling for the final output
 profile.  Used when sampling geometrically. By default, each
 isophote is 10% further than the last.</p>
@@ -1336,6 +1370,20 @@ given.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>22.5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
 <li><p><strong>ap_isoband_start</strong> (<em>float</em>) – <p>The noise level at which to begin sampling a band of pixels to
 compute SB instead of sampling a line of pixels near the
 isophote in units of pixel flux noise. Will never initiate band
@@ -1494,6 +1542,26 @@ extraction methods. The one exception is that SB values are taken
 as the median instead of the mean, as recomended in the photutils
 documentation. See: <a class="reference external" href="https://photutils.readthedocs.io/en/stable/isophote.html">photutils</a> for
 more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>22.5</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
 <p class="rubric">References</p>
 <ul class="simple">
 <li><p>‘background’</p></li>
@@ -1656,8 +1724,19 @@ smaller values give more chaotic fits.</p>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘init ellip’</p></li>
+<li><p>‘init pa’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
 <li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
 <li><p><strong>results</strong> (<em>dict</em>) –</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
@@ -1973,6 +2052,10 @@ values equal to <em>ap_badpixel_exact</em> will be masked if using the
 </dd>
 </dl>
 </div>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘mask’ (optional)</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
@@ -2017,6 +2100,13 @@ is just a 0, 1 mask then AutoProf will take it as is.</p>
 </dd>
 </dl>
 </div>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’ (optional)</p></li>
+<li><p>‘background noise’ (optional)</p></li>
+<li><p>‘center’ (optional)</p></li>
+<li><p>‘mask’ (optional)</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
@@ -2049,6 +2139,14 @@ masked with a region roughly 2 times the FWHM of the source.</p>
 </dd>
 </dl>
 </div>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘mask’ (optional)</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
@@ -2080,6 +2178,14 @@ sqrt(log(f)), thus an inverse of a Gaussian.</p>
 </dd>
 </dl>
 </div>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘mask’ (optional)</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
@@ -2211,8 +2317,74 @@ calculating its own.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline_steps.Plotting_Steps.Plot_Galaxy_Image">
 <span class="sig-prename descclassname"><span class="pre">pipeline_steps.Plotting_Steps.</span></span><span class="sig-name descname"><span class="pre">Plot_Galaxy_Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Plotting_Steps.html#Plot_Galaxy_Image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Plotting_Steps.Plot_Galaxy_Image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots an LSB image of the object without anything else drawn above it.
-Useful for inspecting images for spurious features</p>
+<dd><p>Generate a plain image of the galaxy</p>
+<p>Plots an LSB image of the object without anything else drawn above
+it.  Useful for inspecting images for spurious features. This step
+can be run at any point in the pipeline. It will take advantage of
+whatever information has been determined so far. So if it is the
+first pipeline step, it has little to work from and will simply
+plot the whole image, if it is run after the isophote
+initialization step then the plotted image will be cropped to
+focus on the galaxy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use image center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+should be formatted as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>, where the floats are the center coordinates in pixels. If not
+given, Autoprof will default to a guess of the image center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘center’ (optional)</p></li>
+<li><p>‘init R’ (optional)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -2315,7 +2487,124 @@ angle profile of the galaxy.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline_steps.Slice_Profiles.Slice_Profile">
 <span class="sig-prename descclassname"><span class="pre">pipeline_steps.Slice_Profiles.</span></span><span class="sig-name descname"><span class="pre">Slice_Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Slice_Profiles.html#Slice_Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Slice_Profiles.Slice_Profile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Extract a very basic SB profile along a line.</p>
+<p>A line of pixels can be identified by the user in image
+coordinates to extract an SB profile. Primarily intended for
+diagnostic purposes, this allows users to see very specific
+pixels. While this tool can be used for examining the disk
+structure (such as for edge on galaxies), users will likely prefer
+the more powerful
+<a class="reference internal" href="#pipeline_steps.Axial_Profiles.Axial_Profiles" title="pipeline_steps.Axial_Profiles.Axial_Profiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">Axial_Profiles()</span></code></a> and
+<a class="reference internal" href="#pipeline_steps.Radial_Profiles.Radial_Profiles" title="pipeline_steps.Radial_Profiles.Radial_Profiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">Radial_Profiles()</span></code></a> methods
+for such analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_slice_anchor</strong> (<em>dict</em>) – <p>Coordinates for the starting point of the slice as a dictionary
+formatted “{‘x’: x-coord, ‘y’: y-coord}” in pixel units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use galaxy center</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_slice_pa</strong> (<em>float</em>) – <p>Position angle of the slice in degrees, counter-clockwise
+relative to the x-axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use galaxy PA</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_slice_length</strong> (<em>float</em>) – <p>Length of the slice from anchor point in pixel units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use init ellipse semi-major axis length</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_slice_width</strong> (<em>float</em>) – <p>Width of the slice in pixel units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>10</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_slice_step</strong> (<em>float</em>) – <p>Distance between samples for the profile along the
+slice.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use PSF</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
+median is fast and robust to a few outliers. Mode is slow but
+robust to more outliers. Mean is fast and accurate in low S/N
+regimes where fluxes take on near integer values, but not robust
+to outliers. The mean should be used along with a mask to remove
+spurious objects such as foreground stars or galaxies, and
+should always be used with caution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’median’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_saveto</strong> (<em>string</em>) – <p>Directory in which to save profile</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_name</strong> (<em>string</em>) – <p>Name of the current galaxy, used for making filenames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>22.5</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’ (optional)</p></li>
+<li><p>‘background noise’ (optional)</p></li>
+<li><p>‘center’ (optional)</p></li>
+<li><p>‘init R’ (optional)</p></li>
+<li><p>‘init pa’ (optional)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-pipeline_steps.Write_Fi">

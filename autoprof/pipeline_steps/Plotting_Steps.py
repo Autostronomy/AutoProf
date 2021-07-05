@@ -7,9 +7,69 @@ from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _in
 import logging
 
 def Plot_Galaxy_Image(IMG, results, options):
-    """
-    Plots an LSB image of the object without anything else drawn above it.
-    Useful for inspecting images for spurious features
+    """Generate a plain image of the galaxy
+    
+    Plots an LSB image of the object without anything else drawn above
+    it.  Useful for inspecting images for spurious features. This step
+    can be run at any point in the pipeline. It will take advantage of
+    whatever information has been determined so far. So if it is the
+    first pipeline step, it has little to work from and will simply
+    plot the whole image, if it is run after the isophote
+    initialization step then the plotted image will be cropped to
+    focus on the galaxy.
+
+    Arguments
+    -----------------
+    ap_guess_center: dict
+      user provided starting point for center fitting. Center should
+      be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None, use image center
+
+    ap_set_center: dict
+      user provided fixed center for rest of calculations. Center
+      should be formatted as:
+
+      .. code-block:: python
+
+        {'x':float, 'y': float}
+    
+      , where the floats are the center coordinates in pixels. If not
+      given, Autoprof will default to a guess of the image center.
+
+      :default:
+        None
+
+    ap_pixscale: float
+      pixel scale in arcsec/pixel
+
+      :default:
+        None
+    
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'center' (optional)
+    - 'init R' (optional)
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {}
     """
     
     if 'center' in results:

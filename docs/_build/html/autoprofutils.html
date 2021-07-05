@@ -234,6 +234,91 @@ define the galaxy center, otherwise we define the center as half the image.</p>
 We default to 512*512.</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprofutils.ImageTransform.Resolution">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.ImageTransform.</span></span><span class="sig-name descname"><span class="pre">Resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/ImageTransform.html#Resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.ImageTransform.Resolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the resolution of an image</p>
+<p>Can be used to resample an image at a new pixel scale. The new
+image can have finer sampling (smaller pixels) or coarser sampling
+(larger pixels) and this can be accomplished with a variety of
+methods. First, there are pooling methods which can only reduce
+the resolution, these methods take a certain block as defined by
+<em>ap_resolution_shape</em> and perform a mean, median, or max operation
+on those pixels. That value then becomes the pixel value for a
+downsampled image. Alternatively, one can use either bicubic or
+Lanczos interpolation, which can upsample or downsample the
+image. The parameter <em>ap_resolution_shape</em> is then the desired new
+shape of the image, which will be fit to represent the same area
+on the sky. To match the same area on the sky, each pixel is
+assumed to have a width of 1, thus representing a 1x1 square on
+the sky.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_resolution_method</strong> (<em>string</em>) – <p>Method which is used to perform resolution resampling. Options
+are: ‘max pool’, ‘mean pool’, ‘median pool’, ‘bicubic’, and
+‘lanczos’. Lanczos is very slow, but represents the best
+interpolation method according to information theory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’lanczos’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_resolution_shape</strong> (<em>tuple</em>) – <p>Shape used for resampling. For pooling methods, this represents
+the size of the pool/box in which a calcualtion is done. For
+other methods this is the size of the final desired image. This
+parameter is required.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_resolution_dtype</strong> (<em>object</em>) – <p>Optional parameter to set a new dtype for the image after
+resampling. This can be used to reduce precision if it is
+unnecessary, limiting the size of the final image if it is very
+finely resampled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em>) – <p>Only used by Lanczos interpolation, this will set the area of
+pixels used to calculate the Lanczos interpolated values. Larger
+values are more accurate, but require quadratically more
+computation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>5</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The inputted pixel scale will be incorrect after this operation if
+it is set for the original image.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Resampled galaxy image according to user specified sampling
+method.</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="module-autoprofutils.SharedFunctions">
 <span id="autoprofutils-sharedfunctions-module"></span><h2>autoprofutils.SharedFunctions module<a class="headerlink" href="#module-autoprofutils.SharedFunctions" title="Permalink to this headline">¶</a></h2>

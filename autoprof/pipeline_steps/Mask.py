@@ -53,6 +53,10 @@ def Bad_Pixel_Mask(IMG, results, options):
       :default:
         False
     
+    References
+    ----------
+    - 'mask' (optional)
+        
     Returns
     -------
     IMG: ndarray
@@ -106,6 +110,13 @@ def Mask_Segmentation_Map(IMG, results, options):
       :default:
         False
     
+    References
+    ----------
+    - 'background' (optional)
+    - 'background noise' (optional)
+    - 'center' (optional)
+    - 'mask' (optional)
+        
     Returns
     -------
     IMG: ndarray
@@ -172,6 +183,14 @@ def Star_Mask_IRAF(IMG, results, options):
       :default:
         False
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+    - 'mask' (optional)
+        
     Returns
     -------
     IMG: ndarray
@@ -250,6 +269,14 @@ def Star_Mask(IMG, results, options):
     starfind
       :func:`autoprofutils.SharedFunctions.StarFind`
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+    - 'mask' (optional)
+        
     Returns
     -------
     IMG: ndarray

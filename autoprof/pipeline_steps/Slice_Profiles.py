@@ -8,8 +8,111 @@ import matplotlib.pyplot as plt
 import logging
 
 def Slice_Profile(IMG, results, options):
+    """Extract a very basic SB profile along a line.
 
-    dat = IMG - (results['background'] if 'background' in results else 0.)
+    A line of pixels can be identified by the user in image
+    coordinates to extract an SB profile. Primarily intended for
+    diagnostic purposes, this allows users to see very specific
+    pixels. While this tool can be used for examining the disk
+    structure (such as for edge on galaxies), users will likely prefer
+    the more powerful
+    :func:`~pipeline_steps.Axial_Profiles.Axial_Profiles` and
+    :func:`~pipeline_steps.Radial_Profiles.Radial_Profiles` methods
+    for such analysis.
+
+    Arguments
+    -----------------
+    ap_slice_anchor: dict
+      Coordinates for the starting point of the slice as a dictionary
+      formatted "{'x': x-coord, 'y': y-coord}" in pixel units. 
+
+      :default:
+        None, use galaxy center
+    
+    ap_slice_pa: float
+      Position angle of the slice in degrees, counter-clockwise
+      relative to the x-axis.
+
+      :default:
+        None, use galaxy PA
+
+    ap_slice_length: float
+      Length of the slice from anchor point in pixel units.
+
+      :default:
+        None, use init ellipse semi-major axis length
+    
+    ap_slice_width: float
+      Width of the slice in pixel units.
+
+      :default:
+        10
+    
+    ap_slice_step: float
+      Distance between samples for the profile along the
+      slice.
+
+      :default:
+        None, use PSF
+
+    ap_isoaverage_method: string
+      Select the method used to compute the averafge flux along an
+      isophote. Choose from 'mean', 'median', and 'mode'.  In general,
+      median is fast and robust to a few outliers. Mode is slow but
+      robust to more outliers. Mean is fast and accurate in low S/N
+      regimes where fluxes take on near integer values, but not robust
+      to outliers. The mean should be used along with a mask to remove
+      spurious objects such as foreground stars or galaxies, and
+      should always be used with caution.
+
+      :default:
+        'median'    
+    
+    ap_pixscale: float
+      pixel scale in arcsec/pixel
+
+      :default:
+        None
+    
+    ap_saveto: string
+      Directory in which to save profile
+
+      :default:
+        None
+
+    ap_name: string
+      Name of the current galaxy, used for making filenames.
+
+      :default:
+        None
+
+    ap_zeropoint: float
+      Photometric zero point. For converting flux to mag units.
+
+      :default:
+        22.5
+    
+    References
+    ----------
+    - 'background' (optional)
+    - 'background noise' (optional)
+    - 'center' (optional)
+    - 'init R' (optional)
+    - 'init pa' (optional)
+
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {}
+
+    """
+    
+    dat = IMG - (results['background'] if 'background' in results else np.median(IMG))
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
     
     use_anchor = results['center'] if 'center' in results else {'x': IMG.shape[1]/2, 'y': IMG.shape[0]/2}

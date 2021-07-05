@@ -173,8 +173,111 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <div class="viewcode-block" id="Slice_Profile"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Slice_Profiles.Slice_Profile">[docs]</a><span class="k">def</span> <span class="nf">Slice_Profile</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract a very basic SB profile along a line.</span>
 
-    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;background&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">)</span>
+<span class="sd">    A line of pixels can be identified by the user in image</span>
+<span class="sd">    coordinates to extract an SB profile. Primarily intended for</span>
+<span class="sd">    diagnostic purposes, this allows users to see very specific</span>
+<span class="sd">    pixels. While this tool can be used for examining the disk</span>
+<span class="sd">    structure (such as for edge on galaxies), users will likely prefer</span>
+<span class="sd">    the more powerful</span>
+<span class="sd">    :func:`~pipeline_steps.Axial_Profiles.Axial_Profiles` and</span>
+<span class="sd">    :func:`~pipeline_steps.Radial_Profiles.Radial_Profiles` methods</span>
+<span class="sd">    for such analysis.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_slice_anchor: dict</span>
+<span class="sd">      Coordinates for the starting point of the slice as a dictionary</span>
+<span class="sd">      formatted &quot;{&#39;x&#39;: x-coord, &#39;y&#39;: y-coord}&quot; in pixel units. </span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None, use galaxy center</span>
+<span class="sd">    </span>
+<span class="sd">    ap_slice_pa: float</span>
+<span class="sd">      Position angle of the slice in degrees, counter-clockwise</span>
+<span class="sd">      relative to the x-axis.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None, use galaxy PA</span>
+
+<span class="sd">    ap_slice_length: float</span>
+<span class="sd">      Length of the slice from anchor point in pixel units.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None, use init ellipse semi-major axis length</span>
+<span class="sd">    </span>
+<span class="sd">    ap_slice_width: float</span>
+<span class="sd">      Width of the slice in pixel units.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        10</span>
+<span class="sd">    </span>
+<span class="sd">    ap_slice_step: float</span>
+<span class="sd">      Distance between samples for the profile along the</span>
+<span class="sd">      slice.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None, use PSF</span>
+
+<span class="sd">    ap_isoaverage_method: string</span>
+<span class="sd">      Select the method used to compute the averafge flux along an</span>
+<span class="sd">      isophote. Choose from &#39;mean&#39;, &#39;median&#39;, and &#39;mode&#39;.  In general,</span>
+<span class="sd">      median is fast and robust to a few outliers. Mode is slow but</span>
+<span class="sd">      robust to more outliers. Mean is fast and accurate in low S/N</span>
+<span class="sd">      regimes where fluxes take on near integer values, but not robust</span>
+<span class="sd">      to outliers. The mean should be used along with a mask to remove</span>
+<span class="sd">      spurious objects such as foreground stars or galaxies, and</span>
+<span class="sd">      should always be used with caution.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        &#39;median&#39;    </span>
+<span class="sd">    </span>
+<span class="sd">    ap_pixscale: float</span>
+<span class="sd">      pixel scale in arcsec/pixel</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    ap_saveto: string</span>
+<span class="sd">      Directory in which to save profile</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    ap_name: string</span>
+<span class="sd">      Name of the current galaxy, used for making filenames.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    ap_zeropoint: float</span>
+<span class="sd">      Photometric zero point. For converting flux to mag units.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        22.5</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    - &#39;background&#39; (optional)</span>
+<span class="sd">    - &#39;background noise&#39; (optional)</span>
+<span class="sd">    - &#39;center&#39; (optional)</span>
+<span class="sd">    - &#39;init R&#39; (optional)</span>
+<span class="sd">    - &#39;init pa&#39; (optional)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;background&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">IMG</span><span class="p">))</span>
     <span class="n">zeropoint</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_zeropoint&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_zeropoint&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span>
     
     <span class="n">use_anchor</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;center&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">}</span>

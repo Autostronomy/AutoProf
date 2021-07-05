@@ -30,10 +30,6 @@ def Background_Mode(IMG, results, options):
     it is contaminated by faint sources. In truth the lower 1sigma is
     contaminated as well, though to a lesser extent.
 
-    Note
-    ----
-      For best results, use a segmentation mask to remove sources.
-
     Arguments
     -----------------
     ap_set_background: float
@@ -56,6 +52,10 @@ def Background_Mode(IMG, results, options):
 
       :default:
         1
+
+    Note
+    ----
+      For best results, use a segmentation mask to remove sources.
 
     Returns
     -------

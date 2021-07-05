@@ -203,6 +203,18 @@ def Isophote_Extract_Forced(IMG, results, options):
     
     Arguments
     -----------------    
+    ap_zeropoint: float
+      Photometric zero point. For converting flux to mag units.
+
+      :default:
+        22.5
+    
+    ap_pixscale: float
+      pixel scale in arcsec/pixel
+
+      :default:
+        None
+    
     ap_isoband_start: float
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
@@ -377,6 +389,18 @@ def Isophote_Extract(IMG, results, options):
     
     Arguments
     -----------------
+    ap_zeropoint: float
+      Photometric zero point. For converting flux to mag units.
+
+      :default:
+        22.5
+    
+    ap_pixscale: float
+      pixel scale in arcsec/pixel
+
+      :default:
+        None
+    
     ap_samplegeometricscale: float
       growth scale for isophotes when sampling for the final output
       profile.  Used when sampling geometrically. By default, each
@@ -610,7 +634,21 @@ def Isophote_Extract_Photutils(IMG, results, options):
     documentation. See: `photutils
     <https://photutils.readthedocs.io/en/stable/isophote.html>`_ for
     more information.
+
+    Arguments
+    ---------
+    ap_zeropoint: float
+      Photometric zero point. For converting flux to mag units.
+
+      :default:
+        22.5
         
+    ap_pixscale: float
+      pixel scale in arcsec/pixel
+
+      :default:
+        None
+    
     References
     ----------
     - 'background'

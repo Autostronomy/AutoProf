@@ -22,8 +22,7 @@ def Center_Forced(IMG, results, options):
     fitted aux file center.
 
     Arguments
-    -----------------
-    
+    -----------------    
     ap_guess_center: dict
       user provided starting point for center fitting. Center should
       be formatted as:

@@ -429,6 +429,15 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
       :default:
         1
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'center'
+    - 'psf fwhm'
+    - 'init ellip'
+    - 'init pa'
+        
     Returns
     -------
     IMG: ndarray

@@ -31,6 +31,19 @@ def EllipseModel_Fix(IMG, results, options):
       :default:
         22.5
 
+    ap_pixscale: float
+      pixel scale in arcsec/pixel
+
+      :default:
+        None
+    
+    References
+    ----------
+    - 'center'
+    - 'init ellip'
+    - 'init pa'
+    - 'prof data'
+        
     Returns
     -------
     IMG: ndarray

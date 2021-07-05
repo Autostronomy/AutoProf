@@ -172,9 +172,69 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <div class="viewcode-block" id="Plot_Galaxy_Image"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Plotting_Steps.Plot_Galaxy_Image">[docs]</a><span class="k">def</span> <span class="nf">Plot_Galaxy_Image</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plots an LSB image of the object without anything else drawn above it.</span>
-<span class="sd">    Useful for inspecting images for spurious features</span>
+    <span class="sd">&quot;&quot;&quot;Generate a plain image of the galaxy</span>
+<span class="sd">    </span>
+<span class="sd">    Plots an LSB image of the object without anything else drawn above</span>
+<span class="sd">    it.  Useful for inspecting images for spurious features. This step</span>
+<span class="sd">    can be run at any point in the pipeline. It will take advantage of</span>
+<span class="sd">    whatever information has been determined so far. So if it is the</span>
+<span class="sd">    first pipeline step, it has little to work from and will simply</span>
+<span class="sd">    plot the whole image, if it is run after the isophote</span>
+<span class="sd">    initialization step then the plotted image will be cropped to</span>
+<span class="sd">    focus on the galaxy.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_guess_center: dict</span>
+<span class="sd">      user provided starting point for center fitting. Center should</span>
+<span class="sd">      be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+<span class="sd">    </span>
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None, use image center</span>
+
+<span class="sd">    ap_set_center: dict</span>
+<span class="sd">      user provided fixed center for rest of calculations. Center</span>
+<span class="sd">      should be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+<span class="sd">    </span>
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    ap_pixscale: float</span>
+<span class="sd">      pixel scale in arcsec/pixel</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;center&#39; (optional)</span>
+<span class="sd">    - &#39;init R&#39; (optional)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="k">if</span> <span class="s1">&#39;center&#39;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>

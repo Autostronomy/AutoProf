@@ -167,6 +167,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
+<span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">interpolate_Lanczos</span>
 
 <div class="viewcode-block" id="Crop"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.ImageTransform.Crop">[docs]</a><span class="k">def</span> <span class="nf">Crop</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -192,6 +193,110 @@
               <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cropto</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">cropto</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Resolution"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.ImageTransform.Resolution">[docs]</a><span class="k">def</span> <span class="nf">Resolution</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Change the resolution of an image</span>
+
+<span class="sd">    Can be used to resample an image at a new pixel scale. The new</span>
+<span class="sd">    image can have finer sampling (smaller pixels) or coarser sampling</span>
+<span class="sd">    (larger pixels) and this can be accomplished with a variety of</span>
+<span class="sd">    methods. First, there are pooling methods which can only reduce</span>
+<span class="sd">    the resolution, these methods take a certain block as defined by</span>
+<span class="sd">    *ap_resolution_shape* and perform a mean, median, or max operation</span>
+<span class="sd">    on those pixels. That value then becomes the pixel value for a</span>
+<span class="sd">    downsampled image. Alternatively, one can use either bicubic or</span>
+<span class="sd">    Lanczos interpolation, which can upsample or downsample the</span>
+<span class="sd">    image. The parameter *ap_resolution_shape* is then the desired new</span>
+<span class="sd">    shape of the image, which will be fit to represent the same area</span>
+<span class="sd">    on the sky. To match the same area on the sky, each pixel is</span>
+<span class="sd">    assumed to have a width of 1, thus representing a 1x1 square on</span>
+<span class="sd">    the sky.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------    </span>
+<span class="sd">    ap_resolution_method: string</span>
+<span class="sd">      Method which is used to perform resolution resampling. Options</span>
+<span class="sd">      are: &#39;max pool&#39;, &#39;mean pool&#39;, &#39;median pool&#39;, &#39;bicubic&#39;, and</span>
+<span class="sd">      &#39;lanczos&#39;. Lanczos is very slow, but represents the best</span>
+<span class="sd">      interpolation method according to information theory.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        &#39;lanczos&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    ap_resolution_shape: tuple</span>
+<span class="sd">      Shape used for resampling. For pooling methods, this represents</span>
+<span class="sd">      the size of the pool/box in which a calcualtion is done. For</span>
+<span class="sd">      other methods this is the size of the final desired image. This</span>
+<span class="sd">      parameter is required.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    ap_resolution_dtype: object</span>
+<span class="sd">      Optional parameter to set a new dtype for the image after</span>
+<span class="sd">      resampling. This can be used to reduce precision if it is</span>
+<span class="sd">      unnecessary, limiting the size of the final image if it is very</span>
+<span class="sd">      finely resampled.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    ap_iso_interpolate_window: int</span>
+<span class="sd">      Only used by Lanczos interpolation, this will set the area of</span>
+<span class="sd">      pixels used to calculate the Lanczos interpolated values. Larger</span>
+<span class="sd">      values are more accurate, but require quadratically more</span>
+<span class="sd">      computation time.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        5</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The inputted pixel scale will be incorrect after this operation if</span>
+<span class="sd">    it is set for the original image.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Resampled galaxy image according to user specified sampling</span>
+<span class="sd">      method.</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">   </span>
+<span class="sd">        {}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s1">&#39;ap_resolution_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;max pool&#39;</span><span class="p">:</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">K</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">]</span>        
+        <span class="n">MK</span> <span class="o">=</span> <span class="n">M</span> <span class="o">//</span> <span class="n">K</span>
+        <span class="n">NL</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="n">L</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[:</span><span class="n">MK</span><span class="o">*</span><span class="n">K</span><span class="p">,</span> <span class="p">:</span><span class="n">NL</span><span class="o">*</span><span class="n">L</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">MK</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">NL</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s1">&#39;ap_resolution_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;mean pool&#39;</span><span class="p">:</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">K</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">]</span>        
+        <span class="n">MK</span> <span class="o">=</span> <span class="n">M</span> <span class="o">//</span> <span class="n">K</span>
+        <span class="n">NL</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="n">L</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[:</span><span class="n">MK</span><span class="o">*</span><span class="n">K</span><span class="p">,</span> <span class="p">:</span><span class="n">NL</span><span class="o">*</span><span class="n">L</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">MK</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">NL</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s1">&#39;ap_resolution_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;median pool&#39;</span><span class="p">:</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">K</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">]</span>        
+        <span class="n">MK</span> <span class="o">=</span> <span class="n">M</span> <span class="o">//</span> <span class="n">K</span>
+        <span class="n">NL</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="n">L</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[:</span><span class="n">MK</span><span class="o">*</span><span class="n">K</span><span class="p">,</span> <span class="p">:</span><span class="n">NL</span><span class="o">*</span><span class="n">L</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">MK</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">NL</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s1">&#39;ap_resolution_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;bicubic&#39;</span><span class="p">:</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_dtype&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_resolution_dtype&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="n">IMG</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">XX</span><span class="p">,</span><span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">interpolate_bicubic</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">XX</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">YY</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">newIMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_dtype&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_resolution_dtype&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="n">IMG</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">XX</span><span class="p">,</span><span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_resolution_shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newIMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="n">newIMG</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolate_Lanczos</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">XX</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">YY</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">scale</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_iso_interpolate_window&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="s1">&#39;ap_iso_interpolate_window&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">newIMG</span><span class="p">,</span> <span class="p">{}</span></div>
 </pre></div>
 
            </div>
