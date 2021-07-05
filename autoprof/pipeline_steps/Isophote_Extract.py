@@ -209,12 +209,6 @@ def Isophote_Extract_Forced(IMG, results, options):
       :default:
         22.5
     
-    ap_pixscale: float
-      pixel scale in arcsec/pixel
-
-      :default:
-        None
-    
     ap_isoband_start: float
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
@@ -394,12 +388,6 @@ def Isophote_Extract(IMG, results, options):
 
       :default:
         22.5
-    
-    ap_pixscale: float
-      pixel scale in arcsec/pixel
-
-      :default:
-        None
     
     ap_samplegeometricscale: float
       growth scale for isophotes when sampling for the final output
@@ -643,12 +631,6 @@ def Isophote_Extract_Photutils(IMG, results, options):
       :default:
         22.5
         
-    ap_pixscale: float
-      pixel scale in arcsec/pixel
-
-      :default:
-        None
-    
     References
     ----------
     - 'background'

@@ -68,12 +68,6 @@ def Slice_Profile(IMG, results, options):
       :default:
         'median'    
     
-    ap_pixscale: float
-      pixel scale in arcsec/pixel
-
-      :default:
-        None
-    
     ap_saveto: string
       Directory in which to save profile
 

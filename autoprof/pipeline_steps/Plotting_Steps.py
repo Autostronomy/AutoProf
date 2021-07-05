@@ -48,12 +48,6 @@ def Plot_Galaxy_Image(IMG, results, options):
       :default:
         None
 
-    ap_pixscale: float
-      pixel scale in arcsec/pixel
-
-      :default:
-        None
-    
     References
     ----------
     - 'background'

@@ -1025,22 +1025,13 @@ corresponding SB value. The SB values are applied and converted
 from mag/arcsec^2 to flux units.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
+<dd class="field-odd"><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>22.5</p>
 </dd>
 </dl>
-</p></li>
-<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-</ul>
+</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
@@ -1141,13 +1132,6 @@ is used.  Within 1 PSF, a circular isophote is used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>22.5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
 </p></li>
@@ -1377,13 +1361,6 @@ given.</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
 <li><p><strong>ap_isoband_start</strong> (<em>float</em>) – <p>The noise level at which to begin sampling a band of pixels to
 compute SB instead of sampling a line of pixels near the
 isophote in units of pixel flux noise. Will never initiate band
@@ -1544,22 +1521,13 @@ documentation. See: <a class="reference external" href="https://photutils.readth
 more information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
+<dd class="field-odd"><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>22.5</p>
 </dd>
 </dl>
-</p></li>
-<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-</ul>
+</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
@@ -1763,8 +1731,7 @@ smaller values give more chaotic fits.</p>
 <p>Reads a .prof file and extracts the corresponding PA/ellipticity profile. The profile is extracted generically, so any csv file with columns for ‘R’, ‘pa’, ‘ellip’, and optionally ‘pa_e’ and ‘ellip_e’ will be able to create a forced fit. This can be used for testing purposes, such as selecting a specific isophote to extract or comparing AutoProf SB extraction methods with other softwares.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <dl class="simple">
+<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <dl class="simple">
 <dt>File path to .prof file providing forced photometry PA and</dt><dd><p>ellip values to apply to <em>ap_image_file</em> (required for forced
 photometry)</p>
 </dd>
@@ -1774,15 +1741,7 @@ photometry)</p>
 <dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-</p></li>
-<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-</ul>
+</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
@@ -2355,13 +2314,6 @@ given, Autoprof will default to a guess of the image center.</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
 </ul>
 </dd>
 </dl>
@@ -2549,13 +2501,6 @@ should always be used with caution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>’median’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
 </p></li>

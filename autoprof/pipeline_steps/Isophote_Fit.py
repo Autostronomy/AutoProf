@@ -317,12 +317,6 @@ def Isophote_Fit_Forced(IMG, results, options):
       :default:
         None
     
-    ap_pixscale: float
-      pixel scale in arcsec/pixel
-
-      :default:
-        None
-    
     References
     ----------
     - 'background'
