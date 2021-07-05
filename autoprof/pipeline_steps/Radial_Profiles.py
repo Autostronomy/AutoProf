@@ -30,7 +30,8 @@ def Radial_Profiles(IMG, results, options):
     Arguments
     -----------------
     ap_radialprofiles_nwedges: int
-      number of radial wedges to sample. Recommended choosing a power of 2.
+      number of radial wedges to sample. Recommended choosing a power
+      of 2.
 
       :default:
         4
@@ -42,23 +43,37 @@ def Radial_Profiles(IMG, results, options):
         15
 
     ap_radialprofiles_pa: float
-      user set position angle at which to measure radial wedges relative to the global position angle, in degrees.
+      user set position angle at which to measure radial wedges
+      relative to the global position angle, in degrees.
 
       :default:
         0
 
     ap_radialprofiles_expwidth: bool
-      tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radialprofiles_width* corresponds to the final width of the radial sampling.
+      Tell AutoProf to use exponentially increasing widths for radial
+      samples. In this case *ap_radialprofiles_width* corresponds to
+      the final width of the radial sampling.
 
       :default:
         False
 
     ap_radialprofiles_variable_pa: bool
-      tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy.
+      Tell AutoProf to rotate radial sampling wedges with the position
+      angle profile of the galaxy.
 
       :default:
         False
 
+    References
+    ----------
+    - 'prof header'
+    - 'prof units'
+    - 'prof data'
+    - 'mask' (optional)
+    - 'background'
+    - 'center'
+    - 'init pa' (optional)
+    
     Returns
     -------
     IMG: ndarray

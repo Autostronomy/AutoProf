@@ -8,8 +8,84 @@ from autoprofutils.SharedFunctions import PA_shift_convention
 from datetime import datetime
 
 def WriteProf(IMG, results, options):
-    """
-    Writes the photometry information for disk given a photutils isolist object
+    """Basic method to write SB profile to disk.
+
+    This step writes the results of the AutoProf pipeline analysis to
+    a file. There are two files written, a .prof file containing the
+    surface brightness profile and acompanying measurements, and a
+    .aux file containing global results, messages, and setting used
+    for the pipeline. The .prof file looks for specific keywords in
+    the results dictionary: prof header, prof units, prof data, and
+    prof format. There are the results from the isophotal fitting
+    step. prof header gives the column names for the profile, prof
+    units is a dictionary which gives the corresponding units for each
+    column header key, prof data is a dictionary containing a list of
+    values for each header key, and prof format is a dictionary which
+    gives the python string format for values under each header key
+    (for example '%.4f' gives a number to 4 decimal places). The
+    profile is written with comma (or a user specified delimiter)
+    separation for each value, where each row corresponds to a given
+    isophote at increasing semi-major axis values.
+
+    The .aux file has a less strict format than the .prof file. The
+    first line records the date and time that the file was written,
+    the second line gives the name of the object as specified by the
+    user or the filename. The next lines are taken from the results
+    dictionary, any result key with auxfile in the name is taken as a
+    message for the .aux file and written (in alphabetical order by
+    key) to the file. See the pipeline step output formats for the
+    messages that are included in the .aux file. Finally, a record of
+    the user specified options is included for reference.
+    
+    Arguments
+    ---------
+    ap_saveto: string
+      Directory in which to save profile
+
+      :default:
+        None
+
+    ap_name: string
+      Name of the current galaxy, used for making filenames.
+
+      :default:
+        None
+
+    ap_delimiter: string
+      Delimiter to use between entries in the profile.
+
+      :default:
+        ','
+
+    ap_profile_format: string
+      Type of file format to use for profile. Can choose from ['csv', 'fits']
+
+      :default:
+        'csv'
+
+    ap_savemask: bool
+      Save object mask fits file. This can create large files, depending on the size of the original image.
+
+      :default:
+        False
+    
+    References
+    ----------
+    - 'prof header'
+    - 'prof units'
+    - 'prof data'
+    - 'mask' (optional)
+        
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+      
+        {}
+
     """
     
     saveto = options['ap_saveto'] if 'ap_saveto' in options else './'
@@ -45,11 +121,9 @@ def WriteProf(IMG, results, options):
     # Write the mask data, if provided
     if 'mask' in results and (not results['mask'] is None) and 'ap_savemask' in options and options['ap_savemask']:
         header = fits.Header()
-        header['IMAGE 1'] = 'star mask'
-        header['IMAGE 2'] = 'overflow values mask'
+        header['IMAGE 1'] = 'mask'
         hdul = fits.HDUList([fits.PrimaryHDU(header=header),
-                             fits.ImageHDU(results['mask'].astype(int)),
-                             fits.ImageHDU(results['overflow mask'].astype(int))])
+                             fits.ImageHDU(results['mask'].astype(int))])
         hdul.writeto(saveto + options['ap_name'] + '_mask.fits', overwrite = True)
         sleep(1)
         # Zip the mask file because it can be large and take a lot of memory, but in principle

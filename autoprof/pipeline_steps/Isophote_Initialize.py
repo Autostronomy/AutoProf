@@ -16,6 +16,44 @@ from matplotlib.patches import Ellipse
 from time import time
 
 def Isophote_Init_Forced(IMG, results, options):
+    """Read global elliptical isophote to a galaxy from an aux file.
+    
+    Extracts global ellipse parameters from the corresponding aux file for a given .prof file.
+    
+    Arguments
+    -----------------
+    ap_forcing_profile: string
+        File path to .prof file providing forced photometry PA and
+        ellip values to apply to *ap_image_file* (required for forced
+        photometry)
+
+      :default:
+        None
+        
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+        
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'init ellip': , # Ellipticity of the global fit (float)
+         'init pa': ,# Position angle of the global fit (float)
+         'init R': ,# Semi-major axis length of global fit (float)
+         'auxfile initialize': # optional, message for aux file to record the global ellipticity and postition angle (string)
+    
+        }
+
+    """
+    
     with open(options['ap_forcing_profile'][:-4] + 'aux', 'r') as f:
         for line in f.readlines():
             if 'global ellipticity' in line:

@@ -38,6 +38,18 @@ def Check_Fit(IMG, results, options):
     indicated either a failed center, or the galaxy has been disturbed
     and is not lopsided.
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'center'
+    - 'init ellip'
+    - 'init pa'
+    - 'fit R' (optional)
+    - 'fit ellip' (optional)
+    - 'fit pa' (optional)
+    - 'prof data' (optional)
+        
     Returns
     -------
     IMG: ndarray

@@ -181,6 +181,44 @@
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 
 <div class="viewcode-block" id="Isophote_Init_Forced"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Init_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Init_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read global elliptical isophote to a galaxy from an aux file.</span>
+<span class="sd">    </span>
+<span class="sd">    Extracts global ellipse parameters from the corresponding aux file for a given .prof file.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_forcing_profile: string</span>
+<span class="sd">        File path to .prof file providing forced photometry PA and</span>
+<span class="sd">        ellip values to apply to *ap_image_file* (required for forced</span>
+<span class="sd">        photometry)</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        None</span>
+<span class="sd">        </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG: ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+<span class="sd">    </span>
+<span class="sd">    results: dict</span>
+<span class="sd">      .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        {&#39;init ellip&#39;: , # Ellipticity of the global fit (float)</span>
+<span class="sd">         &#39;init pa&#39;: ,# Position angle of the global fit (float)</span>
+<span class="sd">         &#39;init R&#39;: ,# Semi-major axis length of global fit (float)</span>
+<span class="sd">         &#39;auxfile initialize&#39;: # optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+<span class="sd">    </span>
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_forcing_profile&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;aux&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
             <span class="k">if</span> <span class="s1">&#39;global ellipticity&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>

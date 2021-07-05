@@ -235,8 +235,19 @@ should always be used with caution.</p>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘mask’ (optional)</p></li>
+<li><p>‘background’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘prof data’ (optional)</p></li>
+<li><p>‘init pa’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
 <li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
 <li><p><strong>results</strong> (<em>dict</em>) – No results provided as this method writes its own profile</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
@@ -958,6 +969,18 @@ the global position angle and ellipticity values.</p>
 light is biased to one side of the galaxy. Typically this
 indicated either a failed center, or the galaxy has been disturbed
 and is not lopsided.</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘init ellip’</p></li>
+<li><p>‘init pa’</p></li>
+<li><p>‘fit R’ (optional)</p></li>
+<li><p>‘fit ellip’ (optional)</p></li>
+<li><p>‘fit pa’ (optional)</p></li>
+<li><p>‘prof data’ (optional)</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
@@ -1268,8 +1291,24 @@ activated by default as it adds to computation time.</p>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘init ellip’</p></li>
+<li><p>‘init pa’</p></li>
+<li><p>‘fit R’</p></li>
+<li><p>‘fit ellip’</p></li>
+<li><p>‘fit pa’</p></li>
+<li><p>‘fit ellip_err’ (optional)</p></li>
+<li><p>‘fit pa_err’ (optional)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
 <li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
 <li><p><strong>results</strong> (<em>dict</em>) –</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># List object with strings giving the items in the header of the final SB profile (list)</span>
@@ -1417,8 +1456,19 @@ activated by default as it adds to computation time.</p>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘init ellip’</p></li>
+<li><p>‘init pa’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
 <li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
 <li><p><strong>results</strong> (<em>dict</em>) –</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># List object with strings giving the items in the header of the final SB profile (list)</span>
@@ -1444,6 +1494,20 @@ extraction methods. The one exception is that SB values are taken
 as the median instead of the mean, as recomended in the photutils
 documentation. See: <a class="reference external" href="https://photutils.readthedocs.io/en/stable/isophote.html">photutils</a> for
 more information.</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘init R’ (optional)</p></li>
+<li><p>‘init ellip’ (optional)</p></li>
+<li><p>‘init pa’ (optional)</p></li>
+<li><p>‘fit R’ (optional)</p></li>
+<li><p>‘fit ellip’ (optional)</p></li>
+<li><p>‘fit pa’ (optional)</p></li>
+<li><p>‘fit photutils isolist’ (optional)</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
@@ -1616,7 +1680,57 @@ smaller values give more chaotic fits.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline_steps.Isophote_Fit.Isophote_Fit_Forced">
 <span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Fit.html#Isophote_Fit_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Fit.Isophote_Fit_Forced" title="Permalink to this definition">¶</a></dt>
-<dd><p>Take isophotal fit from a given profile.</p>
+<dd><p>Read previously fit PA/ellipticity profile.</p>
+<p>Reads a .prof file and extracts the corresponding PA/ellipticity profile. The profile is extracted generically, so any csv file with columns for ‘R’, ‘pa’, ‘ellip’, and optionally ‘pa_e’ and ‘ellip_e’ will be able to create a forced fit. This can be used for testing purposes, such as selecting a specific isophote to extract or comparing AutoProf SB extraction methods with other softwares.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <dl class="simple">
+<dt>File path to .prof file providing forced photometry PA and</dt><dd><p>ellip values to apply to <em>ap_image_file</em> (required for forced
+photometry)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_pixscale</strong> (<em>float</em>) – <p>pixel scale in arcsec/pixel</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘center’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1662,7 +1776,49 @@ more information.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline_steps.Isophote_Initialize.Isophote_Init_Forced">
 <span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Initialize.</span></span><span class="sig-name descname"><span class="pre">Isophote_Init_Forced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Initialize.html#Isophote_Init_Forced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Initialize.Isophote_Init_Forced" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Read global elliptical isophote to a galaxy from an aux file.</p>
+<p>Extracts global ellipse parameters from the corresponding aux file for a given .prof file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <dl class="simple">
+<dt>File path to .prof file providing forced photometry PA and</dt><dd><p>ellip values to apply to <em>ap_image_file</em> (required for forced
+photometry)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;init ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Ellipticity of the global fit (float)</span>
+ <span class="s1">&#39;init pa&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Position angle of the global fit (float)</span>
+ <span class="s1">&#39;init R&#39;</span><span class="p">:</span> <span class="p">,</span><span class="c1"># Semi-major axis length of global fit (float)</span>
+ <span class="s1">&#39;auxfile initialize&#39;</span><span class="p">:</span> <span class="c1"># optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline_steps.Isophote_Initialize.Isophote_Initialize">
@@ -2081,7 +2237,8 @@ this happens, but will carry on anyway.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_radialprofiles_nwedges</strong> (<em>int</em>) – <p>number of radial wedges to sample. Recommended choosing a power of 2.</p>
+<li><p><strong>ap_radialprofiles_nwedges</strong> (<em>int</em>) – <p>number of radial wedges to sample. Recommended choosing a power
+of 2.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>4</p>
@@ -2095,21 +2252,25 @@ this happens, but will carry on anyway.</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_radialprofiles_pa</strong> (<em>float</em>) – <p>user set position angle at which to measure radial wedges relative to the global position angle, in degrees.</p>
+<li><p><strong>ap_radialprofiles_pa</strong> (<em>float</em>) – <p>user set position angle at which to measure radial wedges
+relative to the global position angle, in degrees.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>0</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_radialprofiles_expwidth</strong> (<em>bool</em>) – <p>tell AutoProf to use exponentially increasing widths for radial samples. In this case <em>ap_radialprofiles_width</em> corresponds to the final width of the radial sampling.</p>
+<li><p><strong>ap_radialprofiles_expwidth</strong> (<em>bool</em>) – <p>Tell AutoProf to use exponentially increasing widths for radial
+samples. In this case <em>ap_radialprofiles_width</em> corresponds to
+the final width of the radial sampling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>False</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_radialprofiles_variable_pa</strong> (<em>bool</em>) – <p>tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy.</p>
+<li><p><strong>ap_radialprofiles_variable_pa</strong> (<em>bool</em>) – <p>Tell AutoProf to rotate radial sampling wedges with the position
+angle profile of the galaxy.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>False</p>
@@ -2118,8 +2279,20 @@ this happens, but will carry on anyway.</p>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘prof header’</p></li>
+<li><p>‘prof units’</p></li>
+<li><p>‘prof data’</p></li>
+<li><p>‘mask’ (optional)</p></li>
+<li><p>‘background’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘init pa’ (optional)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
 <li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
 <li><p><strong>results</strong> (<em>dict</em>) – No results provided as this method writes its own profile</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;prof header&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># Previously extracted SB profile, with extra columns appended for radial profiles (list)</span>
@@ -2159,7 +2332,93 @@ this happens, but will carry on anyway.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline_steps.Write_Prof.WriteProf">
 <span class="sig-prename descclassname"><span class="pre">pipeline_steps.Write_Prof.</span></span><span class="sig-name descname"><span class="pre">WriteProf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Write_Prof.html#WriteProf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Write_Prof.WriteProf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the photometry information for disk given a photutils isolist object</p>
+<dd><p>Basic method to write SB profile to disk.</p>
+<p>This step writes the results of the AutoProf pipeline analysis to
+a file. There are two files written, a .prof file containing the
+surface brightness profile and acompanying measurements, and a
+.aux file containing global results, messages, and setting used
+for the pipeline. The .prof file looks for specific keywords in
+the results dictionary: prof header, prof units, prof data, and
+prof format. There are the results from the isophotal fitting
+step. prof header gives the column names for the profile, prof
+units is a dictionary which gives the corresponding units for each
+column header key, prof data is a dictionary containing a list of
+values for each header key, and prof format is a dictionary which
+gives the python string format for values under each header key
+(for example ‘%.4f’ gives a number to 4 decimal places). The
+profile is written with comma (or a user specified delimiter)
+separation for each value, where each row corresponds to a given
+isophote at increasing semi-major axis values.</p>
+<p>The .aux file has a less strict format than the .prof file. The
+first line records the date and time that the file was written,
+the second line gives the name of the object as specified by the
+user or the filename. The next lines are taken from the results
+dictionary, any result key with auxfile in the name is taken as a
+message for the .aux file and written (in alphabetical order by
+key) to the file. See the pipeline step output formats for the
+messages that are included in the .aux file. Finally, a record of
+the user specified options is included for reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_saveto</strong> (<em>string</em>) – <p>Directory in which to save profile</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_name</strong> (<em>string</em>) – <p>Name of the current galaxy, used for making filenames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_delimiter</strong> (<em>string</em>) – <p>Delimiter to use between entries in the profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’,’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_profile_format</strong> (<em>string</em>) – <p>Type of file format to use for profile. Can choose from [‘csv’, ‘fits’]</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>’csv’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_savemask</strong> (<em>bool</em>) – <p>Save object mask fits file. This can create large files, depending on the size of the original image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘prof header’</p></li>
+<li><p>‘prof units’</p></li>
+<li><p>‘prof data’</p></li>
+<li><p>‘mask’ (optional)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

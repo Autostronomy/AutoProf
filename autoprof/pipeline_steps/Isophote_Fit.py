@@ -303,8 +303,48 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     return IMG, res
 
 def Isophote_Fit_Forced(IMG, results, options):
-    """
-    Take isophotal fit from a given profile.
+    """Read previously fit PA/ellipticity profile.
+
+    Reads a .prof file and extracts the corresponding PA/ellipticity profile. The profile is extracted generically, so any csv file with columns for 'R', 'pa', 'ellip', and optionally 'pa_e' and 'ellip_e' will be able to create a forced fit. This can be used for testing purposes, such as selecting a specific isophote to extract or comparing AutoProf SB extraction methods with other softwares.
+
+    Arguments
+    -----------------
+    ap_forcing_profile: string
+        File path to .prof file providing forced photometry PA and
+        ellip values to apply to *ap_image_file* (required for forced
+        photometry)
+
+      :default:
+        None
+    
+    ap_pixscale: float
+      pixel scale in arcsec/pixel
+
+      :default:
+        None
+    
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'center'
+        
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+     
+        {'fit ellip': , # array of ellipticity values (ndarray)
+         'fit pa': , # array of PA values (ndarray)
+         'fit R': , # array of semi-major axis values (ndarray)
+         'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
+         'fit pa_err': , # optional, array of PA error values (ndarray)
+    
+        }
+
     """
     with open(options['ap_forcing_profile'], 'r') as f:
         raw = f.readlines()
@@ -321,20 +361,10 @@ def Isophote_Fit_Forced(IMG, results, options):
     force['pa'] = PA_shift_convention(np.array(force['pa']), deg = True)
                 
     if 'ap_doplot' in options and options['ap_doplot']:
-        dat = IMG - results['background']
-        ranges = [[max(0,int(results['center']['y'] - (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2)), min(dat.shape[1],int(results['center']['y'] + (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2))],
-                  [max(0,int(results['center']['x'] - (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2)), min(dat.shape[0],int(results['center']['x'] + (np.array(force['R'])[-1]/options['ap_pixscale'])*1.2))]]
-        LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-        # plt.imshow(np.clip(dat[ranges[0][0]: ranges[0][1], ranges[1][0]: ranges[1][1]],
-        #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch())) 
-        for i in range(0,len(np.array(force['R'])),2):
-            plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*(np.array(force['R'])[i]/options['ap_pixscale']),
-                                        2*(np.array(force['R'])[i]/options['ap_pixscale'])*(1. - force['ellip'][i]),
-                                        force['pa'][i], fill = False, linewidth = 0.5, color = 'r'))
-        if not ('ap_nologo' in options and options['ap_nologo']):
-            AddLogo(plt.gcf())
-        plt.savefig('%sforcedfit_ellipse_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-        plt.close()                
+        Plot_Isophote_Fit(IMG - results['background'], np.array(force['R']), np.array(force['ellip']), np.array(force['pa']),
+                          np.array(force['ellip_e']) if 'ellip_e' in force else np.zeros(len(force['R'])),
+                          np.array(force['pa_e']) if 'pa_e' in force else np.zeros(len(force['R'])), results, options)
+        
     res = {'fit ellip': np.array(force['ellip']),
            'fit pa': np.array(force['pa'])*np.pi/180,
            'fit R': list(np.array(force['R'])/options['ap_pixscale'])}

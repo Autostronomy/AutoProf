@@ -53,7 +53,8 @@ def Axial_Profiles(IMG, results, options):
       linear sampling once geometric step size equals linear. Options
       are: 'linear', 'geometric', and 'geometric-linear'.
 
-      :default: 'geometric'
+      :default:
+        'geometric'
 
     ap_isoaverage_method: string
     
@@ -66,8 +67,18 @@ def Axial_Profiles(IMG, results, options):
       spurious objects such as foreground stars or galaxies, and
       should always be used with caution.
 
-      :default: 'median'
+      :default:
+        'median'
 
+    References
+    ----------
+    - 'mask' (optional)
+    - 'background'
+    - 'psf fwhm'
+    - 'center'
+    - 'prof data' (optional)
+    - 'init pa'
+    
     Returns
     -------
     IMG: ndarray

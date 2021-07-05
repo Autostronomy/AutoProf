@@ -202,8 +202,7 @@ def Isophote_Extract_Forced(IMG, results, options):
     given.
     
     Arguments
-    -----------------
-    
+    -----------------    
     ap_isoband_start: float
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
@@ -310,6 +309,15 @@ def Isophote_Extract_Forced(IMG, results, options):
       :default:
         None
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+    - 'init ellip'
+    - 'init pa'
+        
     Returns
     -------
     IMG: ndarray
@@ -523,6 +531,20 @@ def Isophote_Extract(IMG, results, options):
       :default:
         None
     
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+    - 'init ellip'
+    - 'init pa'
+    - 'fit R'
+    - 'fit ellip'
+    - 'fit pa'
+    - 'fit ellip_err' (optional)
+    - 'fit pa_err' (optional)
+        
     Returns
     -------
     IMG: ndarray
@@ -588,6 +610,20 @@ def Isophote_Extract_Photutils(IMG, results, options):
     documentation. See: `photutils
     <https://photutils.readthedocs.io/en/stable/isophote.html>`_ for
     more information.
+        
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+    - 'init R' (optional)
+    - 'init ellip' (optional)
+    - 'init pa' (optional)
+    - 'fit R' (optional)
+    - 'fit ellip' (optional)
+    - 'fit pa' (optional)
+    - 'fit photutils isolist' (optional)
         
     Returns
     -------

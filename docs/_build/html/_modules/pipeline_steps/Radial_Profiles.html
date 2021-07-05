@@ -195,7 +195,8 @@
 <span class="sd">    Arguments</span>
 <span class="sd">    -----------------</span>
 <span class="sd">    ap_radialprofiles_nwedges: int</span>
-<span class="sd">      number of radial wedges to sample. Recommended choosing a power of 2.</span>
+<span class="sd">      number of radial wedges to sample. Recommended choosing a power</span>
+<span class="sd">      of 2.</span>
 
 <span class="sd">      :default:</span>
 <span class="sd">        4</span>
@@ -207,23 +208,37 @@
 <span class="sd">        15</span>
 
 <span class="sd">    ap_radialprofiles_pa: float</span>
-<span class="sd">      user set position angle at which to measure radial wedges relative to the global position angle, in degrees.</span>
+<span class="sd">      user set position angle at which to measure radial wedges</span>
+<span class="sd">      relative to the global position angle, in degrees.</span>
 
 <span class="sd">      :default:</span>
 <span class="sd">        0</span>
 
 <span class="sd">    ap_radialprofiles_expwidth: bool</span>
-<span class="sd">      tell AutoProf to use exponentially increasing widths for radial samples. In this case *ap_radialprofiles_width* corresponds to the final width of the radial sampling.</span>
+<span class="sd">      Tell AutoProf to use exponentially increasing widths for radial</span>
+<span class="sd">      samples. In this case *ap_radialprofiles_width* corresponds to</span>
+<span class="sd">      the final width of the radial sampling.</span>
 
 <span class="sd">      :default:</span>
 <span class="sd">        False</span>
 
 <span class="sd">    ap_radialprofiles_variable_pa: bool</span>
-<span class="sd">      tell AutoProf to rotate radial sampling wedges with the position angle profile of the galaxy.</span>
+<span class="sd">      Tell AutoProf to rotate radial sampling wedges with the position</span>
+<span class="sd">      angle profile of the galaxy.</span>
 
 <span class="sd">      :default:</span>
 <span class="sd">        False</span>
 
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    - &#39;prof header&#39;</span>
+<span class="sd">    - &#39;prof units&#39;</span>
+<span class="sd">    - &#39;prof data&#39;</span>
+<span class="sd">    - &#39;mask&#39; (optional)</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">    - &#39;init pa&#39; (optional)</span>
+<span class="sd">    </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    IMG: ndarray</span>
