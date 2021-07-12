@@ -2,7 +2,7 @@ import numpy as np
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 import matplotlib.pyplot as plt
-from matplotlib.patches import Ellipse
+from matplotlib.patches import Ellipse, Wedge
 import matplotlib.cm as cm
 import matplotlib
 import sys
@@ -217,7 +217,7 @@ def Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, res
     # cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
     # colorind = np.arange(nwedges)/10
     cmap = cm.get_cmap('hsv')
-    colorind = (np.linspace(0,1 - 1/nwedges,nwedges) + 0.1) % 1
+    colorind = (np.linspace(0,1 - 1/nwedges,nwedges) + 0.1) % 1.
     for sa_i in range(len(wedgeangles)):
         CHOOSE = np.logical_and(np.array(sb[sa_i]) < 99, np.array(sbE[sa_i]) < 1)
         plt.errorbar(np.array(R)[CHOOSE]*options['ap_pixscale'], np.array(sb[sa_i])[CHOOSE], yerr = np.array(sbE[sa_i])[CHOOSE],
@@ -237,19 +237,20 @@ def Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, res
     
     LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
     
-    # plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],
-    #                    a_min = 0,a_max = None), origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
     cx, cy = (results['center']['x'] - ranges[0][0], results['center']['y'] - ranges[1][0])
     for sa_i in range(len(wedgeangles)):
-        endx, endy = (R*np.cos(wedgeangles[sa_i]+pa), R*np.sin(wedgeangles[sa_i]+pa))
-        plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 1.1)
-        plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linewidth = 0.7)
-        endx, endy = (R*np.cos(wedgeangles[sa_i]+pa + wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa + wedgewidth/2))
-        plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
-        plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
-        endx, endy = (R*np.cos(wedgeangles[sa_i]+pa - wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa - wedgewidth/2))
-        plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
-        plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
+        if np.all(pa == pa[0]):
+            plt.gca().add_patch(Wedge((cx,cy), R[-1], (wedgeangles[sa_i]+pa[0] - wedgewidth[-1]/2)*180/np.pi, (wedgeangles[sa_i]+pa[0] + wedgewidth[-1]/2)*180/np.pi, facecolor = cmap(colorind[sa_i]), linewidth = 0, alpha = 0.3)) 
+        else:
+            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa), R*np.sin(wedgeangles[sa_i]+pa))
+            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 1.1)
+            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linewidth = 0.7)
+            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa + wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa + wedgewidth/2))
+            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
+            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
+            endx, endy = (R*np.cos(wedgeangles[sa_i]+pa - wedgewidth/2), R*np.sin(wedgeangles[sa_i]+pa - wedgewidth/2))
+            plt.plot(endx + cx, endy + cy, color = 'w', linewidth = 0.7)
+            plt.plot(endx + cx, endy + cy, color = cmap(colorind[sa_i]), linestyle = '--', linewidth = 0.5)
             
     plt.xlim([0,ranges[0][1] - ranges[0][0]])
     plt.ylim([0,ranges[1][1] - ranges[1][0]])
