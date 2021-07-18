@@ -1818,11 +1818,9 @@ more information.</p>
 <p>Extracts global ellipse parameters from the corresponding aux file for a given .prof file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <dl class="simple">
-<dt>File path to .prof file providing forced photometry PA and</dt><dd><p>ellip values to apply to <em>ap_image_file</em> (required for forced
+<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <p>File path to .prof file providing forced photometry PA and
+ellip values to apply to <em>ap_image_file</em> (required for forced
 photometry)</p>
-</dd>
-</dl>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>None</p>
@@ -1877,13 +1875,29 @@ error is computed by optimizing the ellipticity for multiple
 isophotes within 1 PSF length of each other.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>2</p>
 </dd>
 </dl>
-</p>
+</p></li>
+<li><p><strong>ap_isoinit_pa_set</strong> (<em>float</em>) – <p>User set initial position angle in degrees, will override the calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isoinit_ellip_set</strong> (<em>float</em>) – <p>User set initial ellipticity (1 - b/a), will override the calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">References</p>

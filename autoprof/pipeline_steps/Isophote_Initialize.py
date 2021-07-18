@@ -23,13 +23,13 @@ def Isophote_Init_Forced(IMG, results, options):
     Arguments
     -----------------
     ap_forcing_profile: string
-        File path to .prof file providing forced photometry PA and
-        ellip values to apply to *ap_image_file* (required for forced
-        photometry)
+      File path to .prof file providing forced photometry PA and
+      ellip values to apply to *ap_image_file* (required for forced
+      photometry)
 
       :default:
         None
-        
+
     References
     ----------
     - 'background'
@@ -103,6 +103,18 @@ def Isophote_Initialize(IMG, results, options):
       :default:
         2
     
+    ap_isoinit_pa_set: float
+      User set initial position angle in degrees, will override the calculation.
+
+      :default:
+        None
+
+    ap_isoinit_ellip_set: float
+      User set initial ellipticity (1 - b/a), will override the calculation.
+
+      :default:
+        None
+
     References
     ----------
     - 'background'
@@ -147,7 +159,9 @@ def Isophote_Initialize(IMG, results, options):
     logging.info('%s: init scale: %f pix' % (options['ap_name'], circ_ellipse_radii[-1]))
     # Find global position angle.
     phase = (-Angle_Median(np.angle(allphase[-5:]))/2) % np.pi 
-
+    if 'ap_isoinit_pa_set' in options:
+        phase = PA_shift_convention(options['ap_isoinit_pa_set']*np.pi/180)
+    
     # Find global ellipticity
     test_ellip = np.linspace(0.05,0.95,15)
     test_f2 = []
@@ -161,6 +175,8 @@ def Isophote_Initialize(IMG, results, options):
     if res.success:
         logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (options['ap_name'], _x_to_eps(res.x[0]), ellip))
         ellip = _x_to_eps(res.x[0])
+    if 'ap_isoinit_ellip_set' in options:
+        ellip = options['ap_isoinit_ellip_set']
 
     # Compute the error on the parameters
     ######################################################################
