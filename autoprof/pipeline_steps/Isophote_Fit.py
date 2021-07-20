@@ -89,7 +89,7 @@ def _pa_smooth(R, PA, deg):
     return ((np.arctan(pred_pa_s/pred_pa_c) + (np.pi*(pred_pa_c < 0))) % (2*np.pi))/2
     
 
-def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., name = ''):
+def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., fit_coefs = None, name = ''):
 
     isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True, interp_method = 'bicubic')
     
@@ -98,7 +98,10 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
     else:
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.9), a_min = None))
 
-    f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
+    if fit_coefs is None:
+        f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
+    else:
+        f2_loss = np.sum(np.abs(coefs[np.array(fit_coefs)])) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
 
     reg_loss = 0
     if i < (len(R)-1):
@@ -110,7 +113,7 @@ def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., na
 
     return f2_loss*(1 + reg_loss*reg_scale)
 
-def _FFT_Robust_Errors(dat, R, E, PA, C, noise, mask = None, reg_scale = 1., name = ''):
+def _FFT_Robust_Errors(dat, R, E, PA, C, noise, mask = None, reg_scale = 1., fit_coefs = None, name = ''):
 
     PA_err = np.zeros(len(R))
     E_err = np.zeros(len(R))
@@ -122,8 +125,8 @@ def _FFT_Robust_Errors(dat, R, E, PA, C, noise, mask = None, reg_scale = 1., nam
             temp_fits.append(minimize(lambda x: _FFT_Robust_loss(dat, [R[low_ri], R[ri]*(1 - 0.05 + i*0.1/9), R[high_ri]],
                                                                  [E[low_ri], np.clip(x[0], 0,1), E[high_ri]],
                                                                  [PA[low_ri], x[1] % np.pi, PA[high_ri]],
-                                                                 1, C, noise, mask = mask,
-                                                                 reg_scale = reg_scale, name = name),
+                                                                 1, C, noise, mask = mask, reg_scale = reg_scale,
+                                                                 fit_coefs = fit_coefs, name = name),
                                       x0 = [E[ri], PA[ri]], method = 'SLSQP', options = {'ftol': 0.001}).x)
         temp_fits = np.array(temp_fits)
         E_err[ri] = iqr(np.clip(temp_fits[:,0], 0, 1), rng = [16,84])/2
@@ -154,31 +157,43 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     assumed to have converged.
 
     An uncertainty for each ellipticity and position angle value is
-    determined by taking the RMS between the fitted values and a
-    smoothed polynomial fit values for 4 points.  This is a very rough
-    estimate of the uncertainty, but works sufficiently well in the
-    outskirts.
+    determined by repeatedly re-optimizing each ellipse with slight
+    adjustments to it's semi-major axis length (+- 5%). The standard
+    deviation of the PA/ellipticity after repeated fitting gives the
+    uncertainty.
 
     Arguments
     -----------------
-    ap_scale: float
-      growth scale when fitting isophotes, not the same as *ap_sample---scale*.
+    ap_scale: float    
+      growth scale when fitting isophotes, not the same as
+      *ap_sample---scale*.
 
       :default:
         0.2
 
     ap_fit_limit: float
-      noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.
+      noise level out to which to extend the fit in units of pixel
+      background noise level. Default is 2, smaller values will end
+      fitting further out in the galaxy image.
 
       :default:
         2
 
     ap_regularize_scale: float
-      scale factor to apply to regularization coupling factor between isophotes.
-      Default of 1, larger values make smoother fits, smaller values give more chaotic fits.
+      scale factor to apply to regularization coupling factor between
+      isophotes.  Default of 1, larger values make smoother fits,
+      smaller values give more chaotic fits.
 
       :default:
         1
+
+    ap_isofit_coefs: tuple
+      Tuple of FFT coefficients to use in optimization
+      procedure. AutoProf will attemp to minimize the power in all
+      listed FFT coefficients. Must be a tuple, not a list.
+
+      :default:
+        (2,)
     
     References
     ----------
@@ -245,7 +260,8 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     perturb_scale = np.array([0.03, 0.06])
     regularize_scale = options['ap_regularize_scale'] if 'ap_regularize_scale' in options else 1.
     N_perturb = 5
-
+    fit_coefs = options['ap_isofit_coefs'] if 'ap_isofit_coefs' in options else None
+    
     count = 0
 
     count_nochange = 0
@@ -262,7 +278,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
             perturbations = []
             perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
             perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = options['ap_name'])
+                                                         use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, fit_coefs = fit_coefs, name = options['ap_name'])
             for n in range(N_perturb):
                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
                 if count % 3 in [0,1]:
@@ -270,7 +286,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 if count % 3 in [1,2]:
                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
                 perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, name = options['ap_name'])
+                                                             use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, fit_coefs = fit_coefs, name = options['ap_name'])
             
             best = np.argmin(list(p['loss'] for p in perturbations))
             if best > 0:
@@ -291,7 +307,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     # Compute errors
     ######################################################################
     ellip_err, pa_err = _FFT_Robust_Errors(dat, sample_radii, ellip, pa, use_center, results['background noise'],
-                                           mask = mask, reg_scale = regularize_scale, name = options['ap_name'])
+                                           mask = mask, reg_scale = regularize_scale, fit_coefs = fit_coefs, name = options['ap_name'])
     # Plot fitting results
     ######################################################################    
     if 'ap_doplot' in options and options['ap_doplot']:

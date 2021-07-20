@@ -1590,32 +1590,45 @@ smoothly varying isophotes.  When the optimization has completed
 three rounds without any isophotes updating, the profile is
 assumed to have converged.</p>
 <p>An uncertainty for each ellipticity and position angle value is
-determined by taking the RMS between the fitted values and a
-smoothed polynomial fit values for 4 points.  This is a very rough
-estimate of the uncertainty, but works sufficiently well in the
-outskirts.</p>
+determined by repeatedly re-optimizing each ellipse with slight
+adjustments to it’s semi-major axis length (+- 5%). The standard
+deviation of the PA/ellipticity after repeated fitting gives the
+uncertainty.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as <em>ap_sample—scale</em>.</p>
+<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as
+<em>ap_sample—scale</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>0.2</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+background noise level. Default is 2, smaller values will end
+fitting further out in the galaxy image.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>2</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between isophotes.
-Default of 1, larger values make smoother fits, smaller values give more chaotic fits.</p>
+<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between
+isophotes.  Default of 1, larger values make smoother fits,
+smaller values give more chaotic fits.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>1</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isofit_coefs</strong> (<em>tuple</em>) – <p>Tuple of FFT coefficients to use in optimization
+procedure. AutoProf will attemp to minimize the power in all
+listed FFT coefficients. Must be a tuple, not a list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>(2,)</p>
 </dd>
 </dl>
 </p></li>
