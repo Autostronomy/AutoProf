@@ -359,6 +359,52 @@
 
 <span class="sd">      :default:</span>
 <span class="sd">        (2,)</span>
+
+<span class="sd">    ap_isofit_perturbscale_ellip: float</span>
+<span class="sd">      Sampling scale for random adjustments to ellipticity made while</span>
+<span class="sd">      optimizing isophotes. Smaller values will converge faster, but</span>
+<span class="sd">      get stuck in local minima; larger values will escape local</span>
+<span class="sd">      minima, but takes longer to converge.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        0.03</span>
+<span class="sd">    </span>
+<span class="sd">    ap_isofit_perturbscale_pa: float</span>
+<span class="sd">      Sampling scale for random adjustments to position angle made</span>
+<span class="sd">      while optimizing isophotes. Smaller values will converge faster,</span>
+<span class="sd">      but get stuck in local minima; larger values will escape local</span>
+<span class="sd">      minima, but takes longer to converge.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        0.06</span>
+<span class="sd">    </span>
+<span class="sd">    ap_isofit_iterlimitmax: int</span>
+<span class="sd">      Maximum number of iterations (each iteration adjusts every</span>
+<span class="sd">      isophote once) before automatically stopping optimization. For</span>
+<span class="sd">      galaxies with lots of structure (ie detailed spiral arms) more</span>
+<span class="sd">      iterations may be needed to fully fit the light distribution,</span>
+<span class="sd">      but runtime will be longer.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        300</span>
+<span class="sd">    </span>
+<span class="sd">    ap_isofit_iterlimitmin: int</span>
+<span class="sd">      Minimum number of iterations before optimization is allowed to</span>
+<span class="sd">      stop.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        0</span>
+<span class="sd">    </span>
+<span class="sd">    ap_isofit_iterstopnochange: float</span>
+<span class="sd">      Number of iterations with no updates to parameters before</span>
+<span class="sd">      optimization procedure stops. Lower values will process galaxies</span>
+<span class="sd">      faster, but may still be stuck in local minima, higher values</span>
+<span class="sd">      are more likely to converge on the global minimum but can take a</span>
+<span class="sd">      long time to run. Fractional values are allowed though not</span>
+<span class="sd">      recomended.</span>
+
+<span class="sd">      :default:</span>
+<span class="sd">        3</span>
 <span class="sd">    </span>
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -422,17 +468,21 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: sample radii: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)))</span>
     <span class="c1"># Fit isophotes</span>
     <span class="c1">######################################################################</span>
-    <span class="n">perturb_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">])</span>
+    <span class="n">perturb_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isofit_perturbscale_ellip&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isofit_perturbscale_ellip&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.03</span><span class="p">,</span>
+                              <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isofit_perturbscale_pa&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isofit_perturbscale_pa&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.06</span><span class="p">])</span>
     <span class="n">regularize_scale</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_regularize_scale&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_regularize_scale&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">1.</span>
     <span class="n">N_perturb</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="n">fit_coefs</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isofit_coefs&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isofit_coefs&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="kc">None</span>
     
     <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
 
+    <span class="n">iterlimitmax</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isofit_iterlimitmax&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isofit_iterlimitmax&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span>
+    <span class="n">iterlimitmin</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isofit_iterlimitmin&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isofit_iterlimitmin&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">iterstopnochange</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isofit_iterstopnochange&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isofit_iterstopnochange&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">3</span>
     <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">use_center</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">])</span>
     <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)))</span>
-    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">300</span> <span class="ow">and</span> <span class="n">count_nochange</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">iterlimitmax</span><span class="p">:</span>
         <span class="c1"># Periodically include logging message</span>
         <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: count: </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span><span class="n">count</span><span class="p">))</span>
@@ -460,6 +510,10 @@
                 <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">count_nochange</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">count_nochange</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">iterstopnochange</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="ow">or</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">iterlimitmin</span><span class="p">):</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">count_nochange</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">iterstopnochange</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="ow">or</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">iterlimitmin</span><span class="p">):</span>
+            <span class="k">break</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Completed isohpote fit in </span><span class="si">%i</span><span class="s1"> itterations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">count</span><span class="p">))</span>
     <span class="c1"># detect collapsed center</span>

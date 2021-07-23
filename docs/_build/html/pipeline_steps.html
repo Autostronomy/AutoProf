@@ -1632,6 +1632,57 @@ listed FFT coefficients. Must be a tuple, not a list.</p>
 </dd>
 </dl>
 </p></li>
+<li><p><strong>ap_isofit_perturbscale_ellip</strong> (<em>float</em>) – <p>Sampling scale for random adjustments to ellipticity made while
+optimizing isophotes. Smaller values will converge faster, but
+get stuck in local minima; larger values will escape local
+minima, but takes longer to converge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.03</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isofit_perturbscale_pa</strong> (<em>float</em>) – <p>Sampling scale for random adjustments to position angle made
+while optimizing isophotes. Smaller values will converge faster,
+but get stuck in local minima; larger values will escape local
+minima, but takes longer to converge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.06</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isofit_iterlimitmax</strong> (<em>int</em>) – <p>Maximum number of iterations (each iteration adjusts every
+isophote once) before automatically stopping optimization. For
+galaxies with lots of structure (ie detailed spiral arms) more
+iterations may be needed to fully fit the light distribution,
+but runtime will be longer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>300</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isofit_iterlimitmin</strong> (<em>int</em>) – <p>Minimum number of iterations before optimization is allowed to
+stop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isofit_iterstopnochange</strong> (<em>float</em>) – <p>Number of iterations with no updates to parameters before
+optimization procedure stops. Lower values will process galaxies
+faster, but may still be stuck in local minima, higher values
+are more likely to converge on the global minimum but can take a
+long time to run. Fractional values are allowed though not
+recomended.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>3</p>
+</dd>
+</dl>
+</p></li>
 </ul>
 </dd>
 </dl>

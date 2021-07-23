@@ -194,6 +194,52 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
 
       :default:
         (2,)
+
+    ap_isofit_perturbscale_ellip: float
+      Sampling scale for random adjustments to ellipticity made while
+      optimizing isophotes. Smaller values will converge faster, but
+      get stuck in local minima; larger values will escape local
+      minima, but takes longer to converge.
+
+      :default:
+        0.03
+    
+    ap_isofit_perturbscale_pa: float
+      Sampling scale for random adjustments to position angle made
+      while optimizing isophotes. Smaller values will converge faster,
+      but get stuck in local minima; larger values will escape local
+      minima, but takes longer to converge.
+
+      :default:
+        0.06
+    
+    ap_isofit_iterlimitmax: int
+      Maximum number of iterations (each iteration adjusts every
+      isophote once) before automatically stopping optimization. For
+      galaxies with lots of structure (ie detailed spiral arms) more
+      iterations may be needed to fully fit the light distribution,
+      but runtime will be longer.
+
+      :default:
+        300
+    
+    ap_isofit_iterlimitmin: int
+      Minimum number of iterations before optimization is allowed to
+      stop.
+
+      :default:
+        0
+    
+    ap_isofit_iterstopnochange: float
+      Number of iterations with no updates to parameters before
+      optimization procedure stops. Lower values will process galaxies
+      faster, but may still be stuck in local minima, higher values
+      are more likely to converge on the global minimum but can take a
+      long time to run. Fractional values are allowed though not
+      recomended.
+
+      :default:
+        3
     
     References
     ----------
@@ -257,17 +303,21 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     logging.debug('%s: sample radii: %s' % (options['ap_name'], str(sample_radii)))
     # Fit isophotes
     ######################################################################
-    perturb_scale = np.array([0.03, 0.06])
+    perturb_scale = np.array([options['ap_isofit_perturbscale_ellip'] if 'ap_isofit_perturbscale_ellip' in options else 0.03,
+                              options['ap_isofit_perturbscale_pa'] if 'ap_isofit_perturbscale_pa' in options else 0.06])
     regularize_scale = options['ap_regularize_scale'] if 'ap_regularize_scale' in options else 1.
     N_perturb = 5
     fit_coefs = options['ap_isofit_coefs'] if 'ap_isofit_coefs' in options else None
     
     count = 0
 
+    iterlimitmax = options['ap_isofit_iterlimitmax'] if 'ap_isofit_iterlimitmax' in options else 300
+    iterlimitmin = options['ap_isofit_iterlimitmin'] if 'ap_isofit_iterlimitmin' in options else 0
+    iterstopnochange = options['ap_isofit_iterstopnochange'] if 'ap_isofit_iterstopnochange' in options else 3
     count_nochange = 0
     use_center = copy(results['center'])
     I = np.array(range(len(sample_radii)))
-    while count < 300 and count_nochange < (3*(len(sample_radii)-1)):
+    while count < iterlimitmax:
         # Periodically include logging message
         if count % 10 == 0:
             logging.debug('%s: count: %i' % (options['ap_name'],count))
@@ -295,6 +345,10 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 count_nochange = 0
             else:
                 count_nochange += 1
+            if not (count_nochange < (iterstopnochange*(len(sample_radii)-1)) or count < iterlimitmin):
+                break
+        if not (count_nochange < (iterstopnochange*(len(sample_radii)-1)) or count < iterlimitmin):
+            break
 
     logging.info('%s: Completed isohpote fit in %i itterations' % (options['ap_name'], count))
     # detect collapsed center
