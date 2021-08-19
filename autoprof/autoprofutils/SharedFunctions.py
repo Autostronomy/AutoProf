@@ -317,11 +317,14 @@ def interpolate_Lanczos(dat, X, Y, scale):
     XX, YY = np.meshgrid(np.arange(round(-scale + 1), round(scale + 1)), np.arange(round(-scale + 1), round(scale + 1)))
     
     for i in range(len(X)):
-        chunk = dat[int(round(np.floor(Y[i]) - scale + 1)): int(round(np.floor(Y[i]) + scale + 1)),
-                    int(round(np.floor(X[i]) - scale + 1)): int(round(np.floor(X[i]) + scale + 1))]
+        box = [[max(0,int(round(np.floor(X[i]) - scale + 1))), min(dat.shape[1], int(round(np.floor(X[i]) + scale + 1)))],
+               [max(0,int(round(np.floor(Y[i]) - scale + 1))), min(dat.shape[0], int(round(np.floor(Y[i]) + scale + 1)))]]
+        chunk = dat[box[1][0]:box[1][1], box[0][0]:box[0][1]]
         Lx = np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i]))/scale) * XX
         Ly = (np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i]))/scale) * YY.T).T
         L = Lx * Ly
+        L = L[box[1][0] - int(round(np.floor(Y[i]) - scale + 1)): L.shape[0] + box[1][1] - int(round(np.floor(Y[i]) + scale + 1)),
+              box[0][0] - int(round(np.floor(X[i]) - scale + 1)): L.shape[1] + box[0][1] - int(round(np.floor(X[i]) + scale + 1))]
         w = np.sum(L)
         flux.append(np.sum(chunk*L)/w)
     return np.array(flux)
@@ -602,7 +605,7 @@ def PA_shift_convention(pa, deg = False):
     """
     Alternates between standard mathematical convention for angles, and astronomical position angle convention.
     The standard convention is to measure angles counter-clockwise relative to the positive x-axis
-    THe astronomical convention is to measure angles counter-clockwise relative to the positive y-axis
+    The astronomical convention is to measure angles counter-clockwise relative to the positive y-axis
     """
     
     if deg:
