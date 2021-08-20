@@ -72,8 +72,8 @@ def Isophote_Init_Forced(IMG, results, options):
                  'init pa_err': pa_err, 'init R': R, 'auxfile initialize': auxmessage}
     
 
-def _fitEllip_loss(e, dat, r, p, c, n):
-    isovals = _iso_extract(dat,r,e,p,c, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
+def _fitEllip_loss(e, dat, r, p, c, n, m):
+    isovals = _iso_extract(dat,r,e,p,c, sigmaclip = True, sclip_nsigma = 3, mask = m, interp_mask = True)
     coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
     return  (iqr(isovals,rng=[16,84])/2 + np.abs(coefs[2]) / len(isovals))/(max(0,np.median(isovals))+n)
 
@@ -146,11 +146,14 @@ def Isophote_Initialize(IMG, results, options):
     circ_ellipse_radii = [1.]
     allphase = []
     dat = IMG - results['background']
+    mask = results['mask'] if 'mask' in results else None
+    if not np.any(mask):
+        mask = None
 
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.2))
         isovals = _iso_extract(dat,circ_ellipse_radii[-1],0.,0.,results['center'], more = True,
-                               sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
+                               mask = mask, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
         coefs = fft(isovals[0]) 
         allphase.append(coefs[2])
         # Stop when at 3 time background noise
@@ -166,11 +169,11 @@ def Isophote_Initialize(IMG, results, options):
     test_ellip = np.linspace(0.05,0.95,15)
     test_f2 = []
     for e in test_ellip:
-        test_f2.append(sum(list(_fitEllip_loss(e, dat, circ_ellipse_radii[-2]*m, phase, results['center'], results['background noise']) for m in np.linspace(0.8,1.2,5))))
+        test_f2.append(sum(list(_fitEllip_loss(e, dat, circ_ellipse_radii[-2]*m, phase, results['center'], results['background noise'], mask) for m in np.linspace(0.8,1.2,5))))
     ellip = test_ellip[np.argmin(test_f2)]
-    res = minimize(lambda e,d,r,p,c,n: sum(list(_fitEllip_loss(_x_to_eps(e[0]),d,r*m,p,c,n) for m in np.linspace(0.8,1.2,5))),
+    res = minimize(lambda e,d,r,p,c,n,msk: sum(list(_fitEllip_loss(_x_to_eps(e[0]),d,r*m,p,c,n,msk) for m in np.linspace(0.8,1.2,5))),
                    x0 = _inv_x_to_eps(ellip), args = (dat, circ_ellipse_radii[-2],
-                                                      phase, results['center'],results['background noise']),
+                                                      phase, results['center'],results['background noise'], mask),
                    method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]})
     if res.success:
         logging.debug('%s: using optimal ellipticity %.3f over grid ellipticity %.3f' % (options['ap_name'], _x_to_eps(res.x[0]), ellip))
@@ -188,8 +191,8 @@ def Isophote_Initialize(IMG, results, options):
         errallphase.append(coefs[2])
     sample_pas = (-np.angle(1j*np.array(errallphase)/np.mean(errallphase))/2) % np.pi
     pa_err = iqr(sample_pas, rng = [16,84])/2
-    res_multi = map(lambda rrp: minimize(lambda e,d,r,p,c,n: _fitEllip_loss(_x_to_eps(e[0]),d,r,p,c,n),
-                                        x0 = _inv_x_to_eps(ellip), args = (dat, rrp[0], rrp[1], results['center'],results['background noise']),
+    res_multi = map(lambda rrp: minimize(lambda e,d,r,p,c,n,m: _fitEllip_loss(_x_to_eps(e[0]),d,r,p,c,n,m),
+                                        x0 = _inv_x_to_eps(ellip), args = (dat, rrp[0], rrp[1], results['center'],results['background noise'],mask),
                                          method = 'Nelder-Mead',options = {'initial_simplex': [[_inv_x_to_eps(ellip)-1/15], [_inv_x_to_eps(ellip)+1/15]]}), zip(RR,sample_pas))
     ellip_err = iqr(list(_x_to_eps(rm.x[0]) for rm in res_multi),rng = [16,84])/2
         
