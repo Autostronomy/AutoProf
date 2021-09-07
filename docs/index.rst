@@ -37,7 +37,7 @@ Getting Started
 AutoProf is a pipeline for basic and advanced non-parametric galaxy image analysis.
 Its design allows for fast startup and provides flexibility to explore new ideas and support advanced users.
 It was written by `Connor Stone <https://connorjstone.com/>`_ with contributions from
-`Nikhil Arora <https://orcid.org/0000-0002-3929-9316>`_,
+`Nikhil Arora <https://www.astronikhil.com/>`_,
 `Stéphane Courteau <https://www.physics.queensu.ca/facultysites/courteau/>`_,
 and `Jean-Charles Cuillandre <https://www.cfht.hawaii.edu/~jcc/>`_.
 
