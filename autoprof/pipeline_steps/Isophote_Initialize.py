@@ -73,7 +73,8 @@ def Isophote_Init_Forced(IMG, results, options):
     
 
 def _fitEllip_loss(e, dat, r, p, c, n, m):
-    isovals = _iso_extract(dat,r,e,p,c, sigmaclip = True, sclip_nsigma = 3, mask = m, interp_mask = True)
+    isovals = _iso_extract(dat,r,{'ellip':e, 'pa': p},c, sigmaclip = True,
+                           sclip_nsigma = 3, mask = m, interp_mask = True)
     coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
     return  (iqr(isovals,rng=[16,84])/2 + np.abs(coefs[2]) / len(isovals))/(max(0,np.median(isovals))+n)
 
@@ -152,7 +153,7 @@ def Isophote_Initialize(IMG, results, options):
 
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.2))
-        isovals = _iso_extract(dat,circ_ellipse_radii[-1],0.,0.,results['center'], more = True,
+        isovals = _iso_extract(dat,circ_ellipse_radii[-1],{'ellip': 0., 'pa': 0.},results['center'], more = True,
                                mask = mask, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
         coefs = fft(isovals[0]) 
         allphase.append(coefs[2])
@@ -186,7 +187,7 @@ def Isophote_Initialize(IMG, results, options):
     RR = np.linspace(circ_ellipse_radii[-2] - results['psf fwhm'], circ_ellipse_radii[-2] + results['psf fwhm'], 10)
     errallphase = []
     for rr in RR:
-        isovals = _iso_extract(dat,rr,0.,0.,results['center'], more = True, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
+        isovals = _iso_extract(dat,rr,{'ellip': 0., 'pa': 0.},results['center'], more = True, sigmaclip = True, sclip_nsigma = 3, interp_mask = True)
         coefs = fft(isovals[0])
         errallphase.append(coefs[2])
     sample_pas = (-np.angle(1j*np.array(errallphase)/np.mean(errallphase))/2) % np.pi
@@ -210,7 +211,7 @@ def Isophote_Initialize(IMG, results, options):
 
 
 def _fitEllip_mean_loss(e, dat, r, p, c, n):
-    isovals = _iso_extract(dat,r,e,p,c)
+    isovals = _iso_extract(dat,r,{'ellip': e, 'pa': p},c)
     coefs = fft(isovals)
     return np.abs(coefs[2]) / (len(isovals)*(max(0,np.mean(isovals))+n))
 
@@ -264,11 +265,11 @@ def Isophote_Initialize_mean(IMG, results, options):
 
     while circ_ellipse_radii[-1] < (len(IMG)/2):
         circ_ellipse_radii.append(circ_ellipse_radii[-1]*(1+0.2))
-        isovals = _iso_extract(dat,circ_ellipse_radii[-1],0.,0.,results['center'], more = True)
+        isovals = _iso_extract(dat,circ_ellipse_radii[-1], {'ellip': 0., 'pa': 0.},results['center'], more = True)
         coefs = fft(isovals[0])
         allphase.append(coefs[2])
-        # Stop when at 3 time background noise
-        if np.mean(isovals[0]) < (3*results['background noise']) and len(circ_ellipse_radii) > 4: # _iso_extract(IMG - results['background'],circ_ellipse_radii[-1],0.,0.,results['center'])
+        # Stop when at 3 times background noise
+        if np.mean(isovals[0]) < (3*results['background noise']) and len(circ_ellipse_radii) > 4:
             break
     logging.info('%s: init scale: %f pix' % (options['ap_name'], circ_ellipse_radii[-1]))
     # Find global position angle.
@@ -293,7 +294,7 @@ def Isophote_Initialize_mean(IMG, results, options):
     RR = np.linspace(circ_ellipse_radii[-2] - results['psf fwhm'], circ_ellipse_radii[-2] + results['psf fwhm'], 10)
     errallphase = []
     for rr in RR:
-        isovals = _iso_extract(dat,rr,0.,0.,results['center'], more = True)
+        isovals = _iso_extract(dat,rr, {'ellip': 0., 'pa': 0.},results['center'], more = True)
         coefs = fft(isovals[0])
         errallphase.append(coefs[2])
     sample_pas = (-np.angle(1j*np.array(errallphase)/np.mean(errallphase))/2) % np.pi

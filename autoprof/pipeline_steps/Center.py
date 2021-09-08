@@ -87,7 +87,7 @@ def Center_Forced(IMG, results, options):
         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
     if 'ap_set_center' in options:
         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
-        sb0 = flux_to_sb(_iso_extract(IMG - results['background'], 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+        sb0 = flux_to_sb(_iso_extract(IMG - results['background'], 0., {'ellip': 0., 'pa': 0.}, options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
         return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
     try:
@@ -103,7 +103,7 @@ def Center_Forced(IMG, results, options):
                 logging.warning('%s: Forced center failed! Using image center (or guess).' % options['ap_name'])
     except:
         logging.warning('%s: Forced center failed! Using image center (or guess).' % options['ap_name'])
-    sb0 = flux_to_sb(_iso_extract(IMG - results['background'], 0., 0.,0., current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+    sb0 = flux_to_sb(_iso_extract(IMG - results['background'], 0., {'ellip': 0., 'pa': 0.}, current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y']),
                  'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
     
@@ -394,7 +394,7 @@ def Center_OfMass(IMG, results, options):
         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
     if 'ap_set_center' in options:
         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
-        sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+        sb0 = flux_to_sb(_iso_extract(dat, 0., {'ellip': 0., 'pa': 0.}, options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
         return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
     searchring = int((options['ap_centeringring'] if 'ap_centeringring' in options else 10)*results['psf fwhm'])
@@ -410,7 +410,7 @@ def Center_OfMass(IMG, results, options):
         if abs(current_center['x'] - old_center['x']) < 0.1*results['psf fwhm'] and abs(current_center['y'] - old_center['y']) < 0.1*results['psf fwhm']:
             break
 
-    sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+    sb0 = flux_to_sb(_iso_extract(dat, 0., {'ellip': 0., 'pa': 0.}, current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
 
@@ -423,7 +423,7 @@ def Center_Peak(IMG, results, options):
         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
     if 'ap_set_center' in options:
         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
-        sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+        sb0 = flux_to_sb(_iso_extract(dat, 0., {'ellip': 0., 'pa': 0.}, options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
         return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
     searchring = int((options['ap_centeringring'] if 'ap_centeringring' in options else 10)*results['psf fwhm'])
@@ -439,7 +439,7 @@ def Center_Peak(IMG, results, options):
     current_center = {'x': -poly2dfit[0][2]/(2*poly2dfit[0][4]) + ranges[0][0],
                       'y': -poly2dfit[0][1]/(2*poly2dfit[0][3]) + ranges[1][0]}
     
-    sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+    sb0 = flux_to_sb(_iso_extract(dat, 0., {'ellip': 0., 'pa': 0.}, current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
     
     
@@ -447,9 +447,9 @@ def _hillclimb_loss(x, IMG, PSF, noise):
     center_loss = 0
     for rr in range(3):
         RR = (rr+1.)*PSF/2
-        isovals = _iso_extract(IMG,RR,0.,
-                               0.,{'x': np.clip(x[0], a_min = np.ceil(3+RR), a_max = np.floor(IMG.shape[1]-4-RR)),
-                                   'y': np.clip(x[1], a_min = np.ceil(3+RR), a_max = np.floor(IMG.shape[0]-4-RR))},
+        isovals = _iso_extract(IMG,RR, {'ellip': 0., 'pa': 0.},
+                               {'x': np.clip(x[0], a_min = np.ceil(3+RR), a_max = np.floor(IMG.shape[1]-4-RR)),
+                                'y': np.clip(x[1], a_min = np.ceil(3+RR), a_max = np.floor(IMG.shape[0]-4-RR))},
                                more = False, rad_interp = 10*PSF, interp_method = 'lanczos', interp_window = 3)
         coefs = fft(isovals)
         center_loss += np.abs(coefs[1])/(len(isovals)*(max(0,np.median(isovals)) + noise))
@@ -532,7 +532,7 @@ def Center_HillClimb(IMG, results, options):
         logging.info('%s: Center initialized by user: %s' % (options['ap_name'], str(current_center)))
     if 'ap_set_center' in options:
         logging.info('%s: Center set by user: %s' % (options['ap_name'], str(options['ap_set_center'])))
-        sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+        sb0 = flux_to_sb(_iso_extract(dat, 0., {'ellip': 0., 'pa': 0.}, options['ap_set_center'])[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
         return IMG, {'center': deepcopy(options['ap_set_center']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
     searchring = int(options['ap_centeringring']) if 'ap_centeringring' in options else 10
@@ -547,7 +547,7 @@ def Center_HillClimb(IMG, results, options):
         isovals = []
         coefs = []
         for r in sampleradii:
-            isovals.append(_iso_extract(dat,r,0.,0.,current_center, more = True))
+            isovals.append(_iso_extract(dat,r, {'ellip': 0., 'pa': 0.},current_center, more = True))
             coefs.append(fft(np.clip(isovals[-1][0], a_max = np.quantile(isovals[-1][0],0.85), a_min = None)))
             phases.append((-np.angle(coefs[-1][1])) % (2*np.pi))
         direction = Angle_Median(phases) % (2*np.pi)
@@ -588,15 +588,15 @@ def Center_HillClimb(IMG, results, options):
         current_center['y'] = res.x[1] + ranges[1][0]
     track_centers.append([current_center['x'], current_center['y']])
 
-    sb0 = flux_to_sb(_iso_extract(dat, 0., 0.,0., current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
+    sb0 = flux_to_sb(_iso_extract(dat, 0., {'ellip': 0., 'pa': 0.}, current_center)[0], options['ap_pixscale'], options['ap_zeropoint'] if 'zeropoint' in options else 22.5)
     return IMG, {'center': current_center, 'auxfile center': 'center x: %.2f pix, y: %.2f pix' % (current_center['x'], current_center['y']), 'auxfile central sb': 'central surface brightness: %.4f mag arcsec^-2' % sb0}
 
 
 def _hillclimb_mean_loss(x, IMG, PSF, noise):
     center_loss = 0
     for rr in range(3):
-        isovals = _iso_extract(IMG,(rr+0.5)*PSF,0.,
-                               0.,{'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
+        isovals = _iso_extract(IMG,(rr+0.5)*PSF, {'ellip': 0., 'pa': 0.},
+                               {'x': x[0], 'y': x[1]}, more = False, rad_interp = 10*PSF)
         coefs = fft(isovals)
         center_loss += np.abs(coefs[1])/(len(isovals)*(max(noise,np.mean(isovals)))) 
     return center_loss
@@ -698,7 +698,7 @@ def Center_HillClimb_mean(IMG, results, options):
         isovals = []
         coefs = []
         for r in sampleradii:
-            isovals.append(_iso_extract(dat,r,0.,0.,current_center, more = True))
+            isovals.append(_iso_extract(dat,r, {'ellip': 0., 'pa': 0.},current_center, more = True))
             coefs.append(fft(isovals[-1][0]))
             phases.append((-np.angle(coefs[-1][1])) % (2*np.pi))
         direction = Angle_Median(phases) % (2*np.pi)

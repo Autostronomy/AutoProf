@@ -18,7 +18,7 @@ sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import _x_to_pa, _x_to_eps, _inv_x_to_eps, _inv_x_to_pa, SBprof_to_COG_errorprop, _iso_extract, _iso_between, LSBImage, AddLogo, _average, _scatter, flux_to_sb, flux_to_mag, PA_shift_convention, autocolours, fluxdens_to_fluxsum_errorprop, mag_to_flux
 from autoprofutils.Diagnostic_Plots import Plot_SB_Profile, Plot_I_Profile
 
-def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
+def _Generate_Profile(IMG, results, R, parameters, options):
     
     # Create image array with background and mask applied
     try:
@@ -51,29 +51,29 @@ def _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options):
             isobandwidth = R[i]*(options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.025)
         isisophoteband = False
         if medflux > (results['background noise']*(options['ap_isoband_start'] if 'ap_isoband_start' in options else 2)) or isobandwidth < 0.5:
-            isovals = _iso_extract(dat, R[i], E[i], PA[i], results['center'], mask = mask, more = True,
+            isovals = _iso_extract(dat, R[i], parameters[i], results['center'], mask = mask, more = True,
                                    rad_interp = (options['ap_iso_interpolate_start'] if 'ap_iso_interpolate_start' in options else 5)*results['psf fwhm'],
                                    interp_method = (options['ap_iso_interpolate_method'] if 'ap_iso_interpolate_method' in options else 'lanczos'),
                                    interp_window = (int(options['ap_iso_interpolate_window']) if 'ap_iso_interpolate_window' in options else 5),
                                    sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                    sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                    sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
-            isovalsfix = _iso_extract(dat, R[i], results['init ellip'], results['init pa'], results['center'], mask = mask,
+            isovalsfix = _iso_extract(dat, R[i], {'ellip': results['init ellip'], 'pa': results['init pa']}, results['center'], mask = mask,
                                       rad_interp = (options['ap_iso_interpolate_start'] if 'ap_iso_interpolate_start' in options else 5)*results['psf fwhm'],
                                       sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                       sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                       sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
         else:
             isisophoteband = True
-            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, E[i], PA[i], results['center'], mask = mask, more = True,
+            isovals = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, parameters[i], results['center'], mask = mask, more = True,
                                    sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                    sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                    sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
-            isovalsfix = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, results['init ellip'], results['init pa'], results['center'], mask = mask,
+            isovalsfix = _iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, {'ellip': results['init ellip'], 'pa': results['init pa']}, results['center'], mask = mask,
                                       sigmaclip = options['ap_isoclip'] if 'ap_isoclip' in options else False,
                                       sclip_iterations = options['ap_isoclip_iterations'] if 'ap_isoclip_iterations' in options else 10,
                                       sclip_nsigma = options['ap_isoclip_nsigma'] if 'ap_isoclip_nsigma' in options else 5)
-        isotot = np.sum(_iso_between(dat, 0, R[i], E[i], PA[i], results['center'], mask = mask))
+        isotot = np.sum(_iso_between(dat, 0, R[i], parameters[i], results['center'], mask = mask))
         medflux = _average(isovals[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
         scatflux = _scatter(isovals[0], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
         medfluxfix = _average(isovalsfix, options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
@@ -590,28 +590,29 @@ def Isophote_Extract(IMG, results, options):
     logging.info('%s: R complete in range [%.1f,%.1f]' % (options['ap_name'],R[0],R[-1]))
     
     # Interpolate profile values, when extrapolating just take last point
-    E = _x_to_eps(np.interp(R, results['fit R'], _inv_x_to_eps(results['fit ellip'])))
-    E[R < results['fit R'][0]] = results['fit ellip'][0]
-    E[R > results['fit R'][-1]] = results['fit ellip'][-1]
     tmp_pa_s = np.interp(R, results['fit R'], np.sin(2*results['fit pa']))
     tmp_pa_c = np.interp(R, results['fit R'], np.cos(2*results['fit pa']))
+    E = _x_to_eps(np.interp(R, results['fit R'], _inv_x_to_eps(results['fit ellip'])))
     PA = _x_to_pa(((np.arctan(tmp_pa_s/tmp_pa_c) + (np.pi*(tmp_pa_c < 0))) % (2*np.pi))/2)
-    PA[R < results['fit R'][0]] = _x_to_pa(results['fit pa'][0])
-    PA[R > results['fit R'][-1]] = _x_to_pa(results['fit pa'][-1])
+    parameters = list({'ellip': E[i],
+                       'pa': PA[i]} for i in range(len(R)))
 
-    # Get errors for pa and ellip
-    if 'fit ellip_err' in results and (not results['fit ellip_err'] is None) and 'fit pa_err' in results and (not results['fit pa_err'] is None):
-        Ee = np.clip(np.interp(R, results['fit R'], results['fit ellip_err']), a_min = 1e-3, a_max = None)
-        Ee[R < results['fit R'][0]] = results['fit ellip_err'][0]
-        Ee[R > results['fit R'][-1]] = results['fit ellip_err'][-1]
-        PAe = np.clip(np.interp(R, results['fit R'], results['fit pa_err']), a_min = 1e-3, a_max = None)
-        PAe[R < results['fit R'][0]] = results['fit pa_err'][0]
-        PAe[R > results['fit R'][-1]] = results['fit pa_err'][-1]
-    else:
-        Ee = np.zeros(len(R))
-        PAe = np.zeros(len(R))
+    if 'fit Fmodes' in results:
+        for i in range(len(R)):
+            parameters[i]['m'] = results['fit Fmodes']
+            parameters[i]['Am'] = np.array(list(np.interp(R[i], results['fit R'], results['fit Fmode A%i' % results['Fmode'][m]]) for m in range(len(results['fit Fmodes']))))
+            parameters[i]['thetam'] = np.array(list(np.interp(R[i], results['fit R'], results['fit Fmode theta%i' % results['Fmode'][m]]) for m in range(len(results['fit Fmodes'])))) 
     
-    return IMG, _Generate_Profile(IMG, results, R, E, Ee, PA, PAe, options)
+    # Get errors for pa and ellip
+    for i in range(len(R)):
+        if 'fit ellip_err' in results and (not results['fit ellip_err'] is None) and 'fit pa_err' in results and (not results['fit pa_err'] is None):
+            parameters[i]['ellip err'] = np.clip(np.interp(R[i], results['fit R'], results['fit ellip_err']), a_min = 1e-3, a_max = None)
+            parameters[i]['pa err'] = np.clip(np.interp(R[i], results['fit R'], results['fit pa_err']), a_min = 1e-3, a_max = None)
+        else:
+            parameters[i]['ellip err'] = 0.
+            parameters[i]['pa err'] = 0.
+    
+    return IMG, _Generate_Profile(IMG, results, R, parameters, options)
 
 def Isophote_Extract_Photutils(IMG, results, options):
     """Wrapper of photutils method for extracting SB profiles.

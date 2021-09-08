@@ -329,20 +329,63 @@ def interpolate_Lanczos(dat, X, Y, scale):
         flux.append(np.sum(chunk*L)/w)
     return np.array(flux)
         
-def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
+# def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
+#                  sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
+
+#     ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
+#               [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
+#     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
+#     XX -= c['x'] - float(ranges[0][0])
+#     YY -= c['y'] - float(ranges[1][0])
+#     if more:
+#         theta = np.arctan(YY/XX) + np.pi*(XX < 0)
+#     XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
+#     YY /= 1 - eps
+#     RR = XX**2 + YY**2
+#     rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
+#     fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
+#     CHOOSE = None
+#     if not mask is None and sma_high > 5:
+#         CHOOSE = np.logical_not(mask[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect])
+#     # Perform sigma clipping if requested
+#     if sigmaclip:
+#         sclim = Sigma_Clip_Upper(fluxes, sclip_iterations, sclip_nsigma)
+#         if CHOOSE is None:
+#             CHOOSE = fluxes < sclim
+#         else:
+#             CHOOSE = np.logical_or(CHOOSE, fluxes < sclim)
+#     if CHOOSE is not None and np.sum(CHOOSE) < 5:
+#         logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, pa*180/np.pi, eps))
+#         CHOOSE = np.ones(CHOOSE.shape).astype(bool)
+    
+#     if more:
+#         if CHOOSE is not None and sma_high > 5:
+#             return fluxes[CHOOSE], theta[rselect][CHOOSE]
+#         else:
+#             return fluxes, theta[rselect]
+#     else:
+#         if CHOOSE is not None and sma_high > 5:
+#             return fluxes[CHOOSE]
+#         else:
+#             return fluxes
+
+
+def _iso_between(IMG, sma_low, sma_high, PARAMS, c, more = False, mask = None,
                  sigmaclip = False, sclip_iterations = 10, sclip_nsigma = 5):
 
-    ranges = [[max(0,int(c['x']-sma_high-2)), min(IMG.shape[1],int(c['x']+sma_high+2))],
-              [max(0,int(c['y']-sma_high-2)), min(IMG.shape[0],int(c['y']+sma_high+2))]]
+    Rlim = sma_high * (1. if PARAMS['m'] is None else np.exp(sum(np.abs(PARAMS['Am'][m]) for m in range(len(PARAMS['m'])))))
+    ranges = [[max(0,int(c['x']-Rlim-2)), min(IMG.shape[1],int(c['x']+Rlim+2))],
+              [max(0,int(c['y']-Rlim-2)), min(IMG.shape[0],int(c['y']+Rlim+2))]]
     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
     XX -= c['x'] - float(ranges[0][0])
     YY -= c['y'] - float(ranges[1][0])
-    if more:
-        theta = np.arctan(YY/XX) + np.pi*(XX < 0)
-    XX, YY = (XX*np.cos(-pa) - YY*np.sin(-pa), XX*np.sin(-pa) + YY*np.cos(-pa))
-    YY /= 1 - eps
-    RR = XX**2 + YY**2
-    rselect = np.logical_and(RR < sma_high**2, RR > sma_low**2)
+
+    theta = np.arctan(YY/XX) + np.pi*(XX < 0)
+    XX, YY = (XX*np.cos(-PARAMS['pa']) - YY*np.sin(-PARAMS['pa']), XX*np.sin(-PARAMS['pa']) + YY*np.cos(-PARAMS['pa']))
+    YY /= 1 - PARAMS['ellip']
+    Fmodescaling = 1. if PARAMS['m'] is None else np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + (PARAMS['thetam'][m] - PARAMS['pa']))) for m in range(len(PARAMS['m']))))
+    RR = np.sqrt(XX**2 + YY**2)/Fmodescaling
+    rselect = np.logical_and(RR < sma_high, RR > sma_low)
     fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
     CHOOSE = None
     if not mask is None and sma_high > 5:
@@ -368,25 +411,94 @@ def _iso_between(IMG, sma_low, sma_high, eps, pa, c, more = False, mask = None,
             return fluxes[CHOOSE]
         else:
             return fluxes
-        
-def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False,
+
+# def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, interp_mask = False,
+#                  rad_interp = 30, interp_method = 'lanczos', interp_window = 5, sigmaclip = False,
+#                  sclip_iterations = 10, sclip_nsigma = 5):
+#     """
+#     Internal, basic function for extracting the pixel fluxes along an isophote
+#     """
+    
+#     N = max(15,int(0.9*2*np.pi*sma))
+#     if not minN is None:
+#         N = max(minN,N)
+#     # points along ellipse to evaluate
+#     theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
+#     # Define ellipse
+#     X = sma*np.cos(theta)
+#     Y = sma*(1-eps)*np.sin(theta)
+#     # rotate ellipse by PA
+#     X,Y = (X*np.cos(pa) - Y*np.sin(pa) + c['x'], X*np.sin(pa) + Y*np.cos(pa) + c['y'])
+#     theta = (theta + pa) % (2*np.pi)
+
+#     # Reject samples from outside the image
+#     BORDER = np.logical_and(np.logical_and(X >= 0, X < (IMG.shape[1]-1)),
+#                             np.logical_and(Y >= 0, Y < (IMG.shape[0]-1)))
+#     X = X[BORDER]
+#     Y = Y[BORDER]
+#     theta = theta[BORDER]
+    
+#     if sma < rad_interp: 
+#         box = [[max(0,int(c['x']-sma-5)), min(IMG.shape[1],int(c['x']+sma+5))],
+#                [max(0,int(c['y']-sma-5)), min(IMG.shape[0],int(c['y']+sma+5))]]
+#         if interp_method == 'bicubic':
+#             flux = interpolate_bicubic(IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]], X - box[0][0], Y - box[1][0])
+#         elif interp_method == 'lanczos':
+#             flux = interpolate_Lanczos(IMG, X, Y, interp_window)
+#         else:
+#             raise ValueError('Unknown interpolate method %s. Should be one of lanczos or bicubic' % interp_method)
+#     else:
+#         # round to integers and sample pixels values
+#         flux = IMG[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]
+#     # CHOOSE holds bolean array for which flux values to keep, initialized as None for no clipping
+#     CHOOSE = None
+#     # Mask pixels if a mask is given
+#     if not mask is None:
+#         CHOOSE = np.logical_not(mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)])
+#     # Perform sigma clipping if requested
+#     if sigmaclip:
+#         sclim = Sigma_Clip_Upper(flux, sclip_iterations, sclip_nsigma)
+#         if CHOOSE is None:
+#             CHOOSE = flux < sclim
+#         else:
+#             CHOOSE = np.logical_or(CHOOSE, flux < sclim)
+#     # Dont clip pixels if that removes all of the pixels
+#     if not CHOOSE is None and np.sum(CHOOSE) < 5:
+#         logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
+#         # Interpolate clipped flux values if requested
+#     elif not CHOOSE is None and interp_mask:
+#         flux[np.logical_not(CHOOSE)] = np.interp(theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period = 2*np.pi)
+#         # simply remove all clipped pixels if user doesn't reqest another option
+#     elif not CHOOSE is None:
+#         flux = flux[CHOOSE]
+#         theta = theta[CHOOSE]
+
+#     # Return just the flux values, or flux and angle values
+#     if more:
+#         return flux, theta
+#     else:
+#         return flux
+
+def _iso_extract(IMG, sma, PARAMS, c, more = False, minN = None, mask = None, interp_mask = False,
                  rad_interp = 30, interp_method = 'lanczos', interp_window = 5, sigmaclip = False,
                  sclip_iterations = 10, sclip_nsigma = 5):
     """
-    Internal, basic function for extracting the pixel fluxes along and isophote
+    Internal, basic function for extracting the pixel fluxes along an isophote
     """
-    
+    if not 'm' in PARAMS:
+        PARAMS['m'] = None
     N = max(15,int(0.9*2*np.pi*sma))
     if not minN is None:
         N = max(minN,N)
     # points along ellipse to evaluate
     theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
+    R = sma*(np.ones(N) if PARAMS['m'] is None else np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + PARAMS['thetam'][m])) for m in range(len(PARAMS['m'])))))
     # Define ellipse
-    X = sma*np.cos(theta)
-    Y = sma*(1-eps)*np.sin(theta)
+    X = R*np.cos(theta)
+    Y = R*(1-PARAMS['ellip'])*np.sin(theta)
     # rotate ellipse by PA
-    X,Y = (X*np.cos(pa) - Y*np.sin(pa) + c['x'], X*np.sin(pa) + Y*np.cos(pa) + c['y'])
-    theta = (theta + pa) % (2*np.pi)
+    X,Y = (X*np.cos(PARAMS['pa']) - Y*np.sin(PARAMS['pa']) + c['x'], X*np.sin(PARAMS['pa']) + Y*np.cos(PARAMS['pa']) + c['y'])
+    theta = (theta + PARAMS['pa']) % (2*np.pi)
 
     # Reject samples from outside the image
     BORDER = np.logical_and(np.logical_and(X >= 0, X < (IMG.shape[1]-1)),
@@ -394,10 +506,11 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
     X = X[BORDER]
     Y = Y[BORDER]
     theta = theta[BORDER]
-    
-    if sma < rad_interp: 
-        box = [[max(0,int(c['x']-sma-5)), min(IMG.shape[1],int(c['x']+sma+5))],
-               [max(0,int(c['y']-sma-5)), min(IMG.shape[0],int(c['y']+sma+5))]]
+
+    Rlim = np.max(R)
+    if Rlim < rad_interp: 
+        box = [[max(0,int(c['x']-Rlim-5)), min(IMG.shape[1],int(c['x']+Rlim+5))],
+               [max(0,int(c['y']-Rlim-5)), min(IMG.shape[0],int(c['y']+Rlim+5))]]
         if interp_method == 'bicubic':
             flux = interpolate_bicubic(IMG[box[1][0]:box[1][1],box[0][0]:box[0][1]], X - box[0][0], Y - box[1][0])
         elif interp_method == 'lanczos':
@@ -420,8 +533,8 @@ def _iso_extract(IMG, sma, eps, pa, c, more = False, minN = None, mask = None, i
         else:
             CHOOSE = np.logical_or(CHOOSE, flux < sclim)
     # Dont clip pixels if that removes all of the pixels
-    if not CHOOSE is None and np.sum(CHOOSE) < 5:
-        logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, pa*180/np.pi, eps))
+    if not CHOOSE is None and np.sum(CHOOSE) <= 0:
+        logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, PARAMS['pa']*180/np.pi, PARAMS['ellip']))
         # Interpolate clipped flux values if requested
     elif not CHOOSE is None and interp_mask:
         flux[np.logical_not(CHOOSE)] = np.interp(theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period = 2*np.pi)

@@ -7,6 +7,7 @@ from pipeline_steps.PSF import PSF_IRAF, PSF_StarFind
 from pipeline_steps.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
 from pipeline_steps.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced
 from pipeline_steps.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean
+from pipeline_steps.Isophote_HighModeFits import Isophote_Fit_general_FFT_Robust
 from pipeline_steps.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask, Star_Mask
 from pipeline_steps.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced, Isophote_Extract_Photutils
 from pipeline_steps.Check_Fit import Check_Fit
@@ -61,6 +62,7 @@ class Isophote_Pipeline(object):
                                  'plot image': Plot_Galaxy_Image,
                                  'writefi': WriteFi,
                                  'isophotefit': Isophote_Fit_FFT_Robust,
+                                 'isophotefit Fmodes': Isophote_Fit_general_FFT_Robust,
                                  'isophotefit mean': Isophote_Fit_FFT_mean,
                                  'isophotefit forced': Isophote_Fit_Forced,
                                  'isophotefit photutils': Photutils_Fit,
