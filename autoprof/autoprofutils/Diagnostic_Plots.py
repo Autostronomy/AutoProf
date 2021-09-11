@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse, Wedge
 import matplotlib.cm as cm
 import matplotlib
+from itertools import compress
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
@@ -119,7 +120,7 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
     for i in range(len(sample_radii)):
         N = max(15,int(0.9*2*np.pi*sample_radii[i]))
         theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
-        R = sample_radii[i]*(np.ones(N) if parameters[i]['m'] is None else np.exp(sum(parameters[i]['Am'][m]*np.cos(parameters[i]['m'][m]*(theta + parameters[i]['thetam'][m])) for m in range(len(parameters[i]['m'])))))
+        R = sample_radii[i]*(np.ones(N) if parameters[i]['m'] is None else np.exp(sum(parameters[i]['Am'][m]*np.cos(parameters[i]['m'][m]*(theta + parameters[i]['Phim'][m])) for m in range(len(parameters[i]['m'])))))
         X = R*np.cos(theta)
         Y = R*(1-parameters[i]['ellip'])*np.sin(theta)
         X,Y = (X*np.cos(parameters[i]['pa']) - Y*np.sin(parameters[i]['pa']), X*np.sin(parameters[i]['pa']) + Y*np.cos(parameters[i]['pa']))
@@ -131,24 +132,32 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
     plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'fit_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
         
-    plt.errorbar(np.array(sample_radii) * options['ap_pixscale'], list(parameters[i]['ellip'] for i in range(len(parameters))),
-                 yerr = list(parameters[i]['ellip err'] for i in range(len(parameters))), color = autocolours['red1'], label = 'ellip [1-b/a]')
-    plt.errorbar(np.array(sample_radii) * options['ap_pixscale'], list(parameters[i]['pa']/np.pi for i in range(len(parameters))),
-                 yerr = list(parameters[i]['pa err']/np.pi for i in range(len(parameters))), color = autocolours['blue1'], label = 'pa/$\\pi$')
-    plt.ylim([-0.01, 1.02])
-    plt.xlabel('Semi-major axis [arcsec]')
-    plt.ylabel('Elliptical Parameter Profile')
-    plt.legend()
-    plt.tight_layout()
+def _Plot_Isophotes(dat, R, parameters, results, options):
+    for i in range(len(parameters)):
+        if not 'm' in parameters[i]:
+            parameters[i]['m'] = None
+    Rlim = R[-1] * (1. if parameters[-1]['m'] is None else np.exp(sum(np.abs(parameters[-1]['Am'][m]) for m in range(len(parameters[-1]['m'])))))    
+    ranges = [[max(0,int(results['center']['x']-Rlim*1.2)), min(dat.shape[1],int(results['center']['x']+Rlim*1.2))],
+              [max(0,int(results['center']['y']-Rlim*1.2)), min(dat.shape[0],int(results['center']['y']+Rlim*1.2))]]
+    LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
+    fitlim = results['fit R'][-1] if 'fit R' in results else np.inf
+    for i in range(len(R)):
+        N = max(15,int(0.9*2*np.pi*R[i]))
+        theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
+        RR = R[i]*(np.ones(N) if parameters[i]['m'] is None else np.exp(sum(parameters[i]['Am'][m]*np.cos(parameters[i]['m'][m]*(theta + parameters[i]['Phim'][m])) for m in range(len(parameters[i]['m'])))))
+        X = RR*np.cos(theta)
+        Y = RR*(1-parameters[i]['ellip'])*np.sin(theta)
+        X,Y = (X*np.cos(parameters[i]['pa']) - Y*np.sin(parameters[i]['pa']), X*np.sin(parameters[i]['pa']) + Y*np.cos(parameters[i]['pa']))
+        X += results['center']['x'] - ranges[0][0]
+        Y += results['center']['y'] - ranges[1][0]
+        plt.plot(list(X) + [X[0]], list(Y) + [Y[0]], linewidth = ((i+1)/len(R))**2, color = autocolours['blue1'] if (i % 4 == 0) else autocolours['red1'], linestyle = '-' if R[i] < fitlim else '--')
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'phaseprofile_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()
-
-
-
     
-def Plot_SB_Profile(dat, R, SB, SB_e, ellip, pa, results, options):
+    
+def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
 
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
     
@@ -180,23 +189,10 @@ def Plot_SB_Profile(dat, R, SB, SB_e, ellip, pa, results, options):
     plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()                
 
-    useR = R[CHOOSE]/options['ap_pixscale']
-    useE = np.array(ellip)[CHOOSE]
-    usePA = np.array(pa)[CHOOSE]
-    ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
-              [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
-    LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-    fitlim = results['fit R'][-1] if 'fit R' in results else np.inf
-    for i in range(len(useR)):
-        plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
-                                    usePA[i], fill = False, linewidth = 1.2*((i+1)/len(useR))**2, color = autocolours['blue1'] if (i % 4 == 0) else autocolours['red1'], linestyle = '-' if useR[i] < fitlim else '--'))
-    if not ('ap_nologo' in options and options['ap_nologo']):
-        AddLogo(plt.gcf())
-    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-    plt.close()
+    _Plot_Isophotes(dat, R[CHOOSE]/options['ap_pixscale'], list(compress(parameters, CHOOSE)), results, options)
 
 
-def Plot_I_Profile(dat, R, I, I_e, ellip, pa, results, options):
+def Plot_I_Profile(dat, R, I, I_e, parameters, results, options):
 
     CHOOSE = np.isfinite(I)
     if np.sum(CHOOSE) < 5:
@@ -224,21 +220,75 @@ def Plot_I_Profile(dat, R, I, I_e, ellip, pa, results, options):
     plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
     plt.close()                
 
-    useR = R[CHOOSE]/options['ap_pixscale']
-    useE = np.array(ellip)[CHOOSE]
-    usePA = np.array(pa)[CHOOSE]
-    ranges = [[max(0,int(results['center']['x']-useR[-1]*1.2)), min(dat.shape[1],int(results['center']['x']+useR[-1]*1.2))],
-              [max(0,int(results['center']['y']-useR[-1]*1.2)), min(dat.shape[0],int(results['center']['y']+useR[-1]*1.2))]]
-    LSBImage(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]], results['background noise'])
-    fitlim = results['fit R'][-1] if 'fit R' in results else np.inf
-    for i in range(len(useR)):
-        plt.gca().add_patch(Ellipse((results['center']['x'] - ranges[0][0],results['center']['y'] - ranges[1][0]), 2*useR[i], 2*useR[i]*(1. - useE[i]),
-                                    usePA[i], fill = False, linewidth = 1.2*((i+1)/len(useR))**2, color = autocolours['blue1'] if (i % 4 == 0) else autocolours['red1'], linestyle = '-' if useR[i] < fitlim else '--'))
+    _Plot_Isophotes(dat, R[CHOOSE]/options['ap_pixscale'], list(compress(parameters, CHOOSE)), results, options)
+
+def Plot_Phase_Profile(R, parameters, results, options):
+    for i in range(len(parameters)):
+        if not 'm' in parameters[i]:
+            parameters[i]['m'] = None
+
+    fig = plt.figure()
+    if not parameters[0]['m'] is None:
+        fig.add_subplot(2,1,1)
+    else:
+        fig.add_subplot(1,1,1)
+    plt.plot(R, list(p['ellip'] for p in parameters), label = 'e [1 - b/a]', color = autocolours['red1'])
+    plt.plot(R, list(p['pa']/np.pi for p in parameters), label = 'PA [rad/$\\pi$]', color = autocolours['blue1'])
+    plt.legend(fontsize = 11)
+    plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
+    #plt.ylabel('Ellipticity and Position Angle')
+    plt.tick_params(labelsize = 14)
+    if not parameters[0]['m'] is None:
+        plt.xlabel('')
+        fig.add_subplot(2,1,2)
+        plt.subplots_adjust(hspace = 0)
+        for m in range(len(parameters[0]['m'])):
+            plt.plot(R, list(p['Am'][m] for p in parameters), label = 'A$_%i$' % parameters[0]['m'][m])
+            plt.plot(R, list(p['Phim'][m]/np.pi for p in parameters), label = '$\\phi_%i$ [rad/$\\pi$]' % parameters[0]['m'][m])
+        plt.legend()
+        plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
+        #plt.ylabel('Fourier Mode Parameters')
+        plt.tick_params(labelsize = 14)
+    plt.tight_layout()
     if not ('ap_nologo' in options and options['ap_nologo']):
         AddLogo(plt.gcf())
-    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'photometry_ellipse_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
-    plt.close()
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'phase_profile_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.close()                
 
+def Plot_Meas_Fmodes(R, parameters, results, options):
+    for i in range(len(parameters)):
+        if not 'm' in parameters[i]:
+            parameters[i]['m'] = None
+
+    fig = plt.figure()
+    if not parameters[0]['m'] is None:
+        fig.add_subplot(2,1,1)
+    else:
+        fig.add_subplot(1,1,1)
+    plt.plot(R, list(p['ellip'] for p in parameters), label = 'e [1 - b/a]', color = autocolours['red1'])
+    plt.plot(R, list(p['pa']/np.pi for p in parameters), label = 'PA [rad/$\\pi$]', color = autocolours['blue1'])
+    plt.legend(fontsize = 11)
+    plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
+    #plt.ylabel('Ellipticity and Position Angle')
+    plt.tick_params(labelsize = 14)
+    if not parameters[0]['m'] is None:
+        plt.xlabel('')
+        fig.add_subplot(2,1,2)
+        plt.subplots_adjust(hspace = 0)
+        for m in range(len(parameters[0]['m'])):
+            plt.plot(R, list(p['Am'][m] for p in parameters), label = 'A$_%i$' % parameters[0]['m'][m])
+            plt.plot(R, list(p['Phim'][m]/np.pi for p in parameters), label = '$\\phi_%i$ [rad/$\\pi$]' % parameters[0]['m'][m])
+        plt.legend()
+        plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
+        #plt.ylabel('Fourier Mode Parameters')
+        plt.tick_params(labelsize = 14)
+    plt.tight_layout()
+    if not ('ap_nologo' in options and options['ap_nologo']):
+        AddLogo(plt.gcf())
+    plt.savefig(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', 'phase_profile_%s.jpg' % options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+    plt.close()                
+
+            
 
 def Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options):
     

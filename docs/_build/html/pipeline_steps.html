@@ -1012,54 +1012,8 @@ and is not lopsided.</p>
 <div class="section" id="module-pipeline_steps.Ellipse_Model">
 <span id="pipeline-steps-ellipse-model-module"></span><h2>pipeline_steps.Ellipse_Model module<a class="headerlink" href="#module-pipeline_steps.Ellipse_Model" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="pipeline_steps.Ellipse_Model.EllipseModel_Fix">
-<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Ellipse_Model.</span></span><span class="sig-name descname"><span class="pre">EllipseModel_Fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Ellipse_Model.html#EllipseModel_Fix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Ellipse_Model.EllipseModel_Fix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a smooth model image of the galaxy with fixed PA/elliptiicty.</p>
-<p>Constructs a 2D model image of the galaxy based on the extracted
-surface brightness profile and the global ellipticity and position
-angle values. First the image is transformed by rotating and
-stretching until the global ellipse fit has been transformed into
-a circle.  The radial distance of every pixel from the galaxy
-center is then used on an interpolated SB profile to determine the
-corresponding SB value. The SB values are applied and converted
-from mag/arcsec^2 to flux units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>22.5</p>
-</dd>
-</dl>
-</p>
-</dd>
-</dl>
-<p class="rubric">References</p>
-<ul class="simple">
-<li><p>‘center’</p></li>
-<li><p>‘init ellip’</p></li>
-<li><p>‘init pa’</p></li>
-<li><p>‘prof data’</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><ul>
-<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
-<li><p><strong>results</strong> (<em>dict</em>) –</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;ellipse model&#39;</span><span class="p">:</span> <span class="c1"># 2d image with flux values for smooth model of galaxy</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pipeline_steps.Ellipse_Model.EllipseModel_General">
-<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Ellipse_Model.</span></span><span class="sig-name descname"><span class="pre">EllipseModel_General</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Ellipse_Model.html#EllipseModel_General"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Ellipse_Model.EllipseModel_General" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pipeline_steps.Ellipse_Model.EllipseModel">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Ellipse_Model.</span></span><span class="sig-name descname"><span class="pre">EllipseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Ellipse_Model.html#EllipseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Ellipse_Model.EllipseModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a smooth model image of the galaxy with fixed PA/elliptiicty.</p>
 <p>Constructs a 2D model image of the galaxy based on the extracted
 surface brightness profile and the global ellipticity and position
@@ -1296,11 +1250,13 @@ isophote.</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_fouriermodes</strong> (<em>int</em>) – <p>integer for number of fourier modes to extract along fitted
-isophotes. Most popular is 4, which identifies boxy/disky
-isophotes. The outputted values are computed as a_i =
-real(F_i)/abs(F_0) where F_i is a fourier coefficient. Not
-activated by default as it adds to computation time.</p>
+<li><p><strong>ap_iso_measurecoefs</strong> (<em>tuple</em>) – <p>tuple indicating which fourier modes to extract along fitted
+isophotes. Most common is (4,), which identifies boxy/disky
+isophotes. Also common is (1,3), which identifies lopsided
+galaxies. The outputted values are computed as a_i =
+imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
+fourier coefficient. Not activated by default as it adds to
+computation time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>None</p>
@@ -1468,11 +1424,13 @@ isophote.</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_fouriermodes</strong> (<em>int</em>) – <p>integer for number of fourier modes to extract along fitted
-isophotes. Most popular is 4, which identifies boxy/disky
-isophotes. The outputted values are computed as a_i =
-real(F_i)/abs(F_0) where F_i is a fourier coefficient. Not
-activated by default as it adds to computation time.</p>
+<li><p><strong>ap_iso_measurecoefs</strong> (<em>tuple</em>) – <p>tuple indicating which fourier modes to extract along fitted
+isophotes. Most common is (4,), which identifies boxy/disky
+isophotes. Also common is (1,3), which identifies lopsided
+galaxies. The outputted values are computed as a_i =
+imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
+fourier coefficient. Not activated by default as it adds to
+computation time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>None</p>
@@ -1623,12 +1581,36 @@ smaller values give more chaotic fits.</p>
 </dd>
 </dl>
 </p></li>
-<li><p><strong>ap_isofit_coefs</strong> (<em>tuple</em>) – <p>Tuple of FFT coefficients to use in optimization
+<li><p><strong>ap_isofit_losscoefs</strong> (<em>tuple</em>) – <p>Tuple of FFT coefficients to use in optimization
 procedure. AutoProf will attemp to minimize the power in all
 listed FFT coefficients. Must be a tuple, not a list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">default</dt>
 <dd class="field-odd"><p>(2,)</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isofit_fitcoefs</strong> (<em>tuple</em>) – <p>Tuple of FFT coefficients to use in fitting procedure. AutoProf
+will attemp to fit ellipses with these Fourier mode
+perturbations. Such perturbations allow for lopsided, boxy,
+disky, and other types of isophotes beyond straightforward
+ellipses. Must be a tuple, not a list. Note that AutoProf will
+first fit ellipses, then turn on the Fourier mode perturbations,
+thus the fitting time will always be longer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_isofit_fitcoefs_FFTinit</strong> (<em>bool</em>) – <p>If True, the coefficients for the Fourier modes fitted from
+ap_isofit_fitcoefs will be initialized using an FFT
+decomposition along fitted elliptical isophotes. This can
+improve the fit result, though it is less stable and so users
+should examine the results after fitting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
 </dd>
 </dl>
 </p></li>
@@ -1706,6 +1688,9 @@ recomended.</p>
  <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
  <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
  <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;fit Fmodes&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, fitted Fourier mode indices (tuple)</span>
+ <span class="s1">&#39;fit Fmode A*&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, fitted Fourier mode amplitudes, * for each index (ndarray)</span>
+ <span class="s1">&#39;fit Fmode Phi*&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, fitted Fourier mode phases, * for each index (ndarray)</span>
  <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
 
 <span class="p">}</span>
@@ -1763,6 +1748,65 @@ smaller values give more chaotic fits.</p>
 <li><p>‘background noise’</p></li>
 <li><p>‘center’</p></li>
 <li><p>‘psf fwhm’</p></li>
+<li><p>‘init ellip’</p></li>
+<li><p>‘init pa’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;fit ellip&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of ellipticity values (ndarray)</span>
+ <span class="s1">&#39;fit pa&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of PA values (ndarray)</span>
+ <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
+ <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
+ <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;auxfile fitlimit&#39;</span><span class="p">:</span> <span class="c1"># optional, auxfile message (string)</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.Isophote_Fit.</span></span><span class="sig-name descname"><span class="pre">Isophote_Fit_FixedPhase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/Isophote_Fit.html#Isophote_Fit_FixedPhase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simply applies fixed position angle and ellipticity at the initialization values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as
+<em>ap_sample—scale</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>0.2</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+background noise level. Default is 2, smaller values will end
+fitting further out in the galaxy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>2</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+<li><p>‘psf fwhm’</p></li>
+<li><p>‘center’</p></li>
+<li><p>‘mask’ (optional)</p></li>
 <li><p>‘init ellip’</p></li>
 <li><p>‘init pa’</p></li>
 </ul>

@@ -93,10 +93,10 @@ def Check_Fit(IMG, results, options):
 
         
     for i in range(len(checkson['R'])): 
-        init_isovals = _iso_extract(dat,checkson['R'][i],results['init ellip'], # fixme, use mask
-                                    results['init pa'],use_center)
-        isovals = _iso_extract(dat,checkson['R'][i],checkson['ellip'][i],
-                               checkson['pa'][i],use_center)
+        init_isovals = _iso_extract(dat,checkson['R'][i], {'ellip': results['init ellip'], # fixme, use mask
+                                    'pa': results['init pa']},use_center)
+        isovals = _iso_extract(dat,checkson['R'][i],{'ellip': checkson['ellip'][i],
+                               'pa': checkson['pa'][i]},use_center)
         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
 
         if np.median(isovals) < (iqr(isovals)-results['background noise']):

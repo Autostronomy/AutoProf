@@ -12,7 +12,7 @@ from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, Isophot
 from photutils.isophote import Ellipse as Photutils_Ellipse
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-from copy import copy
+from copy import copy, deepcopy
 import logging
 import sys
 import os
@@ -71,6 +71,101 @@ def Photutils_Fit(IMG, results, options):
 
     return IMG, res
 
+def Isophote_Fit_FixedPhase(IMG, results, options):
+    """Simply applies fixed position angle and ellipticity at the initialization values.
+    
+    
+
+    Arguments
+    -----------------
+    ap_scale: float    
+      growth scale when fitting isophotes, not the same as
+      *ap_sample---scale*.
+
+      :default:
+        0.2
+    
+    ap_fit_limit: float
+      noise level out to which to extend the fit in units of pixel
+      background noise level. Default is 2, smaller values will end
+      fitting further out in the galaxy image.
+
+      :default:
+        2
+
+    References
+    ----------
+    - 'background'
+    - 'background noise'
+    - 'psf fwhm'
+    - 'center'
+    - 'mask' (optional)
+    - 'init ellip'
+    - 'init pa'
+        
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+     
+        {'fit ellip': , # array of ellipticity values (ndarray)
+         'fit pa': , # array of PA values (ndarray)
+         'fit R': , # array of semi-major axis values (ndarray)
+         'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
+         'fit pa_err': , # optional, array of PA error values (ndarray)
+         'auxfile fitlimit': # optional, auxfile message (string)
+    
+        }
+
+    """
+
+    if 'ap_scale' in options:
+        scale = options['ap_scale']
+    else:
+        scale = 0.2
+    # subtract background from image during processing
+    dat = IMG - results['background']
+    mask = results['mask'] if 'mask' in results else None
+    if not np.any(mask):
+        mask = None
+    
+    # Determine sampling radii
+    ######################################################################
+    shrink = 0
+    while shrink < 5:
+        sample_radii = [max(1.,results['psf fwhm']/2)]
+        while sample_radii[-1] < (max(IMG.shape)/2):
+            isovals = _iso_extract(dat,sample_radii[-1],{'ellip': results['init ellip'], 'pa': results['init pa']},
+                                           results['center'], more = False, mask = mask)
+            if np.median(isovals) < (options['ap_fit_limit'] if 'ap_fit_limit' in options else 2)*results['background noise']:
+                break
+            sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
+        if len(sample_radii) < 15:
+            shrink += 1
+        else:
+            break
+    if shrink >= 5:
+        raise Exception('Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.')
+    ellip = np.ones(len(sample_radii))*results['init ellip']
+    pa = np.ones(len(sample_radii))*results['init pa']
+    logging.debug('%s: sample radii: %s' % (options['ap_name'], str(sample_radii)))
+    
+    
+    res = {'fit ellip': ellip,
+           'fit pa': pa,
+           'fit R': sample_radii,
+           'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % sample_radii[-1]}
+
+    if 'init ellip_err' in results:
+        res['fit ellip_err'] = np.ones(len(sample_radii))*results['init ellip_err']
+    if 'init pa_err' in results:
+        res['fit pa_err'] = np.ones(len(sample_radii))*results['init pa_err']
+        
+    return IMG, res
+
 
 def _ellip_smooth(R, E, deg):
     model = make_pipeline(PolynomialFeatures(deg), HuberRegressor(epsilon=2.))
@@ -101,23 +196,27 @@ def _FFT_Robust_loss(dat, R, PARAMS, i, C, noise, mask = None, reg_scale = 1., f
     if fit_coefs is None:
         f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
     else:
-        f2_loss = np.sum(np.abs(coefs[np.array(fit_coefs)])) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
+        f2_loss = np.sum(np.abs(coefs[np.array(fit_coefs)])) / (len(fit_coefs)*len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
 
     reg_loss = 0
+    if not PARAMS[i]['m'] is None:
+        fmode_scale = 1./len(PARAMS[i]['m'])
     if i < (len(R)-1):
         reg_loss += abs((PARAMS[i]['ellip'] - PARAMS[i+1]['ellip'])/(1 - PARAMS[i+1]['ellip'])) 
         reg_loss += abs(Angle_TwoAngles(2*PARAMS[i]['pa'], 2*PARAMS[i+1]['pa'])/(2*0.2))
         if not PARAMS[i]['m'] is None:
             for m in range(len(PARAMS[i]['m'])):
-                reg_loss += abs((PARAMS[i]['Am'][m] - PARAMS[i+1]['Am'][m])/0.2)
-                reg_loss += abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['thetam'][m], PARAMS[i+1]['m'][m]*PARAMS[i+1]['thetam'][m])/(PARAMS[i]['m'][m]*0.2))
+                reg_loss += fmode_scale * abs((PARAMS[i]['Am'][m] - PARAMS[i+1]['Am'][m])/0.2)
+                reg_loss += fmode_scale * abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['Phim'][m],
+                                                              PARAMS[i+1]['m'][m]*PARAMS[i+1]['Phim'][m])/(PARAMS[i]['m'][m]*0.2))
     if i > 0:
         reg_loss += abs((PARAMS[i]['ellip'] - PARAMS[i-1]['ellip'])/(1 - PARAMS[i-1]['ellip'])) 
         reg_loss += abs(Angle_TwoAngles(2*PARAMS[i]['pa'], 2*PARAMS[i-1]['pa'])/(2*0.2))
         if not PARAMS[i]['m'] is None:
             for m in range(len(PARAMS[i]['m'])):
-                reg_loss += abs((PARAMS[i]['Am'][m] - PARAMS[i-1]['Am'][m])/0.2)
-                reg_loss += abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['thetam'][m], PARAMS[i-1]['m'][m]*PARAMS[i-1]['thetam'][m])/(PARAMS[i]['m'][m]*0.2))
+                reg_loss += fmode_scale * abs((PARAMS[i]['Am'][m] - PARAMS[i-1]['Am'][m])/0.2)
+                reg_loss += fmode_scale * abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['Phim'][m],
+                                                              PARAMS[i-1]['m'][m]*PARAMS[i-1]['Phim'][m])/(PARAMS[i]['m'][m]*0.2))
 
     return f2_loss*(1 + reg_loss*reg_scale)
 
@@ -131,7 +230,7 @@ def _FFT_Robust_Errors(dat, R, PARAMS, C, noise, mask = None, reg_scale = 1., fi
             low_ri = max(0, ri - 1)
             high_ri = min(len(R) - 1, ri + 1)
             temp_fits.append(minimize(lambda x: _FFT_Robust_loss(dat, [R[low_ri], R[ri]*(1 - 0.05 + i*0.1/9), R[high_ri]],
-                                                                 [PARAMS[low_ri], {'ellip': np.clip(x[0], 0,1), 'pa': x[1] % np.pi, 'm': PARAMS[ri]['m'], 'Am': PARAMS[ri]['Am'], 'thetam': PARAMS[ri]['thetam']}, PARAMS[high_ri]],
+                                                                 [PARAMS[low_ri], {'ellip': np.clip(x[0], 0,1), 'pa': x[1] % np.pi, 'm': PARAMS[ri]['m'], 'Am': PARAMS[ri]['Am'], 'Phim': PARAMS[ri]['Phim']}, PARAMS[high_ri]],
                                                                  1, C, noise, mask = mask, reg_scale = reg_scale,
                                                                  fit_coefs = fit_coefs, name = name),
                                       x0 = [PARAMS[ri]['ellip'], PARAMS[ri]['pa']], method = 'SLSQP', options = {'ftol': 0.001}).x)
@@ -194,13 +293,35 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
       :default:
         1
 
-    ap_isofit_coefs: tuple
+    ap_isofit_losscoefs: tuple
       Tuple of FFT coefficients to use in optimization
       procedure. AutoProf will attemp to minimize the power in all
       listed FFT coefficients. Must be a tuple, not a list.
 
       :default:
         (2,)
+
+    ap_isofit_fitcoefs: tuple
+      Tuple of FFT coefficients to use in fitting procedure. AutoProf
+      will attemp to fit ellipses with these Fourier mode
+      perturbations. Such perturbations allow for lopsided, boxy,
+      disky, and other types of isophotes beyond straightforward
+      ellipses. Must be a tuple, not a list. Note that AutoProf will
+      first fit ellipses, then turn on the Fourier mode perturbations,
+      thus the fitting time will always be longer.
+
+      :default:
+        None
+
+    ap_isofit_fitcoefs_FFTinit: bool
+      If True, the coefficients for the Fourier modes fitted from
+      ap_isofit_fitcoefs will be initialized using an FFT
+      decomposition along fitted elliptical isophotes. This can
+      improve the fit result, though it is less stable and so users
+      should examine the results after fitting.
+
+      :default:
+        False
 
     ap_isofit_perturbscale_ellip: float
       Sampling scale for random adjustments to ellipticity made while
@@ -271,6 +392,9 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
          'fit R': , # array of semi-major axis values (ndarray)
          'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
          'fit pa_err': , # optional, array of PA error values (ndarray)
+         'fit Fmodes': , # optional, fitted Fourier mode indices (tuple)
+         'fit Fmode A*': , # optional, fitted Fourier mode amplitudes, * for each index (ndarray)
+         'fit Fmode Phi*': , # optional, fitted Fourier mode phases, * for each index (ndarray)
          'auxfile fitlimit': # optional, auxfile message (string)
     
         }
@@ -315,18 +439,14 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     N_perturb = 5
     fit_coefs = options['ap_isofit_losscoefs'] if 'ap_isofit_losscoefs' in options else None
     fit_params = options['ap_isofit_fitcoefs'] if 'ap_isofit_fitcoefs' in options else None
-    if fit_coefs is None and not fit_params is None:
-        fit_coefs = fit_params
-        if not 2 in fit_coefs:
-            fit_coefs = tuple(sorted([2] + list(fit_coefs)))
     parameters = list({'ellip': ellip[i], 'pa': pa[i],
                        'm': fit_params,
                        'Am': None if fit_params is None else np.zeros(len(fit_params)),
-                       'thetam': None if fit_params is None else np.zeros(len(fit_params))} for i in range(len(ellip)))
+                       'Phim': None if fit_params is None else np.zeros(len(fit_params))} for i in range(len(ellip)))
     
     count = 0
 
-    iterlimitmax = options['ap_isofit_iterlimitmax'] if 'ap_isofit_iterlimitmax' in options else 300
+    iterlimitmax = options['ap_isofit_iterlimitmax'] if 'ap_isofit_iterlimitmax' in options else 1000
     iterlimitmin = options['ap_isofit_iterlimitmin'] if 'ap_isofit_iterlimitmin' in options else 0
     iterstopnochange = options['ap_isofit_iterstopnochange'] if 'ap_isofit_iterstopnochange' in options else 3
     count_nochange = 0
@@ -354,7 +474,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 elif count % param_cycle < (2+len(parameters[i]['m'])):
                     perturbations[-1][i]['Am'][(count % param_cycle) - 2] += np.random.normal(loc = 0, scale = perturb_scale)
                 else:
-                    perturbations[-1][i]['thetam'][(count % param_cycle) - 2 - len(parameters[i]['m'])] += np.random.normal(loc = 0, scale = perturb_scale)
+                    perturbations[-1][i]['Phim'][(count % param_cycle) - 2 - len(parameters[i]['m'])] += np.random.normal(loc = 0, scale = perturb_scale)
                 perturbations[-1][i]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1], i, use_center, results['background noise'],
                                                                 mask = mask, reg_scale = regularize_scale if count > 4 else 0, fit_coefs = fit_coefs, name = options['ap_name'])
             
@@ -369,8 +489,25 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 if param_cycle > 2 or parameters[i]['m'] is None:
                     break
                 else:
+                    logging.info('%s: Started Fmode fitting at iteration %i' % (options['ap_name'], count))
                     param_cycle = 2+2*len(parameters[i]['m'])
                     count_nochange = 0
+                    if fit_coefs is None and not fit_params is None:
+                        fit_coefs = fit_params
+                        if not 2 in fit_coefs:
+                            fit_coefs = tuple(sorted([2] + list(fit_coefs)))
+                    if 'ap_isofit_fitcoefs_FFTinit' in options and options['ap_isofit_fitcoefs_FFTinit']:
+                        for ii in I:
+                            isovals = _iso_extract(dat,sample_radii[ii],parameters[ii], use_center, mask = mask, interp_mask = False if mask is None else True, interp_method = 'bicubic')
+                            
+                            if mask is None:
+                                coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
+                            else:
+                                coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.9), a_min = None))
+                            for m in range(len(parameters[ii]['m'])):
+                                parameters[ii]['Am'][m] = np.abs(coefs[parameters[ii]['m'][m]]/coefs[0]) * np.sign(np.angle(coefs[parameters[ii]['m'][m]]))
+                                parameters[ii]['Phim'][m] = np.angle(coefs[parameters[ii]['m'][m]]) % np.pi
+                        
         if not (count_nochange < (iterstopnochange*(len(sample_radii)-1)) or count < iterlimitmin):
             break
 
@@ -386,7 +523,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     # Plot fitting results
     ######################################################################    
     if 'ap_doplot' in options and options['ap_doplot']:
-        Plot_Isophote_Fit_Fmodes(dat, sample_radii, parameters, results, options)
+        Plot_Isophote_Fit(dat, sample_radii, parameters, results, options)
 
     res = {'fit ellip': np.array(list(parameters[i]['ellip'] for i in range(len(parameters)))),
            'fit pa': np.array(list(parameters[i]['pa'] for i in range(len(parameters)))),
@@ -394,294 +531,11 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
            'fit ellip_err': ellip_err, 'fit pa_err': pa_err,
            'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % sample_radii[-1]}
     if not fit_params is None:
-        re.update({'fit Fmodes': fit_params})
+        res.update({'fit Fmodes': fit_params})
         for m in range(len(fit_params)):
             res.update({'fit Fmode A%i' % fit_params[m]: np.array(list(parameters[i]['Am'][m] for i in range(len(parameters)))),
-                        'fit Fmode theta%i' % fit_params[m]: np.array(list(parameters[i]['thetam'][m] for i in range(len(parameters))))})
+                        'fit Fmode Phi%i' % fit_params[m]: np.array(list(parameters[i]['Phim'][m] for i in range(len(parameters))))})
     return IMG, res
-
-# def _FFT_Robust_loss(dat, R, E, PA, i, C, noise, mask = None, reg_scale = 1., fit_coefs = None, name = ''):
-
-#     isovals = _iso_extract(dat,R[i],E[i],PA[i],C, mask = mask, interp_mask = False if mask is None else True, interp_method = 'bicubic')
-    
-#     if mask is None:
-#         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.85), a_min = None))
-#     else:
-#         coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.9), a_min = None))
-
-#     if fit_coefs is None:
-#         f2_loss = np.abs(coefs[2]) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
-#     else:
-#         f2_loss = np.sum(np.abs(coefs[np.array(fit_coefs)])) / (len(isovals)*(max(0,np.median(isovals)) + noise/np.sqrt(len(isovals))))
-
-#     reg_loss = 0
-#     if i < (len(R)-1):
-#         reg_loss += abs((E[i] - E[i+1])/(1 - E[i+1])) 
-#         reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i+1])/(2*0.2))
-#     if i > 0:
-#         reg_loss += abs((E[i] - E[i-1])/(1 - E[i-1])) 
-#         reg_loss += abs(Angle_TwoAngles(2*PA[i], 2*PA[i-1])/(2*0.2))
-
-#     return f2_loss*(1 + reg_loss*reg_scale)
-
-# def _FFT_Robust_Errors(dat, R, E, PA, C, noise, mask = None, reg_scale = 1., fit_coefs = None, name = ''):
-
-#     PA_err = np.zeros(len(R))
-#     E_err = np.zeros(len(R))
-#     for ri in range(len(R)):
-#         temp_fits = []
-#         for i in range(10):
-#             low_ri = max(0, ri - 1)
-#             high_ri = min(len(R) - 1, ri + 1)
-#             temp_fits.append(minimize(lambda x: _FFT_Robust_loss(dat, [R[low_ri], R[ri]*(1 - 0.05 + i*0.1/9), R[high_ri]],
-#                                                                  [E[low_ri], np.clip(x[0], 0,1), E[high_ri]],
-#                                                                  [PA[low_ri], x[1] % np.pi, PA[high_ri]],
-#                                                                  1, C, noise, mask = mask, reg_scale = reg_scale,
-#                                                                  fit_coefs = fit_coefs, name = name),
-#                                       x0 = [E[ri], PA[ri]], method = 'SLSQP', options = {'ftol': 0.001}).x)
-#         temp_fits = np.array(temp_fits)
-#         E_err[ri] = iqr(np.clip(temp_fits[:,0], 0, 1), rng = [16,84])/2
-#         PA_err[ri] = Angle_Scatter(2*(temp_fits[:,1] % np.pi))/4. # multiply by 2 to get [0, 2pi] range
-#     return E_err, PA_err
-        
-# def Isophote_Fit_FFT_Robust(IMG, results, options):
-#     """Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.
-    
-#     The isophotal fitting routine simultaneously optimizes a
-#     collection of elliptical isophotes by minimizing the 2nd FFT
-#     coefficient power, regularized for robustness. A series of
-#     isophotes are constructed which grow geometrically until they
-#     begin to reach the background level.  Then the algorithm
-#     iteratively updates the position angle and ellipticity of each
-#     isophote individually for many rounds.  Each round updates every
-#     isophote in a random order.  Each round cycles between three
-#     options: optimizing position angle, ellipticity, or both.  To
-#     optimize the parameters, 5 values (pa, ellip, or both) are
-#     randomly sampled and the "loss" is computed.  The loss is a
-#     combination of the relative amplitude of the second FFT
-#     coefficient (compared to the median flux), and a regularization
-#     term.  The regularization term penalizes adjacent isophotes for
-#     having different position angle or ellipticity (using the l1
-#     norm).  Thus, all the isophotes are coupled and tend to fit
-#     smoothly varying isophotes.  When the optimization has completed
-#     three rounds without any isophotes updating, the profile is
-#     assumed to have converged.
-
-#     An uncertainty for each ellipticity and position angle value is
-#     determined by repeatedly re-optimizing each ellipse with slight
-#     adjustments to it's semi-major axis length (+- 5%). The standard
-#     deviation of the PA/ellipticity after repeated fitting gives the
-#     uncertainty.
-
-#     Arguments
-#     -----------------
-#     ap_scale: float    
-#       growth scale when fitting isophotes, not the same as
-#       *ap_sample---scale*.
-
-#       :default:
-#         0.2
-
-#     ap_fit_limit: float
-#       noise level out to which to extend the fit in units of pixel
-#       background noise level. Default is 2, smaller values will end
-#       fitting further out in the galaxy image.
-
-#       :default:
-#         2
-
-#     ap_regularize_scale: float
-#       scale factor to apply to regularization coupling factor between
-#       isophotes.  Default of 1, larger values make smoother fits,
-#       smaller values give more chaotic fits.
-
-#       :default:
-#         1
-
-#     ap_isofit_coefs: tuple
-#       Tuple of FFT coefficients to use in optimization
-#       procedure. AutoProf will attemp to minimize the power in all
-#       listed FFT coefficients. Must be a tuple, not a list.
-
-#       :default:
-#         (2,)
-
-#     ap_isofit_perturbscale_ellip: float
-#       Sampling scale for random adjustments to ellipticity made while
-#       optimizing isophotes. Smaller values will converge faster, but
-#       get stuck in local minima; larger values will escape local
-#       minima, but takes longer to converge.
-
-#       :default:
-#         0.03
-    
-#     ap_isofit_perturbscale_pa: float
-#       Sampling scale for random adjustments to position angle made
-#       while optimizing isophotes. Smaller values will converge faster,
-#       but get stuck in local minima; larger values will escape local
-#       minima, but takes longer to converge.
-
-#       :default:
-#         0.06
-    
-#     ap_isofit_iterlimitmax: int
-#       Maximum number of iterations (each iteration adjusts every
-#       isophote once) before automatically stopping optimization. For
-#       galaxies with lots of structure (ie detailed spiral arms) more
-#       iterations may be needed to fully fit the light distribution,
-#       but runtime will be longer.
-
-#       :default:
-#         300
-    
-#     ap_isofit_iterlimitmin: int
-#       Minimum number of iterations before optimization is allowed to
-#       stop.
-
-#       :default:
-#         0
-    
-#     ap_isofit_iterstopnochange: float
-#       Number of iterations with no updates to parameters before
-#       optimization procedure stops. Lower values will process galaxies
-#       faster, but may still be stuck in local minima, higher values
-#       are more likely to converge on the global minimum but can take a
-#       long time to run. Fractional values are allowed though not
-#       recomended.
-
-#       :default:
-#         3
-    
-#     References
-#     ----------
-#     - 'background'
-#     - 'background noise'
-#     - 'psf fwhm'
-#     - 'center'
-#     - 'mask' (optional)
-#     - 'init ellip'
-#     - 'init pa'
-        
-#     Returns
-#     -------
-#     IMG: ndarray
-#       Unaltered galaxy image
-    
-#     results: dict
-#       .. code-block:: python
-     
-#         {'fit ellip': , # array of ellipticity values (ndarray)
-#          'fit pa': , # array of PA values (ndarray)
-#          'fit R': , # array of semi-major axis values (ndarray)
-#          'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
-#          'fit pa_err': , # optional, array of PA error values (ndarray)
-#          'auxfile fitlimit': # optional, auxfile message (string)
-    
-#         }
-
-#     """
-
-#     if 'ap_scale' in options:
-#         scale = options['ap_scale']
-#     else:
-#         scale = 0.2
-
-#     # subtract background from image during processing
-#     dat = IMG - results['background']
-#     mask = results['mask'] if 'mask' in results else None
-#     if not np.any(mask):
-#         mask = None
-    
-#     # Determine sampling radii
-#     ######################################################################
-#     shrink = 0
-#     while shrink < 5:
-#         sample_radii = [max(1.,results['psf fwhm']/2)]
-#         while sample_radii[-1] < (max(IMG.shape)/2):
-#             isovals = _iso_extract(dat,sample_radii[-1],results['init ellip'],
-#                                    results['init pa'],results['center'], more = False, mask = mask)
-#             if np.median(isovals) < (options['ap_fit_limit'] if 'ap_fit_limit' in options else 2)*results['background noise']:
-#                 break
-#             sample_radii.append(sample_radii[-1]*(1.+scale/(1.+shrink)))
-#         if len(sample_radii) < 15:
-#             shrink += 1
-#         else:
-#             break
-#     if shrink >= 5:
-#         raise Exception('Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.')
-#     ellip = np.ones(len(sample_radii))*results['init ellip']
-#     pa = np.ones(len(sample_radii))*results['init pa']
-#     logging.debug('%s: sample radii: %s' % (options['ap_name'], str(sample_radii)))
-#     # Fit isophotes
-#     ######################################################################
-#     perturb_scale = np.array([options['ap_isofit_perturbscale_ellip'] if 'ap_isofit_perturbscale_ellip' in options else 0.03,
-#                               options['ap_isofit_perturbscale_pa'] if 'ap_isofit_perturbscale_pa' in options else 0.06])
-#     regularize_scale = options['ap_regularize_scale'] if 'ap_regularize_scale' in options else 1.
-#     N_perturb = 5
-#     fit_coefs = options['ap_isofit_coefs'] if 'ap_isofit_coefs' in options else None
-    
-#     count = 0
-
-#     iterlimitmax = options['ap_isofit_iterlimitmax'] if 'ap_isofit_iterlimitmax' in options else 300
-#     iterlimitmin = options['ap_isofit_iterlimitmin'] if 'ap_isofit_iterlimitmin' in options else 0
-#     iterstopnochange = options['ap_isofit_iterstopnochange'] if 'ap_isofit_iterstopnochange' in options else 3
-#     count_nochange = 0
-#     use_center = copy(results['center'])
-#     I = np.array(range(len(sample_radii)))
-#     while count < iterlimitmax:
-#         # Periodically include logging message
-#         if count % 10 == 0:
-#             logging.debug('%s: count: %i' % (options['ap_name'],count))
-#         count += 1
-        
-#         np.random.shuffle(I)
-#         for i in I:
-#             perturbations = []
-#             perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
-#             perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-#                                                          use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, fit_coefs = fit_coefs, name = options['ap_name'])
-#             for n in range(N_perturb):
-#                 perturbations.append({'ellip': copy(ellip), 'pa': copy(pa)})
-#                 if count % 3 in [0,1]:
-#                     perturbations[-1]['ellip'][i] = _x_to_eps(_inv_x_to_eps(perturbations[-1]['ellip'][i]) + np.random.normal(loc = 0, scale = perturb_scale[0]))
-#                 if count % 3 in [1,2]:
-#                     perturbations[-1]['pa'][i] = (perturbations[-1]['pa'][i] + np.random.normal(loc = 0, scale = perturb_scale[1])) % np.pi
-#                 perturbations[-1]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1]['ellip'], perturbations[-1]['pa'], i,
-#                                                              use_center, results['background noise'], mask = mask, reg_scale = regularize_scale if count > 4 else 0, fit_coefs = fit_coefs, name = options['ap_name'])
-            
-#             best = np.argmin(list(p['loss'] for p in perturbations))
-#             if best > 0:
-#                 ellip = copy(perturbations[best]['ellip'])
-#                 pa = copy(perturbations[best]['pa'])
-#                 count_nochange = 0
-#             else:
-#                 count_nochange += 1
-#             if not (count_nochange < (iterstopnochange*(len(sample_radii)-1)) or count < iterlimitmin):
-#                 break
-#         if not (count_nochange < (iterstopnochange*(len(sample_radii)-1)) or count < iterlimitmin):
-#             break
-
-#     logging.info('%s: Completed isohpote fit in %i itterations' % (options['ap_name'], count))
-#     # detect collapsed center
-#     ######################################################################
-#     for i in range(5):
-#         if (_inv_x_to_eps(ellip[i]) - _inv_x_to_eps(ellip[i+1])) > 0.5:
-#             ellip[:i+1] = ellip[i+1]
-#             pa[:i+1] = pa[i+1]
-            
-#     # Compute errors
-#     ######################################################################
-#     ellip_err, pa_err = _FFT_Robust_Errors(dat, sample_radii, ellip, pa, use_center, results['background noise'],
-#                                            mask = mask, reg_scale = regularize_scale, fit_coefs = fit_coefs, name = options['ap_name'])
-#     # Plot fitting results
-#     ######################################################################    
-#     if 'ap_doplot' in options and options['ap_doplot']:
-#         Plot_Isophote_Fit(dat, sample_radii, ellip, pa, ellip_err, pa_err, results, options)
-
-#     res = {'fit ellip': ellip, 'fit pa': pa, 'fit R': sample_radii,
-#            'fit ellip_err': ellip_err, 'fit pa_err': pa_err,
-#            'auxfile fitlimit': 'fit limit semi-major axis: %.2f pix' % sample_radii[-1]}
-#     return IMG, res
 
 def Isophote_Fit_Forced(IMG, results, options):
     """Read previously fit PA/ellipticity profile.

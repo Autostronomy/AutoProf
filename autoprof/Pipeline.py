@@ -6,14 +6,13 @@ from pipeline_steps.Background import Background_Mode, Background_DilatedSources
 from pipeline_steps.PSF import PSF_IRAF, PSF_StarFind
 from pipeline_steps.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
 from pipeline_steps.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced
-from pipeline_steps.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean
-from pipeline_steps.Isophote_HighModeFits import Isophote_Fit_general_FFT_Robust
+from pipeline_steps.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean, Isophote_Fit_FixedPhase
 from pipeline_steps.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask, Star_Mask
 from pipeline_steps.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced, Isophote_Extract_Photutils
 from pipeline_steps.Check_Fit import Check_Fit
 from pipeline_steps.Write_Prof import WriteProf
 from pipeline_steps.Write_Fi import WriteFi
-from pipeline_steps.Ellipse_Model import EllipseModel_Fix, EllipseModel_General
+from pipeline_steps.Ellipse_Model import EllipseModel
 from pipeline_steps.Radial_Profiles import Radial_Profiles
 from pipeline_steps.Axial_Profiles import Axial_Profiles
 from pipeline_steps.Slice_Profiles import Slice_Profile
@@ -62,7 +61,7 @@ class Isophote_Pipeline(object):
                                  'plot image': Plot_Galaxy_Image,
                                  'writefi': WriteFi,
                                  'isophotefit': Isophote_Fit_FFT_Robust,
-                                 'isophotefit Fmodes': Isophote_Fit_general_FFT_Robust,
+                                 'isophotefit fixed': Isophote_Fit_FixedPhase,
                                  'isophotefit mean': Isophote_Fit_FFT_mean,
                                  'isophotefit forced': Isophote_Fit_Forced,
                                  'isophotefit photutils': Photutils_Fit,
@@ -75,8 +74,7 @@ class Isophote_Pipeline(object):
                                  'isophoteextract forced': Isophote_Extract_Forced,
                                  'checkfit': Check_Fit,
                                  'writeprof': WriteProf,
-                                 'ellipsemodel fixed': EllipseModel_Fix,
-                                 'ellipsemodel': EllipseModel_General,
+                                 'ellipsemodel': EllipseModel,
                                  'radialprofiles': Radial_Profiles,
                                  'sliceprofile': Slice_Profile,
                                  'axialprofiles': Axial_Profiles}

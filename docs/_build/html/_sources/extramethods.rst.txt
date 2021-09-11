@@ -153,21 +153,12 @@ Masking - Segmentation Map
 
 Reads in a user provided segmentation map and converts it into a mask. If a galaxy center has been found it will ignore the segmentation ID where the center lays.
 
-Ellipse Model - Fixed
-----------------------------------------------------------------------
-
-**pipeline label: 'ellipsemodel fixed'**
-
-:func:`~pipeline_steps.Ellipse_Model.EllipseModel_Fix`
-
-Constructs a 2D model image of the galaxy based on the extracted surface brightness profile and the global ellipticity and position angle values.
-
-Ellipse Model - General
+Ellipse Model
 ----------------------------------------------------------------------
 
 **pipeline label: 'ellipsemodel'**
 
-:func:`~pipeline_steps.Ellipse_Model.EllipseModel_General`
+:func:`~pipeline_steps.Ellipse_Model.EllipseModel`
 
 Constructs 2D model image of the galaxy based on the extracted surface brightness, ellipticity, and position angle profile.
 

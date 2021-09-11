@@ -105,3 +105,4 @@ Batch Forced Photometry
 
 You may be able to guess at this point.
 To run forced photometry in batch mode, start with a single image forced photometry config file and convert single values into lists wherever necessary.
+

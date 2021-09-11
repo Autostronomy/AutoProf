@@ -171,13 +171,13 @@
 <span class="kn">from</span> <span class="nn">pipeline_steps.PSF</span> <span class="kn">import</span> <span class="n">PSF_IRAF</span><span class="p">,</span> <span class="n">PSF_StarFind</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Center</span> <span class="kn">import</span> <span class="n">Center_2DGaussian</span><span class="p">,</span> <span class="n">Center_1DGaussian</span><span class="p">,</span> <span class="n">Center_OfMass</span><span class="p">,</span> <span class="n">Center_HillClimb</span><span class="p">,</span> <span class="n">Center_Forced</span><span class="p">,</span> <span class="n">Center_HillClimb_mean</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Isophote_Initialize</span> <span class="kn">import</span> <span class="n">Isophote_Initialize</span><span class="p">,</span> <span class="n">Isophote_Initialize_mean</span><span class="p">,</span> <span class="n">Isophote_Init_Forced</span>
-<span class="kn">from</span> <span class="nn">pipeline_steps.Isophote_Fit</span> <span class="kn">import</span> <span class="n">Isophote_Fit_FFT_Robust</span><span class="p">,</span> <span class="n">Isophote_Fit_Forced</span><span class="p">,</span> <span class="n">Photutils_Fit</span><span class="p">,</span> <span class="n">Isophote_Fit_FFT_mean</span>
+<span class="kn">from</span> <span class="nn">pipeline_steps.Isophote_Fit</span> <span class="kn">import</span> <span class="n">Isophote_Fit_FFT_Robust</span><span class="p">,</span> <span class="n">Isophote_Fit_Forced</span><span class="p">,</span> <span class="n">Photutils_Fit</span><span class="p">,</span> <span class="n">Isophote_Fit_FFT_mean</span><span class="p">,</span> <span class="n">Isophote_Fit_FixedPhase</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Mask</span> <span class="kn">import</span> <span class="n">Star_Mask_IRAF</span><span class="p">,</span> <span class="n">Mask_Segmentation_Map</span><span class="p">,</span> <span class="n">Bad_Pixel_Mask</span><span class="p">,</span> <span class="n">Star_Mask</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Isophote_Extract</span> <span class="kn">import</span> <span class="n">Isophote_Extract</span><span class="p">,</span> <span class="n">Isophote_Extract_Forced</span><span class="p">,</span> <span class="n">Isophote_Extract_Photutils</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Check_Fit</span> <span class="kn">import</span> <span class="n">Check_Fit</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Write_Prof</span> <span class="kn">import</span> <span class="n">WriteProf</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Write_Fi</span> <span class="kn">import</span> <span class="n">WriteFi</span>
-<span class="kn">from</span> <span class="nn">pipeline_steps.Ellipse_Model</span> <span class="kn">import</span> <span class="n">EllipseModel_Fix</span><span class="p">,</span> <span class="n">EllipseModel_General</span>
+<span class="kn">from</span> <span class="nn">pipeline_steps.Ellipse_Model</span> <span class="kn">import</span> <span class="n">EllipseModel</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Radial_Profiles</span> <span class="kn">import</span> <span class="n">Radial_Profiles</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Axial_Profiles</span> <span class="kn">import</span> <span class="n">Axial_Profiles</span>
 <span class="kn">from</span> <span class="nn">pipeline_steps.Slice_Profiles</span> <span class="kn">import</span> <span class="n">Slice_Profile</span>
@@ -226,6 +226,7 @@
                                  <span class="s1">&#39;plot image&#39;</span><span class="p">:</span> <span class="n">Plot_Galaxy_Image</span><span class="p">,</span>
                                  <span class="s1">&#39;writefi&#39;</span><span class="p">:</span> <span class="n">WriteFi</span><span class="p">,</span>
                                  <span class="s1">&#39;isophotefit&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_FFT_Robust</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophotefit fixed&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_FixedPhase</span><span class="p">,</span>
                                  <span class="s1">&#39;isophotefit mean&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_FFT_mean</span><span class="p">,</span>
                                  <span class="s1">&#39;isophotefit forced&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_Forced</span><span class="p">,</span>
                                  <span class="s1">&#39;isophotefit photutils&#39;</span><span class="p">:</span> <span class="n">Photutils_Fit</span><span class="p">,</span>
@@ -238,8 +239,7 @@
                                  <span class="s1">&#39;isophoteextract forced&#39;</span><span class="p">:</span> <span class="n">Isophote_Extract_Forced</span><span class="p">,</span>
                                  <span class="s1">&#39;checkfit&#39;</span><span class="p">:</span> <span class="n">Check_Fit</span><span class="p">,</span>
                                  <span class="s1">&#39;writeprof&#39;</span><span class="p">:</span> <span class="n">WriteProf</span><span class="p">,</span>
-                                 <span class="s1">&#39;ellipsemodel fixed&#39;</span><span class="p">:</span> <span class="n">EllipseModel_Fix</span><span class="p">,</span>
-                                 <span class="s1">&#39;ellipsemodel&#39;</span><span class="p">:</span> <span class="n">EllipseModel_General</span><span class="p">,</span>
+                                 <span class="s1">&#39;ellipsemodel&#39;</span><span class="p">:</span> <span class="n">EllipseModel</span><span class="p">,</span>
                                  <span class="s1">&#39;radialprofiles&#39;</span><span class="p">:</span> <span class="n">Radial_Profiles</span><span class="p">,</span>
                                  <span class="s1">&#39;sliceprofile&#39;</span><span class="p">:</span> <span class="n">Slice_Profile</span><span class="p">,</span>
                                  <span class="s1">&#39;axialprofiles&#39;</span><span class="p">:</span> <span class="n">Axial_Profiles</span><span class="p">}</span>

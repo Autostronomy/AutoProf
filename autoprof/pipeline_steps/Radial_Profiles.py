@@ -122,10 +122,10 @@ def Radial_Profiles(IMG, results, options):
 
     for i in range(len(R)):
         if R[i] < 100:
-            isovals = list(_iso_extract(dat, R[i], 0, 0, results['center'], more = True, minN = int(5*2*np.pi/wedgewidth[i]), mask = mask))
+            isovals = list(_iso_extract(dat, R[i], {'ellip': 0, 'pa': 0}, results['center'], more = True, minN = int(5*2*np.pi/wedgewidth[i]), mask = mask))
         else:
             isobandwidth = R[i]*(options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.025)
-            isovals = list(_iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, 0, 0, results['center'], more = True, mask = mask))
+            isovals = list(_iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, {'ellip': 0, 'pa': 0}, results['center'], more = True, mask = mask))
         isovals[1] -= pa[i]
         
         for sa_i in range(len(wedgeangles)):

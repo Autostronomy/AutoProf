@@ -45,5 +45,5 @@ ap_new_pipeline_methods = {'branch edgeon': lambda IMG,results,options: ('edgeon
                            'branch rerun': whenrerun,
 		           'edgeonfit': My_Edgon_Fit_Method}
 ap_new_pipeline_steps = {'head': ['background', 'psf', 'center', 'isophoteinit', 'branch edgeon'],#                        # <--             This area just tests that all these optional functions run properly              -->
-		         'standard': ['isophotefit', 'starmask', 'isophoteextract', 'checkfit', 'branch rerun', 'writeprof', 'plot image', 'ellipsemodel', 'ellipsemodel fixed', 'axialprofiles', 'radialprofiles', 'sliceprofile'],
+		         'standard': ['isophotefit', 'starmask', 'isophoteextract', 'checkfit', 'branch rerun', 'writeprof', 'plot image', 'ellipsemodel', 'axialprofiles', 'radialprofiles', 'sliceprofile'],
 		         'edgeon': ['edgeonfit', 'isophoteextract', 'radsample', 'axialprofiles', 'writeprof']}

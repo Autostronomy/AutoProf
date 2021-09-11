@@ -13,7 +13,7 @@ from scipy.fftpack import fft, ifft
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, StarFind, AddLogo, LSBImage, autocolours
+from autoprofutils.SharedFunctions import StarFind, AddLogo, LSBImage, autocolours
 from autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
 from copy import deepcopy
 

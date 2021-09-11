@@ -114,8 +114,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#masking-bad-pixels">Masking - Bad Pixels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#star-masking-iraf">Star Masking - IRAF</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#masking-segmentation-map">Masking - Segmentation Map</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#ellipse-model-fixed">Ellipse Model - Fixed</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#ellipse-model-general">Ellipse Model - General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ellipse-model">Ellipse Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#radial-profiles">Radial Profiles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#axial-profiles">Axial Profiles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#slice-profile">Slice Profile</a></li>
@@ -292,16 +291,10 @@ The noise is half the 16-84 quartile range of unmasked pixels.</p>
 <p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Mask.Mask_Segmentation_Map" title="pipeline_steps.Mask.Mask_Segmentation_Map"><code class="xref py py-func docutils literal notranslate"><span class="pre">Mask_Segmentation_Map()</span></code></a></p>
 <p>Reads in a user provided segmentation map and converts it into a mask. If a galaxy center has been found it will ignore the segmentation ID where the center lays.</p>
 </div>
-<div class="section" id="ellipse-model-fixed">
-<h2>Ellipse Model - Fixed<a class="headerlink" href="#ellipse-model-fixed" title="Permalink to this headline">¶</a></h2>
-<p><strong>pipeline label: ‘ellipsemodel fixed’</strong></p>
-<p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Ellipse_Model.EllipseModel_Fix" title="pipeline_steps.Ellipse_Model.EllipseModel_Fix"><code class="xref py py-func docutils literal notranslate"><span class="pre">EllipseModel_Fix()</span></code></a></p>
-<p>Constructs a 2D model image of the galaxy based on the extracted surface brightness profile and the global ellipticity and position angle values.</p>
-</div>
-<div class="section" id="ellipse-model-general">
-<h2>Ellipse Model - General<a class="headerlink" href="#ellipse-model-general" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ellipse-model">
+<h2>Ellipse Model<a class="headerlink" href="#ellipse-model" title="Permalink to this headline">¶</a></h2>
 <p><strong>pipeline label: ‘ellipsemodel’</strong></p>
-<p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Ellipse_Model.EllipseModel_General" title="pipeline_steps.Ellipse_Model.EllipseModel_General"><code class="xref py py-func docutils literal notranslate"><span class="pre">EllipseModel_General()</span></code></a></p>
+<p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Ellipse_Model.EllipseModel" title="pipeline_steps.Ellipse_Model.EllipseModel"><code class="xref py py-func docutils literal notranslate"><span class="pre">EllipseModel()</span></code></a></p>
 <p>Constructs 2D model image of the galaxy based on the extracted surface brightness, ellipticity, and position angle profile.</p>
 </div>
 <div class="section" id="radial-profiles">
