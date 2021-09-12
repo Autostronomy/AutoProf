@@ -40,6 +40,13 @@ def EllipseModel(IMG, results, options):
 
       :default:
         1
+
+    ap_ellipsemodel_replacemaskedpixels: bool
+      If True, a new galaxy image will be generated with masked pixels
+      replaced by the ellipse model values.
+
+      :default:
+        False
     
     Returns
     -------
@@ -115,6 +122,20 @@ def EllipseModel(IMG, results, options):
     
     hdul.writeto(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', '%s_genmodel.fits' % options['ap_name']), overwrite = True)
 
+    if 'mask' in results and not results['mask'] is None:
+        mask = results['mask']
+    else:
+        mask = None
+    if 'ap_ellipsemodel_replacemaskedpixels' in options and options['ap_ellipsemodel_replacemaskedpixels'] and not mask is None:
+        header = fits.Header()
+        newImage = np.copy(IMG)
+        newImage[mask] = Model[mask] + results['background']
+        hdul = fits.HDUList([fits.PrimaryHDU(header=header),
+                             fits.ImageHDU(newImage)])
+        
+        hdul.writeto(os.path.join(options['ap_plotpath'] if 'ap_plotpath' in options else '', '%s_maskreplace.fits' % options['ap_name']), overwrite = True)
+        
+    
     if 'ap_doplot' in options and options['ap_doplot']:
         Plot_EllipseModel(IMG, Model, R, 'gen', results, options)
 

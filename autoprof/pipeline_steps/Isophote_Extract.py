@@ -136,7 +136,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
         
         SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
                         'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'maskedpixels': 'count', 'totmag_direct': 'mag'}
-    print(maskedpixels)
+        
     SBprof_data = dict((h,None) for h in params)
     SBprof_data['R'] = list(R[:end_prof] * options['ap_pixscale'])
     SBprof_data['I' if fluxunits == 'intensity' else 'SB'] = list(sb)
