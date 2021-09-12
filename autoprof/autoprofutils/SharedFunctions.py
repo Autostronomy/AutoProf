@@ -312,6 +312,29 @@ def _scatter(v, method = 'median'):
     else:
         raise ValueError('Unrecognized average method: %s' % method)
 
+def Rscale_Fmodes(theta, parameters, pa = 0):
+
+    Rscale = 1. if parameters['m'] is None else np.exp(sum(parameters['Am'][m]*np.cos(parameters['m'][m]*(theta + (parameters['Phim'][m] - pa))) for m in range(len(parameters['m']))))
+    return Rscale
+
+def parametric_Fmodes(theta, parameters, pa = 0):
+
+    x = np.cos(theta - pa)
+    y = np.sin(theta - pa)
+    Rscale = Rscale_Fmodes(theta, parameters, pa)
+    return x*Rscale, y*Rscale
+    
+def Rscale_SuperEllipse(theta, parameters, pa = 0):
+    return np.sqrt(np.abs(np.cos(theta - pa))**(4/parameters['c']) + ((1 - parameters['ellip'])**2)*np.abs(np.sin(theta - pa))**(4/parameters['c']))
+
+def parametric_SuperEllipse(theta, parameters, pa = 0):
+    
+    xsign = 1 - 2*np.logical_and(theta > (np.pi/2), theta < (3*np.pi/2))
+    ysign = 1 - 2*(theta > np.pi)
+    x = np.abs(np.cos(theta))**(2/parameters['c'])
+    y = (1 - parameters['ellip'])*np.abs(np.sin(theta))**(2/parameters['c'])
+    return x*xsign, y*ysign
+
 def interpolate_bicubic(dat, X, Y):
     f_interp = RectBivariateSpline(np.arange(dat.shape[0], dtype = np.float32),
                                    np.arange(dat.shape[1], dtype = np.float32),
