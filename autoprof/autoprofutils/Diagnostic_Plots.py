@@ -244,7 +244,7 @@ def Plot_Phase_Profile(R, parameters, results, options):
         plt.subplots_adjust(hspace = 0)
         for m in range(len(parameters[0]['m'])):
             plt.plot(R, list(p['Am'][m] for p in parameters), label = 'A$_%i$' % parameters[0]['m'][m])
-            plt.plot(R, list(p['Phim'][m]/np.pi for p in parameters), label = '$\\phi_%i$ [rad/$\\pi$]' % parameters[0]['m'][m])
+            plt.plot(R, list(p['Phim'][m]/(np.pi*parameters[0]['m'][m]) for p in parameters), label = '$\\phi_%i$ [rad/%i$\\pi$]' % (parameters[0]['m'][m],parameters[0]['m'][m]))
         plt.legend()
         plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
         #plt.ylabel('Fourier Mode Parameters')

@@ -777,10 +777,10 @@ def Fmode_Areas(R, parameters):
 
     A = []
     for i in range(len(R)):
-        A.append((R[i]**2)*(1 - parameters[i]['ellip'])*quad(_Fmode_integrand, 0, 2*np.pi, args = (parameters[i],))[0])
+        A.append((R[i]**2)*quad(_Fmode_integrand, 0, 2*np.pi, args = (parameters[i],))[0])
     return np.array(A)
 
-def Fmode_fluxdens_to_fluxsum(R, I, parameters):
+def Fmode_fluxdens_to_fluxsum(R, I, parameters, A = None):
     """
     Integrate a flux density profile, with isophotes including Fourier perturbations.
 
@@ -811,9 +811,12 @@ def Fmode_fluxdens_to_fluxsum(R, I, parameters):
         return fluxdens_to_fluxsum(R, I, 1. - np.array(list(parameters[p]['ellip'] for p in range(len(parameters)))))
     
     S = np.zeros(len(R))
-    A = Fmode_Areas(R, parameters)
-    S[0] = I[0] * A[0]
-    Adiff = np.array([A[0]] + list(A[1:] - A[:-1]))
+    if A is None:
+        A = Fmode_Areas(R, parameters)
+    # update the Area calculation to be scaled by the ellipticity
+    Aq = A * np.array(list((1 - parameters[i]['ellip']) for i in range(len(R))))
+    S[0] = I[0] * Aq[0]
+    Adiff = np.array([Aq[0]] + list(Aq[1:] - Aq[:-1]))
     for i in range(1, len(R)):
         S[i] = trapz(I[:i+1]*Adiff[:i+1],R[:i+1]) + S[0]
     return S
@@ -859,7 +862,8 @@ def Fmode_fluxdens_to_fluxsum_errorprop(R, I, IE, parameters, N = 100, symmetric
     if np.sum(I_CHOOSE) < 5:
         return (None, None) if symmetric_error else (None, None, None)
     cut_parameters = list(compress(parameters, I_CHOOSE))
-    sum_results[0][I_CHOOSE] = Fmode_fluxdens_to_fluxsum(R[I_CHOOSE], I[I_CHOOSE], cut_parameters)
+    A = Fmode_Areas(R[I_CHOOSE], cut_parameters)
+    sum_results[0][I_CHOOSE] = Fmode_fluxdens_to_fluxsum(R[I_CHOOSE], I[I_CHOOSE], cut_parameters, A)
     for i in range(1,N):
         # Randomly sampled SB profile
         tempI = np.random.normal(loc = I, scale = np.abs(IE))
@@ -870,7 +874,7 @@ def Fmode_fluxdens_to_fluxsum_errorprop(R, I, IE, parameters, N = 100, symmetric
                                                                    scale = np.abs(cut_parameters[p]['ellip err'])),
                                                   a_min = 1e-3, a_max = 1-1e-3)
         # Compute COG with sampled data
-        sum_results[i][I_CHOOSE] = Fmode_fluxdens_to_fluxsum(R[I_CHOOSE], tempI[I_CHOOSE], temp_parameters)
+        sum_results[i][I_CHOOSE] = Fmode_fluxdens_to_fluxsum(R[I_CHOOSE], tempI[I_CHOOSE], temp_parameters, A)
 
     # Condense monte-carlo evaluations into profile and uncertainty envelope
     sum_lower = sum_results[0] - np.quantile(sum_results, 0.317310507863/2, axis = 0)

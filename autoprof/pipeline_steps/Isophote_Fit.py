@@ -208,7 +208,7 @@ def _FFT_Robust_loss(dat, R, PARAMS, i, C, noise, mask = None, reg_scale = 1., f
             for m in range(len(PARAMS[i]['m'])):
                 reg_loss += fmode_scale * abs((PARAMS[i]['Am'][m] - PARAMS[i+1]['Am'][m])/0.2)
                 reg_loss += fmode_scale * abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['Phim'][m],
-                                                              PARAMS[i+1]['m'][m]*PARAMS[i+1]['Phim'][m])/(PARAMS[i]['m'][m]*0.2))
+                                                              PARAMS[i+1]['m'][m]*PARAMS[i+1]['Phim'][m])/(PARAMS[i]['m'][m]*0.1))
     if i > 0:
         reg_loss += abs((PARAMS[i]['ellip'] - PARAMS[i-1]['ellip'])/(1 - PARAMS[i-1]['ellip'])) 
         reg_loss += abs(Angle_TwoAngles(2*PARAMS[i]['pa'], 2*PARAMS[i-1]['pa'])/(2*0.2))
@@ -216,7 +216,7 @@ def _FFT_Robust_loss(dat, R, PARAMS, i, C, noise, mask = None, reg_scale = 1., f
             for m in range(len(PARAMS[i]['m'])):
                 reg_loss += fmode_scale * abs((PARAMS[i]['Am'][m] - PARAMS[i-1]['Am'][m])/0.2)
                 reg_loss += fmode_scale * abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['Phim'][m],
-                                                              PARAMS[i-1]['m'][m]*PARAMS[i-1]['Phim'][m])/(PARAMS[i]['m'][m]*0.2))
+                                                              PARAMS[i-1]['m'][m]*PARAMS[i-1]['Phim'][m])/(PARAMS[i]['m'][m]*0.1))
 
     return f2_loss*(1 + reg_loss*reg_scale)
 
@@ -460,6 +460,8 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         count += 1
         
         np.random.shuffle(I)
+        N_perturb = int(1 + (10 / np.sqrt(count)))
+        
         for i in I:
             perturbations = []
             perturbations.append(deepcopy(parameters))
@@ -470,14 +472,15 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 if count % param_cycle == 0:
                     perturbations[-1][i]['ellip'] = _x_to_eps(_inv_x_to_eps(perturbations[-1][i]['ellip']) + np.random.normal(loc = 0, scale = perturb_scale))
                 elif count % param_cycle == 1:
-                    perturbations[-1][i]['pa'] = (perturbations[-1][i]['pa'] + np.random.normal(loc = 0, scale = perturb_scale)) % np.pi
+                    perturbations[-1][i]['pa'] = (perturbations[-1][i]['pa'] + np.random.normal(loc = 0, scale = np.pi * perturb_scale)) % np.pi
                 elif count % param_cycle < (2+len(parameters[i]['m'])):
                     perturbations[-1][i]['Am'][(count % param_cycle) - 2] += np.random.normal(loc = 0, scale = perturb_scale)
                 else:
-                    perturbations[-1][i]['Phim'][(count % param_cycle) - 2 - len(parameters[i]['m'])] += np.random.normal(loc = 0, scale = perturb_scale)
+                    phim_index = (count % param_cycle) - 2 - len(parameters[i]['m'])
+                    perturbations[-1][i]['Phim'][phim_index] = (perturbations[-1][i]['Phim'][phim_index] + np.random.normal(loc = 0, scale = 2 * np.pi * perturb_scale / parameters[i]['m'][phim_index])) % (2 * np.pi / parameters[i]['m'][phim_index])
                 perturbations[-1][i]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1], i, use_center, results['background noise'],
                                                                 mask = mask, reg_scale = regularize_scale if count > 4 else 0, fit_coefs = fit_coefs, name = options['ap_name'])
-            
+
             best = np.argmin(list(p[i]['loss'] for p in perturbations))
             if best > 0:
                 parameters = deepcopy(perturbations[best])
@@ -491,11 +494,13 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 else:
                     logging.info('%s: Started Fmode fitting at iteration %i' % (options['ap_name'], count))
                     param_cycle = 2+2*len(parameters[i]['m'])
+                    iterstopnochange = max(iterstopnochange, param_cycle)
                     count_nochange = 0
+                    count = 0
                     if fit_coefs is None and not fit_params is None:
                         fit_coefs = fit_params
                         if not 2 in fit_coefs:
-                            fit_coefs = tuple(sorted([2] + list(fit_coefs)))
+                            fit_coefs = tuple(sorted(set([2] + list(fit_coefs))))
                     if 'ap_isofit_fitcoefs_FFTinit' in options and options['ap_isofit_fitcoefs_FFTinit']:
                         for ii in I:
                             isovals = _iso_extract(dat,sample_radii[ii],parameters[ii], use_center, mask = mask, interp_mask = False if mask is None else True, interp_method = 'bicubic')
@@ -506,13 +511,12 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                 coefs = fft(np.clip(isovals, a_max = np.quantile(isovals,0.9), a_min = None))
                             for m in range(len(parameters[ii]['m'])):
                                 parameters[ii]['Am'][m] = np.abs(coefs[parameters[ii]['m'][m]]/coefs[0]) * np.sign(np.angle(coefs[parameters[ii]['m'][m]]))
-                                parameters[ii]['Phim'][m] = np.angle(coefs[parameters[ii]['m'][m]]) % np.pi
+                                parameters[ii]['Phim'][m] = np.angle(coefs[parameters[ii]['m'][m]]) % (2 * np.pi)
                         
         if not (count_nochange < (iterstopnochange*(len(sample_radii)-1)) or count < iterlimitmin):
             break
 
     logging.info('%s: Completed isohpote fit in %i itterations' % (options['ap_name'], count))
-    
     # Compute errors
     ######################################################################
     ellip_err, pa_err = _FFT_Robust_Errors(dat, sample_radii, parameters, use_center, results['background noise'],
