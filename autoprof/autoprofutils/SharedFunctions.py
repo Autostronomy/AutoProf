@@ -371,12 +371,15 @@ def _iso_between(IMG, sma_low, sma_high, PARAMS, c, more = False, mask = None,
     if CHOOSE is not None and np.sum(CHOOSE) < 5:
         logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, pa*180/np.pi, eps))
         CHOOSE = np.ones(CHOOSE.shape).astype(bool)
-    
+    if CHOOSE is not None:
+        countmasked = np.sum(np.logical_not(CHOOSE))
+    else:
+        countmasked = 0
     if more:
         if CHOOSE is not None and sma_high > 5:
-            return fluxes[CHOOSE], theta[rselect][CHOOSE]
+            return fluxes[CHOOSE], theta[rselect][CHOOSE], countmasked
         else:
-            return fluxes, theta[rselect]
+            return fluxes, theta[rselect], countmasked
     else:
         if CHOOSE is not None and sma_high > 5:
             return fluxes[CHOOSE]
@@ -437,6 +440,7 @@ def _iso_extract(IMG, sma, PARAMS, c, more = False, minN = None, mask = None, in
         else:
             CHOOSE = np.logical_or(CHOOSE, flux < sclim)
     # Dont clip pixels if that removes all of the pixels
+    countmasked = 0
     if not CHOOSE is None and np.sum(CHOOSE) <= 0:
         logging.warning('Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f' % (sma, PARAMS['pa']*180/np.pi, PARAMS['ellip']))
         # Interpolate clipped flux values if requested
@@ -447,10 +451,10 @@ def _iso_extract(IMG, sma, PARAMS, c, more = False, minN = None, mask = None, in
         flux = flux[CHOOSE]
         theta = theta[CHOOSE]
         countmasked = np.sum(np.logical_not(CHOOSE))
-        
+    
     # Return just the flux values, or flux and angle values
     if more:
-        return flux, theta
+        return flux, theta, countmasked
     else:
         return flux
 

@@ -47,6 +47,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     sb = []
     sbE = []
     pixels = []
+    maskedpixels = []
     cogdirect = []
     sbfix = []
     sbfixE = []
@@ -90,6 +91,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                                'b': [np.real(coefs[0])/len(coefs)] + list(np.real(coefs[np.array(options['ap_iso_measurecoefs'])])/(np.abs(coefs[0])))}) # + np.sqrt(len(coefs))*results['background noise']
 
         pixels.append(len(isovals[0]))
+        maskedpixels.append(isovals[2])
         if fluxunits == 'intensity':
             sb.append(medflux / options['ap_pixscale']**2)
             sbE.append(scatflux / np.sqrt(len(isovals[0])))
@@ -125,16 +127,16 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             
     # For each radius evaluation, write the profile parameters
     if fluxunits == 'intensity':
-        params = ['R', 'I', 'I_e', 'totflux', 'totflux_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'totflux_direct']
+        params = ['R', 'I', 'I_e', 'totflux', 'totflux_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'maskedpixels', 'totflux_direct']
         
         SBprof_units = {'R': 'arcsec', 'I': 'flux*arcsec^-2', 'I_e': 'flux*arcsec^-2', 'totflux': 'flux', 'totflux_e': 'flux',
-                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'totflux_direct': 'flux'}
+                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'maskedpixels': 'count', 'totflux_direct': 'flux'}
     else:
-        params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'totmag_direct']
+        params = ['R', 'SB', 'SB_e', 'totmag', 'totmag_e', 'ellip', 'ellip_e', 'pa', 'pa_e', 'pixels', 'maskedpixels', 'totmag_direct']
         
         SBprof_units = {'R': 'arcsec', 'SB': 'mag*arcsec^-2', 'SB_e': 'mag*arcsec^-2', 'totmag': 'mag', 'totmag_e': 'mag',
-                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'totmag_direct': 'mag'}
-        
+                        'ellip': 'unitless', 'ellip_e': 'unitless', 'pa': 'deg', 'pa_e': 'deg', 'pixels': 'count', 'maskedpixels': 'count', 'totmag_direct': 'mag'}
+    print(maskedpixels)
     SBprof_data = dict((h,None) for h in params)
     SBprof_data['R'] = list(R[:end_prof] * options['ap_pixscale'])
     SBprof_data['I' if fluxunits == 'intensity' else 'SB'] = list(sb)
@@ -146,6 +148,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     SBprof_data['pa'] = list(parameters[p]['pa']*180/np.pi for p in range(end_prof))
     SBprof_data['pa_e'] = list(parameters[p]['pa err']*180/np.pi for p in range(end_prof))
     SBprof_data['pixels'] = list(pixels)
+    SBprof_data['maskedpixels'] = list(maskedpixels)
     SBprof_data['totflux_direct' if fluxunits == 'intensity' else 'totmag_direct'] = list(cogdirect)
 
     if 'ap_iso_measurecoefs' in options and not options['ap_iso_measurecoefs'] is None:
