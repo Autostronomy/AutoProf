@@ -329,8 +329,8 @@ def Rscale_SuperEllipse(theta, parameters, pa = 0):
 
 def parametric_SuperEllipse(theta, parameters, pa = 0):
     
-    xsign = 1 - 2*np.logical_and(theta > (np.pi/2), theta < (3*np.pi/2))
-    ysign = 1 - 2*(theta > np.pi)
+    xsign = np.sign(np.cos(t))
+    ysign = np.sign(np.sin(t))
     x = np.abs(np.cos(theta))**(2/parameters['c'])
     y = (1 - parameters['ellip'])*np.abs(np.sin(theta))**(2/parameters['c'])
     return x*xsign, y*ysign
