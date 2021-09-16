@@ -160,7 +160,9 @@ def PSF_StarFind(IMG, results, options):
     stars = StarFind(IMG - results['background'], fwhm_guess, results['background noise'],
                      edge_mask,  maxstars = 50)
     if len(stars['fwhm']) <= 10:
+        logging.error('%s: unable to detect enough stars! PSF results not valid, using 1 arcsec estimate psf of %f' % (options['ap_name'], fwhm_guess))
         return IMG, {'psf fwhm': fwhm_guess}
+    
     def_clip = 0.1
     while np.sum(stars['deformity'] < def_clip) < max(10,len(stars['fwhm'])/2):
         def_clip += 0.1

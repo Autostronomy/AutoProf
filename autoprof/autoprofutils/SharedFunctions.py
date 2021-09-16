@@ -501,7 +501,7 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
 
     new = convolve2d(IMG, zz, mode = 'same')
 
-    centers = []
+    centers = np.array([])
     deformities = []
     fwhms = []
     peaks = []
@@ -605,7 +605,6 @@ def StarFind(IMG, fwhm_guess, background_noise, mask = None, peakmax = None, det
         # #plt.scatter([highpixels[i][1] - ranges[0][0]], [highpixels[i][0] - ranges[1][0]], color = 'g', marker = 'x')
         # plt.savefig('test/PSF_test_%i_center.jpg' % randid)
         # plt.close()
-        
     return {'x': centers[:,0], 'y': centers[:,1], 'fwhm': np.array(fwhms), 'peak': np.array(peaks), 'deformity': np.array(deformities)}
 
 
