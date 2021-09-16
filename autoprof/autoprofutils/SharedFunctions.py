@@ -312,28 +312,28 @@ def _scatter(v, method = 'median'):
     else:
         raise ValueError('Unrecognized average method: %s' % method)
 
-def Rscale_Fmodes(theta, parameters, pa = 0):
+def Rscale_Fmodes(theta, modes, Am, Phim):
+    return np.exp(sum(Am[m]*np.cos(modes[m]*(theta + Phim[m])) for m in range(len(modes))))
 
-    Rscale = 1. if parameters['m'] is None else np.exp(sum(parameters['Am'][m]*np.cos(parameters['m'][m]*(theta + (parameters['Phim'][m] - pa))) for m in range(len(parameters['m']))))
-    return Rscale
-
-def parametric_Fmodes(theta, parameters, pa = 0):
-
-    x = np.cos(theta - pa)
-    y = np.sin(theta - pa)
-    Rscale = Rscale_Fmodes(theta, parameters, pa)
+def parametric_Fmodes(theta, modes, Am, Phim):
+    x = np.cos(theta)
+    y = np.sin(theta)
+    Rscale = Rscale_Fmodes(theta, modes, Am, Phim)
     return x*Rscale, y*Rscale
     
-def Rscale_SuperEllipse(theta, parameters, pa = 0):
-    return np.sqrt(np.abs(np.cos(theta - pa))**(4/parameters['c']) + ((1 - parameters['ellip'])**2)*np.abs(np.sin(theta - pa))**(4/parameters['c']))
+def Rscale_SuperEllipse(theta, ellip, C = 2):
+    return np.sqrt(np.abs(np.cos(theta))**(4/C) + ((1 - ellip)**2)*np.abs(np.sin(theta))**(4/C))
 
-def parametric_SuperEllipse(theta, parameters, pa = 0):
+def parametric_SuperEllipse(theta, ellip, C = 2):
     
-    xsign = np.sign(np.cos(t))
-    ysign = np.sign(np.sin(t))
-    x = np.abs(np.cos(theta))**(2/parameters['c'])
-    y = (1 - parameters['ellip'])*np.abs(np.sin(theta))**(2/parameters['c'])
+    xsign = np.sign(np.cos(theta))
+    ysign = np.sign(np.sin(theta))
+    x = np.abs(np.cos(theta))**(2/C)
+    y = (1 - ellip)*np.abs(np.sin(theta))**(2/C)
     return x*xsign, y*ysign
+
+def Rotate_Cartesian(theta, X, Y):
+    return X*np.cos(theta) - Y*np.sin(theta), Y*np.cos(theta) + X*np.sin(theta)
 
 def interpolate_bicubic(dat, X, Y):
     f_interp = RectBivariateSpline(np.arange(dat.shape[0], dtype = np.float32),
@@ -375,9 +375,9 @@ def _iso_between(IMG, sma_low, sma_high, PARAMS, c, more = False, mask = None,
     YY -= c['y'] - float(ranges[1][0])
 
     theta = np.arctan(YY/XX) + np.pi*(XX < 0)
-    XX, YY = (XX*np.cos(-PARAMS['pa']) - YY*np.sin(-PARAMS['pa']), XX*np.sin(-PARAMS['pa']) + YY*np.cos(-PARAMS['pa']))
+    XX, YY = Rotate_Cartesian(-PARAMS['pa'], XX, YY) #(XX*np.cos(-PARAMS['pa']) - YY*np.sin(-PARAMS['pa']), XX*np.sin(-PARAMS['pa']) + YY*np.cos(-PARAMS['pa']))
     YY /= 1 - PARAMS['ellip']
-    Fmodescaling = 1. if PARAMS['m'] is None else np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + (PARAMS['Phim'][m] - PARAMS['pa']))) for m in range(len(PARAMS['m']))))
+    Fmodescaling = 1. if PARAMS['m'] is None else Rscale_Fmodes(theta, PARAMS['m'], PARAMS['Am'], list(PARAMS['Phim'][m] - PARAMS['pa'][m] for m in range(len(PARAMS['m']))))# np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + (PARAMS['Phim'][m] - PARAMS['pa']))) for m in range(len(PARAMS['m']))))
     RR = np.sqrt(XX**2 + YY**2)/Fmodescaling
     rselect = np.logical_and(RR < sma_high, RR > sma_low)
     fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
@@ -417,18 +417,23 @@ def _iso_extract(IMG, sma, PARAMS, c, more = False, minN = None, mask = None, in
     """
     if not 'm' in PARAMS:
         PARAMS['m'] = None
+    if not 'C' in PARAMS:
+        PARAMS['C'] = None
     N = max(15,int(0.9*2*np.pi*sma))
     if not minN is None:
         N = max(minN,N)
     # points along ellipse to evaluate
     theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
-    R = sma*(np.ones(N) if PARAMS['m'] is None else np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + PARAMS['Phim'][m])) for m in range(len(PARAMS['m'])))))
+    R = sma*(1. if PARAMS['m'] is None else np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + PARAMS['Phim'][m])) for m in range(len(PARAMS['m'])))))
     # Define ellipse
-    X = R*np.cos(theta)
-    Y = R*(1-PARAMS['ellip'])*np.sin(theta)
+    X, Y = parametric_SuperEllipse(theta, PARAMS['ellip'], 2 if PARAMS['C'] is None else PARAMS['C'])
+    # X = R*np.cos(theta)
+    # Y = R*(1-PARAMS['ellip'])*np.sin(theta)
     # rotate ellipse by PA
-    X,Y = (X*np.cos(PARAMS['pa']) - Y*np.sin(PARAMS['pa']) + c['x'], X*np.sin(PARAMS['pa']) + Y*np.cos(PARAMS['pa']) + c['y'])
+    X,Y = Rotate_Cartesian(PARAMS['pa'], X, Y) #(X*np.cos(PARAMS['pa']) - Y*np.sin(PARAMS['pa']) + c['x'], X*np.sin(PARAMS['pa']) + Y*np.cos(PARAMS['pa']) + c['y'])
     theta = (theta + PARAMS['pa']) % (2*np.pi)
+    # shift center
+    X, Y = X + c['x'], Y + c['y']
 
     # Reject samples from outside the image
     BORDER = np.logical_and(np.logical_and(X >= 0, X < (IMG.shape[1]-1)),
