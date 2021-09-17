@@ -37,6 +37,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
         # Indicate no Fourier modes if supplied parameters does not include it
         if not 'm' in parameters[p]:
             parameters[p]['m'] = None
+        if not 'C' in parameters[p]:
+            parameters[p]['C'] = None
         # If no ellipticity error supplied, assume zero
         if not 'ellip err' in parameters[p]:
             parameters[p]['ellip err'] = 0.
@@ -168,7 +170,11 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             SBprof_units.update({AA: 'unitless', PP: 'deg'})
             SBprof_data[AA] = list(p['Am'][m] for p in parameters[:end_prof])
             SBprof_data[PP] = list(p['Phim'][m] for p in parameters[:end_prof])
-            
+    if any(not p['C'] is None for p in parameters):
+        params += ['C']
+        SBprof_units['C'] = 'unitless'
+        SBprof_data['C'] = list(p['C'] for p in parameters[:end_prof])
+        
     if 'ap_doplot' in options and options['ap_doplot']:
         Plot_Phase_Profile(np.array(SBprof_data['R']), parameters[:end_prof], results, options)
         if fluxunits == 'intensity':
@@ -594,7 +600,12 @@ def Isophote_Extract(IMG, results, options):
         for i in range(len(R)):
             parameters[i]['m'] = results['fit Fmodes']
             parameters[i]['Am'] = np.array(list(UnivariateSpline(results['fit R'], results['fit Fmode A%i' % results['fit Fmodes'][m]], ext = 3, s = 0)(R[i]) for m in range(len(results['fit Fmodes']))))
-            parameters[i]['Phim'] = np.array(list(UnivariateSpline(results['fit R'], results['fit Fmode Phi%i' % results['fit Fmodes'][m]], ext = 3, s = 0)(R[i]) for m in range(len(results['fit Fmodes'])))) 
+            parameters[i]['Phim'] = np.array(list(UnivariateSpline(results['fit R'], results['fit Fmode Phi%i' % results['fit Fmodes'][m]], ext = 3, s = 0)(R[i]) for m in range(len(results['fit Fmodes']))))
+
+    if 'fit C' in results:
+        CC = UnivariateSpline(results['fit R'], results['fit C'], ext = 3, s = 0)(R)
+        for i in range(len(R)):
+            parameters[i]['C'] = CC[i]
     
     # Get errors for pa and ellip
     for i in range(len(R)):
