@@ -305,6 +305,17 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
       :default:
         (2,)
 
+    ap_isofit_superellipse: bool
+      If True, AutoProf will fit superellipses instead of regular
+      ellipses. A superellipse is typically used to represent
+      boxy/disky isophotes. The variable controlling the transition
+      from a rectangle to an ellipse to a four-armed-star like shape
+      is C. A value of C = 2 represents an ellipse and is the starting
+      point of the optimization.
+
+      :default:
+        False
+
     ap_isofit_fitcoefs: tuple
       Tuple of FFT coefficients to use in fitting procedure. AutoProf
       will attemp to fit ellipses with these Fourier mode
@@ -396,6 +407,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
          'fit R': , # array of semi-major axis values (ndarray)
          'fit ellip_err': , # optional, array of ellipticity error values (ndarray)
          'fit pa_err': , # optional, array of PA error values (ndarray)
+         'fit C': , # optional, superellipse scale parameter (ndarray)
          'fit Fmodes': , # optional, fitted Fourier mode indices (tuple)
          'fit Fmode A*': , # optional, fitted Fourier mode amplitudes, * for each index (ndarray)
          'fit Fmode Phi*': , # optional, fitted Fourier mode phases, * for each index (ndarray)
