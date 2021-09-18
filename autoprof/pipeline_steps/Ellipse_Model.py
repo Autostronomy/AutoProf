@@ -94,9 +94,9 @@ def EllipseModel(IMG, results, options):
     Prox = np.zeros(XX.shape, dtype = np.float32) + np.inf
     WINDOW = [[0,XX.shape[0]],[0, XX.shape[1]]]
     for r in reversed(np.logspace(np.log10(R[0]/2),np.log10(R[-1]),int(len(R)*2*(options['ap_ellipsemodel_resolution'] if 'ap_ellipsemodel_resolution' in options else 1)))):
-        if r < (R[-1]/2):
-            WINDOW = [[max(0,int(results['center']['y'] - float(ranges[1][0]) - r*Rlimscale*1.5)),min(XX.shape[0],int(results['center']['y'] - float(ranges[1][0]) + r*Rlimscale*1.5))],
-                      [max(0,int(results['center']['x'] - float(ranges[0][0]) - r*Rlimscale*1.5)),min(XX.shape[1],int(results['center']['x'] - float(ranges[0][0]) + r*Rlimscale*1.5))]]
+        if (r*Rlimscale) < (np.max(XX.shape)/np.sqrt(2)):
+            WINDOW = [[max(0,int(results['center']['y'] - float(ranges[1][0]) - r*Rlimscale*1.2)),min(XX.shape[0],int(results['center']['y'] - float(ranges[1][0]) + r*Rlimscale*1.2))],
+                      [max(0,int(results['center']['x'] - float(ranges[0][0]) - r*Rlimscale*1.2)),min(XX.shape[1],int(results['center']['x'] - float(ranges[0][0]) + r*Rlimscale*1.2))]]
             
         Rscale = Rscale_SuperEllipse(theta[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]] - pa(r), 1. - q(r), C(r))
         if not fit_Fmodes is None:
@@ -104,14 +104,18 @@ def EllipseModel(IMG, results, options):
         RR = Radius[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]] / Rscale
         D = np.abs(RR - r)
         CLOSE = D < Prox[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]]
-        if np.any(CLOSE):
-            MM[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = sb(RR[CLOSE])
-            Prox[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = D[CLOSE]
-        
+        MM[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = RR[CLOSE]
+        Prox[WINDOW[0][0]:WINDOW[0][1],WINDOW[1][0]:WINDOW[1][1]][CLOSE] = D[CLOSE]
+    MM = sb(MM)
     MM = 10**(-(MM - zeropoint - 5*np.log10(options['ap_pixscale']))/2.5)
-    RR = np.sqrt((XX*np.cos(-pa(R[-1])) - YY*np.sin(-pa(R[-1])))**2 + ((XX*np.sin(-pa(R[-1])) + YY*np.cos(-pa(R[-1])))/np.clip(q(R[-1]),a_min = 0.03,a_max = 1))**2)
+
+    Rscale = Rscale_SuperEllipse(theta - pa(R[-1]), 1. - q(R[-1]), C(R[-1]))
     if not fit_Fmodes is None:
-        RR /= np.exp(sum(A[m](R[-1]) * np.cos(fit_Fmodes[m] * (theta + (Phi[m](R[-1]) - pa(R[-1])))) for m in range(len(fit_Fmodes))))
+        Rscale *= np.exp(sum(A[m](R[-1]) * np.cos(fit_Fmodes[m] * (theta + (Phi[m](R[-1]) - pa(R[-1])))) for m in range(len(fit_Fmodes))))
+    RR = Radius / Rscale
+    # RR = np.sqrt((XX*np.cos(-pa(R[-1])) - YY*np.sin(-pa(R[-1])))**2 + ((XX*np.sin(-pa(R[-1])) + YY*np.cos(-pa(R[-1])))/np.clip(q(R[-1]),a_min = 0.03,a_max = 1))**2)
+    # if not fit_Fmodes is None:
+    #     RR /= np.exp(sum(A[m](R[-1]) * np.cos(fit_Fmodes[m] * (theta + (Phi[m](R[-1]) - pa(R[-1])))) for m in range(len(fit_Fmodes))))
     MM[RR > R[-1]] = 0
     
     Model = np.zeros(IMG.shape, dtype = np.float32)

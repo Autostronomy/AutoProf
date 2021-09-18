@@ -120,6 +120,7 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
     for i in range(len(sample_radii)):
         N = max(15,int(0.9*2*np.pi*sample_radii[i]))
         theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
+        theta = np.arctan((1. - parameters[i]['ellip'])*np.tan(theta)) + np.pi*(np.cos(theta) < 0)
         R = sample_radii[i]*(1. if parameters[i]['m'] is None else np.exp(sum(parameters[i]['Am'][m]*np.cos(parameters[i]['m'][m]*(theta + parameters[i]['Phim'][m])) for m in range(len(parameters[i]['m'])))))
         X, Y = parametric_SuperEllipse(theta, parameters[i]['ellip'], 2 if parameters[i]['C'] is None else parameters[i]['C'])
         X, Y = Rotate_Cartesian(parameters[i]['pa'], X, Y)
@@ -147,6 +148,7 @@ def _Plot_Isophotes(dat, R, parameters, results, options):
     for i in range(len(R)):
         N = max(15,int(0.9*2*np.pi*R[i]))
         theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
+        theta = np.arctan((1. - parameters[i]['ellip'])*np.tan(theta)) + np.pi*(np.cos(theta) < 0)
         RR = R[i]*(np.ones(N) if parameters[i]['m'] is None else np.exp(sum(parameters[i]['Am'][m]*np.cos(parameters[i]['m'][m]*(theta + parameters[i]['Phim'][m])) for m in range(len(parameters[i]['m'])))))
         X = RR*np.cos(theta)
         Y = RR*(1-parameters[i]['ellip'])*np.sin(theta)
@@ -239,6 +241,7 @@ def Plot_Phase_Profile(R, parameters, results, options):
     plt.plot(R, list(p['pa']/np.pi for p in parameters), label = 'PA [rad/$\\pi$]', color = autocolours['blue1'])
     plt.legend(fontsize = 11)
     plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
+    plt.xscale('log')
     #plt.ylabel('Ellipticity and Position Angle')
     plt.tick_params(labelsize = 14)
     if not parameters[0]['m'] is None:
@@ -250,6 +253,7 @@ def Plot_Phase_Profile(R, parameters, results, options):
             plt.plot(R, list(p['Phim'][m]/(np.pi*parameters[0]['m'][m]) for p in parameters), label = '$\\phi_%i$ [rad/%i$\\pi$]' % (parameters[0]['m'][m],parameters[0]['m'][m]))
         plt.legend()
         plt.xlabel('Semi-Major-Axis [arcsec]', fontsize = 16)
+        plt.xscale('log')
         #plt.ylabel('Fourier Mode Parameters')
         plt.tick_params(labelsize = 14)
     plt.tight_layout()

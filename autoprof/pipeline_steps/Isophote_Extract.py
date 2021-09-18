@@ -89,8 +89,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 N = max(15,int(0.9*2*np.pi*R[i])) 
                 theta = np.linspace(0,2*np.pi*(1.-1./N), N)
                 coefs = fft(np.interp(theta, isovals[1], isovals[0], period = 2*np.pi))
-            measFmodes.append({'a': [np.imag(coefs[0])/len(coefs)] + list(np.imag(coefs[np.array(options['ap_iso_measurecoefs'])])/(np.abs(coefs[0]))), # + np.sqrt(len(coefs))*results['background noise']
-                               'b': [np.real(coefs[0])/len(coefs)] + list(np.real(coefs[np.array(options['ap_iso_measurecoefs'])])/(np.abs(coefs[0])))}) # + np.sqrt(len(coefs))*results['background noise']
+            measFmodes.append({'a': [np.imag(coefs[0])/len(coefs)] + list(np.imag(coefs[np.array(options['ap_iso_measurecoefs'])])/(np.abs(coefs[0]))), 
+                               'b': [np.real(coefs[0])/len(coefs)] + list(np.real(coefs[np.array(options['ap_iso_measurecoefs'])])/(np.abs(coefs[0])))}) 
 
         pixels.append(len(isovals[0]))
         maskedpixels.append(isovals[2])

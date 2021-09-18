@@ -5,7 +5,7 @@ from scipy.stats import iqr
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo, PA_shift_convention, Sigma_Clip_Upper, autocolours
+from autoprofutils.SharedFunctions import _iso_extract, _x_to_eps, _x_to_pa, _inv_x_to_pa, _inv_x_to_eps, LSBImage, Angle_Average, Angle_Median, AddLogo, PA_shift_convention, Sigma_Clip_Upper, autocolours, Smooth_Mode
 from autoprofutils.Diagnostic_Plots import Plot_Isophote_Init_Ellipse, Plot_Isophote_Init_Optimize
 import logging
 from copy import copy
