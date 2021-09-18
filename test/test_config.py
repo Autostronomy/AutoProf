@@ -8,4 +8,3 @@ ap_zeropoint = 22.5
 ap_samplegeometricscale = 0.05
 ap_doplot = True
 ap_isoclip = True
-ap_truncate_evaluation = True

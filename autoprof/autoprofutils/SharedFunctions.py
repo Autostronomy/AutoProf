@@ -287,7 +287,7 @@ def Smooth_Mode(v):
     # set the starting point for the optimization at the median
     start = np.median(v)
     # set the smoothing scale equal to roughly 0.5% of the width of the data
-    scale = iqr(v) / max(1.,np.log10(len(v))/2) #/10
+    scale = iqr(v) / max(1.,2*np.log10(len(v))) #/10
     # Fit the peak of the smoothed histogram
     res = minimize(lambda x: -np.sum(np.exp(-((v - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
     return res.x[0]
@@ -311,6 +311,25 @@ def _scatter(v, method = 'median'):
         return iqr(v, rng = (31.731/2, 100 - 31.731/2))/2.
     else:
         raise ValueError('Unrecognized average method: %s' % method)
+
+def Rscale_Fmodes(theta, modes, Am, Phim):
+    return np.exp(sum(Am[m]*np.cos(modes[m]*(theta + Phim[m])) for m in range(len(modes))))
+
+def parametric_Fmodes(theta, modes, Am, Phim):
+    x = np.cos(theta)
+    y = np.sin(theta)
+    Rscale = Rscale_Fmodes(theta, modes, Am, Phim)
+    return x*Rscale, y*Rscale
+    
+def Rscale_SuperEllipse(theta, ellip, C = 2):
+    return (1 - ellip) / np.power(np.abs((1 - ellip)*np.cos(theta))**(C) + np.abs(np.sin(theta))**(C), 1./C)
+
+def parametric_SuperEllipse(theta, ellip, C = 2):
+    rs = Rscale_SuperEllipse(theta, ellip, C)
+    return rs*np.cos(theta), rs*np.sin(theta)
+    
+def Rotate_Cartesian(theta, X, Y):
+    return X*np.cos(theta) - Y*np.sin(theta), Y*np.cos(theta) + X*np.sin(theta)
 
 def interpolate_bicubic(dat, X, Y):
     f_interp = RectBivariateSpline(np.arange(dat.shape[0], dtype = np.float32),
@@ -344,18 +363,18 @@ def _iso_between(IMG, sma_low, sma_high, PARAMS, c, more = False, mask = None,
 
     if not 'm' in PARAMS:
         PARAMS['m'] = None
+    if not 'C' in PARAMS:
+        PARAMS['C'] = None
     Rlim = sma_high * (1. if PARAMS['m'] is None else np.exp(sum(np.abs(PARAMS['Am'][m]) for m in range(len(PARAMS['m'])))))
     ranges = [[max(0,int(c['x']-Rlim-2)), min(IMG.shape[1],int(c['x']+Rlim+2))],
               [max(0,int(c['y']-Rlim-2)), min(IMG.shape[0],int(c['y']+Rlim+2))]]
-    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float), np.arange(ranges[1][1] - ranges[1][0], dtype = float))
-    XX -= c['x'] - float(ranges[0][0])
-    YY -= c['y'] - float(ranges[1][0])
+    XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float) - c['x'] + float(ranges[0][0]), np.arange(ranges[1][1] - ranges[1][0], dtype = float) - c['y'] + float(ranges[1][0]))
 
     theta = np.arctan(YY/XX) + np.pi*(XX < 0)
-    XX, YY = (XX*np.cos(-PARAMS['pa']) - YY*np.sin(-PARAMS['pa']), XX*np.sin(-PARAMS['pa']) + YY*np.cos(-PARAMS['pa']))
-    YY /= 1 - PARAMS['ellip']
-    Fmodescaling = 1. if PARAMS['m'] is None else np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + (PARAMS['Phim'][m] - PARAMS['pa']))) for m in range(len(PARAMS['m']))))
-    RR = np.sqrt(XX**2 + YY**2)/Fmodescaling
+    RR = np.sqrt(XX**2 + YY**2)
+    Fmode_Rscale = 1. if PARAMS['m'] is None else Rscale_Fmodes(theta - PARAMS['pa'], PARAMS['m'], PARAMS['Am'], PARAMS['Phim'])
+    SuperEllipse_Rscale = Rscale_SuperEllipse(theta - PARAMS['pa'], PARAMS['ellip'], 2 if PARAMS['C'] is None else PARAMS['C'])
+    RR /= SuperEllipse_Rscale * Fmode_Rscale
     rselect = np.logical_and(RR < sma_high, RR > sma_low)
     fluxes = IMG[ranges[1][0]:ranges[1][1],ranges[0][0]:ranges[0][1]][rselect]
     CHOOSE = None
@@ -369,7 +388,7 @@ def _iso_between(IMG, sma_low, sma_high, PARAMS, c, more = False, mask = None,
         else:
             CHOOSE = np.logical_or(CHOOSE, fluxes < sclim)
     if CHOOSE is not None and np.sum(CHOOSE) < 5:
-        logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, pa*180/np.pi, eps))
+        logging.warning('Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f' % (sma_low, sma_high, PARAMS['pa']*180/np.pi, PARAMS['ellip']))
         CHOOSE = np.ones(CHOOSE.shape).astype(bool)
     if CHOOSE is not None:
         countmasked = np.sum(np.logical_not(CHOOSE))
@@ -394,25 +413,32 @@ def _iso_extract(IMG, sma, PARAMS, c, more = False, minN = None, mask = None, in
     """
     if not 'm' in PARAMS:
         PARAMS['m'] = None
+    if not 'C' in PARAMS:
+        PARAMS['C'] = None
     N = max(15,int(0.9*2*np.pi*sma))
     if not minN is None:
         N = max(minN,N)
     # points along ellipse to evaluate
     theta = np.linspace(0, 2*np.pi*(1. - 1./N), N)
-    R = sma*(np.ones(N) if PARAMS['m'] is None else np.exp(sum(PARAMS['Am'][m]*np.cos(PARAMS['m'][m]*(theta + PARAMS['Phim'][m])) for m in range(len(PARAMS['m'])))))
+    theta = np.arctan((1. - PARAMS['ellip'])*np.tan(theta)) + np.pi*(np.cos(theta) < 0)
+    Fmode_Rscale = 1. if PARAMS['m'] is None else Rscale_Fmodes(theta, PARAMS['m'], PARAMS['Am'], PARAMS['Phim'])
+    R = sma*Fmode_Rscale
     # Define ellipse
-    X = R*np.cos(theta)
-    Y = R*(1-PARAMS['ellip'])*np.sin(theta)
+    X, Y = parametric_SuperEllipse(theta, PARAMS['ellip'], 2 if PARAMS['C'] is None else PARAMS['C'])
+    X, Y = R*X, R*Y
     # rotate ellipse by PA
-    X,Y = (X*np.cos(PARAMS['pa']) - Y*np.sin(PARAMS['pa']) + c['x'], X*np.sin(PARAMS['pa']) + Y*np.cos(PARAMS['pa']) + c['y'])
+    X,Y = Rotate_Cartesian(PARAMS['pa'], X, Y) 
     theta = (theta + PARAMS['pa']) % (2*np.pi)
+    # shift center
+    X, Y = X + c['x'], Y + c['y']
 
     # Reject samples from outside the image
     BORDER = np.logical_and(np.logical_and(X >= 0, X < (IMG.shape[1]-1)),
                             np.logical_and(Y >= 0, Y < (IMG.shape[0]-1)))
-    X = X[BORDER]
-    Y = Y[BORDER]
-    theta = theta[BORDER]
+    if not np.all(BORDER):
+        X = X[BORDER]
+        Y = Y[BORDER]
+        theta = theta[BORDER]
 
     Rlim = np.max(R)
     if Rlim < rad_interp: 

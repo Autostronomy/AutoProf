@@ -203,12 +203,14 @@ def _FFT_Robust_loss(dat, R, PARAMS, i, C, noise, mask = None, reg_scale = 1., f
         fmode_scale = 1./len(PARAMS[i]['m'])
     if i < (len(R)-1):
         reg_loss += abs((PARAMS[i]['ellip'] - PARAMS[i+1]['ellip'])/(1 - PARAMS[i+1]['ellip'])) 
-        reg_loss += abs(Angle_TwoAngles(2*PARAMS[i]['pa'], 2*PARAMS[i+1]['pa'])/(2*0.2))
+        reg_loss += abs(Angle_TwoAngles(2*PARAMS[i]['pa'], 2*PARAMS[i+1]['pa']) / (2*0.2))
         if not PARAMS[i]['m'] is None:
             for m in range(len(PARAMS[i]['m'])):
-                reg_loss += fmode_scale * abs((PARAMS[i]['Am'][m] - PARAMS[i+1]['Am'][m])/0.2)
+                reg_loss += fmode_scale * abs((PARAMS[i]['Am'][m] - PARAMS[i+1]['Am'][m]) / 0.2)
                 reg_loss += fmode_scale * abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['Phim'][m],
                                                               PARAMS[i+1]['m'][m]*PARAMS[i+1]['Phim'][m])/(PARAMS[i]['m'][m]*0.1))
+        if not PARAMS[i]['C'] is None:
+            reg_loss += abs(np.log10(PARAMS[i]['C'] / PARAMS[i+1]['C'])) / 0.1
     if i > 0:
         reg_loss += abs((PARAMS[i]['ellip'] - PARAMS[i-1]['ellip'])/(1 - PARAMS[i-1]['ellip'])) 
         reg_loss += abs(Angle_TwoAngles(2*PARAMS[i]['pa'], 2*PARAMS[i-1]['pa'])/(2*0.2))
@@ -217,7 +219,9 @@ def _FFT_Robust_loss(dat, R, PARAMS, i, C, noise, mask = None, reg_scale = 1., f
                 reg_loss += fmode_scale * abs((PARAMS[i]['Am'][m] - PARAMS[i-1]['Am'][m])/0.2)
                 reg_loss += fmode_scale * abs(Angle_TwoAngles(PARAMS[i]['m'][m]*PARAMS[i]['Phim'][m],
                                                               PARAMS[i-1]['m'][m]*PARAMS[i-1]['Phim'][m])/(PARAMS[i]['m'][m]*0.1))
-
+        if not PARAMS[i]['C'] is None:
+            reg_loss += abs(np.log10(PARAMS[i]['C'] / PARAMS[i-1]['C'])) / 0.1
+            
     return f2_loss*(1 + reg_loss*reg_scale)
 
 def _FFT_Robust_Errors(dat, R, PARAMS, C, noise, mask = None, reg_scale = 1., fit_coefs = None, name = ''):
@@ -439,8 +443,10 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     N_perturb = 5
     fit_coefs = options['ap_isofit_losscoefs'] if 'ap_isofit_losscoefs' in options else None
     fit_params = options['ap_isofit_fitcoefs'] if 'ap_isofit_fitcoefs' in options else None
+    fit_superellipse = options['ap_isofit_superellipse'] if 'ap_isofit_superellipse' in options else False
     parameters = list({'ellip': ellip[i], 'pa': pa[i],
                        'm': fit_params,
+                       'C': 2 if fit_superellipse else None,
                        'Am': None if fit_params is None else np.zeros(len(fit_params)),
                        'Phim': None if fit_params is None else np.zeros(len(fit_params))} for i in range(len(ellip)))
     
@@ -453,6 +459,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     use_center = copy(results['center'])
     I = np.array(range(len(sample_radii)))
     param_cycle = 2
+    base_params = 2 + int(fit_superellipse)
     while count < iterlimitmax:
         # Periodically include logging message
         if count % 10 == 0:
@@ -473,13 +480,18 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     perturbations[-1][i]['ellip'] = _x_to_eps(_inv_x_to_eps(perturbations[-1][i]['ellip']) + np.random.normal(loc = 0, scale = perturb_scale))
                 elif count % param_cycle == 1:
                     perturbations[-1][i]['pa'] = (perturbations[-1][i]['pa'] + np.random.normal(loc = 0, scale = np.pi * perturb_scale)) % np.pi
-                elif count % param_cycle < (2+len(parameters[i]['m'])):
-                    perturbations[-1][i]['Am'][(count % param_cycle) - 2] += np.random.normal(loc = 0, scale = perturb_scale)
-                else:
-                    phim_index = (count % param_cycle) - 2 - len(parameters[i]['m'])
+                elif (count % param_cycle) == 2 and not parameters[i]['C'] is None:
+                    perturbations[-1][i]['C'] = 10**(np.log10(perturbations[-1][i]['C']) + np.random.normal(loc = 0, scale = np.log10(1. + perturb_scale)))
+                elif count % param_cycle < (base_params+len(parameters[i]['m'])):
+                    perturbations[-1][i]['Am'][(count % param_cycle) - base_params] += np.random.normal(loc = 0, scale = perturb_scale)
+                elif count % param_cycle < (base_params+2*len(parameters[i]['m'])):
+                    phim_index = (count % param_cycle) - base_params - len(parameters[i]['m'])
                     perturbations[-1][i]['Phim'][phim_index] = (perturbations[-1][i]['Phim'][phim_index] + np.random.normal(loc = 0, scale = 2 * np.pi * perturb_scale / parameters[i]['m'][phim_index])) % (2 * np.pi / parameters[i]['m'][phim_index])
+                else:
+                    raise Exception('Unrecognized optimization parameter id: %i' % (count % param_cycle))
                 perturbations[-1][i]['loss'] = _FFT_Robust_loss(dat, sample_radii, perturbations[-1], i, use_center, results['background noise'],
                                                                 mask = mask, reg_scale = regularize_scale if count > 4 else 0, fit_coefs = fit_coefs, name = options['ap_name'])
+                    
 
             best = np.argmin(list(p[i]['loss'] for p in perturbations))
             if best > 0:
@@ -489,11 +501,21 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
             else:
                 count_nochange += 1
             if not (count_nochange < (iterstopnochange*(len(sample_radii)-1)) or count < iterlimitmin):
-                if param_cycle > 2 or parameters[i]['m'] is None:
+                if param_cycle > 2 or (parameters[i]['m'] is None and not fit_superellipse):
                     break
+                elif parameters[i]['m'] is None and fit_superellipse:
+                    logging.info('%s: Started C fitting at iteration %i' % (options['ap_name'], count))
+                    param_cycle = 3
+                    iterstopnochange = max(iterstopnochange, param_cycle)
+                    count_nochange = 0
+                    count = 0
+                    if fit_coefs is None:
+                        fit_coefs = (2,4)
                 else:
                     logging.info('%s: Started Fmode fitting at iteration %i' % (options['ap_name'], count))
-                    param_cycle = 2+2*len(parameters[i]['m'])
+                    if fit_superellipse:
+                        logging.info('%s: Started C fitting at iteration %i' % (options['ap_name'], count))
+                    param_cycle = base_params+2*len(parameters[i]['m'])
                     iterstopnochange = max(iterstopnochange, param_cycle)
                     count_nochange = 0
                     count = 0
@@ -501,6 +523,8 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                         fit_coefs = fit_params
                         if not 2 in fit_coefs:
                             fit_coefs = tuple(sorted(set([2] + list(fit_coefs))))
+                    if not parameters[i]['C'] is None and (not 'ap_isofit_losscoefs' in options or options['ap_isofit_losscoefs'] is None):
+                        fit_coefs = tuple(sorted(set([4] + list(fit_coefs))))
                     if 'ap_isofit_fitcoefs_FFTinit' in options and options['ap_isofit_fitcoefs_FFTinit']:
                         for ii in I:
                             isovals = _iso_extract(dat,sample_radii[ii],parameters[ii], use_center, mask = mask, interp_mask = False if mask is None else True, interp_method = 'bicubic')
@@ -539,6 +563,8 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         for m in range(len(fit_params)):
             res.update({'fit Fmode A%i' % fit_params[m]: np.array(list(parameters[i]['Am'][m] for i in range(len(parameters)))),
                         'fit Fmode Phi%i' % fit_params[m]: np.array(list(parameters[i]['Phim'][m] for i in range(len(parameters))))})
+    if fit_superellipse:
+        res.update({'fit C': np.array(list(parameters[i]['C'] for i in range(len(parameters))))})
     return IMG, res
 
 def Isophote_Fit_Forced(IMG, results, options):
