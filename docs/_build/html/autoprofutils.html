@@ -371,7 +371,7 @@ method.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum">
-<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Fmode_fluxdens_to_fluxsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Fmode_fluxdens_to_fluxsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Fmode_fluxdens_to_fluxsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Fmode_fluxdens_to_fluxsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Integrate a flux density profile, with isophotes including Fourier perturbations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -469,6 +469,21 @@ is in the file.</p>
 <p>filename: A string containing the full path to an image file</p>
 <p>returns: Extracted image data as numpy 2D array</p>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.Rotate_Cartesian">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Rotate_Cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Rotate_Cartesian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Rotate_Cartesian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.Rscale_Fmodes">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Rscale_Fmodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Am</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Rscale_Fmodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Rscale_Fmodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.Rscale_SuperEllipse">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Rscale_SuperEllipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Rscale_SuperEllipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Rscale_SuperEllipse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.SharedFunctions.SBprof_to_COG">
@@ -661,6 +676,16 @@ returns: mag</p>
 band: Photometric band in which measurements were taken
 returns: surface brightness in (L/Lsun) pc^-2</p>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.parametric_Fmodes">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">parametric_Fmodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Am</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#parametric_Fmodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.parametric_Fmodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.parametric_SuperEllipse">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">parametric_SuperEllipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#parametric_SuperEllipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.parametric_SuperEllipse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autoprofutils.SharedFunctions.pc_to_arcsec">

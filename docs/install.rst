@@ -12,10 +12,12 @@ If you have difficulty running AutoProf, it is possible that one of these depend
 Basic Install
 -------------
 
+This section describes how to install AutoProf for individual use. If you wish to contribute to the code, see :doc:`contributing` for more details.
+
 1. Download the package from: `AutoProf <https://github.com/ConnorStoneAstro/AutoProf>`_::
    
      cd /where/you/want/AutoProf/to/live/
-     git clone git@github.com:ConnorStoneAstro/AutoProf.git
+     git clone https://github.com/ConnorStoneAstro/AutoProf.git
    
    If you experience difficulty cloning the package, you may download a zip file of the package from the github page.
 #. Alias the AutoProf function. To make this permanent, include this lines in your .bashrc file (or equivalent for your OS). ::

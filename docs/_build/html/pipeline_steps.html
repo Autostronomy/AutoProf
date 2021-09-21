@@ -1044,6 +1044,14 @@ logarithmically, so the center will always be more resolved</p>
 </dd>
 </dl>
 </p></li>
+<li><p><strong>ap_ellipsemodel_replacemaskedpixels</strong> (<em>bool</em>) – <p>If True, a new galaxy image will be generated with masked pixels
+replaced by the ellipse model values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1590,6 +1598,18 @@ listed FFT coefficients. Must be a tuple, not a list.</p>
 </dd>
 </dl>
 </p></li>
+<li><p><strong>ap_isofit_superellipse</strong> (<em>bool</em>) – <p>If True, AutoProf will fit superellipses instead of regular
+ellipses. A superellipse is typically used to represent
+boxy/disky isophotes. The variable controlling the transition
+from a rectangle to an ellipse to a four-armed-star like shape
+is C. A value of C = 2 represents an ellipse and is the starting
+point of the optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>False</p>
+</dd>
+</dl>
+</p></li>
 <li><p><strong>ap_isofit_fitcoefs</strong> (<em>tuple</em>) – <p>Tuple of FFT coefficients to use in fitting procedure. AutoProf
 will attemp to fit ellipses with these Fourier mode
 perturbations. Such perturbations allow for lopsided, boxy,
@@ -1688,6 +1708,7 @@ recomended.</p>
  <span class="s1">&#39;fit R&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># array of semi-major axis values (ndarray)</span>
  <span class="s1">&#39;fit ellip_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of ellipticity error values (ndarray)</span>
  <span class="s1">&#39;fit pa_err&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, array of PA error values (ndarray)</span>
+ <span class="s1">&#39;fit C&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, superellipse scale parameter (ndarray)</span>
  <span class="s1">&#39;fit Fmodes&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, fitted Fourier mode indices (tuple)</span>
  <span class="s1">&#39;fit Fmode A*&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, fitted Fourier mode amplitudes, * for each index (ndarray)</span>
  <span class="s1">&#39;fit Fmode Phi*&#39;</span><span class="p">:</span> <span class="p">,</span> <span class="c1"># optional, fitted Fourier mode phases, * for each index (ndarray)</span>
