@@ -287,7 +287,7 @@ def Smooth_Mode(v):
     # set the starting point for the optimization at the median
     start = np.median(v)
     # set the smoothing scale equal to roughly 0.5% of the width of the data
-    scale = iqr(v) / max(1.,2*np.log10(len(v))) #/10
+    scale = iqr(v) / max(1.,np.log10(len(v))) #/10
     # Fit the peak of the smoothed histogram
     res = minimize(lambda x: -np.sum(np.exp(-((v - x)/scale)**2)), x0 = [start], method = 'Nelder-Mead')
     return res.x[0]
