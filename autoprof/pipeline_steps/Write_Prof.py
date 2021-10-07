@@ -6,6 +6,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from autoprofutils.SharedFunctions import PA_shift_convention
 from datetime import datetime
+from time import sleep
 
 def WriteProf(IMG, results, options):
     """Basic method to write SB profile to disk.
