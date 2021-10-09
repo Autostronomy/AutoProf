@@ -2,10 +2,9 @@
 
 import subprocess
 p = subprocess.run('which python3', shell = True, stdout = subprocess.PIPE)
-
-if p.stdout.decode('UTF-8').strip() != '/usr/bin/python3':
-    with open(__file__, 'r') as f:
-        raw = f.readlines()
+with open(__file__, 'r') as f:
+    raw = f.readlines()
+if p.stdout.decode('UTF-8').strip() != raw[0][2:].strip():
     with open(__file__, 'w') as f:
         raw[0] = '#!' + p.stdout.decode('UTF-8').strip() + '\n'
         f.writelines(raw)
