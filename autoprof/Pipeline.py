@@ -3,7 +3,7 @@ import os
 sys.path.append(os.environ['AUTOPROF'])
 from pipeline_steps.Plotting_Steps import Plot_Galaxy_Image
 from pipeline_steps.Background import Background_Mode, Background_DilatedSources, Background_Unsharp, Background_Basic
-from pipeline_steps.PSF import PSF_IRAF, PSF_StarFind
+from pipeline_steps.PSF import PSF_IRAF, PSF_StarFind, PSF_Image
 from pipeline_steps.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
 from pipeline_steps.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced
 from pipeline_steps.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean, Isophote_Fit_FixedPhase
@@ -48,6 +48,7 @@ class Isophote_Pipeline(object):
                                  'background basic': Background_Basic,
                                  'psf': PSF_StarFind,
                                  'psf IRAF': PSF_IRAF,
+                                 'psf img': PSF_Image,
                                  'center': Center_HillClimb,
                                  'center mean': Center_HillClimb_mean,
                                  'center forced': Center_Forced,
