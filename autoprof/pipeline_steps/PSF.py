@@ -2,9 +2,10 @@ from photutils import DAOStarFinder, IRAFStarFinder
 import numpy as np
 from scipy.stats import iqr
 import matplotlib.pyplot as plt
-from astropy.visualization import SqrtStretch, LogStretch
+from astropy.visualization import SqrtStretch, LogStretch, HistEqStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 from matplotlib.patches import Ellipse
+import matplotlib.cm as cm
 import logging
 from astropy.io import fits
 from itertools import product
@@ -175,9 +176,52 @@ def PSF_StarFind(IMG, results, options):
     return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf}
 
 def PSF_Image(IMG, results, options):
-    """
+    """PSF routine which identifies stars and averages the FWHM.
+
+    Constructs an averaged PSF image. Extracts a window of pixels
+    around each identified star (+-10 PSF) and normalizes the flux
+    total to 1. All extraced normalized stars are median stacked. The
+    final PSF is saved as "<name>_psf.fits" and added to the results
+    dictionary. Also calculates the PSF FWHM and adds it to the
+    results dictionary. This method is currently very slow.
+
+    Arguments
+    -----------------
+    
+    ap_guess_psf: float
+      Initialization value for the PSF calculation in pixels. If not
+      given, AutoProf will default with a guess of 1/*ap_pixscale*
+
+      :default:
+        None, use 1 arcsec
+
+    ap_set_psf: float
+      force AutoProf to use this PSF value (in pixels) instead of
+      calculating its own.
+
+      :default:
+        None
+
+    References
+    ----------
+    - 'background'
+    - 'background noise'    
+    
+    Returns
+    -------
+    IMG: ndarray
+      Unaltered galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {'psf fwhm':  # FWHM of the average PSF for the image
+         'auxfile psf': # aux file message giving the PSF
+         'psf img':   # image of the PSF as numpy array
+        }
 
     """
+    
     if 'ap_set_psf' in options:
         logging.info('%s: PSF set by user: %.4e' % (options['ap_name'], options['ap_set_psf']))
         return IMG, {'psf fwhm': options['ap_set_psf']}
@@ -201,40 +245,50 @@ def PSF_Image(IMG, results, options):
         def_clip += 0.1
     psf = np.median(stars['fwhm'][stars['deformity'] < def_clip])
     psf_iqr = np.quantile(stars['fwhm'][stars['deformity'] < def_clip], [0.1,0.9])
-    print(psf, psf_iqr)
     psf_size = int(psf*20)
     if psf_size % 2 == 0: # make PSF odd for easier calculations
         psf_size += 1
-    print(psf_size)
+        
     psf_img = None
     XX, YY = np.meshgrid(np.array(range(psf_size)) - psf_size//2, np.array(range(psf_size)) - psf_size//2)
     XX, YY = np.ravel(XX), np.ravel(YY)
+    
     for i in range(len(stars['x'])):
+        # ignore objects that likely aren't stars
         if stars['deformity'][i] > def_clip or stars['fwhm'][i] < psf_iqr[0] or stars['fwhm'][i] > psf_iqr[1]:
             continue
+        # ignore objects that are too close to the edge
         if stars['x'][i] < psf_size//2 or (dat.shape[1] - stars['x'][i]) < psf_size//2 or stars['y'][i] < psf_size//2 or (dat.shape[1] - stars['y'][i]) < psf_size//2:
             continue
-        print(i)
         flux = interpolate_Lanczos(dat, XX + stars['x'][i], YY + stars['y'][i], 10).reshape((1,psf_size, psf_size))
-        plt.imshow(dat[int(stars['y'][i] - psf_size/2):int(stars['y'][i] + psf_size/2),
-                       int(stars['x'][i] - psf_size/2):int(stars['x'][i] + psf_size/2)], origin = 'lower')
-        plt.savefig('plots/psf_%i_dat.jpg' % i)
-        plt.close()
-        plt.imshow(flux[0], origin = 'lower')
-        plt.savefig('plots/psf_%i_flux.jpg' % i)
-        plt.close()
         flux /= np.sum(flux)
-        if psf_img is None:
-            psf_img = flux
-        else:
-            psf_img = np.concatenate((psf_img, flux))
+        psf_img = flux if psf_img is None else np.concatenate((psf_img, flux))
+
+    # stack the PSF
     psf_img = np.median(psf_img, axis = 0)
+    # normalize the PSF
     psf_img /= np.sum(psf_img)
-    
+
     header = fits.Header()
     hdul = fits.HDUList([fits.PrimaryHDU(header=header),
                          fits.ImageHDU(psf_img)])
-    
     hdul.writeto(os.path.join(options['ap_saveto'] if 'ap_saveto' in options else '', '%s_psf.fits' % options['ap_name']), overwrite = True)    
+
+    if 'ap_doplot' in options and options['ap_doplot']:
+        plt.imshow(psf_img, origin = 'lower', cmap = 'Greys',
+                   norm = ImageNormalize(stretch=HistEqStretch(psf_img)))
+        my_cmap = cm.Greys_r
+        my_cmap.set_under('k', alpha=0)
+        fluxpeak = psf_img[psf_size//2 + 1,psf_size//2 + 1]/2
+        plt.imshow(np.clip(psf_img, a_min = fluxpeak/10, a_max = None),
+                   origin = 'lower', cmap = my_cmap,
+                   norm = ImageNormalize(stretch=LogStretch(), clip = False),
+                   clim = [fluxpeak/9, None], vmin = fluxpeak/9) 
+        plt.axis('off')
+        plt.tight_layout()
+        if not ('ap_nologo' in options and options['ap_nologo']):
+            AddLogo(plt.gcf())
+        plt.savefig('%sPSF_%s.jpg' % (options['ap_plotpath'] if 'ap_plotpath' in options else '', options['ap_name']), dpi = options['ap_plotdpi'] if 'ap_plotdpi'in options else 300)
+        plt.close()        
     
     return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf, 'psf img': psf_img}
