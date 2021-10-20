@@ -99,8 +99,12 @@ def Radial_Profiles(IMG, results, options):
 
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
 
-    R = np.array(results['prof data']['R'])/options['ap_pixscale']
-    SBE = np.array(results['prof data']['SB_e'])
+    if 'prof data' in results:
+        R = np.array(results['prof data']['R'])/options['ap_pixscale']
+    else:
+        startR = options['ap_sampleinitR'] if 'ap_sampleinitR' in options else min(1.,results['psf fwhm']/2)
+        endR = options['ap_sampleendR'] if 'ap_sampleendR' in options else min(max(IMG.shape)/np.sqrt(2), 3*results['init R'])
+        R = np.logspace(np.log10(startR), np.log10(endR), np.log10(endR/startR)/np.log10(1 + (options['ap_samplegeometricscale'] if 'ap_samplegeometricscale' in options else 0.1)))
     if 'ap_radialprofiles_variable_pa' in options and options['ap_radialprofiles_variable_pa']:
         pa = np.array(results['prof data']['pa'])*np.pi/180
     else:
@@ -119,14 +123,16 @@ def Radial_Profiles(IMG, results, options):
         
     sb = list([] for i in wedgeangles)
     sbE = list([] for i in wedgeangles)
-
+    avgmedflux = np.inf
+    
     for i in range(len(R)):
-        if R[i] < 100:
+        isobandwidth = R[i]*(options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.025)
+        if avgmedflux > (results['background noise']*(options['ap_isoband_start'] if 'ap_isoband_start' in options else 2)) or isobandwidth < 0.5:
             isovals = list(_iso_extract(dat, R[i], {'ellip': 0, 'pa': 0}, results['center'], more = True, minN = int(5*2*np.pi/wedgewidth[i]), mask = mask))
         else:
-            isobandwidth = R[i]*(options['ap_isoband_width'] if 'ap_isoband_width' in options else 0.025)
             isovals = list(_iso_between(dat, R[i] - isobandwidth, R[i] + isobandwidth, {'ellip': 0, 'pa': 0}, results['center'], more = True, mask = mask))
         isovals[1] -= pa[i]
+        avgmedflux = []
         
         for sa_i in range(len(wedgeangles)):
             aselect = np.abs(Angle_TwoAngles(wedgeangles[sa_i], isovals[1])) < (wedgewidth[i]/2)
@@ -135,13 +141,21 @@ def Radial_Profiles(IMG, results, options):
                 sbE[sa_i].append(99.999)
                 continue
             medflux = _average(isovals[0][aselect], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
+            avgmedflux.append(medflux)
             scatflux = _scatter(isovals[0][aselect], options['ap_isoaverage_method'] if 'ap_isoaverage_method' in options else 'median')
             sb[sa_i].append(flux_to_sb(medflux, options['ap_pixscale'], zeropoint) if medflux > 0 else 99.999)
             sbE[sa_i].append((2.5*scatflux / (np.sqrt(np.sum(aselect))*medflux*np.log(10))) if medflux > 0 else 99.999)
+        avgmedflux = np.mean(avgmedflux)
 
-    newprofheader = results['prof header']
-    newprofunits = results['prof units']
-    newprofdata = results['prof data']
+    if 'prof header' in results:
+        newprofheader = results['prof header']
+        newprofunits = results['prof units']
+        newprofdata = results['prof data']
+    else:
+        newprofheader = ['R']
+        newprofunits = {'R': 'arcsec'}
+        newprofdata = {'R': R * options['ap_pixscale']}
+        
     for sa_i in range(len(wedgeangles)):
         p1, p2 = ('SB_rad[%.1f]' % (wedgeangles[sa_i]*180/np.pi), 'SB_rad_e[%.1f]' % (wedgeangles[sa_i]*180/np.pi))
         newprofheader.append(p1)
@@ -152,6 +166,6 @@ def Radial_Profiles(IMG, results, options):
         newprofdata[p2] = sbE[sa_i]
         
     if 'ap_doplot' in options and options['ap_doplot']:
-        Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options)
+        Plot_Radial_Profiles(dat, R, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options)
         
     return IMG, {'prof header': newprofheader, 'prof units': newprofunits, 'prof data': newprofdata}

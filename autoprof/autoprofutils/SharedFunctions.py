@@ -322,7 +322,7 @@ def parametric_Fmodes(theta, modes, Am, Phim):
     return x*Rscale, y*Rscale
     
 def Rscale_SuperEllipse(theta, ellip, C = 2):
-    return (1 - ellip) / np.power(np.abs((1 - ellip)*np.cos(theta))**(C) + np.abs(np.sin(theta))**(C), 1./C)
+    return (1 - ellip) / (np.abs((1 - ellip)*np.cos(theta))**(C) + np.abs(np.sin(theta))**(C))**(1./C)
 
 def parametric_SuperEllipse(theta, ellip, C = 2):
     rs = Rscale_SuperEllipse(theta, ellip, C)
@@ -367,7 +367,6 @@ def _iso_between(IMG, sma_low, sma_high, PARAMS, c, more = False, mask = None,
     ranges = [[max(0,int(c['x']-Rlim-2)), min(IMG.shape[1],int(c['x']+Rlim+2))],
               [max(0,int(c['y']-Rlim-2)), min(IMG.shape[0],int(c['y']+Rlim+2))]]
     XX, YY = np.meshgrid(np.arange(ranges[0][1] - ranges[0][0], dtype = float) - c['x'] + float(ranges[0][0]), np.arange(ranges[1][1] - ranges[1][0], dtype = float) - c['y'] + float(ranges[1][0]))
-
     theta = np.arctan(YY/XX) + np.pi*(XX < 0)
     RR = np.sqrt(XX**2 + YY**2)
     Fmode_Rscale = 1. if PARAMS['m'] is None else Rscale_Fmodes(theta - PARAMS['pa'], PARAMS['m'], PARAMS['Am'], PARAMS['Phim'])

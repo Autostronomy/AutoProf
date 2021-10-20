@@ -297,15 +297,17 @@ def Plot_Meas_Fmodes(R, parameters, results, options):
 
             
 
-def Plot_Radial_Profiles(dat, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options):
+def Plot_Radial_Profiles(dat, R, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options):
     
-    R = np.array(results['prof data']['R'])/options['ap_pixscale']
-    SBE = np.array(results['prof data']['SB_e'])
     zeropoint = options['ap_zeropoint'] if 'ap_zeropoint' in options else 22.5
-    CHOOSE = SBE < 0.2
-    firstbad = np.argmax(np.logical_not(CHOOSE))
-    if firstbad > 3:
-        CHOOSE[firstbad:] = False
+    try:
+        SBE = np.array(results['prof data']['SB_e'])
+        CHOOSE = SBE < 0.2
+        firstbad = np.argmax(np.logical_not(CHOOSE))
+        if firstbad > 3:
+            CHOOSE[firstbad:] = False
+    except:
+        CHOOSE = np.ones(len(R), dtype = bool)
     ranges = [[max(0,int(results['center']['x']-1.5*R[CHOOSE][-1]-2)), min(dat.shape[1],int(results['center']['x']+1.5*R[CHOOSE][-1]+2))],
               [max(0,int(results['center']['y']-1.5*R[CHOOSE][-1]-2)), min(dat.shape[0],int(results['center']['y']+1.5*R[CHOOSE][-1]+2))]]
     # cmap = matplotlib.cm.get_cmap('tab10' if nwedges <= 10 else 'viridis')
