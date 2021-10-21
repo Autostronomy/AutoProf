@@ -127,10 +127,7 @@ def WriteProf(IMG, results, options):
         
     # Write the mask data, if provided
     if 'mask' in results and (not results['mask'] is None) and 'ap_savemask' in options and options['ap_savemask']:
-        header = fits.Header()
-        header['IMAGE 1'] = 'mask'
-        hdul = fits.HDUList([fits.PrimaryHDU(header=header),
-                             fits.ImageHDU(results['mask'].astype(int))])
+        hdul = fits.HDUList([fits.PrimaryHDU(results['mask'].astype(int))])
         hdul.writeto(saveto + options['ap_name'] + '_mask.fits', overwrite = True)
         sleep(1)
         # Zip the mask file because it can be large and take a lot of memory, but in principle

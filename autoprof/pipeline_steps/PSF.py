@@ -232,8 +232,8 @@ def PSF_Image(IMG, results, options):
         fwhm_guess = max(1., 1./options['ap_pixscale'])
     
     edge_mask = np.zeros(IMG.shape, dtype = bool)
-    edge_mask[int(IMG.shape[0]/5.):int(4.*IMG.shape[0]/5.),
-              int(IMG.shape[1]/5.):int(4.*IMG.shape[1]/5.)] = True
+    edge_mask[int(IMG.shape[0]/4.):int(3.*IMG.shape[0]/4.),
+              int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
     dat = IMG - results['background']
     stars = StarFind(dat, fwhm_guess, results['background noise'],
                      edge_mask, detect_threshold = 5.)
@@ -268,10 +268,8 @@ def PSF_Image(IMG, results, options):
     psf_img = np.median(psf_img, axis = 0)
     # normalize the PSF
     psf_img /= np.sum(psf_img)
-
-    header = fits.Header()
-    hdul = fits.HDUList([fits.PrimaryHDU(header=header),
-                         fits.ImageHDU(psf_img)])
+    
+    hdul = fits.HDUList([fits.PrimaryHDU(psf_img)])
     hdul.writeto(os.path.join(options['ap_saveto'] if 'ap_saveto' in options else '', '%s_psf.fits' % options['ap_name']), overwrite = True)    
 
     if 'ap_doplot' in options and options['ap_doplot']:
