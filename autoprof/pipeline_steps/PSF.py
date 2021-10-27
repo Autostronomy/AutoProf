@@ -15,7 +15,7 @@ from scipy.fftpack import fft, ifft
 import sys
 import os
 sys.path.append(os.environ['AUTOPROF'])
-from autoprofutils.SharedFunctions import StarFind, AddLogo, LSBImage, autocolours, interpolate_Lanczos, interpolate_bicubic
+from autoprofutils.SharedFunctions import StarFind, AddLogo, LSBImage, autocolours, interpolate_Lanczos, interpolate_bicubic, Read_Image
 from autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
 from copy import deepcopy
 
@@ -236,7 +236,7 @@ def PSF_Image(IMG, results, options):
               int(IMG.shape[1]/4.):int(3.*IMG.shape[1]/4.)] = True
     dat = IMG - results['background']
     stars = StarFind(dat, fwhm_guess, results['background noise'],
-                     edge_mask, detect_threshold = 5.)
+                     edge_mask, detect_threshold = 5., maxstars = 100)
     if len(stars['fwhm']) <= 10:
         logging.error('%s: unable to detect enough stars! PSF results not valid, using 1 arcsec estimate psf of %f' % (options['ap_name'], fwhm_guess))
 
@@ -245,7 +245,7 @@ def PSF_Image(IMG, results, options):
         def_clip += 0.1
     psf = np.median(stars['fwhm'][stars['deformity'] < def_clip])
     psf_iqr = np.quantile(stars['fwhm'][stars['deformity'] < def_clip], [0.1,0.9])
-    psf_size = int(psf*20)
+    psf_size = int(psf*10)
     if psf_size % 2 == 0: # make PSF odd for easier calculations
         psf_size += 1
         
@@ -290,3 +290,78 @@ def PSF_Image(IMG, results, options):
         plt.close()        
     
     return IMG, {'psf fwhm': psf, 'auxfile psf': 'psf fwhm: %.3f pix' % psf, 'psf img': psf_img}
+
+def PSF_deconvolve(IMG, results, options):
+    """routine which deconvolves the PSF from the primary image.
+
+    Performs Richardson-Lucy deconvolution on the primary galaxy image
+    using the sci-kit image implementation (the user must have skimage
+    in their python installation). This deconvolution procedure is
+    more stable than standard FFT deconvolution. This method is
+    currently very slow. If the user provides an image via
+    'ap_psf_file' then that will be taken as the psf and deconvolved
+    from the image. If there is no file given, but 'psf img' exists in
+    the results dictionary (ie from the 'psf img' pipeline step) then
+    that will be used. If no other option is available, the 'psf fwhm'
+    will be taken from the results dictionary and a PSF image will be
+    constructed using a Gaussian of the given PSF out to 20 times the
+    PSF size.
+
+    Arguments
+    -----------------
+    
+    ap_psf_file: string
+      Optional argument. Path to PSF fits file. For best results the
+      image should have an odd number of pixels with the PSF centered
+      in the image.
+
+      :default:
+        None
+
+    ap_psf_deconvolution_iterations: int
+      number of itterations of the Richardson-Lucy deconvolution
+      algorithm to perform.
+
+      :default:
+        50
+
+    References
+    ----------
+    - 'psf img' (optional)
+    - 'psf fwhm' (optional)    
+    
+    Returns
+    -------
+    IMG: ndarray
+      deconvolved galaxy image
+    
+    results: dict
+      .. code-block:: python
+    
+        {}
+
+    """
+
+    from skimage import restoration
+
+    if 'ap_psf_file' in options:
+        psf_img = Read_Image(options['ap_psf_file'], options)
+    elif 'psf img' in results:
+        psf_img = results['psf img']
+    else:
+        psf_size = int(results['psf fwhm']*20)
+        if psf_size % 2 == 0: # make PSF odd for easier calculations
+            psf_size += 1
+        
+        XX, YY = np.meshgrid(np.array(range(psf_size)) - psf_size//2, np.array(range(psf_size)) - psf_size//2)
+        psf_std = results['psf fwhm'] / np.sqrt(8 * np.log(2))
+        psf_img = np.exp(-(XX**2 + YY**2)/(2*psf_std**2)) / np.sqrt(2*np.pi*psf_std**2) 
+        
+    if np.abs(np.sum(psf_img) - 1) > 1e-7:
+        logging.warn('PSF image not normalized! sum(PSF) = %.3e' % np.sum(psf_img))
+    dmax = np.max(IMG)
+    dmin = np.min(IMG)
+    dat_deconv = restoration.richardson_lucy((IMG - dmin)/(dmax - dmin) - 0.5, psf_img, iterations = options['ap_psf_deconvolution_iterations'] if 'ap_psf_deconvolution_iterations' in options else 50)
+    dat_deconv = (dat_deconv + 0.5)*(dmax-dmin) + dmin
+    
+    return dat_deconv, {}
