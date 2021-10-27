@@ -102,6 +102,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#background-basic">Background - Basic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#background-unsharp-masking">Background - Unsharp masking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#psf-iraf">PSF - IRAF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psf-image">PSF - Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psf-deconvolve">PSF - Deconvolve</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#center-mean">Center - Mean</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#center-2d-gaussian">Center - 2D Gaussian</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#center-1d-gaussian">Center - 1D Gaussian</a></li>
@@ -218,6 +220,18 @@ The noise is half the 16-84 quartile range of unmasked pixels.</p>
 <p><strong>pipeline label: ‘psf IRAF’</strong></p>
 <p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.PSF.PSF_IRAF" title="pipeline_steps.PSF.PSF_IRAF"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_IRAF()</span></code></a></p>
 <p>The photutils IRAF star finder wrapper is used to identify stars in the image, the psf is taken as the average fwhm fitted by IRAF.</p>
+</div>
+<div class="section" id="psf-image">
+<h2>PSF - Image<a class="headerlink" href="#psf-image" title="Permalink to this headline">¶</a></h2>
+<p><strong>pipeline label: ‘psf img’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.PSF.PSF_Image" title="pipeline_steps.PSF.PSF_Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_Image()</span></code></a></p>
+<p>Method to construct an image of the PSF by stacking many stars extracted from the image.</p>
+</div>
+<div class="section" id="psf-deconvolve">
+<h2>PSF - Deconvolve<a class="headerlink" href="#psf-deconvolve" title="Permalink to this headline">¶</a></h2>
+<p><strong>pipeline label: ‘psf deconvolve’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.PSF.PSF_deconvolve" title="pipeline_steps.PSF.PSF_deconvolve"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_deconvolve()</span></code></a></p>
+<p>Deconvolves a provided PSF from the primary image.</p>
 </div>
 <div class="section" id="center-mean">
 <h2>Center - Mean<a class="headerlink" href="#center-mean" title="Permalink to this headline">¶</a></h2>

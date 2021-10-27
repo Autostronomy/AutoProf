@@ -45,6 +45,24 @@ PSF - IRAF
 
 The photutils IRAF star finder wrapper is used to identify stars in the image, the psf is taken as the average fwhm fitted by IRAF.
 
+PSF - Image
+----------------------------------------------------------------------
+
+**pipeline label: 'psf img'**
+
+:func:`~pipeline_steps.PSF.PSF_Image`
+
+Method to construct an image of the PSF by stacking many stars extracted from the image.
+
+PSF - Deconvolve
+----------------------------------------------------------------------
+
+**pipeline label: 'psf deconvolve'**
+
+:func:`~pipeline_steps.PSF.PSF_deconvolve`
+
+Deconvolves a provided PSF from the primary image.
+
 Center - Mean
 ----------------------------------------------------------------------
 

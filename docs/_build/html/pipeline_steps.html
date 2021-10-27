@@ -2357,6 +2357,61 @@ calculating its own.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.PSF.PSF_Image">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.PSF.</span></span><span class="sig-name descname"><span class="pre">PSF_Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/PSF.html#PSF_Image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.PSF.PSF_Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>PSF routine which identifies stars and averages the FWHM.</p>
+<p>Constructs an averaged PSF image. Extracts a window of pixels
+around each identified star (+-10 PSF) and normalizes the flux
+total to 1. All extraced normalized stars are median stacked. The
+final PSF is saved as “&lt;name&gt;_psf.fits” and added to the results
+dictionary. Also calculates the PSF FWHM and adds it to the
+results dictionary. This method is currently very slow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None, use 1 arcsec</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘background’</p></li>
+<li><p>‘background noise’</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Unaltered galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span>  <span class="c1"># FWHM of the average PSF for the image</span>
+ <span class="s1">&#39;auxfile psf&#39;</span><span class="p">:</span> <span class="c1"># aux file message giving the PSF</span>
+ <span class="s1">&#39;psf img&#39;</span><span class="p">:</span>   <span class="c1"># image of the PSF as numpy array</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="pipeline_steps.PSF.PSF_StarFind">
 <span class="sig-prename descclassname"><span class="pre">pipeline_steps.PSF.</span></span><span class="sig-name descname"><span class="pre">PSF_StarFind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/PSF.html#PSF_StarFind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.PSF.PSF_StarFind" title="Permalink to this definition">¶</a></dt>
 <dd><p>PSF routine which identifies stars and averages the FWHM.</p>
@@ -2404,6 +2459,65 @@ calculating its own.</p>
 <li><p><strong>results</strong> (<em>dict</em>) –</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">:</span>  <span class="c1"># FWHM of the average PSF for the image</span>
 <span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline_steps.PSF.PSF_deconvolve">
+<span class="sig-prename descclassname"><span class="pre">pipeline_steps.PSF.</span></span><span class="sig-name descname"><span class="pre">PSF_deconvolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_steps/PSF.html#PSF_deconvolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline_steps.PSF.PSF_deconvolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>routine which deconvolves the PSF from the primary image.</p>
+<p>Performs Richardson-Lucy deconvolution on the primary galaxy image
+using the sci-kit image implementation (the user must have skimage
+in their python installation). This deconvolution procedure is
+more stable than standard FFT deconvolution. This method is
+currently very slow. If the user provides an image via
+‘ap_psf_file’ then that will be taken as the psf and deconvolved
+from the image. If there is no file given, but ‘psf img’ exists in
+the results dictionary (ie from the ‘psf img’ pipeline step) then
+that will be used. If no other option is available, the ‘psf fwhm’
+will be taken from the results dictionary and a PSF image will be
+constructed using a Gaussian of the given PSF out to 20 times the
+PSF size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_psf_file</strong> (<em>string</em>) – <p>Optional argument. Path to PSF fits file. For best results the
+image should have an odd number of pixels with the PSF centered
+in the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ap_psf_deconvolution_iterations</strong> (<em>int</em>) – <p>number of itterations of the Richardson-Lucy deconvolution
+algorithm to perform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">default</dt>
+<dd class="field-odd"><p>50</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>‘psf img’ (optional)</p></li>
+<li><p>‘psf fwhm’ (optional)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – deconvolved galaxy image</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
 </pre></div>
 </div>
 </li>
