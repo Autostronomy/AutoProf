@@ -4,27 +4,6 @@ AutoProf Parameters
 
 Here we list all parameters used in the built-in AutoProf methods. The parameters are listed alphabetically for easy searching. For further information, links are included to the individual methods which use these parameters.
 
----- ()
-----------------------------------------------------------------------
-
-**Referencing Methods**
-
-- :func:`~pipeline_steps.Background.Background_Mode`
-
-**Description**
-
-For best results, use a segmentation mask to remove sources.
-
-Notes ()
-----------------------------------------------------------------------
-
-**Referencing Methods**
-
-- :func:`~pipeline_steps.Background.Background_Mode`
-
-**Description**
-
-
 ap_axialprof_pa (float, default 0)
 ----------------------------------------------------------------------
 

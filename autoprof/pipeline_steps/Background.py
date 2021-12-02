@@ -53,7 +53,7 @@ def Background_Mode(IMG, results, options):
       number of pixels used in the calculation.
 
     Notes
-    ----
+    -------
       For best results, use a segmentation mask to remove sources.
 
     Returns
