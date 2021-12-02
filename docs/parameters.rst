@@ -4,7 +4,7 @@ AutoProf Parameters
 
 Here we list all parameters used in the built-in AutoProf methods. The parameters are listed alphabetically for easy searching. For further information, links are included to the individual methods which use these parameters.
 
-.---- ()
+---- ()
 ----------------------------------------------------------------------
 
 **Referencing Methods**

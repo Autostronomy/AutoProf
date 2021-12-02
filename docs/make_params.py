@@ -43,7 +43,7 @@ for step in pipeline_steps:
                 param_docs[P.name].append({'parameter': P, 'func': func, 'step': step})
 
 parameters = ['='*20 + '\n', 'AutoProf Parameters\n', '='*20 + '\n\n',
-              "Here we list all parameters used in the built-in AutoProf methods. The parameters are listed alphabetically for easy searching. For further information, links are included to the individual methods which use these parameters.\n\n."]
+              "Here we list all parameters used in the built-in AutoProf methods. The parameters are listed alphabetically for easy searching. For further information, links are included to the individual methods which use these parameters.\n\n"]
 
 for name in sorted(param_docs.keys()):
     parameters.append(f"{name} ({param_docs[name][0]['parameter'].type})\n")
