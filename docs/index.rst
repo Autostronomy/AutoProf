@@ -59,6 +59,7 @@ User Documentation
    :maxdepth: 1
 
    defaultpipeline.rst
+   parameters.rst
    pipelinemanipulation.rst
    decisiontrees.rst
    extramethods.rst
