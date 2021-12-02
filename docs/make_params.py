@@ -50,7 +50,6 @@ for name in sorted(param_docs.keys()):
     parameters.append('-'*70 + '\n\n')
     parameters.append('**Referencing Methods**\n\n')
     for P in param_docs[name]:
-        print(P)
         step = P['step'][P['step'].rfind('/')+1:-3]
         parameters.append(f"- :func:`~pipeline_steps.{step}.{P['func']}`\n")
     parameters.append('\n')

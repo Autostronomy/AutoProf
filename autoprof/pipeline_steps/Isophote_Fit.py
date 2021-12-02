@@ -384,7 +384,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     deviation of the PA/ellipticity after repeated fitting gives the
     uncertainty.
 
-    Parameterss
+    Parameters
     -----------------
     ap_scale : float, default 0.2
       growth scale when fitting isophotes, not the same as

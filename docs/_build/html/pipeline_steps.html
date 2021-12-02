@@ -94,6 +94,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
@@ -192,51 +193,31 @@ identifying where each profile is extracted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_axialprof_pa</strong> (<em>float</em>) – <p>user set position angle at which to align the axial profiles
+<li><p><strong>ap_axialprof_pa</strong> (<em>float</em><em>, </em><em>default 0</em>) – user set position angle at which to align the axial profiles
 relative to the global position angle+90, in degrees. A common
 choice would be “90” which would then sample along the
-semi-major axis instead of the semi-minor axis.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>22.5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_samplestyle</strong> (<em>string</em>) – <p>indicate if isophote sampling radii should grow linearly or
+semi-major axis instead of the semi-minor axis.</p></li>
+<li><p><strong>ap_zeropoint</strong> (<em>float</em><em>, </em><em>default 22.5</em>) – Photometric zero point</p></li>
+<li><p><strong>ap_samplestyle</strong> (<em>string</em><em>, </em><em>default 'geometric'</em>) – indicate if isophote sampling radii should grow linearly or
 geometrically. Can also do geometric sampling at the center and
 linear sampling once geometric step size equals linear. Options
-are: ‘linear’, ‘geometric’, and ‘geometric-linear’.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’geometric’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+are: ‘linear’, ‘geometric’, and ‘geometric-linear’.</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em><em>, </em><em>default 'median'</em>) – Select the method used to compute the averafge flux along an
 isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
 median is fast and robust to a few outliers. Mode is slow but
 robust to more outliers. Mean is fast and accurate in low S/N
 regimes where fluxes take on near integer values, but not robust
 to outliers. The mean should be used along with a mask to remove
 spurious objects such as foreground stars or galaxies, and
-should always be used with caution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’median’</p>
-</dd>
-</dl>
-</p></li>
+should always be used with caution.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘mask’ (optional)</p></li>
 <li><p>‘background’</p></li>
@@ -275,30 +256,12 @@ considerably biased on real astronomical images.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_set_background</strong> (<em>float</em>) – <p>User provided background value in flux</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_set_background_noise</strong> (<em>float</em>) – <p>User provided background noise level in flux</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_background_speedup</strong> (<em>int</em>) – <p>For large images, this can be millions of pixels, which is not
+<li><p><strong>ap_set_background</strong> (<em>float</em><em>, </em><em>default None</em>) – User provided background value in flux</p></li>
+<li><p><strong>ap_set_background_noise</strong> (<em>float</em><em>, </em><em>default None</em>) – User provided background noise level in flux</p></li>
+<li><p><strong>ap_background_speedup</strong> (<em>int</em><em>, </em><em>default 1</em>) – For large images, this can be millions of pixels, which is not
 really needed to achieve an accurate background level, the user
 can provide a positive integer factor by which to reduce the
-number of pixels used in the calculation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>1</p>
-</dd>
-</dl>
-</p></li>
+number of pixels used in the calculation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -332,20 +295,8 @@ dictionary of parameters describing the background level.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_set_background</strong> (<em>float</em>) – <p>User provided background value in flux</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_set_background_noise</strong> (<em>float</em>) – <p>User provided background noise level in flux</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>ap_set_background</strong> (<em>float</em><em>, </em><em>default None</em>) – User provided background value in flux</p></li>
+<li><p><strong>ap_set_background_noise</strong> (<em>float</em><em>, </em><em>default None</em>) – User provided background noise level in flux</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -383,37 +334,17 @@ contaminated as well, though to a lesser extent.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_set_background</strong> (<em>float</em>) – <p>User provided background value in flux</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_set_background_noise</strong> (<em>float</em>) – <p>User provided background noise level in flux</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_background_speedup</strong> (<em>int</em>) – <p>For large images, this can be millions of pixels, which is not
+<li><p><strong>ap_set_background</strong> (<em>float</em><em>, </em><em>default None</em>) – User provided background value in flux</p></li>
+<li><p><strong>ap_set_background_noise</strong> (<em>float</em><em>, </em><em>default None</em>) – User provided background noise level in flux</p></li>
+<li><p><strong>ap_background_speedup</strong> (<em>int</em><em>, </em><em>default 1</em>) – For large images, this can be millions of pixels, which is not
 really needed to achieve an accurate background level, the user
 can provide a positive integer factor by which to reduce the
-number of pixels used in the calculation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>1</p>
-</dd>
-</dl>
-</p></li>
+number of pixels used in the calculation.</p></li>
 </ul>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
+<p class="rubric">Notes</p>
 <p>For best results, use a segmentation mask to remove sources.</p>
-</div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
@@ -449,13 +380,7 @@ sake of fitting isophotes, but the extracted flux profile will be
 unreliable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_background_unsharp_lowpass</strong> (<em>int</em>) – <p>User provided FFT coefficient cutoff for constructing unsharp image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>3</p>
-</dd>
-</dl>
-</p>
+<dd class="field-odd"><p><strong>ap_background_unsharp_lowpass</strong> (<em>int</em><em>, </em><em>default 3</em>) – User provided FFT coefficient cutoff for constructing unsharp image.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul>
@@ -486,48 +411,36 @@ center by fitting several 1d Gaussians.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+<li><p><strong>ap_guess_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided starting point for center fitting. Center should
 be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use image center</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+<li><p><strong>ap_set_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided fixed center for rest of calculations. Center
 should be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+<li><p><strong>ap_centeringring</strong> (<em>int</em><em>, </em><em>default 50</em>) – Size of ring to use when finding galaxy center, in units of
 PSF. Larger rings will give the 1D fits more data to work with
 and allow for the starting position to be further from the true
 galaxy center.  Smaller rings will include fewer spurious
 objects, and can stop the 1D fits from being distracted by
-larger nearby objects/galaxies.</p>
-<dl class="field-list simple">
-<dt class="field-odd">defualt</dt>
-<dd class="field-odd"><p>50</p>
-</dd>
-</dl>
-</p></li>
+larger nearby objects/galaxies.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘psf fwhm’</p></li>
@@ -561,48 +474,36 @@ Gaussian as implimented by the photutils package.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+<li><p><strong>ap_guess_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided starting point for center fitting. Center should
 be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use image center</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+<li><p><strong>ap_set_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided fixed center for rest of calculations. Center
 should be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+<li><p><strong>ap_centeringring</strong> (<em>int</em><em>, </em><em>default 50</em>) – Size of ring to use when finding galaxy center, in units of
 PSF. Larger rings will give the 2D fit more data to work with
 and allow for the starting position to be further from the true
 galaxy center.  Smaller rings will include fewer spurious
 objects, and can stop the 2D fit from being distracted by larger
-nearby objects/galaxies.</p>
-<dl class="field-list simple">
-<dt class="field-odd">defualt</dt>
-<dd class="field-odd"><p>50</p>
-</dd>
-</dl>
-</p></li>
+nearby objects/galaxies.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘psf fwhm’</p></li>
@@ -638,45 +539,33 @@ fitted aux file center.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+<li><p><strong>ap_guess_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided starting point for center fitting. Center should
 be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use image center</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+<li><p><strong>ap_set_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided fixed center for rest of calculations. Center
 should be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <p>(required for forced photometry) file path to .prof file
+<li><p><strong>ap_forcing_profile</strong> (<em>string</em><em>, </em><em>default None</em>) – (required for forced photometry) file path to .prof file
 providing forced photometry PA and ellip values to apply to
-<em>ap_image_file</em>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">defualt</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+<em>ap_image_file</em>.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -713,45 +602,33 @@ repeated until the step size becomes very small.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+<li><p><strong>ap_guess_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided starting point for center fitting. Center should
 be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use image center</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+<li><p><strong>ap_set_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided fixed center for rest of calculations. Center
 should be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+<li><p><strong>ap_centeringring</strong> (<em>int</em><em>, </em><em>default 10</em>) – Size of ring to use when finding galaxy center, in units of
 PSF. Larger rings will be robust to features (i.e., foreground
-stars), while smaller rings may be needed for small galaxies.</p>
-<dl class="field-list simple">
-<dt class="field-odd">defualt</dt>
-<dd class="field-odd"><p>10</p>
-</dd>
-</dl>
-</p></li>
+stars), while smaller rings may be needed for small galaxies.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -792,45 +669,33 @@ averages/scatters are mean/std based instead of median/iqr based.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+<li><p><strong>ap_guess_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided starting point for center fitting. Center should
 be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use image center</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+<li><p><strong>ap_set_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided fixed center for rest of calculations. Center
 should be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+<li><p><strong>ap_centeringring</strong> (<em>int</em><em>, </em><em>default 10</em>) – Size of ring to use when finding galaxy center, in units of
 PSF. Larger rings will be robust to features (i.e., foreground
-stars), while smaller rings may be needed for small galaxies.</p>
-<dl class="field-list simple">
-<dt class="field-odd">defualt</dt>
-<dd class="field-odd"><p>10</p>
-</dd>
-</dl>
-</p></li>
+stars), while smaller rings may be needed for small galaxies.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -870,47 +735,35 @@ been reached.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+<li><p><strong>ap_guess_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided starting point for center fitting. Center should
 be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use image center</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+<li><p><strong>ap_set_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided fixed center for rest of calculations. Center
 should be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_centeringring</strong> (<em>int</em>) – <p>Size of ring to use when finding galaxy center, in units of
+<li><p><strong>ap_centeringring</strong> (<em>int</em><em>, </em><em>default 10</em>) – Size of ring to use when finding galaxy center, in units of
 PSF. Larger rings will allow for the starting position to be
 further from the true galaxy center.  Smaller rings will include
 fewer spurious objects, and can stop the centroid from being
-distracted by larger nearby objects/galaxies.</p>
-<dl class="field-list simple">
-<dt class="field-odd">defualt</dt>
-<dd class="field-odd"><p>10</p>
-</dd>
-</dl>
-</p></li>
+distracted by larger nearby objects/galaxies.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘psf fwhm’</p></li>
@@ -971,7 +824,11 @@ the global position angle and ellipticity values.</p>
 light is biased to one side of the galaxy. Typically this
 indicated either a failed center, or the galaxy has been disturbed
 and is not lopsided.</p>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1026,32 +883,14 @@ from mag/arcsec^2 to flux units.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>22.5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_ellipsemodel_resolution</strong> (<em>float</em>) – <p>scale factor for the ellipse model resolution. Above 1 increases
+<li><p><strong>ap_zeropoint</strong> (<em>float</em><em>, </em><em>default 22.5</em>) – Photometric zero point</p></li>
+<li><p><strong>ap_ellipsemodel_resolution</strong> (<em>float</em><em>, </em><em>default 1</em>) – scale factor for the ellipse model resolution. Above 1 increases
 the precision of the ellipse model (and computation time),
 between 0 and 1 decreases the resolution (and computation
 time). Note that the ellipse model resolution is defined
-logarithmically, so the center will always be more resolved</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>1</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_ellipsemodel_replacemaskedpixels</strong> (<em>bool</em>) – <p>If True, a new galaxy image will be generated with masked pixels
-replaced by the ellipse model values.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
+logarithmically, so the center will always be more resolved</p></li>
+<li><p><strong>ap_ellipsemodel_replacemaskedpixels</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, a new galaxy image will be generated with masked pixels
+replaced by the ellipse model values.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1090,191 +929,81 @@ is used.  Within 1 PSF, a circular isophote is used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>22.5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_samplegeometricscale</strong> (<em>float</em>) – <p>growth scale for isophotes when sampling for the final output
+<li><p><strong>ap_zeropoint</strong> (<em>float</em><em>, </em><em>default 22.5</em>) – Photometric zero point. For converting flux to mag units.</p></li>
+<li><p><strong>ap_samplegeometricscale</strong> (<em>float</em><em>, </em><em>default 0.1</em>) – growth scale for isophotes when sampling for the final output
 profile.  Used when sampling geometrically. By default, each
-isophote is 10% further than the last.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.1</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_samplelinearscale</strong> (<em>float</em>) – <p>growth scale (in pixels) for isophotes when sampling for the
+isophote is 10% further than the last.</p></li>
+<li><p><strong>ap_samplelinearscale</strong> (<em>float</em><em>, </em><em>default None</em>) – growth scale (in pixels) for isophotes when sampling for the
 final output profile. Used when sampling linearly. Default is 1
-PSF length.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_samplestyle</strong> (<em>string</em>) – <p>indicate if isophote sampling radii should grow linearly or
+PSF length.</p></li>
+<li><p><strong>ap_samplestyle</strong> (<em>string</em><em>, </em><em>default 'geometric'</em>) – indicate if isophote sampling radii should grow linearly or
 geometrically. Can also do geometric sampling at the center and
 linear sampling once geometric step size equals linear. Options
-are: ‘linear’, ‘geometric’, ‘geometric-linear’</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’geometric’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_sampleinitR</strong> (<em>float</em>) – <p>Starting radius (in pixels) for isophote sampling from the
+are: ‘linear’, ‘geometric’, ‘geometric-linear’</p></li>
+<li><p><strong>ap_sampleinitR</strong> (<em>float</em><em>, </em><em>default None</em>) – Starting radius (in pixels) for isophote sampling from the
 image. Note that a starting radius of zero is not
-advised. Default is 1 pixel or 1PSF, whichever is smaller.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_sampleendR</strong> (<em>float</em>) – <p>End radius (in pixels) for isophote sampling from the
+advised. Default is 1 pixel or 1PSF, whichever is smaller.</p></li>
+<li><p><strong>ap_sampleendR</strong> (<em>float</em><em>, </em><em>default None</em>) – End radius (in pixels) for isophote sampling from the
 image. Default is 3 times the fit radius, also see
-<em>ap_extractfull</em>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoband_start</strong> (<em>float</em>) – <p>The noise level at which to begin sampling a band of pixels to
+<em>ap_extractfull</em>.</p></li>
+<li><p><strong>ap_isoband_start</strong> (<em>float</em><em>, </em><em>default 2</em>) – The noise level at which to begin sampling a band of pixels to
 compute SB instead of sampling a line of pixels near the
 isophote in units of pixel flux noise. Will never initiate band
-averaging if the band width is less than half a pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoband_width</strong> (<em>float</em>) – <p>The relative size of the isophote bands to sample. flux values
-will be sampled at +- <em>ap_isoband_width</em> *R for each radius.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.025</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoband_fixed</strong> (<em>bool</em>) – <p>Use a fixed width for the size of the isobands, the width is set
+averaging if the band width is less than half a pixel</p></li>
+<li><p><strong>ap_isoband_width</strong> (<em>float</em><em>, </em><em>default 0.025</em>) – The relative size of the isophote bands to sample. flux values
+will be sampled at +- <em>ap_isoband_width</em> *R for each radius.</p></li>
+<li><p><strong>ap_isoband_fixed</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use a fixed width for the size of the isobands, the width is set
 by <em>ap_isoband_width</em> which now has units of pixels, the default
-is 0.5 such that the full band has a width of 1 pixel.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_truncate_evaluation</strong> (<em>bool</em>) – <p>Stop evaluating new isophotes once two negative flux isophotes
+is 0.5 such that the full band has a width of 1 pixel.</p></li>
+<li><p><strong>ap_truncate_evaluation</strong> (<em>bool</em><em>, </em><em>default False</em>) – Stop evaluating new isophotes once two negative flux isophotes
 have been recorded, presumed to have reached the end of the
-profile.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_extractfull</strong> (<em>bool</em>) – <p>Tells AutoProf to extend the isophotal solution to the edge of
-the image. Will be overridden by <em>ap_truncate_evaluation</em>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_interpolate_start</strong> (<em>float</em>) – <p>Use a Lanczos interpolation for isophotes with semi-major axis
-less than this number times the PSF.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_interpolate_method</strong> (<em>string</em>) – <p>Select method for flux interpolation on image, options are
+profile.</p></li>
+<li><p><strong>ap_extractfull</strong> (<em>bool</em><em>, </em><em>default False</em>) – Tells AutoProf to extend the isophotal solution to the edge of
+the image. Will be overridden by <em>ap_truncate_evaluation</em>.</p></li>
+<li><p><strong>ap_iso_interpolate_start</strong> (<em>float</em><em>, </em><em>default 5</em>) – Use a Lanczos interpolation for isophotes with semi-major axis
+less than this number times the PSF.</p></li>
+<li><p><strong>ap_iso_interpolate_method</strong> (<em>string</em><em>, </em><em>default 'lanczos'</em>) – Select method for flux interpolation on image, options are
 ‘lanczos’ and ‘bicubic’. Default is ‘lanczos’ with a window size
-of 3.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’lanczos’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em>) – <p>Window size for Lanczos interpolation, default is 3, meaning 3
+of 3.</p></li>
+<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em><em>, </em><em>default 3</em>) – Window size for Lanczos interpolation, default is 3, meaning 3
 pixels on either side of the sample point are used for
-interpolation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>3</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+interpolation.</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em><em>, </em><em>default 'median'</em>) – Select the method used to compute the averafge flux along an
 isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
 median is fast and robust to a few outliers. Mode is slow but
 robust to more outliers. Mean is fast and accurate in low S/N
 regimes where fluxes take on near integer values, but not robust
 to outliers. The mean should be used along with a mask to remove
 spurious objects such as foreground stars or galaxies, and
-should always be used with caution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’median’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoclip</strong> (<em>bool</em>) – <p>Perform sigma clipping along extracted isophotes. Removes flux
+should always be used with caution.</p></li>
+<li><p><strong>ap_isoclip</strong> (<em>bool</em><em>, </em><em>default False</em>) – Perform sigma clipping along extracted isophotes. Removes flux
 samples from an isophote that deviate significantly from the
 median. Several iterations of sigma clipping are performed until
 convergence or <em>ap_isoclip_iterations</em> iterations are
 reached. Sigma clipping is a useful substitute for masking
 objects, though careful masking is better. Also an aggressive
-sigma clip may bias results.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoclip_iterations</strong> (<em>int</em>) – <p>Maximum number of sigma clipping iterations to perform. The
+sigma clip may bias results.</p></li>
+<li><p><strong>ap_isoclip_iterations</strong> (<em>int</em><em>, </em><em>default None</em>) – Maximum number of sigma clipping iterations to perform. The
 default is infinity, so the sigma clipping procedure repeats
-until convergence</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoclip_nsigma</strong> (<em>float</em>) – <p>Number of sigma above median to apply clipping. All values above
+until convergence</p></li>
+<li><p><strong>ap_isoclip_nsigma</strong> (<em>float</em><em>, </em><em>default 5</em>) – Number of sigma above median to apply clipping. All values above
 (median + <em>ap_isoclip_nsigma</em> x sigma) are removed from the
-isophote.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_measurecoefs</strong> (<em>tuple</em>) – <p>tuple indicating which fourier modes to extract along fitted
+isophote.</p></li>
+<li><p><strong>ap_iso_measurecoefs</strong> (<em>tuple</em><em>, </em><em>default None</em>) – tuple indicating which fourier modes to extract along fitted
 isophotes. Most common is (4,), which identifies boxy/disky
 isophotes. Also common is (1,3), which identifies lopsided
 galaxies. The outputted values are computed as a_i =
 imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
 fourier coefficient. Not activated by default as it adds to
-computation time.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+computation time.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1318,137 +1047,63 @@ given.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>22.5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoband_start</strong> (<em>float</em>) – <p>The noise level at which to begin sampling a band of pixels to
+<li><p><strong>ap_zeropoint</strong> (<em>float</em><em>, </em><em>default 22.5</em>) – Photometric zero point. For converting flux to mag units.</p></li>
+<li><p><strong>ap_isoband_start</strong> (<em>float</em><em>, </em><em>default 2</em>) – The noise level at which to begin sampling a band of pixels to
 compute SB instead of sampling a line of pixels near the
 isophote in units of pixel flux noise. Will never initiate band
-averaging if the band width is less than half a pixel</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoband_width</strong> (<em>float</em>) – <p>The relative size of the isophote bands to sample. flux values
-will be sampled at +- <em>ap_isoband_width</em> *R for each radius.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.025</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoband_fixed</strong> (<em>bool</em>) – <p>Use a fixed width for the size of the isobands, the width is set
+averaging if the band width is less than half a pixel</p></li>
+<li><p><strong>ap_isoband_width</strong> (<em>float</em><em>, </em><em>default 0.025</em>) – The relative size of the isophote bands to sample. flux values
+will be sampled at +- <em>ap_isoband_width</em> *R for each radius.</p></li>
+<li><p><strong>ap_isoband_fixed</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use a fixed width for the size of the isobands, the width is set
 by <em>ap_isoband_width</em> which now has units of pixels, the default
-is 0.5 such that the full band has a width of 1 pixel.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_truncate_evaluation</strong> (<em>bool</em>) – <p>Stop evaluating new isophotes once two negative flux isophotes
+is 0.5 such that the full band has a width of 1 pixel.</p></li>
+<li><p><strong>ap_truncate_evaluation</strong> (<em>bool</em><em>, </em><em>default False</em>) – Stop evaluating new isophotes once two negative flux isophotes
 have been recorded, presumed to have reached the end of the
-profile.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_interpolate_start</strong> (<em>float</em>) – <p>Use a Lanczos interpolation for isophotes with semi-major axis
-less than this number times the PSF.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_interpolate_method</strong> (<em>string</em>) – <p>Select method for flux interpolation on image, options are
+profile.</p></li>
+<li><p><strong>ap_iso_interpolate_start</strong> (<em>float</em><em>, </em><em>default 5</em>) – Use a Lanczos interpolation for isophotes with semi-major axis
+less than this number times the PSF.</p></li>
+<li><p><strong>ap_iso_interpolate_method</strong> (<em>string</em><em>, </em><em>default 'lanczos'</em>) – Select method for flux interpolation on image, options are
 ‘lanczos’ and ‘bicubic’. Default is ‘lanczos’ with a window size
-of 3.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’lanczos’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em>) – <p>Window size for Lanczos interpolation, default is 3, meaning 3
+of 3.</p></li>
+<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em><em>, </em><em>default 3</em>) – Window size for Lanczos interpolation, default is 3, meaning 3
 pixels on either side of the sample point are used for
-interpolation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>3</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+interpolation.</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em><em>, </em><em>default 'median'</em>) – Select the method used to compute the averafge flux along an
 isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
 median is fast and robust to a few outliers. Mode is slow but
 robust to more outliers. Mean is fast and accurate in low S/N
 regimes where fluxes take on near integer values, but not robust
 to outliers. The mean should be used along with a mask to remove
 spurious objects such as foreground stars or galaxies, and
-should always be used with caution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’median’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoclip</strong> (<em>bool</em>) – <p>Perform sigma clipping along extracted isophotes. Removes flux
+should always be used with caution.</p></li>
+<li><p><strong>ap_isoclip</strong> (<em>bool</em><em>, </em><em>default False</em>) – Perform sigma clipping along extracted isophotes. Removes flux
 samples from an isophote that deviate significantly from the
 median. Several iterations of sigma clipping are performed until
 convergence or <em>ap_isoclip_iterations</em> iterations are
 reached. Sigma clipping is a useful substitute for masking
 objects, though careful masking is better. Also an aggressive
-sigma clip may bias results.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoclip_iterations</strong> (<em>int</em>) – <p>Maximum number of sigma clipping iterations to perform. The
+sigma clip may bias results.</p></li>
+<li><p><strong>ap_isoclip_iterations</strong> (<em>int</em><em>, </em><em>default None</em>) – Maximum number of sigma clipping iterations to perform. The
 default is infinity, so the sigma clipping procedure repeats
-until convergence</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoclip_nsigma</strong> (<em>float</em>) – <p>Number of sigma above median to apply clipping. All values above
+until convergence</p></li>
+<li><p><strong>ap_isoclip_nsigma</strong> (<em>float</em><em>, </em><em>default 5</em>) – Number of sigma above median to apply clipping. All values above
 (median + <em>ap_isoclip_nsigma</em> x sigma) are removed from the
-isophote.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>5</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_measurecoefs</strong> (<em>tuple</em>) – <p>tuple indicating which fourier modes to extract along fitted
+isophote.</p></li>
+<li><p><strong>ap_iso_measurecoefs</strong> (<em>tuple</em><em>, </em><em>default None</em>) – tuple indicating which fourier modes to extract along fitted
 isophotes. Most common is (4,), which identifies boxy/disky
 isophotes. Also common is (1,3), which identifies lopsided
 galaxies. The outputted values are computed as a_i =
 imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
 fourier coefficient. Not activated by default as it adds to
-computation time.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+computation time.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1487,16 +1142,14 @@ documentation. See: <a class="reference external" href="https://photutils.readth
 more information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
+<dd class="field-odd"><p><strong>ap_zeropoint</strong> (<em>float</em><em>, </em><em>default 22.5</em>) – Photometric zero point. For converting flux to mag units.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
 <dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>22.5</p>
-</dd>
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
 </dl>
-</p>
-</dd>
-</dl>
-<p class="rubric">References</p>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1563,132 +1216,64 @@ uncertainty.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as
-<em>ap_sample—scale</em>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+<li><p><strong>ap_scale</strong> (<em>float</em><em>, </em><em>default 0.2</em>) – growth scale when fitting isophotes, not the same as
+<em>ap_sample—scale</em>.</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em><em>, </em><em>default 2</em>) – noise level out to which to extend the fit in units of pixel
 background noise level. Default is 2, smaller values will end
-fitting further out in the galaxy image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between
+fitting further out in the galaxy image.</p></li>
+<li><p><strong>ap_regularize_scale</strong> (<em>float</em><em>, </em><em>default 1</em>) – scale factor to apply to regularization coupling factor between
 isophotes.  Default of 1, larger values make smoother fits,
-smaller values give more chaotic fits.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>1</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_losscoefs</strong> (<em>tuple</em>) – <p>Tuple of FFT coefficients to use in optimization
+smaller values give more chaotic fits.</p></li>
+<li><p><strong>ap_isofit_losscoefs</strong> (<em>tuple</em><em>, </em><em>default</em><em> (</em><em>2</em><em>,</em><em>)</em>) – Tuple of FFT coefficients to use in optimization
 procedure. AutoProf will attemp to minimize the power in all
-listed FFT coefficients. Must be a tuple, not a list.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>(2,)</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_superellipse</strong> (<em>bool</em>) – <p>If True, AutoProf will fit superellipses instead of regular
+listed FFT coefficients. Must be a tuple, not a list.</p></li>
+<li><p><strong>ap_isofit_superellipse</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, AutoProf will fit superellipses instead of regular
 ellipses. A superellipse is typically used to represent
 boxy/disky isophotes. The variable controlling the transition
 from a rectangle to an ellipse to a four-armed-star like shape
 is C. A value of C = 2 represents an ellipse and is the starting
-point of the optimization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_fitcoefs</strong> (<em>tuple</em>) – <p>Tuple of FFT coefficients to use in fitting procedure. AutoProf
+point of the optimization.</p></li>
+<li><p><strong>ap_isofit_fitcoefs</strong> (<em>tuple</em><em>, </em><em>default None</em>) – Tuple of FFT coefficients to use in fitting procedure. AutoProf
 will attemp to fit ellipses with these Fourier mode
 perturbations. Such perturbations allow for lopsided, boxy,
 disky, and other types of isophotes beyond straightforward
 ellipses. Must be a tuple, not a list. Note that AutoProf will
 first fit ellipses, then turn on the Fourier mode perturbations,
-thus the fitting time will always be longer.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_fitcoefs_FFTinit</strong> (<em>bool</em>) – <p>If True, the coefficients for the Fourier modes fitted from
+thus the fitting time will always be longer.</p></li>
+<li><p><strong>ap_isofit_fitcoefs_FFTinit</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, the coefficients for the Fourier modes fitted from
 ap_isofit_fitcoefs will be initialized using an FFT
 decomposition along fitted elliptical isophotes. This can
 improve the fit result, though it is less stable and so users
-should examine the results after fitting.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_perturbscale_ellip</strong> (<em>float</em>) – <p>Sampling scale for random adjustments to ellipticity made while
+should examine the results after fitting.</p></li>
+<li><p><strong>ap_isofit_perturbscale_ellip</strong> (<em>float</em><em>, </em><em>default 0.03</em>) – Sampling scale for random adjustments to ellipticity made while
 optimizing isophotes. Smaller values will converge faster, but
 get stuck in local minima; larger values will escape local
-minima, but takes longer to converge.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.03</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_perturbscale_pa</strong> (<em>float</em>) – <p>Sampling scale for random adjustments to position angle made
+minima, but takes longer to converge.</p></li>
+<li><p><strong>ap_isofit_perturbscale_pa</strong> (<em>float</em><em>, </em><em>default 0.06</em>) – Sampling scale for random adjustments to position angle made
 while optimizing isophotes. Smaller values will converge faster,
 but get stuck in local minima; larger values will escape local
-minima, but takes longer to converge.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.06</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_iterlimitmax</strong> (<em>int</em>) – <p>Maximum number of iterations (each iteration adjusts every
+minima, but takes longer to converge.</p></li>
+<li><p><strong>ap_isofit_iterlimitmax</strong> (<em>int</em><em>, </em><em>default 300</em>) – Maximum number of iterations (each iteration adjusts every
 isophote once) before automatically stopping optimization. For
 galaxies with lots of structure (ie detailed spiral arms) more
 iterations may be needed to fully fit the light distribution,
-but runtime will be longer.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>300</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_iterlimitmin</strong> (<em>int</em>) – <p>Minimum number of iterations before optimization is allowed to
-stop.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isofit_iterstopnochange</strong> (<em>float</em>) – <p>Number of iterations with no updates to parameters before
+but runtime will be longer.</p></li>
+<li><p><strong>ap_isofit_iterlimitmin</strong> (<em>int</em><em>, </em><em>default 0</em>) – Minimum number of iterations before optimization is allowed to
+stop.</p></li>
+<li><p><strong>ap_isofit_iterstopnochange</strong> (<em>float</em><em>, </em><em>default 3</em>) – Number of iterations with no updates to parameters before
 optimization procedure stops. Lower values will process galaxies
 faster, but may still be stuck in local minima, higher values
 are more likely to converge on the global minimum but can take a
 long time to run. Fractional values are allowed though not
-recomended.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>3</p>
-</dd>
-</dl>
-</p></li>
+recomended.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1734,36 +1319,22 @@ where pixels have low integer counts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as
-<em>ap_sample—scale</em>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+<li><p><strong>ap_scale</strong> (<em>float</em><em>, </em><em>default 0.2</em>) – growth scale when fitting isophotes, not the same as
+<em>ap_sample—scale</em>.</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em><em>, </em><em>default 2</em>) – noise level out to which to extend the fit in units of pixel
 background noise level. Default is 2, smaller values will end
-fitting further out in the galaxy image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_regularize_scale</strong> (<em>float</em>) – <p>scale factor to apply to regularization coupling factor between
+fitting further out in the galaxy image.</p></li>
+<li><p><strong>ap_regularize_scale</strong> (<em>float</em><em>, </em><em>default 1</em>) – scale factor to apply to regularization coupling factor between
 isophotes.  Default of 1, larger values make smoother fits,
-smaller values give more chaotic fits.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>1</p>
-</dd>
-</dl>
-</p></li>
+smaller values give more chaotic fits.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1801,27 +1372,19 @@ smaller values give more chaotic fits.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_scale</strong> (<em>float</em>) – <p>growth scale when fitting isophotes, not the same as
-<em>ap_sample—scale</em>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0.2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+<li><p><strong>ap_scale</strong> (<em>float</em><em>, </em><em>default 0.2</em>) – growth scale when fitting isophotes, not the same as
+<em>ap_sample—scale</em>.</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em><em>, </em><em>default 2</em>) – noise level out to which to extend the fit in units of pixel
 background noise level. Default is 2, smaller values will end
-fitting further out in the galaxy image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>2</p>
-</dd>
-</dl>
-</p></li>
+fitting further out in the galaxy image.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1860,20 +1423,16 @@ fitting further out in the galaxy image.</p>
 <p>Reads a .prof file and extracts the corresponding PA/ellipticity profile. The profile is extracted generically, so any csv file with columns for ‘R’, ‘pa’, ‘ellip’, and optionally ‘pa_e’ and ‘ellip_e’ will be able to create a forced fit. This can be used for testing purposes, such as selecting a specific isophote to extract or comparing AutoProf SB extraction methods with other softwares.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <dl class="simple">
-<dt>File path to .prof file providing forced photometry PA and</dt><dd><p>ellip values to apply to <em>ap_image_file</em> (required for forced
+<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em><em>, </em><em>default None</em>) – File path to .prof file providing forced photometry PA and
+ellip values to apply to <em>ap_image_file</em> (required for forced
 photometry)</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
 <dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
 </dl>
-</p>
-</dd>
-</dl>
-<p class="rubric">References</p>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -1907,7 +1466,11 @@ photometry)</p>
 <p>This simply gives users access to the photutils isophote
 fitting method. See: <a class="reference external" href="https://photutils.readthedocs.io/en/stable/isophote.html">photutils</a> for
 more information.</p>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘center’</p></li>
@@ -1947,18 +1510,16 @@ more information.</p>
 <p>Extracts global ellipse parameters from the corresponding aux file for a given .prof file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em>) – <p>File path to .prof file providing forced photometry PA and
+<dd class="field-odd"><p><strong>ap_forcing_profile</strong> (<em>string</em><em>, </em><em>default None</em>) – File path to .prof file providing forced photometry PA and
 ellip values to apply to <em>ap_image_file</em> (required for forced
 photometry)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
 <dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
 </dl>
-</p>
-</dd>
-</dl>
-<p class="rubric">References</p>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2005,31 +1566,17 @@ isophotes within 1 PSF length of each other.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>2</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoinit_pa_set</strong> (<em>float</em>) – <p>User set initial position angle in degrees, will override the calculation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoinit_ellip_set</strong> (<em>float</em>) – <p>User set initial ellipticity (1 - b/a), will override the calculation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>ap_fit_limit</strong> (<em>float</em><em>, </em><em>default 2</em>) – noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p></li>
+<li><p><strong>ap_isoinit_pa_set</strong> (<em>float</em><em>, </em><em>default None</em>) – User set initial position angle in degrees, will override the calculation.</p></li>
+<li><p><strong>ap_isoinit_ellip_set</strong> (<em>float</em><em>, </em><em>default None</em>) – User set initial ellipticity (1 - b/a), will override the calculation.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2064,18 +1611,16 @@ isophotes within 1 PSF length of each other.</p>
 mean/std measures for low S/N applications.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_fit_limit</strong> (<em>float</em>) – <p>noise level out to which to extend the fit in units of pixel
+<dd class="field-odd"><p><strong>ap_fit_limit</strong> (<em>float</em><em>, </em><em>default 2</em>) – noise level out to which to extend the fit in units of pixel
 background noise level. Default is 2, smaller values will end
 fitting further out in the galaxy image.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
 <dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>2</p>
-</dd>
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
 </dl>
-</p>
-</dd>
-</dl>
-<p class="rubric">References</p>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2117,44 +1662,30 @@ boolean-or operation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_badpixel_high</strong> (<em>float</em>) – <p>flux value that corresponds to a saturated pixel or bad pixel
+<li><p><strong>ap_badpixel_high</strong> (<em>float</em><em>, </em><em>default None</em>) – flux value that corresponds to a saturated pixel or bad pixel
 flag, all values above <em>ap_badpixel_high</em> will be masked if
-using the <em>Bad_Pixel_Mask</em> pipeline method.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_badpixel_low</strong> (<em>float</em>) – <p>flux value that corresponds to a bad pixel flag, all values
+using the <em>Bad_Pixel_Mask</em> pipeline method.</p></li>
+<li><p><strong>ap_badpixel_low</strong> (<em>float</em><em>, </em><em>default None</em>) – flux value that corresponds to a bad pixel flag, all values
 below <em>ap_badpixel_low</em> will be masked if using the
-<em>Bad_Pixel_Mask</em> pipeline method.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_badpixel_exact</strong> (<em>float</em>) – <p>flux value that corresponds to a precise bad pixel flag, all
+<em>Bad_Pixel_Mask</em> pipeline method.</p></li>
+<li><p><strong>ap_badpixel_exact</strong> (<em>float</em><em>, </em><em>default None</em>) – flux value that corresponds to a precise bad pixel flag, all
 values equal to <em>ap_badpixel_exact</em> will be masked if using the
-<em>Bad_Pixel_Mask</em> pipeline method.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+<em>Bad_Pixel_Mask</em> pipeline method.</p></li>
 </ul>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool, default False indicates if the mask should be saved after fitting</p>
 </dd>
 </dl>
 </div>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘mask’ (optional)</p></li>
 </ul>
@@ -2186,23 +1717,21 @@ converting the segmentation map into a mask. If the supplied image
 is just a 0, 1 mask then AutoProf will take it as is.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ap_mask_file</strong> (<em>string</em>) – <p>path to fits file which is a mask for the image. Must have the same dimensions as the main image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p>
+<dd class="field-odd"><p><strong>ap_mask_file</strong> (<em>string</em><em>, </em><em>default None</em>) – path to fits file which is a mask for the image. Must have the same dimensions as the main image.</p>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool, default False indicates if the mask should be saved after fitting</p>
 </dd>
 </dl>
 </div>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’ (optional)</p></li>
 <li><p>‘background noise’ (optional)</p></li>
@@ -2235,13 +1764,17 @@ masked with a region roughly 2 times the FWHM of the source.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool, default False indicates if the mask should be saved after fitting</p>
 </dd>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">starfind</span></code></dt><dd><p><a class="reference internal" href="autoprofutils.html#autoprofutils.SharedFunctions.StarFind" title="autoprofutils.SharedFunctions.StarFind"><code class="xref py py-func docutils literal notranslate"><span class="pre">autoprofutils.SharedFunctions.StarFind()</span></code></a></p>
 </dd>
 </dl>
 </div>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2276,11 +1809,15 @@ sqrt(log(f)), thus an inverse of a Gaussian.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool indicates if the mask should be saved after fitting :default: False</p>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap_savemask</span></code></dt><dd><p>bool, default False indicates if the mask should be saved after fitting</p>
 </dd>
 </dl>
 </div>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2316,29 +1853,21 @@ computes the average FWHM.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
-given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use 1 arcsec</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
-calculating its own.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>ap_guess_psf</strong> (<em>float</em><em>, </em><em>default None</em>) – Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em><em>, </em><em>default None</em>) – force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
-<li><p>‘background’</p></li>
-<li><p>‘background noise’</p></li>
+<li><p>‘background’ (float)</p></li>
+<li><p>‘background noise’ (float)</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -2369,26 +1898,18 @@ results dictionary. This method is currently very slow.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
-given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use 1 arcsec</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
-calculating its own.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>ap_guess_psf</strong> (<em>float</em><em>, </em><em>default None</em>) – Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em><em>, </em><em>default None</em>) – force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2428,26 +1949,18 @@ taken as the image PSF.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_psf</strong> (<em>float</em>) – <p>Initialization value for the PSF calculation in pixels. If not
-given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use 1 arcsec</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_set_psf</strong> (<em>float</em>) – <p>force AutoProf to use this PSF value (in pixels) instead of
-calculating its own.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>ap_guess_psf</strong> (<em>float</em><em>, </em><em>default None</em>) – Initialization value for the PSF calculation in pixels. If not
+given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p></li>
+<li><p><strong>ap_set_psf</strong> (<em>float</em><em>, </em><em>default None</em>) – force AutoProf to use this PSF value (in pixels) instead of
+calculating its own.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2487,27 +2000,19 @@ PSF size.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_psf_file</strong> (<em>string</em>) – <p>Optional argument. Path to PSF fits file. For best results the
+<li><p><strong>ap_psf_file</strong> (<em>string</em><em>, </em><em>default None</em>) – Optional argument. Path to PSF fits file. For best results the
 image should have an odd number of pixels with the PSF centered
-in the image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_psf_deconvolution_iterations</strong> (<em>int</em>) – <p>number of itterations of the Richardson-Lucy deconvolution
-algorithm to perform.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>50</p>
-</dd>
-</dl>
-</p></li>
+in the image.</p></li>
+<li><p><strong>ap_psf_deconvolution_iterations</strong> (<em>int</em><em>, </em><em>default 50</em>) – number of itterations of the Richardson-Lucy deconvolution
+algorithm to perform.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘psf img’ (optional)</p></li>
 <li><p>‘psf fwhm’ (optional)</p></li>
@@ -2545,36 +2050,30 @@ focus on the galaxy.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_guess_center</strong> (<em>dict</em>) – <p>user provided starting point for center fitting. Center should
+<li><p><strong>ap_guess_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided starting point for center fitting. Center should
 be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use image center</p>
-</dd>
-</dl>
 </p></li>
-<li><p><strong>ap_set_center</strong> (<em>dict</em>) – <p>user provided fixed center for rest of calculations. Center
+<li><p><strong>ap_set_center</strong> (<em>dict</em><em>, </em><em>default None</em>) – <p>user provided fixed center for rest of calculations. Center
 should be formatted as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>, where the floats are the center coordinates in pixels. If not
 given, Autoprof will default to a guess of the image center.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
 </p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’</p></li>
 <li><p>‘background noise’</p></li>
@@ -2618,50 +2117,24 @@ this happens, but will carry on anyway.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_radialprofiles_nwedges</strong> (<em>int</em>) – <p>number of radial wedges to sample. Recommended choosing a power
-of 2.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>4</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_radialprofiles_width</strong> (<em>float</em>) – <p>User set width of radial sampling wedges in degrees.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>15</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_radialprofiles_pa</strong> (<em>float</em>) – <p>user set position angle at which to measure radial wedges
-relative to the global position angle, in degrees.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>0</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_radialprofiles_expwidth</strong> (<em>bool</em>) – <p>Tell AutoProf to use exponentially increasing widths for radial
+<li><p><strong>ap_radialprofiles_nwedges</strong> (<em>int</em><em>, </em><em>default 4</em>) – number of radial wedges to sample. Recommended choosing a power
+of 2.</p></li>
+<li><p><strong>ap_radialprofiles_width</strong> (<em>float</em><em>, </em><em>default 15</em>) – User set width of radial sampling wedges in degrees.</p></li>
+<li><p><strong>ap_radialprofiles_pa</strong> (<em>float</em><em>, </em><em>default 0</em>) – user set position angle at which to measure radial wedges
+relative to the global position angle, in degrees.</p></li>
+<li><p><strong>ap_radialprofiles_expwidth</strong> (<em>bool</em><em>, </em><em>default False</em>) – Tell AutoProf to use exponentially increasing widths for radial
 samples. In this case <em>ap_radialprofiles_width</em> corresponds to
-the final width of the radial sampling.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_radialprofiles_variable_pa</strong> (<em>bool</em>) – <p>Tell AutoProf to rotate radial sampling wedges with the position
-angle profile of the galaxy.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
+the final width of the radial sampling.</p></li>
+<li><p><strong>ap_radialprofiles_variable_pa</strong> (<em>bool</em><em>, </em><em>default False</em>) – Tell AutoProf to rotate radial sampling wedges with the position
+angle profile of the galaxy.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘prof header’</p></li>
 <li><p>‘prof units’</p></li>
@@ -2709,83 +2182,34 @@ for such analysis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_slice_anchor</strong> (<em>dict</em>) – <p>Coordinates for the starting point of the slice as a dictionary
-formatted “{‘x’: x-coord, ‘y’: y-coord}” in pixel units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use galaxy center</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_slice_pa</strong> (<em>float</em>) – <p>Position angle of the slice in degrees, counter-clockwise
-relative to the x-axis.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use galaxy PA</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_slice_length</strong> (<em>float</em>) – <p>Length of the slice from anchor point in pixel units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use init ellipse semi-major axis length</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_slice_width</strong> (<em>float</em>) – <p>Width of the slice in pixel units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>10</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_slice_step</strong> (<em>float</em>) – <p>Distance between samples for the profile along the
-slice.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None, use PSF</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_isoaverage_method</strong> (<em>string</em>) – <p>Select the method used to compute the averafge flux along an
+<li><p><strong>ap_slice_anchor</strong> (<em>dict</em><em>, </em><em>default None</em>) – Coordinates for the starting point of the slice as a dictionary
+formatted “{‘x’: x-coord, ‘y’: y-coord}” in pixel units.</p></li>
+<li><p><strong>ap_slice_pa</strong> (<em>float</em><em>, </em><em>default None</em>) – Position angle of the slice in degrees, counter-clockwise
+relative to the x-axis.</p></li>
+<li><p><strong>ap_slice_length</strong> (<em>float</em><em>, </em><em>default None</em>) – Length of the slice from anchor point in pixel units. By
+default, use init ellipse semi-major axis length</p></li>
+<li><p><strong>ap_slice_width</strong> (<em>float</em><em>, </em><em>default 10</em>) – Width of the slice in pixel units.</p></li>
+<li><p><strong>ap_slice_step</strong> (<em>float</em><em>, </em><em>default None</em>) – Distance between samples for the profile along the
+slice. By default use the PSF.</p></li>
+<li><p><strong>ap_isoaverage_method</strong> (<em>string</em><em>, </em><em>default 'median'</em>) – Select the method used to compute the averafge flux along an
 isophote. Choose from ‘mean’, ‘median’, and ‘mode’.  In general,
 median is fast and robust to a few outliers. Mode is slow but
 robust to more outliers. Mean is fast and accurate in low S/N
 regimes where fluxes take on near integer values, but not robust
 to outliers. The mean should be used along with a mask to remove
 spurious objects such as foreground stars or galaxies, and
-should always be used with caution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’median’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_saveto</strong> (<em>string</em>) – <p>Directory in which to save profile</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_name</strong> (<em>string</em>) – <p>Name of the current galaxy, used for making filenames.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_zeropoint</strong> (<em>float</em>) – <p>Photometric zero point. For converting flux to mag units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>22.5</p>
-</dd>
-</dl>
-</p></li>
+should always be used with caution.</p></li>
+<li><p><strong>ap_saveto</strong> (<em>string</em><em>, </em><em>default None</em>) – Directory in which to save profile</p></li>
+<li><p><strong>ap_name</strong> (<em>string</em><em>, </em><em>default None</em>) – Name of the current galaxy, used for making filenames.</p></li>
+<li><p><strong>ap_zeropoint</strong> (<em>float</em><em>, </em><em>default 22.5</em>) – Photometric zero point. For converting flux to mag units.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘background’ (optional)</p></li>
 <li><p>‘background noise’ (optional)</p></li>
@@ -2852,45 +2276,19 @@ the user specified options is included for reference.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_saveto</strong> (<em>string</em>) – <p>Directory in which to save profile</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_name</strong> (<em>string</em>) – <p>Name of the current galaxy, used for making filenames.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_delimiter</strong> (<em>string</em>) – <p>Delimiter to use between entries in the profile.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’,’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_profile_format</strong> (<em>string</em>) – <p>Type of file format to use for profile. Can choose from [‘csv’, ‘fits’]</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’csv’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_savemask</strong> (<em>bool</em>) – <p>Save object mask fits file. This can create large files, depending on the size of the original image.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>False</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>ap_saveto</strong> (<em>string</em><em>, </em><em>default None</em>) – Directory in which to save profile</p></li>
+<li><p><strong>ap_name</strong> (<em>string</em><em>, </em><em>default None</em>) – Name of the current galaxy, used for making filenames.</p></li>
+<li><p><strong>ap_delimiter</strong> (<em>string</em><em>, </em><em>default '</em><em>,</em><em>'</em>) – Delimiter to use between entries in the profile.</p></li>
+<li><p><strong>ap_profile_format</strong> (<em>string</em><em>, </em><em>default 'csv'</em>) – Type of file format to use for profile. Can choose from [‘csv’, ‘fits’]</p></li>
+<li><p><strong>ap_savemask</strong> (<em>bool</em><em>, </em><em>default False</em>) – Save object mask fits file. This can create large files, depending on the size of the original image.</p></li>
 </ul>
 </dd>
 </dl>
-<p class="rubric">References</p>
+<p class="rubric">Notes</p>
+<dl class="field-list simple">
+<dt class="field-odd">References</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <ul class="simple">
 <li><p>‘prof header’</p></li>
 <li><p>‘prof units’</p></li>

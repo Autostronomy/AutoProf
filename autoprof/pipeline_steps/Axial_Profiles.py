@@ -40,7 +40,7 @@ def Axial_Profiles(IMG, results, options):
     each one having a corresponding distance from the center and
     quadrant of the image. A diagnostic image is generated to aid in
     identifying where each profile is extracted.
-
+    
     Parameters
     -----------------
     ap_axialprof_pa : float, default 0

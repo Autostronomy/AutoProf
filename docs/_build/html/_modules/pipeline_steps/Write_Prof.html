@@ -94,6 +94,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../parameters.html">AutoProf Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../extramethods.html">Extra Methods</a></li>
@@ -168,10 +169,12 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;AUTOPROF&quot;</span><span class="p">])</span>
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">PA_shift_convention</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
 
 <div class="viewcode-block" id="WriteProf"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Write_Prof.WriteProf">[docs]</a><span class="k">def</span> <span class="nf">WriteProf</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Basic method to write SB profile to disk.</span>
@@ -202,102 +205,112 @@
 <span class="sd">    key) to the file. See the pipeline step output formats for the</span>
 <span class="sd">    messages that are included in the .aux file. Finally, a record of</span>
 <span class="sd">    the user specified options is included for reference.</span>
-<span class="sd">    </span>
-<span class="sd">    Arguments</span>
+
+<span class="sd">    Parameters</span>
 <span class="sd">    ---------</span>
-<span class="sd">    ap_saveto: string</span>
+<span class="sd">    ap_saveto : string, default None</span>
 <span class="sd">      Directory in which to save profile</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_name: string</span>
+<span class="sd">    ap_name : string, default None</span>
 <span class="sd">      Name of the current galaxy, used for making filenames.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_delimiter: string</span>
+<span class="sd">    ap_delimiter : string, default &#39;,&#39;</span>
 <span class="sd">      Delimiter to use between entries in the profile.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        &#39;,&#39;</span>
-
-<span class="sd">    ap_profile_format: string</span>
+<span class="sd">    ap_profile_format : string, default &#39;csv&#39;</span>
 <span class="sd">      Type of file format to use for profile. Can choose from [&#39;csv&#39;, &#39;fits&#39;]</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        &#39;csv&#39;</span>
-
-<span class="sd">    ap_savemask: bool</span>
+<span class="sd">    ap_savemask : bool, default False</span>
 <span class="sd">      Save object mask fits file. This can create large files, depending on the size of the original image.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        False</span>
-<span class="sd">    </span>
-<span class="sd">    References</span>
+<span class="sd">    Notes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
 <span class="sd">    - &#39;prof header&#39;</span>
 <span class="sd">    - &#39;prof units&#39;</span>
 <span class="sd">    - &#39;prof data&#39;</span>
 <span class="sd">    - &#39;mask&#39; (optional)</span>
-<span class="sd">        </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    IMG: ndarray</span>
+<span class="sd">    IMG : ndarray</span>
 <span class="sd">      Unaltered galaxy image</span>
-<span class="sd">    </span>
-<span class="sd">    results: dict</span>
+
+<span class="sd">    results : dict</span>
 <span class="sd">      .. code-block:: python</span>
-<span class="sd">      </span>
+
 <span class="sd">        {}</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">saveto</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_saveto&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_saveto&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;./&#39;</span>
-    
+
+    <span class="n">saveto</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_saveto&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_saveto&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s2">&quot;./&quot;</span>
+
     <span class="c1"># Write aux file</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saveto</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.aux&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saveto</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.aux&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="c1"># write profile info</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;written on: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;name: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]))</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;written on: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;name: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]))</span>
 
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="s1">&#39;auxfile&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;auxfile&quot;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;ap_name&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;ap_name&quot;</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;option </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">])))</span>
-            
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;option </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">])))</span>
+
     <span class="c1"># Write the profile</span>
-    <span class="n">delim</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_delimiter&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_delimiter&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;,&#39;</span>
-    <span class="n">delim</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_delimiter&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_delimiter&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;,&#39;</span>
+    <span class="n">delim</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_delimiter&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_delimiter&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s2">&quot;,&quot;</span>
+    <span class="n">delim</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_delimiter&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_delimiter&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s2">&quot;,&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;pa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;pa&#39;</span><span class="p">]),</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof data&quot;</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof data&quot;</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]),</span> <span class="n">deg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="k">pass</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">],</span> <span class="n">names</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof header&#39;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_profile_format&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_profile_format&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;fits&#39;</span><span class="p">:</span>
-        <span class="n">T</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;UNITS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof units&#39;</span><span class="p">][</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof header&#39;</span><span class="p">])</span>
-        <span class="n">T</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saveto</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_prof.fits&#39;</span><span class="p">),</span> <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;fits&#39;</span><span class="p">,</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof data&quot;</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof header&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;ap_profile_format&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_profile_format&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;fits&quot;</span>
+    <span class="p">):</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;UNITS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof units&quot;</span><span class="p">][</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof header&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saveto</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_prof.fits&quot;</span><span class="p">),</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;fits&quot;</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">T</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saveto</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.prof&#39;</span><span class="p">),</span> <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;ascii.commented_header&#39;</span><span class="p">,</span>
-                <span class="n">delimiter</span> <span class="o">=</span> <span class="n">delim</span><span class="p">,</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="n">comment</span> <span class="o">=</span> <span class="s1">&#39;# &#39;</span> <span class="o">+</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof units&#39;</span><span class="p">][</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof header&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saveto</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.prof&quot;</span><span class="p">),</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;ascii.commented_header&quot;</span><span class="p">,</span>
+            <span class="n">delimiter</span><span class="o">=</span><span class="n">delim</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;# &quot;</span>
+            <span class="o">+</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof units&quot;</span><span class="p">][</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof header&quot;</span><span class="p">])</span>
+            <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;pa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;pa&#39;</span><span class="p">]),</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof data&quot;</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof data&quot;</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]),</span> <span class="n">deg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="k">pass</span>
-        
+
     <span class="c1"># Write the mask data, if provided</span>
-    <span class="k">if</span> <span class="s1">&#39;mask&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;ap_savemask&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_savemask&#39;</span><span class="p">]:</span>
-        <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))])</span>
-        <span class="n">hdul</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">saveto</span> <span class="o">+</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_mask.fits&#39;</span><span class="p">,</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="s2">&quot;ap_savemask&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_savemask&quot;</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))])</span>
+        <span class="n">hdul</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">saveto</span> <span class="o">+</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_mask.fits&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Zip the mask file because it can be large and take a lot of memory, but in principle</span>
         <span class="c1"># is very easy to compress</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;gzip -fq &#39;</span><span class="o">+</span> <span class="n">saveto</span> <span class="o">+</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_mask.fits&#39;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;gzip -fq &quot;</span> <span class="o">+</span> <span class="n">saveto</span> <span class="o">+</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_mask.fits&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{}</span></div>
 </pre></div>
 

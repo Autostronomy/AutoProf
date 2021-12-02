@@ -94,6 +94,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../parameters.html">AutoProf Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../extramethods.html">Extra Methods</a></li>
@@ -166,8 +167,19 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
-<span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">_iso_extract</span><span class="p">,</span> <span class="n">_iso_between</span><span class="p">,</span> <span class="n">Angle_TwoAngles</span><span class="p">,</span> <span class="n">LSBImage</span><span class="p">,</span> <span class="n">_iso_line</span><span class="p">,</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">autocmap</span><span class="p">,</span> <span class="n">_average</span><span class="p">,</span> <span class="n">_scatter</span><span class="p">,</span> <span class="n">flux_to_sb</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;AUTOPROF&quot;</span><span class="p">])</span>
+<span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_iso_extract</span><span class="p">,</span>
+    <span class="n">_iso_between</span><span class="p">,</span>
+    <span class="n">LSBImage</span><span class="p">,</span>
+    <span class="n">_iso_line</span><span class="p">,</span>
+    <span class="n">AddLogo</span><span class="p">,</span>
+    <span class="n">autocmap</span><span class="p">,</span>
+    <span class="n">_average</span><span class="p">,</span>
+    <span class="n">_scatter</span><span class="p">,</span>
+    <span class="n">flux_to_sb</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_Axial_Profiles</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
 <span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
@@ -175,6 +187,7 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+
 
 <div class="viewcode-block" id="Axial_Profiles"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Axial_Profiles.Axial_Profiles">[docs]</a><span class="k">def</span> <span class="nf">Axial_Profiles</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extracts SB profiles perpendicular to the major (or minor) axis.</span>
@@ -194,35 +207,24 @@
 <span class="sd">    quadrant of the image. A diagnostic image is generated to aid in</span>
 <span class="sd">    identifying where each profile is extracted.</span>
 <span class="sd">    </span>
-<span class="sd">    Arguments</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    -----------------</span>
-<span class="sd">    ap_axialprof_pa: float</span>
+<span class="sd">    ap_axialprof_pa : float, default 0</span>
 <span class="sd">      user set position angle at which to align the axial profiles</span>
 <span class="sd">      relative to the global position angle+90, in degrees. A common</span>
 <span class="sd">      choice would be &quot;90&quot; which would then sample along the</span>
 <span class="sd">      semi-major axis instead of the semi-minor axis.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        0</span>
-
-<span class="sd">    ap_zeropoint: float</span>
+<span class="sd">    ap_zeropoint : float, default 22.5</span>
 <span class="sd">      Photometric zero point</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        22.5</span>
-
-<span class="sd">    ap_samplestyle: string</span>
-<span class="sd">    </span>
+<span class="sd">    ap_samplestyle : string, default &#39;geometric&#39;</span>
 <span class="sd">      indicate if isophote sampling radii should grow linearly or</span>
 <span class="sd">      geometrically. Can also do geometric sampling at the center and</span>
 <span class="sd">      linear sampling once geometric step size equals linear. Options</span>
 <span class="sd">      are: &#39;linear&#39;, &#39;geometric&#39;, and &#39;geometric-linear&#39;.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        &#39;geometric&#39;</span>
-
-<span class="sd">    ap_isoaverage_method: string</span>
-<span class="sd">    </span>
+<span class="sd">    ap_isoaverage_method : string, default &#39;median&#39;</span>
 <span class="sd">      Select the method used to compute the averafge flux along an</span>
 <span class="sd">      isophote. Choose from &#39;mean&#39;, &#39;median&#39;, and &#39;mode&#39;.  In general,</span>
 <span class="sd">      median is fast and robust to a few outliers. Mode is slow but</span>
@@ -232,103 +234,160 @@
 <span class="sd">      spurious objects such as foreground stars or galaxies, and</span>
 <span class="sd">      should always be used with caution.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        &#39;median&#39;</span>
-
-<span class="sd">    References</span>
+<span class="sd">    Notes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
 <span class="sd">    - &#39;mask&#39; (optional)</span>
 <span class="sd">    - &#39;background&#39;</span>
 <span class="sd">    - &#39;psf fwhm&#39;</span>
 <span class="sd">    - &#39;center&#39;</span>
 <span class="sd">    - &#39;prof data&#39; (optional)</span>
 <span class="sd">    - &#39;init pa&#39;</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    IMG: ndarray</span>
+<span class="sd">    IMG : ndarray</span>
 <span class="sd">      Unaltered galaxy image</span>
-<span class="sd">    </span>
-<span class="sd">    results: dict</span>
+
+<span class="sd">    results : dict</span>
 <span class="sd">      No results provided as this method writes its own profile</span>
-<span class="sd">    </span>
+
 <span class="sd">      .. code-block:: python</span>
-<span class="sd">     </span>
+
 <span class="sd">        {}</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;mask&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
-    <span class="n">pa</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;init pa&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">((</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_axialprof_pa&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;ap_axialprof_pa&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">)</span> 
-    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span>
-    <span class="n">zeropoint</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_zeropoint&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_zeropoint&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">pa</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_axialprof_pa&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_axialprof_pa&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="p">)</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="n">zeropoint</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span>
 
-    <span class="k">if</span> <span class="s1">&#39;prof data&#39;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-        <span class="n">Rproflim</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;prof data&#39;</span><span class="p">][</span><span class="s1">&#39;R&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;prof data&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">Rproflim</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prof data&quot;</span><span class="p">][</span><span class="s2">&quot;R&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">Rproflim</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-    
+        <span class="n">Rproflim</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
     <span class="n">R</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">while</span> <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">Rproflim</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;ap_samplestyle&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_samplestyle&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
-            <span class="n">step</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_samplelinearscale&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_samplelinearscale&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_samplestyle&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_samplestyle&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_samplelinearscale&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s2">&quot;ap_samplelinearscale&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                <span class="k">else</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">step</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_samplegeometricscale&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_samplegeometricscale&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.1</span><span class="p">)</span>
-        <span class="n">R</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">step</span><span class="p">))</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_samplegeometricscale&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s2">&quot;ap_samplegeometricscale&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                <span class="k">else</span> <span class="mf">0.1</span>
+            <span class="p">)</span>
+        <span class="n">R</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
 
     <span class="n">sb</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">sbE</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
         <span class="k">for</span> <span class="n">ang</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">rd</span><span class="p">,</span><span class="n">ang</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">ang</span><span class="p">)</span>
             <span class="n">sb</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">sbE</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">branch_pa</span> <span class="o">=</span> <span class="p">(</span><span class="n">pa</span> <span class="o">+</span> <span class="n">ang</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="n">branch_pa</span> <span class="o">=</span> <span class="p">(</span><span class="n">pa</span> <span class="o">+</span> <span class="n">ang</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pR</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">R</span><span class="p">):</span>
                 <span class="n">sb</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
                 <span class="n">sbE</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
-                <span class="n">width</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">pi</span><span class="p">]</span> <span class="o">-</span> <span class="n">R</span><span class="p">[</span><span class="n">pi</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">pi</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.</span>
-                <span class="n">flux</span><span class="p">,</span> <span class="n">XX</span> <span class="o">=</span> <span class="n">_iso_line</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">width</span><span class="p">,</span> <span class="n">branch_pa</span><span class="p">,</span>
-                                     <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ang</span><span class="o">*</span><span class="n">rd</span><span class="o">*</span><span class="n">pR</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pa</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)),</span>
-                                      <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ang</span><span class="o">*</span><span class="n">rd</span><span class="o">*</span><span class="n">pR</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">pa</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))})</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">pi</span><span class="p">]</span> <span class="o">-</span> <span class="n">R</span><span class="p">[</span><span class="n">pi</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">pi</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
+                <span class="n">flux</span><span class="p">,</span> <span class="n">XX</span> <span class="o">=</span> <span class="n">_iso_line</span><span class="p">(</span>
+                    <span class="n">dat</span><span class="p">,</span>
+                    <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">width</span><span class="p">,</span>
+                    <span class="n">branch_pa</span><span class="p">,</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">ang</span> <span class="o">*</span> <span class="n">rd</span> <span class="o">*</span> <span class="n">pR</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pa</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)),</span>
+                        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">ang</span> <span class="o">*</span> <span class="n">rd</span> <span class="o">*</span> <span class="n">pR</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">pa</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)),</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
                 <span class="k">for</span> <span class="n">oi</span><span class="p">,</span> <span class="n">oR</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">R</span><span class="p">):</span>
-                    <span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span> <span class="o">-</span> <span class="n">R</span><span class="p">[</span><span class="n">oi</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">oi</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.</span>
-                    <span class="n">CHOOSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">XX</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">oR</span> <span class="o">-</span> <span class="n">length</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">XX</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">oR</span> <span class="o">+</span> <span class="n">length</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+                    <span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">oi</span><span class="p">]</span> <span class="o">-</span> <span class="n">R</span><span class="p">[</span><span class="n">oi</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">oi</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
+                    <span class="n">CHOOSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                        <span class="n">XX</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">oR</span> <span class="o">-</span> <span class="n">length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">XX</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">oR</span> <span class="o">+</span> <span class="n">length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="p">)</span>
                     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">CHOOSE</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">sb</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">99.999</span><span class="p">)</span>
                         <span class="n">sbE</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">99.999</span><span class="p">)</span>
                         <span class="k">continue</span>
-                    <span class="n">medflux</span> <span class="o">=</span> <span class="n">_average</span><span class="p">(</span><span class="n">flux</span><span class="p">[</span><span class="n">CHOOSE</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isoaverage_method&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isoaverage_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;median&#39;</span><span class="p">)</span>
-                    <span class="n">scatflux</span> <span class="o">=</span> <span class="n">_scatter</span><span class="p">(</span><span class="n">flux</span><span class="p">[</span><span class="n">CHOOSE</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isoaverage_method&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isoaverage_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;median&#39;</span><span class="p">)</span>
-                    <span class="n">sb</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flux_to_sb</span><span class="p">(</span><span class="n">medflux</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span> <span class="n">zeropoint</span><span class="p">)</span> <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">99.999</span><span class="p">)</span>
-                    <span class="n">sbE</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mf">2.5</span><span class="o">*</span><span class="n">scatflux</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">CHOOSE</span><span class="p">))</span><span class="o">*</span><span class="n">medflux</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="p">)))</span> <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">99.999</span><span class="p">)</span>
-                    
+                    <span class="n">medflux</span> <span class="o">=</span> <span class="n">_average</span><span class="p">(</span>
+                        <span class="n">flux</span><span class="p">[</span><span class="n">CHOOSE</span><span class="p">],</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoaverage_method&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_isoaverage_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">scatflux</span> <span class="o">=</span> <span class="n">_scatter</span><span class="p">(</span>
+                        <span class="n">flux</span><span class="p">[</span><span class="n">CHOOSE</span><span class="p">],</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoaverage_method&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_isoaverage_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">sb</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">flux_to_sb</span><span class="p">(</span><span class="n">medflux</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span> <span class="n">zeropoint</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                        <span class="k">else</span> <span class="mf">99.999</span>
+                    <span class="p">)</span>
+                    <span class="n">sbE</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="mf">2.5</span>
+                            <span class="o">*</span> <span class="n">scatflux</span>
+                            <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">CHOOSE</span><span class="p">))</span> <span class="o">*</span> <span class="n">medflux</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                        <span class="k">else</span> <span class="mf">99.999</span>
+                    <span class="p">)</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">_axial_profile.prof&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_saveto&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_saveto&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">_axial_profile.prof&quot;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_saveto&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_saveto&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;w&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="k">for</span> <span class="n">ang</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">pR</span> <span class="ow">in</span> <span class="n">R</span><span class="p">:</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;,sb[</span><span class="si">%.3f</span><span class="s1">:</span><span class="si">%s</span><span class="s1">90],sbE[</span><span class="si">%.3f</span><span class="s1">:</span><span class="si">%s</span><span class="s1">90]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rd</span><span class="o">*</span><span class="n">pR</span><span class="o">*</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span> <span class="s1">&#39;+&#39;</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">rd</span><span class="o">*</span><span class="n">pR</span><span class="o">*</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span> <span class="s1">&#39;+&#39;</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;-&#39;</span><span class="p">))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;arcsec&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                        <span class="s2">&quot;,sb[</span><span class="si">%.3f</span><span class="s2">:</span><span class="si">%s</span><span class="s2">90],sbE[</span><span class="si">%.3f</span><span class="s2">:</span><span class="si">%s</span><span class="s2">90]&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">rd</span> <span class="o">*</span> <span class="n">pR</span> <span class="o">*</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;+&quot;</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+                            <span class="n">rd</span> <span class="o">*</span> <span class="n">pR</span> <span class="o">*</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;+&quot;</span> <span class="k">if</span> <span class="n">ang</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;arcsec&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="k">for</span> <span class="n">ang</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">pR</span> <span class="ow">in</span> <span class="n">R</span><span class="p">:</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;,mag*arcsec^-2,mag*arcsec^-2&#39;</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;,mag*arcsec^-2,mag*arcsec^-2&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">oi</span><span class="p">,</span> <span class="n">oR</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">R</span><span class="p">):</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">oR</span><span class="o">*</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]))</span>
-            <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">oR</span> <span class="o">*</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">ang</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-                    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">rd</span><span class="p">,</span><span class="n">ang</span><span class="p">)</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">ang</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pR</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">R</span><span class="p">):</span>
-                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;,</span><span class="si">%.4f</span><span class="s1">,</span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sb</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">pi</span><span class="p">][</span><span class="n">oi</span><span class="p">],</span> <span class="n">sbE</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">pi</span><span class="p">][</span><span class="n">oi</span><span class="p">]))</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;,</span><span class="si">%.4f</span><span class="s2">,</span><span class="si">%.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sb</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">pi</span><span class="p">][</span><span class="n">oi</span><span class="p">],</span> <span class="n">sbE</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">pi</span><span class="p">][</span><span class="n">oi</span><span class="p">]))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
         <span class="n">Plot_Axial_Profiles</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">sb</span><span class="p">,</span> <span class="n">sbE</span><span class="p">,</span> <span class="n">pa</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-            
+
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{}</span></div>
 </pre></div>
 

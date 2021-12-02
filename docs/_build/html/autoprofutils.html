@@ -94,6 +94,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
@@ -265,46 +266,22 @@ the sky.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ap_resolution_method</strong> (<em>string</em>) – <p>Method which is used to perform resolution resampling. Options
+<li><p><strong>ap_resolution_method</strong> (<em>string</em><em>, </em><em>default 'lanczos'</em>) – Method which is used to perform resolution resampling. Options
 are: ‘max pool’, ‘mean pool’, ‘median pool’, ‘bicubic’, and
 ‘lanczos’. Lanczos is very slow, but represents the best
-interpolation method according to information theory.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>’lanczos’</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_resolution_shape</strong> (<em>tuple</em>) – <p>Shape used for resampling. For pooling methods, this represents
+interpolation method according to information theory.</p></li>
+<li><p><strong>ap_resolution_shape</strong> (<em>tuple</em><em>, </em><em>default None</em>) – Shape used for resampling. For pooling methods, this represents
 the size of the pool/box in which a calcualtion is done. For
 other methods this is the size of the final desired image. This
-parameter is required.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_resolution_dtype</strong> (<em>object</em>) – <p>Optional parameter to set a new dtype for the image after
+parameter is required.</p></li>
+<li><p><strong>ap_resolution_dtype</strong> (<em>object</em><em>, </em><em>default None</em>) – Optional parameter to set a new dtype for the image after
 resampling. This can be used to reduce precision if it is
 unnecessary, limiting the size of the final image if it is very
-finely resampled.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em>) – <p>Only used by Lanczos interpolation, this will set the area of
+finely resampled.</p></li>
+<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em><em>, </em><em>default 5</em>) – Only used by Lanczos interpolation, this will set the area of
 pixels used to calculate the Lanczos interpolated values. Larger
 values are more accurate, but require quadratically more
-computation time.</p>
-<dl class="field-list simple">
-<dt class="field-odd">default</dt>
-<dd class="field-odd"><p>5</p>
-</dd>
-</dl>
-</p></li>
+computation time.</p></li>
 </ul>
 </dd>
 </dl>
@@ -359,8 +336,14 @@ method.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.Angle_TwoAngles">
-<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_TwoAngles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Angle_TwoAngles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Angle_TwoAngles" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.Angle_TwoAngles_cos">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_TwoAngles_cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Angle_TwoAngles_cos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Angle_TwoAngles_cos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the angle between two vectors at angles a1 and a2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprofutils.SharedFunctions.Angle_TwoAngles_sin">
+<span class="sig-prename descclassname"><span class="pre">autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_TwoAngles_sin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprofutils/SharedFunctions.html#Angle_TwoAngles_sin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprofutils.SharedFunctions.Angle_TwoAngles_sin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the angle between two vectors at angles a1 and a2</p>
 </dd></dl>
 

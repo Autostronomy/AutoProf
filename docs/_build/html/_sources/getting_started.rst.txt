@@ -32,6 +32,7 @@ Also, look at the diagnostic plots to see if the fit appears to have worked.
 
 Note that AutoProf has a list of arguments that it is expecting and it only checks for those.
 You can therefore make any variables or functions you need in the config file to construct your list of image files so long as they don't conflict with any of the expected AutoProf arguments.
+To see what parameters AutoProf uses by default, see the :doc:`parameters` section.
 
 
 Other Processing Modes

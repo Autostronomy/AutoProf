@@ -94,6 +94,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../parameters.html">AutoProf Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../extramethods.html">Extra Methods</a></li>
@@ -166,11 +167,23 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
-<span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">_iso_between</span><span class="p">,</span> <span class="n">LSBImage</span><span class="p">,</span> <span class="n">_iso_line</span><span class="p">,</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">autocmap</span><span class="p">,</span> <span class="n">Sigma_Clip_Upper</span><span class="p">,</span> <span class="n">_average</span><span class="p">,</span> <span class="n">_scatter</span><span class="p">,</span> <span class="n">flux_to_sb</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;AUTOPROF&quot;</span><span class="p">])</span>
+<span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_iso_between</span><span class="p">,</span>
+    <span class="n">LSBImage</span><span class="p">,</span>
+    <span class="n">_iso_line</span><span class="p">,</span>
+    <span class="n">AddLogo</span><span class="p">,</span>
+    <span class="n">autocmap</span><span class="p">,</span>
+    <span class="n">Sigma_Clip_Upper</span><span class="p">,</span>
+    <span class="n">_average</span><span class="p">,</span>
+    <span class="n">_scatter</span><span class="p">,</span>
+    <span class="n">flux_to_sb</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+
 
 <div class="viewcode-block" id="Slice_Profile"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Slice_Profiles.Slice_Profile">[docs]</a><span class="k">def</span> <span class="nf">Slice_Profile</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extract a very basic SB profile along a line.</span>
@@ -185,42 +198,28 @@
 <span class="sd">    :func:`~pipeline_steps.Radial_Profiles.Radial_Profiles` methods</span>
 <span class="sd">    for such analysis.</span>
 
-<span class="sd">    Arguments</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    -----------------</span>
-<span class="sd">    ap_slice_anchor: dict</span>
+<span class="sd">    ap_slice_anchor : dict, default None</span>
 <span class="sd">      Coordinates for the starting point of the slice as a dictionary</span>
-<span class="sd">      formatted &quot;{&#39;x&#39;: x-coord, &#39;y&#39;: y-coord}&quot; in pixel units. </span>
+<span class="sd">      formatted &quot;{&#39;x&#39;: x-coord, &#39;y&#39;: y-coord}&quot; in pixel units.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None, use galaxy center</span>
-<span class="sd">    </span>
-<span class="sd">    ap_slice_pa: float</span>
+<span class="sd">    ap_slice_pa : float, default None</span>
 <span class="sd">      Position angle of the slice in degrees, counter-clockwise</span>
 <span class="sd">      relative to the x-axis.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None, use galaxy PA</span>
+<span class="sd">    ap_slice_length : float, default None</span>
+<span class="sd">      Length of the slice from anchor point in pixel units. By</span>
+<span class="sd">      default, use init ellipse semi-major axis length</span>
 
-<span class="sd">    ap_slice_length: float</span>
-<span class="sd">      Length of the slice from anchor point in pixel units.</span>
-
-<span class="sd">      :default:</span>
-<span class="sd">        None, use init ellipse semi-major axis length</span>
-<span class="sd">    </span>
-<span class="sd">    ap_slice_width: float</span>
+<span class="sd">    ap_slice_width : float, default 10</span>
 <span class="sd">      Width of the slice in pixel units.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        10</span>
-<span class="sd">    </span>
-<span class="sd">    ap_slice_step: float</span>
+<span class="sd">    ap_slice_step : float, default None</span>
 <span class="sd">      Distance between samples for the profile along the</span>
-<span class="sd">      slice.</span>
+<span class="sd">      slice. By default use the PSF.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None, use PSF</span>
-
-<span class="sd">    ap_isoaverage_method: string</span>
+<span class="sd">    ap_isoaverage_method : string, default &#39;median&#39;</span>
 <span class="sd">      Select the method used to compute the averafge flux along an</span>
 <span class="sd">      isophote. Choose from &#39;mean&#39;, &#39;median&#39;, and &#39;mode&#39;.  In general,</span>
 <span class="sd">      median is fast and robust to a few outliers. Mode is slow but</span>
@@ -230,29 +229,18 @@
 <span class="sd">      spurious objects such as foreground stars or galaxies, and</span>
 <span class="sd">      should always be used with caution.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        &#39;median&#39;    </span>
-<span class="sd">    </span>
-<span class="sd">    ap_saveto: string</span>
+<span class="sd">    ap_saveto : string, default None</span>
 <span class="sd">      Directory in which to save profile</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_name: string</span>
+<span class="sd">    ap_name : string, default None</span>
 <span class="sd">      Name of the current galaxy, used for making filenames.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_zeropoint: float</span>
+<span class="sd">    ap_zeropoint : float, default 22.5</span>
 <span class="sd">      Photometric zero point. For converting flux to mag units.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        22.5</span>
-<span class="sd">    </span>
-<span class="sd">    References</span>
+<span class="sd">    Notes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
 <span class="sd">    - &#39;background&#39; (optional)</span>
 <span class="sd">    - &#39;background noise&#39; (optional)</span>
 <span class="sd">    - &#39;center&#39; (optional)</span>
@@ -261,120 +249,298 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    IMG: ndarray</span>
+<span class="sd">    IMG : ndarray</span>
 <span class="sd">      Unaltered galaxy image</span>
-<span class="sd">    </span>
-<span class="sd">    results: dict</span>
+
+<span class="sd">    results : dict</span>
 <span class="sd">      .. code-block:: python</span>
-<span class="sd">    </span>
+
 <span class="sd">        {}</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;background&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">IMG</span><span class="p">))</span>
-    <span class="n">zeropoint</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_zeropoint&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_zeropoint&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span>
-    
-    <span class="n">use_anchor</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;center&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">}</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_slice_anchor&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="n">use_anchor</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_slice_anchor&#39;</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: ap_slice_anchor not specified by user, using: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">use_anchor</span><span class="p">)))</span>
 
-    <span class="n">use_pa</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;init pa&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;init pa&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="mf">0.</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_slice_pa&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="n">use_pa</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_slice_pa&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: ap_slice_pa not specified by user, using: </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">use_pa</span><span class="p">))</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;background&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">IMG</span><span class="p">))</span>
+    <span class="n">zeropoint</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span>
 
-    <span class="n">use_length</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;init R&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;init R&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_slice_length&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="n">use_length</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_slice_length&#39;</span><span class="p">]</span>
+    <span class="n">use_anchor</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;center&quot;</span> <span class="ow">in</span> <span class="n">results</span>
+        <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_slice_anchor&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">use_anchor</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_slice_anchor&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: ap_slice_length not specified by user, using: </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">use_length</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: ap_slice_anchor not specified by user, using: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">use_anchor</span><span class="p">))</span>
+        <span class="p">)</span>
 
-    <span class="n">use_width</span> <span class="o">=</span> <span class="mf">10.</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_slice_width&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="n">use_width</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_slice_width&#39;</span><span class="p">]</span>
+    <span class="n">use_pa</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;init pa&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_slice_pa&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">use_pa</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_slice_pa&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: ap_slice_width not specified by user, using: </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">use_width</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: ap_slice_pa not specified by user, using: </span><span class="si">%.2f</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">use_pa</span><span class="p">)</span>
+        <span class="p">)</span>
 
-    <span class="n">use_step</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;psf fwhm&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;psf fwhm&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="n">use_length</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_slice_step&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="n">use_step</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_slice_step&#39;</span><span class="p">]</span>
+    <span class="n">use_length</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init R&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;init R&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_slice_length&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">use_length</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_slice_length&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: ap_slice_step not specified by user, using: </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">use_step</span><span class="p">))</span>
-    
-    <span class="n">F</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">_iso_line</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">use_length</span><span class="p">,</span> <span class="n">use_width</span><span class="p">,</span> <span class="n">use_pa</span><span class="p">,</span> <span class="n">use_anchor</span><span class="p">,</span> <span class="n">more</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: ap_slice_length not specified by user, using: </span><span class="si">%.2f</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">use_length</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">use_width</span> <span class="o">=</span> <span class="mf">10.0</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_slice_width&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">use_width</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_slice_width&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: ap_slice_width not specified by user, using: </span><span class="si">%.2f</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">use_width</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">use_step</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;psf fwhm&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">use_length</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_slice_step&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">use_step</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_slice_step&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: ap_slice_step not specified by user, using: </span><span class="si">%.2f</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">use_step</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">F</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">_iso_line</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">use_length</span><span class="p">,</span> <span class="n">use_width</span><span class="p">,</span> <span class="n">use_pa</span><span class="p">,</span> <span class="n">use_anchor</span><span class="p">,</span> <span class="n">more</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">windows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">use_length</span><span class="p">,</span> <span class="n">use_step</span><span class="p">)</span>
 
-    <span class="n">R</span> <span class="o">=</span> <span class="p">(</span><span class="n">windows</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">windows</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="p">(</span><span class="n">windows</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">windows</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">sb</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sb_e</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sb_sclip</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sb_sclip_e</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">isovals</span> <span class="o">=</span> <span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="n">windows</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">X</span> <span class="o">&lt;</span> <span class="n">windows</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])]</span>
-        <span class="n">isovals_sclip</span> <span class="o">=</span> <span class="n">Sigma_Clip_Upper</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">iterations</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">nsigma</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">windows</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="n">windows</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">X</span> <span class="o">&lt;</span> <span class="n">windows</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])]</span>
+        <span class="n">isovals_sclip</span> <span class="o">=</span> <span class="n">Sigma_Clip_Upper</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
-        <span class="n">medflux</span> <span class="o">=</span> <span class="n">_average</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isoaverage_method&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isoaverage_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;median&#39;</span><span class="p">)</span>
-        <span class="n">scatflux</span> <span class="o">=</span> <span class="n">_scatter</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isoaverage_method&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isoaverage_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;median&#39;</span><span class="p">)</span>
-        <span class="n">medflux_sclip</span> <span class="o">=</span> <span class="n">_average</span><span class="p">(</span><span class="n">isovals_sclip</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isoaverage_method&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isoaverage_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;median&#39;</span><span class="p">)</span>
-        <span class="n">scatflux_sclip</span> <span class="o">=</span> <span class="n">_scatter</span><span class="p">(</span><span class="n">isovals_sclip</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_isoaverage_method&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_isoaverage_method&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;median&#39;</span><span class="p">)</span>
+        <span class="n">medflux</span> <span class="o">=</span> <span class="n">_average</span><span class="p">(</span>
+            <span class="n">isovals</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoaverage_method&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;ap_isoaverage_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="k">else</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">scatflux</span> <span class="o">=</span> <span class="n">_scatter</span><span class="p">(</span>
+            <span class="n">isovals</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoaverage_method&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;ap_isoaverage_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="k">else</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">medflux_sclip</span> <span class="o">=</span> <span class="n">_average</span><span class="p">(</span>
+            <span class="n">isovals_sclip</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoaverage_method&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;ap_isoaverage_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="k">else</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">scatflux_sclip</span> <span class="o">=</span> <span class="n">_scatter</span><span class="p">(</span>
+            <span class="n">isovals_sclip</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoaverage_method&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;ap_isoaverage_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="k">else</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="n">sb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flux_to_sb</span><span class="p">(</span><span class="n">medflux</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span> <span class="n">zeropoint</span><span class="p">)</span> <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">99.999</span><span class="p">)</span>
-        <span class="n">sb_e</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mf">2.5</span><span class="o">*</span><span class="n">scatflux</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">*</span><span class="n">medflux</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="p">)))</span> <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">99.999</span><span class="p">)</span>
-        <span class="n">sb_sclip</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flux_to_sb</span><span class="p">(</span><span class="n">medflux_sclip</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span> <span class="n">zeropoint</span><span class="p">)</span> <span class="k">if</span> <span class="n">medflux_sclip</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">99.999</span><span class="p">)</span>
-        <span class="n">sb_sclip_e</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mf">2.5</span><span class="o">*</span><span class="n">scatflux_sclip</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span><span class="o">*</span><span class="n">medflux_sclip</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="p">)))</span> <span class="k">if</span> <span class="n">medflux_sclip</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">99.999</span><span class="p">)</span>
-    
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">_slice_profile.prof&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_saveto&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_saveto&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;# flux sum: </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)])))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;# flux mean: </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_average</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="s1">&#39;mean&#39;</span><span class="p">)))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;# flux median: </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_average</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="s1">&#39;median&#39;</span><span class="p">)))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;# flux mode: </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_average</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="s1">&#39;mode&#39;</span><span class="p">)))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;# flux std: </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)])))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;# flux 16-84</span><span class="si">%%</span><span class="s1"> range: </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">iqr</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="n">rng</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">84</span><span class="p">])))</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;R,sb,sb_e,sb_sclip,sb_sclip_e</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;arcsec,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">sb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">flux_to_sb</span><span class="p">(</span><span class="n">medflux</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span> <span class="n">zeropoint</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="mf">99.999</span>
+        <span class="p">)</span>
+        <span class="n">sb_e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">scatflux</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">*</span> <span class="n">medflux</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">medflux</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="mf">99.999</span>
+        <span class="p">)</span>
+        <span class="n">sb_sclip</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">flux_to_sb</span><span class="p">(</span><span class="n">medflux_sclip</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span> <span class="n">zeropoint</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">medflux_sclip</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="mf">99.999</span>
+        <span class="p">)</span>
+        <span class="n">sb_sclip_e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="mf">2.5</span>
+                <span class="o">*</span> <span class="n">scatflux_sclip</span>
+                <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">*</span> <span class="n">medflux_sclip</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">medflux_sclip</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="mf">99.999</span>
+        <span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">_slice_profile.prof&quot;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_saveto&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_saveto&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;w&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;# flux sum: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)]))</span>
+        <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;# flux mean: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">_average</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="s2">&quot;mean&quot;</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;# flux median: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">_average</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="s2">&quot;median&quot;</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;# flux mode: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">_average</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="s2">&quot;mode&quot;</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;# flux std: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)]))</span>
+        <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;# flux 16-84</span><span class="si">%%</span><span class="s2"> range: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">iqr</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)],</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;R,sb,sb_e,sb_sclip,sb_sclip_e</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;arcsec,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)):</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.4f</span><span class="s1">,</span><span class="si">%.4f</span><span class="s1">,</span><span class="si">%.4f</span><span class="s1">,</span><span class="si">%.4f</span><span class="s1">,</span><span class="si">%.4f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span> <span class="n">sb</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">sb_e</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">sb_sclip</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">sb_sclip_e</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%.4f</span><span class="s2">,</span><span class="si">%.4f</span><span class="s2">,</span><span class="si">%.4f</span><span class="s2">,</span><span class="si">%.4f</span><span class="s2">,</span><span class="si">%.4f</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+                    <span class="n">sb</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">sb_e</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">sb_sclip</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">sb_sclip_e</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
-    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
         <span class="n">CHOOSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sb_e</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.5</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">R</span><span class="p">)[</span><span class="n">CHOOSE</span><span class="p">]</span><span class="o">*</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sb</span><span class="p">)[</span><span class="n">CHOOSE</span><span class="p">],</span> <span class="n">yerr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sb_e</span><span class="p">)[</span><span class="n">CHOOSE</span><span class="p">],</span>
-                     <span class="n">elinewidth</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">marker</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Position on line [arcsec]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Surface Brightness [mag arcsec$^{-2}$]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;background noise&#39;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-            <span class="n">bkgrdnoise</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;background noise&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="n">zeropoint</span> <span class="o">+</span> <span class="mf">2.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">bkgrdnoise</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">linestyle</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;1$</span><span class="se">\\</span><span class="s1">sigma$ noise/pixel: </span><span class="si">%.1f</span><span class="s1"> mag arcsec$^{-2}$&#39;</span> <span class="o">%</span> <span class="n">bkgrdnoise</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">R</span><span class="p">)[</span><span class="n">CHOOSE</span><span class="p">]</span> <span class="o">*</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sb</span><span class="p">)[</span><span class="n">CHOOSE</span><span class="p">],</span>
+            <span class="n">yerr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sb_e</span><span class="p">)[</span><span class="n">CHOOSE</span><span class="p">],</span>
+            <span class="n">elinewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+            <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Position on line [arcsec]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Surface Brightness [mag arcsec$^{-2}$]&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;background noise&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">bkgrdnoise</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="o">-</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">])</span>
+                <span class="o">+</span> <span class="n">zeropoint</span>
+                <span class="o">+</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span>
+                <span class="n">bkgrdnoise</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;purple&quot;</span><span class="p">,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;1$</span><span class="se">\\</span><span class="s2">sigma$ noise/pixel: </span><span class="si">%.1f</span><span class="s2"> mag arcsec$^{-2}$&quot;</span> <span class="o">%</span> <span class="n">bkgrdnoise</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">15</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span> <span class="o">=</span> <span class="mi">14</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_nologo&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_nologo&#39;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_nologo&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_nologo&quot;</span><span class="p">]):</span>
             <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">slice_profile_</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotdpi&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotdpi&#39;</span><span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">slice_profile_</span><span class="si">%s</span><span class="s2">.jpg&quot;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotpath&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotpath&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        
-        <span class="n">ranges</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">use_anchor</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">use_length</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span><span class="o">-</span><span class="n">use_length</span><span class="o">*</span><span class="mf">0.7</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">use_anchor</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">use_length</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span><span class="o">+</span><span class="n">use_length</span><span class="o">*</span><span class="mf">0.7</span><span class="p">))],</span>
-                  <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">use_anchor</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">use_length</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span><span class="o">-</span><span class="n">use_length</span><span class="o">*</span><span class="mf">0.7</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">int</span><span class="p">(</span><span class="n">use_anchor</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">use_length</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span><span class="o">+</span><span class="n">use_length</span><span class="o">*</span><span class="mf">0.7</span><span class="p">))]]</span>
-        <span class="n">LSBImage</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;background noise&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;background noise&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="n">iqr</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">rng</span> <span class="o">=</span> <span class="p">(</span><span class="mf">31.731</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">100</span> <span class="o">-</span> <span class="mf">31.731</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
-        
-        <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">))</span>
-        <span class="n">XX</span> <span class="o">-=</span> <span class="n">use_anchor</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">YY</span> <span class="o">-=</span> <span class="n">use_anchor</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="p">(</span><span class="n">XX</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">)</span> <span class="o">-</span> <span class="n">YY</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">),</span> <span class="n">XX</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">)</span> <span class="o">+</span> <span class="n">YY</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">))</span>
+
+        <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">use_anchor</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">use_length</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span>
+                        <span class="o">-</span> <span class="n">use_length</span> <span class="o">*</span> <span class="mf">0.7</span>
+                    <span class="p">),</span>
+                <span class="p">),</span>
+                <span class="nb">min</span><span class="p">(</span>
+                    <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">use_anchor</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">use_length</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">use_length</span> <span class="o">*</span> <span class="mf">0.7</span>
+                    <span class="p">),</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">use_anchor</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">use_length</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span>
+                        <span class="o">-</span> <span class="n">use_length</span> <span class="o">*</span> <span class="mf">0.7</span>
+                    <span class="p">),</span>
+                <span class="p">),</span>
+                <span class="nb">min</span><span class="p">(</span>
+                    <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">use_anchor</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">use_length</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">use_pa</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="n">use_length</span> <span class="o">*</span> <span class="mf">0.7</span>
+                    <span class="p">),</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">]</span>
+        <span class="n">LSBImage</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;background noise&quot;</span> <span class="ow">in</span> <span class="n">results</span>
+            <span class="k">else</span> <span class="n">iqr</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="p">(</span><span class="mf">31.731</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">100</span> <span class="o">-</span> <span class="mf">31.731</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">XX</span> <span class="o">-=</span> <span class="n">use_anchor</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">YY</span> <span class="o">-=</span> <span class="n">use_anchor</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">XX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">)</span> <span class="o">-</span> <span class="n">YY</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">),</span>
+            <span class="n">XX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">)</span> <span class="o">+</span> <span class="n">YY</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="o">-</span><span class="n">use_pa</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">ZZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">XX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">ZZ</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">YY</span> <span class="o">&lt;=</span> <span class="n">use_width</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">YY</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">use_width</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
-                                         <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">XX</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">XX</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">)))]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ZZ</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;Reds_r&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">)</span>
+        <span class="n">ZZ</span><span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">YY</span> <span class="o">&lt;=</span> <span class="n">use_width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">YY</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">use_width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">XX</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">XX</span> <span class="o">&lt;=</span> <span class="n">use_length</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ZZ</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Reds_r&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_nologo&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_nologo&#39;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_nologo&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_nologo&quot;</span><span class="p">]):</span>
             <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">slice_profile_window_</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotpath&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_plotdpi&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_plotdpi&#39;</span><span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">slice_profile_window_</span><span class="si">%s</span><span class="s2">.jpg&quot;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotpath&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotpath&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        
+
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{}</span></div>
 </pre></div>
 

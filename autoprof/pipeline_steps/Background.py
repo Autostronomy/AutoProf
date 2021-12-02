@@ -52,7 +52,7 @@ def Background_Mode(IMG, results, options):
       can provide a positive integer factor by which to reduce the
       number of pixels used in the calculation.
 
-    Note
+    Notes
     ----
       For best results, use a segmentation mask to remove sources.
 
@@ -296,7 +296,7 @@ def Background_Unsharp(IMG, results, options):
     sake of fitting isophotes, but the extracted flux profile will be
     unreliable.
 
-    Parameterss
+    Parameters
     -----------------
     ap_background_unsharp_lowpass : int, default 3
       User provided FFT coefficient cutoff for constructing unsharp image.

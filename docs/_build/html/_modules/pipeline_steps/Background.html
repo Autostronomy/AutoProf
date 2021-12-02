@@ -94,6 +94,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../parameters.html">AutoProf Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../extramethods.html">Extra Methods</a></li>
@@ -164,7 +165,13 @@
             
   <h1>Source code for pipeline_steps.Background</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">photutils</span> <span class="kn">import</span> <span class="n">make_source_mask</span>
-<span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">EllipseSample</span><span class="p">,</span> <span class="n">Ellipse</span><span class="p">,</span> <span class="n">EllipseGeometry</span><span class="p">,</span> <span class="n">Isophote</span><span class="p">,</span> <span class="n">IsophoteList</span>
+<span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EllipseSample</span><span class="p">,</span>
+    <span class="n">Ellipse</span><span class="p">,</span>
+    <span class="n">EllipseGeometry</span><span class="p">,</span>
+    <span class="n">Isophote</span><span class="p">,</span>
+    <span class="n">IsophoteList</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">astropy.stats</span> <span class="kn">import</span> <span class="n">sigma_clipped_stats</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
@@ -178,13 +185,15 @@
 <span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;AUTOPROF&#39;</span><span class="p">])</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;AUTOPROF&quot;</span><span class="p">])</span>
 <span class="kn">from</span> <span class="nn">autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">Smooth_Mode</span>
 <span class="kn">from</span> <span class="nn">autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_Background</span>
 
+
 <div class="viewcode-block" id="Background_Mode"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_Mode">[docs]</a><span class="k">def</span> <span class="nf">Background_Mode</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute the mode flux in the border of an image.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Takes all pixels in a 1/5th border of the image. Applies a</span>
 <span class="sd">    Gaussian smoothing length of log10(sqrt(N)) where N is the number</span>
 <span class="sd">    of sampled pixels. The peak of the smoothed distribution is found</span>
@@ -195,234 +204,254 @@
 <span class="sd">    it is contaminated by faint sources. In truth the lower 1sigma is</span>
 <span class="sd">    contaminated as well, though to a lesser extent.</span>
 
-<span class="sd">    Arguments</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    -----------------</span>
-<span class="sd">    ap_set_background: float</span>
+<span class="sd">    ap_set_background : float, default None</span>
 <span class="sd">      User provided background value in flux</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_set_background_noise: float</span>
+<span class="sd">    ap_set_background_noise : float, default None</span>
 <span class="sd">      User provided background noise level in flux</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_background_speedup: int</span>
+<span class="sd">    ap_background_speedup : int, default 1</span>
 <span class="sd">      For large images, this can be millions of pixels, which is not</span>
 <span class="sd">      really needed to achieve an accurate background level, the user</span>
 <span class="sd">      can provide a positive integer factor by which to reduce the</span>
 <span class="sd">      number of pixels used in the calculation.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        1</span>
-
-<span class="sd">    Note</span>
+<span class="sd">    Notes</span>
 <span class="sd">    ----</span>
 <span class="sd">      For best results, use a segmentation mask to remove sources.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    IMG: ndarray</span>
+<span class="sd">    IMG : ndarray</span>
 <span class="sd">      Unaltered galaxy image</span>
-<span class="sd">    </span>
-<span class="sd">    results: dict</span>
+
+<span class="sd">    results : dict</span>
 <span class="sd">      .. code-block:: python</span>
-<span class="sd">     </span>
+
 <span class="sd">        {&#39;background&#39;: , # flux value representing the background level (float)</span>
 <span class="sd">         &#39;background noise&#39;: ,# measure of scatter around the background level (float)</span>
 <span class="sd">         &#39;background uncertainty&#39;: ,# optional, uncertainty on background level (float)</span>
 <span class="sd">         &#39;auxfile background&#39;: # optional, message for aux file to record background level (string)</span>
-<span class="sd">      </span>
-<span class="sd">        }    </span>
+
+<span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Mask main body of image so only outer 1/5th is used</span>
     <span class="c1"># for background calculation.</span>
-    <span class="k">if</span> <span class="s1">&#39;mask&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]):</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">])</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Background using mask. Masking </span><span class="si">%i</span><span class="s1"> pixels&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">])))</span>
+    <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Background using mask. Masking </span><span class="si">%i</span><span class="s2"> pixels&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
-        <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">),</span>
-             <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">mask</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">),</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">values</span> <span class="o">=</span> <span class="n">IMG</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e5</span><span class="p">:</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_background_speedup&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_background_speedup&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[::</span><span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_background_speedup&#39;</span><span class="p">])]</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_background_speedup&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_background_speedup&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[::</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_background_speedup&quot;</span><span class="p">])]</span>
     <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">values</span><span class="p">)]</span>
 
-    <span class="k">if</span> <span class="s1">&#39;ap_set_background&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="n">bkgrnd</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_background&#39;</span><span class="p">]</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Background set by user: </span><span class="si">%.4e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">bkgrnd</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_background&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">bkgrnd</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_background&quot;</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Background set by user: </span><span class="si">%.4e</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">bkgrnd</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># # Fit the peak of the smoothed histogram</span>
         <span class="n">bkgrnd</span> <span class="o">=</span> <span class="n">Smooth_Mode</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-        
+
     <span class="c1"># Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_set_background_noise&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="n">noise</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_background_noise&#39;</span><span class="p">]</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Background Noise set by user: </span><span class="si">%.4e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">noise</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_background_noise&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_background_noise&quot;</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Background Noise set by user: </span><span class="si">%.4e</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">noise</span><span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">noise</span> <span class="o">=</span> <span class="n">iqr</span><span class="p">(</span><span class="n">values</span><span class="p">[(</span><span class="n">values</span><span class="o">-</span><span class="n">bkgrnd</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">],</span> <span class="n">rng</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mf">68.2689492137</span><span class="p">,</span><span class="mi">100</span><span class="p">])</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">iqr</span><span class="p">(</span><span class="n">values</span><span class="p">[(</span><span class="n">values</span> <span class="o">-</span> <span class="n">bkgrnd</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">],</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mf">68.2689492137</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">noise</span><span class="p">):</span>
-            <span class="n">noise</span> <span class="o">=</span> <span class="n">iqr</span><span class="p">(</span><span class="n">values</span><span class="p">,</span><span class="n">rng</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">84</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span>
-    <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">noise</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">values</span><span class="o">-</span><span class="n">bkgrnd</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="n">iqr</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">noise</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">values</span> <span class="o">-</span> <span class="n">bkgrnd</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">uncertainty</span><span class="p">):</span>
         <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">noise</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
-    
-    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
         <span class="n">Plot_Background</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">bkgrnd</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-        
-    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="n">bkgrnd</span><span class="p">,</span>
-                 <span class="s1">&#39;background noise&#39;</span><span class="p">:</span> <span class="n">noise</span><span class="p">,</span>
-                 <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
-                 <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="s1">&#39;background: </span><span class="si">%.5e</span><span class="s1"> +- </span><span class="si">%.2e</span><span class="s1"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s1"> flux/pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">)}</span></div>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;background&quot;</span><span class="p">:</span> <span class="n">bkgrnd</span><span class="p">,</span>
+        <span class="s2">&quot;background noise&quot;</span><span class="p">:</span> <span class="n">noise</span><span class="p">,</span>
+        <span class="s2">&quot;background uncertainty&quot;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile background&quot;</span><span class="p">:</span> <span class="s2">&quot;background: </span><span class="si">%.5e</span><span class="s2"> +- </span><span class="si">%.2e</span><span class="s2"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s2"> flux/pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
 
 <div class="viewcode-block" id="Background_DilatedSources"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_DilatedSources">[docs]</a><span class="k">def</span> <span class="nf">Background_DilatedSources</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute the median flux after removing bright sources.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Compute a global background value for an image. Performed by</span>
 <span class="sd">    identifying pixels which are beyond 3 sigma above the average</span>
 <span class="sd">    signal and masking them, also further masking a border</span>
 <span class="sd">    of 20 pixels around the initial masked pixels. Returns a</span>
 <span class="sd">    dictionary of parameters describing the background level.</span>
 
-<span class="sd">    Arguments</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    -----------------</span>
-<span class="sd">    ap_set_background: float</span>
+<span class="sd">    ap_set_background : float, default None</span>
 <span class="sd">      User provided background value in flux</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_set_background_noise: float</span>
+<span class="sd">    ap_set_background_noise : float, default None</span>
 <span class="sd">      User provided background noise level in flux</span>
-
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    IMG: ndarray</span>
+<span class="sd">    IMG : ndarray</span>
 <span class="sd">      Unaltered galaxy image</span>
-<span class="sd">    </span>
-<span class="sd">    results: dict</span>
+
+<span class="sd">    results : dict</span>
 <span class="sd">      .. code-block:: python</span>
-<span class="sd">     </span>
+
 <span class="sd">        {&#39;background&#39;: , # flux value representing the background level (float)</span>
 <span class="sd">         &#39;background noise&#39;: ,# measure of scatter around the background level (float)</span>
 <span class="sd">         &#39;background uncertainty&#39;: ,# optional, uncertainty on background level (float)</span>
 <span class="sd">         &#39;auxfile background&#39;: # optional, message for aux file to record background level (string)</span>
-<span class="sd">      </span>
+
 <span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Mask main body of image so only outer 1/5th is used</span>
     <span class="c1"># for background calculation.</span>
-    <span class="k">if</span> <span class="s1">&#39;mask&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">),</span>
-             <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">mask</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">),</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="c1"># Run photutils source mask to remove pixels with sources</span>
     <span class="c1"># such as stars and galaxies, including a boarder</span>
     <span class="c1"># around each source.</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_set_background&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="s1">&#39;ap_set_background_noise&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">):</span>
-        <span class="n">source_mask</span> <span class="o">=</span> <span class="n">make_source_mask</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">nsigma</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-                                       <span class="n">npixels</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]),</span>
-                                       <span class="n">dilate_size</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
-                                       <span class="n">filter_fwhm</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">],</span>
-                                       <span class="n">filter_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">3.</span><span class="o">/</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_pixscale&#39;</span><span class="p">]),</span>
-                                       <span class="n">sigclip_iters</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_set_background&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="s2">&quot;ap_set_background_noise&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">):</span>
+        <span class="n">source_mask</span> <span class="o">=</span> <span class="n">make_source_mask</span><span class="p">(</span>
+            <span class="n">IMG</span><span class="p">,</span>
+            <span class="n">nsigma</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">npixels</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">]),</span>
+            <span class="n">dilate_size</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+            <span class="n">filter_fwhm</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">3.0</span> <span class="o">/</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">]),</span>
+            <span class="n">sigclip_iters</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">source_mask</span><span class="p">)</span>
 
     <span class="c1"># Return statistics from background sky</span>
-    <span class="n">bkgrnd</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_background&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_set_background&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)])</span>
-    <span class="n">noise</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_background_noise&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_set_background_noise&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="n">iqr</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)],</span><span class="n">rng</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">84</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
-    <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">noise</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)))</span>
-    
-    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
-        <span class="n">Plot_Background</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bkgrnd</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="n">bkgrnd</span><span class="p">,</span>
-                 <span class="s1">&#39;background noise&#39;</span><span class="p">:</span> <span class="n">noise</span><span class="p">,</span>
-                 <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
-                 <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="s1">&#39;background: </span><span class="si">%.5e</span><span class="s1"> +- </span><span class="si">%.2e</span><span class="s1"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s1"> flux/pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">)}</span></div>
+    <span class="n">bkgrnd</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_background&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_set_background&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)])</span>
+    <span class="p">)</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_background_noise&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_set_background_noise&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="n">iqr</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)],</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="p">)</span>
+    <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">noise</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">Plot_Background</span><span class="p">(</span>
+            <span class="n">IMG</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bkgrnd</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;background&quot;</span><span class="p">:</span> <span class="n">bkgrnd</span><span class="p">,</span>
+        <span class="s2">&quot;background noise&quot;</span><span class="p">:</span> <span class="n">noise</span><span class="p">,</span>
+        <span class="s2">&quot;background uncertainty&quot;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile background&quot;</span><span class="p">:</span> <span class="s2">&quot;background: </span><span class="si">%.5e</span><span class="s2"> +- </span><span class="si">%.2e</span><span class="s2"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s2"> flux/pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
 
 <div class="viewcode-block" id="Background_Basic"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_Basic">[docs]</a><span class="k">def</span> <span class="nf">Background_Basic</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute the mean flux in the border of an image.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Takes all pixels in a 1/5th border of the image and computes the</span>
 <span class="sd">    mean. To compute the noise in the background level, we simply take</span>
 <span class="sd">    the standard deviation of the flux values. This background</span>
 <span class="sd">    estimation method is only for diagnostic purposes and will be</span>
 <span class="sd">    considerably biased on real astronomical images.</span>
 
-<span class="sd">    Arguments</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    -----------------</span>
-<span class="sd">    ap_set_background: float</span>
+<span class="sd">    ap_set_background : float, default None</span>
 <span class="sd">      User provided background value in flux</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_set_background_noise: float</span>
+<span class="sd">    ap_set_background_noise : float, default None</span>
 <span class="sd">      User provided background noise level in flux</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        None</span>
-
-<span class="sd">    ap_background_speedup: int</span>
+<span class="sd">    ap_background_speedup : int, default 1</span>
 <span class="sd">      For large images, this can be millions of pixels, which is not</span>
 <span class="sd">      really needed to achieve an accurate background level, the user</span>
 <span class="sd">      can provide a positive integer factor by which to reduce the</span>
 <span class="sd">      number of pixels used in the calculation.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        1</span>
-
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    IMG: ndarray</span>
+<span class="sd">    IMG : ndarray</span>
 <span class="sd">      Unaltered galaxy image</span>
-<span class="sd">    </span>
-<span class="sd">    results: dict</span>
+
+<span class="sd">    results : dict</span>
 <span class="sd">      .. code-block:: python</span>
-<span class="sd">     </span>
+
 <span class="sd">        {&#39;background&#39;: , # flux value representing the background level (float)</span>
 <span class="sd">         &#39;background noise&#39;: ,# measure of scatter around the background level (float)</span>
 <span class="sd">         &#39;background uncertainty&#39;: ,# optional, uncertainty on background level (float)</span>
 <span class="sd">         &#39;auxfile background&#39;: # optional, message for aux file to record background level (string)</span>
-<span class="sd">      </span>
+
 <span class="sd">        }</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
-    <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">),</span>
-         <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">5.</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">mask</span><span class="p">[</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">),</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">)</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">),</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">values</span> <span class="o">=</span> <span class="n">IMG</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e3</span><span class="p">:</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_background_speedup&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_background_speedup&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[::</span><span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_background_speedup&#39;</span><span class="p">])]</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_background_speedup&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_background_speedup&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[::</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_background_speedup&quot;</span><span class="p">])]</span>
     <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">values</span><span class="p">)]</span>
 
-    <span class="n">bkgrnd</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_background&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_set_background&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-    <span class="n">noise</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_set_background_noise&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_set_background_noise&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">bkgrnd</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_background&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_set_background&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_background_noise&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_set_background_noise&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">noise</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
-    <span class="k">if</span> <span class="s1">&#39;ap_doplot&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_doplot&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
         <span class="n">Plot_Background</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">bkgrnd</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="n">bkgrnd</span><span class="p">,</span>
-                 <span class="s1">&#39;background noise&#39;</span><span class="p">:</span> <span class="n">noise</span><span class="p">,</span>
-                 <span class="s1">&#39;background uncertainty&#39;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
-                 <span class="s1">&#39;auxfile background&#39;</span><span class="p">:</span> <span class="s1">&#39;background: </span><span class="si">%.5e</span><span class="s1"> +- </span><span class="si">%.2e</span><span class="s1"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s1"> flux/pix&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">)}</span></div>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;background&quot;</span><span class="p">:</span> <span class="n">bkgrnd</span><span class="p">,</span>
+        <span class="s2">&quot;background noise&quot;</span><span class="p">:</span> <span class="n">noise</span><span class="p">,</span>
+        <span class="s2">&quot;background uncertainty&quot;</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile background&quot;</span><span class="p">:</span> <span class="s2">&quot;background: </span><span class="si">%.5e</span><span class="s2"> +- </span><span class="si">%.2e</span><span class="s2"> flux/pix, noise: </span><span class="si">%.5e</span><span class="s2"> flux/pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">bkgrnd</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">noise</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
 
 <div class="viewcode-block" id="Background_Unsharp"><a class="viewcode-back" href="../../pipeline_steps.html#pipeline_steps.Background.Background_Unsharp">[docs]</a><span class="k">def</span> <span class="nf">Background_Unsharp</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;creates a 2D background level using low order FFT coefficients.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Takes the 2D FFT of an image and sets all coefficients above 3 to</span>
 <span class="sd">    zero. This creates a very smooth image which can be used as a</span>
 <span class="sd">    variable background level.  This can then be subtracted from</span>
@@ -432,23 +461,20 @@
 <span class="sd">    used to isolate a galaxy with a large overlapping partner for the</span>
 <span class="sd">    sake of fitting isophotes, but the extracted flux profile will be</span>
 <span class="sd">    unreliable.</span>
-<span class="sd">    </span>
-<span class="sd">    Arguments</span>
-<span class="sd">    -----------------</span>
-<span class="sd">    ap_background_unsharp_lowpass: int</span>
-<span class="sd">      User provided FFT coefficient cutoff for constructing unsharp image.</span>
 
-<span class="sd">      :default:</span>
-<span class="sd">        3</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_background_unsharp_lowpass : int, default 3</span>
+<span class="sd">      User provided FFT coefficient cutoff for constructing unsharp image.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    IMG: ndarray</span>
+<span class="sd">    IMG : ndarray</span>
 <span class="sd">      Unaltered galaxy image</span>
-<span class="sd">    </span>
-<span class="sd">    results: dict</span>
+
+<span class="sd">    results : dict</span>
 <span class="sd">      .. code-block:: python</span>
-<span class="sd">     </span>
+
 <span class="sd">        {&#39;background&#39;: , # flux image representing the variable background level (ndarray)</span>
 <span class="sd">        }</span>
 
@@ -456,16 +482,17 @@
 
     <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft2</span><span class="p">(</span><span class="n">IMG</span><span class="p">)</span>
 
-    <span class="n">unsharp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_background_unsharp_lowpass&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="s1">&#39;ap_background_unsharp_lowpass&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">3</span>
+    <span class="n">unsharp</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_background_unsharp_lowpass&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_background_unsharp_lowpass&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="mi">3</span>
+    <span class="p">)</span>
     <span class="n">coefs</span><span class="p">[</span><span class="n">unsharp</span><span class="p">:</span><span class="o">-</span><span class="n">unsharp</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">coefs</span><span class="p">[:,</span><span class="n">unsharp</span><span class="p">:</span><span class="o">-</span><span class="n">unsharp</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">coefs</span><span class="p">[:,</span> <span class="n">unsharp</span><span class="p">:</span><span class="o">-</span><span class="n">unsharp</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="n">dumy</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">Background_Mode</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="n">ifft2</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span><span class="o">.</span><span class="n">real</span><span class="p">})</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;background&quot;</span><span class="p">:</span> <span class="n">ifft2</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span><span class="o">.</span><span class="n">real</span><span class="p">})</span>
     <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">stats</span></div>
-            
-
-    
 </pre></div>
 
            </div>
