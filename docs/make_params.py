@@ -14,7 +14,7 @@ for step in pipeline_steps:
         in_doc = False
         func = ''
         for l in f.readlines():
-            if not in_func and l[:3] == 'def':
+            if l[:3] == 'def':
                 in_func = True
                 count_funcs += 1
                 func = l[3:l.find('(')].strip()

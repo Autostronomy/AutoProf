@@ -229,7 +229,7 @@ def _pa_smooth(R, PA, deg):
 
 
 def _FFT_Robust_loss(
-    dat, R, PARAMS, i, C, noise, mask=None, reg_scale=1.0, fit_coefs=None, name=""
+        dat, R, PARAMS, i, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
 ):
 
     isovals = _iso_extract(
@@ -242,10 +242,7 @@ def _FFT_Robust_loss(
         interp_method="bicubic",
     )
 
-    if mask is None:
-        coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 0.85), a_min=None))
-    else:
-        coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 0.9), a_min=None))
+    coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 1. - robust_clip), a_min=None))
 
     if fit_coefs is None:
         f2_loss = np.abs(coefs[2]) / (
@@ -308,7 +305,7 @@ def _FFT_Robust_loss(
 
 
 def _FFT_Robust_Errors(
-    dat, R, PARAMS, C, noise, mask=None, reg_scale=1.0, fit_coefs=None, name=""
+        dat, R, PARAMS, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
 ):
 
     PA_err = np.zeros(len(R))
@@ -339,6 +336,7 @@ def _FFT_Robust_Errors(
                         noise,
                         mask=mask,
                         reg_scale=reg_scale,
+                        robust_clip = robust_clip,
                         fit_coefs=fit_coefs,
                         name=name,
                     ),
@@ -399,6 +397,12 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
       scale factor to apply to regularization coupling factor between
       isophotes.  Default of 1, larger values make smoother fits,
       smaller values give more chaotic fits.
+
+    ap_isofit_robustclip : float, default 0.15
+      quantile of flux values at which to clip when extracting values
+      along an isophote. Clipping outlier values (such as very bright
+      stars) while fitting isophotes allows for robust computation of
+      FFT coefficients along an isophote.
 
     ap_isofit_losscoefs : tuple, default (2,)
       Tuple of FFT coefficients to use in optimization
@@ -543,6 +547,9 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     regularize_scale = (
         options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
     )
+    robust_clip = (
+        options["ap_isofit_robustclip"] if "ap_isofit_robustclip" in options else 0.15
+    )
     N_perturb = 5
     fit_coefs = (
         options["ap_isofit_losscoefs"] if "ap_isofit_losscoefs" in options else None
@@ -608,6 +615,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 results["background noise"],
                 mask=mask,
                 reg_scale=regularize_scale if count > 4 else 0,
+                robust_clip = robust_clip,
                 fit_coefs=fit_coefs,
                 name=options["ap_name"],
             )
@@ -660,6 +668,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     results["background noise"],
                     mask=mask,
                     reg_scale=regularize_scale if count > 4 else 0,
+                    robust_clip = robust_clip,
                     fit_coefs=fit_coefs,
                     name=options["ap_name"],
                 )
@@ -771,6 +780,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         results["background noise"],
         mask=mask,
         reg_scale=regularize_scale,
+        robust_clip = robust_clip,
         fit_coefs=fit_coefs,
         name=options["ap_name"],
     )

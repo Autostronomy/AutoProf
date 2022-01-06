@@ -111,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#center-of-mass">Center - Of Mass</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#isophote-initialize-mean">Isophote Initialize - Mean</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plot-clean-image">Plot Clean Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isophote-fitting-fixed">Isophote Fitting - Fixed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#isophote-fitting-mean">Isophote Fitting - Mean</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#isophote-fitting-photutils">Isophote Fitting - photutils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#isophote-extraction-photutils">Isophote Extraction - photutils</a></li>
@@ -269,6 +270,12 @@ The noise is half the 16-84 quartile range of unmasked pixels.</p>
 <p><strong>pipeline label: ‘plot image’</strong></p>
 <p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Plotting_Steps.Plot_Galaxy_Image" title="pipeline_steps.Plotting_Steps.Plot_Galaxy_Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">Plot_Galaxy_Image()</span></code></a></p>
 <p>Simply plots an image of the galaxy using hybrid histogram equalization and log scale, without any other features or tests drawn on top. This can be useful for inspecting the image for spurious features without any ellipses, lines, or other objects drawn overtop. The size of the image will be based on when the step is called in the pipeline, if it is called early in the pipeline then a larger and less centered image will be used, calling later in the pipeline will use later pieces of information to choose the image size and centering.</p>
+</div>
+<div class="section" id="isophote-fitting-fixed">
+<h2>Isophote Fitting - Fixed<a class="headerlink" href="#isophote-fitting-fixed" title="Permalink to this headline">¶</a></h2>
+<p><strong>pipeline label: ‘isophotefit fixed’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FixedPhase()</span></code></a></p>
+<p>Simply applies fixed position angle and ellipticity at the initialization values instead of fitting each isophote.</p>
 </div>
 <div class="section" id="isophote-fitting-mean">
 <h2>Isophote Fitting - Mean<a class="headerlink" href="#isophote-fitting-mean" title="Permalink to this headline">¶</a></h2>

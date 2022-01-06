@@ -117,6 +117,15 @@ Plot Clean Image
 
 Simply plots an image of the galaxy using hybrid histogram equalization and log scale, without any other features or tests drawn on top. This can be useful for inspecting the image for spurious features without any ellipses, lines, or other objects drawn overtop. The size of the image will be based on when the step is called in the pipeline, if it is called early in the pipeline then a larger and less centered image will be used, calling later in the pipeline will use later pieces of information to choose the image size and centering.
 
+Isophote Fitting - Fixed
+----------------------------------------------------------------------
+
+**pipeline label: 'isophotefit fixed'**
+
+:func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+
+Simply applies fixed position angle and ellipticity at the initialization values instead of fitting each isophote.
+
 Isophote Fitting - Mean
 ----------------------------------------------------------------------
 

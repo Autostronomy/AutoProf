@@ -395,7 +395,7 @@
 
 
 <span class="k">def</span> <span class="nf">_FFT_Robust_loss</span><span class="p">(</span>
-    <span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">PARAMS</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fit_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">PARAMS</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">robust_clip</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">fit_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
 <span class="p">):</span>
 
     <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
@@ -408,10 +408,7 @@
         <span class="n">interp_method</span><span class="o">=</span><span class="s2">&quot;bicubic&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">),</span> <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span> <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">robust_clip</span><span class="p">),</span> <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">fit_coefs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">f2_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
@@ -474,7 +471,7 @@
 
 
 <span class="k">def</span> <span class="nf">_FFT_Robust_Errors</span><span class="p">(</span>
-    <span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">PARAMS</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fit_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">PARAMS</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">robust_clip</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">fit_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
 <span class="p">):</span>
 
     <span class="n">PA_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">))</span>
@@ -505,6 +502,7 @@
                         <span class="n">noise</span><span class="p">,</span>
                         <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
                         <span class="n">reg_scale</span><span class="o">=</span><span class="n">reg_scale</span><span class="p">,</span>
+                        <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
                         <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
                         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
                     <span class="p">),</span>
@@ -565,6 +563,12 @@
 <span class="sd">      scale factor to apply to regularization coupling factor between</span>
 <span class="sd">      isophotes.  Default of 1, larger values make smoother fits,</span>
 <span class="sd">      smaller values give more chaotic fits.</span>
+
+<span class="sd">    ap_isofit_robustclip : float, default 0.15</span>
+<span class="sd">      quantile of flux values at which to clip when extracting values</span>
+<span class="sd">      along an isophote. Clipping outlier values (such as very bright</span>
+<span class="sd">      stars) while fitting isophotes allows for robust computation of</span>
+<span class="sd">      FFT coefficients along an isophote.</span>
 
 <span class="sd">    ap_isofit_losscoefs : tuple, default (2,)</span>
 <span class="sd">      Tuple of FFT coefficients to use in optimization</span>
@@ -709,6 +713,9 @@
     <span class="n">regularize_scale</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_regularize_scale&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_regularize_scale&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">1.0</span>
     <span class="p">)</span>
+    <span class="n">robust_clip</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_robustclip&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_isofit_robustclip&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.15</span>
+    <span class="p">)</span>
     <span class="n">N_perturb</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="n">fit_coefs</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_losscoefs&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_isofit_losscoefs&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="kc">None</span>
@@ -774,6 +781,7 @@
                 <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
                 <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
                 <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
                 <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
                 <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
             <span class="p">)</span>
@@ -826,6 +834,7 @@
                     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
                     <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
                     <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
                     <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
                     <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
                 <span class="p">)</span>
@@ -937,6 +946,7 @@
         <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
         <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
         <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span><span class="p">,</span>
+        <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
         <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
     <span class="p">)</span>

@@ -97,8 +97,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">AutoProf Parameters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id1">.—- ()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#notes">Notes ()</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-axialprof-pa-float-default-0">ap_axialprof_pa (float, default 0)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-background-speedup-int-default-1">ap_background_speedup (int, default 1)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-background-unsharp-lowpass-int-default-3">ap_background_unsharp_lowpass (int, default 3)</a></li>
@@ -124,6 +122,18 @@
 <li class="toctree-l2"><a class="reference internal" href="#ap-isoclip-bool-default-false">ap_isoclip (bool, default False)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-isoclip-iterations-int-default-none">ap_isoclip_iterations (int, default None)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-isoclip-nsigma-float-default-5">ap_isoclip_nsigma (float, default 5)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-fitcoefs-tuple-default-none">ap_isofit_fitcoefs (tuple, default None)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-fitcoefs-fftinit-bool-default-false">ap_isofit_fitcoefs_FFTinit (bool, default False)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-iterlimitmax-int-default-300">ap_isofit_iterlimitmax (int, default 300)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-iterlimitmin-int-default-0">ap_isofit_iterlimitmin (int, default 0)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-iterstopnochange-float-default-3">ap_isofit_iterstopnochange (float, default 3)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-losscoefs-tuple-default-2">ap_isofit_losscoefs (tuple, default (2,))</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-perturbscale-ellip-float-default-0-03">ap_isofit_perturbscale_ellip (float, default 0.03)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-perturbscale-pa-float-default-0-06">ap_isofit_perturbscale_pa (float, default 0.06)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-robustclip-float-default-0-15">ap_isofit_robustclip (float, default 0.15)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isofit-superellipse-bool-default-false">ap_isofit_superellipse (bool, default False)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isoinit-ellip-set-float-default-none">ap_isoinit_ellip_set (float, default None)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-isoinit-pa-set-float-default-none">ap_isoinit_pa_set (float, default None)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-mask-file-string-default-none">ap_mask_file (string, default None)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-name-string-default-none">ap_name (string, default None)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-psf-deconvolution-iterations-int-default-50">ap_psf_deconvolution_iterations (int, default 50)</a></li>
@@ -133,6 +143,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#ap-radialprofiles-pa-float-default-0">ap_radialprofiles_pa (float, default 0)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-radialprofiles-variable-pa-bool-default-false">ap_radialprofiles_variable_pa (bool, default False)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-radialprofiles-width-float-default-15">ap_radialprofiles_width (float, default 15)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ap-regularize-scale-float-default-1">ap_regularize_scale (float, default 1)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-sampleendr-float-default-none">ap_sampleendR (float, default None)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-samplegeometricscale-float-default-0-1">ap_samplegeometricscale (float, default 0.1)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ap-sampleinitr-float-default-none">ap_sampleinitR (float, default None)</a></li>
@@ -226,23 +237,6 @@
   <div class="section" id="autoprof-parameters">
 <h1>AutoProf Parameters<a class="headerlink" href="#autoprof-parameters" title="Permalink to this headline">¶</a></h1>
 <p>Here we list all parameters used in the built-in AutoProf methods. The parameters are listed alphabetically for easy searching. For further information, links are included to the individual methods which use these parameters.</p>
-<div class="section" id="id1">
-<h2>.—- ()<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p><strong>Referencing Methods</strong></p>
-<ul class="simple">
-<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Background.Background_Mode" title="pipeline_steps.Background.Background_Mode"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Mode()</span></code></a></p></li>
-</ul>
-<p><strong>Description</strong></p>
-<p>For best results, use a segmentation mask to remove sources.</p>
-</div>
-<div class="section" id="notes">
-<h2>Notes ()<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
-<p><strong>Referencing Methods</strong></p>
-<ul class="simple">
-<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Background.Background_Mode" title="pipeline_steps.Background.Background_Mode"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Mode()</span></code></a></p></li>
-</ul>
-<p><strong>Description</strong></p>
-</div>
 <div class="section" id="ap-axialprof-pa-float-default-0">
 <h2>ap_axialprof_pa (float, default 0)<a class="headerlink" href="#ap-axialprof-pa-float-default-0" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
@@ -317,7 +311,8 @@ below <em>ap_badpixel_low</em> will be masked if using the
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_2DGaussian" title="pipeline_steps.Center.Center_2DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_2DGaussian()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_1DGaussian" title="pipeline_steps.Center.Center_1DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_1DGaussian()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_OfMass" title="pipeline_steps.Center.Center_OfMass"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_OfMass()</span></code></a></p></li>
-<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_Peak" title="pipeline_steps.Center.Center_Peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_Peak()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_HillClimb" title="pipeline_steps.Center.Center_HillClimb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_HillClimb_mean" title="pipeline_steps.Center.Center_HillClimb_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb_mean()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
 <p>Size of ring to use when finding galaxy center, in units of
@@ -364,12 +359,14 @@ the image. Will be overridden by <em>ap_truncate_evaluation</em>.</p>
 <h2>ap_fit_limit (float, default 2)<a class="headerlink" href="#ap-fit-limit-float-default-2" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Initialize" title="pipeline_steps.Isophote_Initialize.Isophote_Initialize"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Initialize()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean" title="pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Initialize_mean()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FixedPhase()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_mean()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
-<p>noise level out to which to extend the fit in units of pixel
-background noise level. Default is 2, smaller values will end
-fitting further out in the galaxy image.</p>
+<p>noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</p>
 </div>
 <div class="section" id="ap-forcing-profile-string-default-none">
 <h2>ap_forcing_profile (string, default None)<a class="headerlink" href="#ap-forcing-profile-string-default-none" title="Permalink to this headline">¶</a></h2>
@@ -393,7 +390,8 @@ photometry)</p>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_2DGaussian" title="pipeline_steps.Center.Center_2DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_2DGaussian()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_1DGaussian" title="pipeline_steps.Center.Center_1DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_1DGaussian()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_OfMass" title="pipeline_steps.Center.Center_OfMass"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_OfMass()</span></code></a></p></li>
-<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_Peak" title="pipeline_steps.Center.Center_Peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_Peak()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_HillClimb" title="pipeline_steps.Center.Center_HillClimb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_HillClimb_mean" title="pipeline_steps.Center.Center_HillClimb_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb_mean()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
 <p>user provided starting point for center fitting. Center should
@@ -420,6 +418,7 @@ given, AutoProf will default with a guess of 1/<em>ap_pixscale</em></p>
 <h2>ap_iso_interpolate_method (string, default ‘lanczos’)<a class="headerlink" href="#ap-iso-interpolate-method-string-default-lanczos" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -431,6 +430,7 @@ of 3.</p>
 <h2>ap_iso_interpolate_start (float, default 5)<a class="headerlink" href="#ap-iso-interpolate-start-float-default-5" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -441,6 +441,7 @@ less than this number times the PSF.</p>
 <h2>ap_iso_interpolate_window (int, default 3)<a class="headerlink" href="#ap-iso-interpolate-window-int-default-3" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -452,6 +453,7 @@ interpolation.</p>
 <h2>ap_iso_measurecoefs (tuple, default None)<a class="headerlink" href="#ap-iso-measurecoefs-tuple-default-none" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -467,6 +469,7 @@ computation time.</p>
 <h2>ap_isoaverage_method (string, default ‘median’)<a class="headerlink" href="#ap-isoaverage-method-string-default-median" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Slice_Profiles.Slice_Profile" title="pipeline_steps.Slice_Profiles.Slice_Profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">Slice_Profile()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Axial_Profiles.Axial_Profiles" title="pipeline_steps.Axial_Profiles.Axial_Profiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">Axial_Profiles()</span></code></a></p></li>
@@ -485,6 +488,7 @@ should always be used with caution.</p>
 <h2>ap_isoband_fixed (bool, default False)<a class="headerlink" href="#ap-isoband-fixed-bool-default-false" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -496,6 +500,7 @@ is 0.5 such that the full band has a width of 1 pixel.</p>
 <h2>ap_isoband_start (float, default 2)<a class="headerlink" href="#ap-isoband-start-float-default-2" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -508,6 +513,7 @@ averaging if the band width is less than half a pixel</p>
 <h2>ap_isoband_width (float, default 0.025)<a class="headerlink" href="#ap-isoband-width-float-default-0-025" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -518,6 +524,7 @@ will be sampled at +- <em>ap_isoband_width</em> *R for each radius.</p>
 <h2>ap_isoclip (bool, default False)<a class="headerlink" href="#ap-isoclip-bool-default-false" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -533,6 +540,7 @@ sigma clip may bias results.</p>
 <h2>ap_isoclip_iterations (int, default None)<a class="headerlink" href="#ap-isoclip-iterations-int-default-none" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -544,12 +552,157 @@ until convergence</p>
 <h2>ap_isoclip_nsigma (float, default 5)<a class="headerlink" href="#ap-isoclip-nsigma-float-default-5" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
 <p>Number of sigma above median to apply clipping. All values above
 (median + <em>ap_isoclip_nsigma</em> x sigma) are removed from the
 isophote.</p>
+</div>
+<div class="section" id="ap-isofit-fitcoefs-tuple-default-none">
+<h2>ap_isofit_fitcoefs (tuple, default None)<a class="headerlink" href="#ap-isofit-fitcoefs-tuple-default-none" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>Tuple of FFT coefficients to use in fitting procedure. AutoProf
+will attemp to fit ellipses with these Fourier mode
+perturbations. Such perturbations allow for lopsided, boxy,
+disky, and other types of isophotes beyond straightforward
+ellipses. Must be a tuple, not a list. Note that AutoProf will
+first fit ellipses, then turn on the Fourier mode perturbations,
+thus the fitting time will always be longer.</p>
+</div>
+<div class="section" id="ap-isofit-fitcoefs-fftinit-bool-default-false">
+<h2>ap_isofit_fitcoefs_FFTinit (bool, default False)<a class="headerlink" href="#ap-isofit-fitcoefs-fftinit-bool-default-false" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>If True, the coefficients for the Fourier modes fitted from
+ap_isofit_fitcoefs will be initialized using an FFT
+decomposition along fitted elliptical isophotes. This can
+improve the fit result, though it is less stable and so users
+should examine the results after fitting.</p>
+</div>
+<div class="section" id="ap-isofit-iterlimitmax-int-default-300">
+<h2>ap_isofit_iterlimitmax (int, default 300)<a class="headerlink" href="#ap-isofit-iterlimitmax-int-default-300" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>Maximum number of iterations (each iteration adjusts every
+isophote once) before automatically stopping optimization. For
+galaxies with lots of structure (ie detailed spiral arms) more
+iterations may be needed to fully fit the light distribution,
+but runtime will be longer.</p>
+</div>
+<div class="section" id="ap-isofit-iterlimitmin-int-default-0">
+<h2>ap_isofit_iterlimitmin (int, default 0)<a class="headerlink" href="#ap-isofit-iterlimitmin-int-default-0" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>Minimum number of iterations before optimization is allowed to
+stop.</p>
+</div>
+<div class="section" id="ap-isofit-iterstopnochange-float-default-3">
+<h2>ap_isofit_iterstopnochange (float, default 3)<a class="headerlink" href="#ap-isofit-iterstopnochange-float-default-3" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>Number of iterations with no updates to parameters before
+optimization procedure stops. Lower values will process galaxies
+faster, but may still be stuck in local minima, higher values
+are more likely to converge on the global minimum but can take a
+long time to run. Fractional values are allowed though not
+recomended.</p>
+</div>
+<div class="section" id="ap-isofit-losscoefs-tuple-default-2">
+<h2>ap_isofit_losscoefs (tuple, default (2,))<a class="headerlink" href="#ap-isofit-losscoefs-tuple-default-2" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>Tuple of FFT coefficients to use in optimization
+procedure. AutoProf will attemp to minimize the power in all
+listed FFT coefficients. Must be a tuple, not a list.</p>
+</div>
+<div class="section" id="ap-isofit-perturbscale-ellip-float-default-0-03">
+<h2>ap_isofit_perturbscale_ellip (float, default 0.03)<a class="headerlink" href="#ap-isofit-perturbscale-ellip-float-default-0-03" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>Sampling scale for random adjustments to ellipticity made while
+optimizing isophotes. Smaller values will converge faster, but
+get stuck in local minima; larger values will escape local
+minima, but takes longer to converge.</p>
+</div>
+<div class="section" id="ap-isofit-perturbscale-pa-float-default-0-06">
+<h2>ap_isofit_perturbscale_pa (float, default 0.06)<a class="headerlink" href="#ap-isofit-perturbscale-pa-float-default-0-06" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>Sampling scale for random adjustments to position angle made
+while optimizing isophotes. Smaller values will converge faster,
+but get stuck in local minima; larger values will escape local
+minima, but takes longer to converge.</p>
+</div>
+<div class="section" id="ap-isofit-robustclip-float-default-0-15">
+<h2>ap_isofit_robustclip (float, default 0.15)<a class="headerlink" href="#ap-isofit-robustclip-float-default-0-15" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>quantile of flux values at which to clip when extracting values
+along an isophote. Clipping outlier values (such as very bright
+stars) while fitting isophotes allows for robust computation of
+FFT coefficients along an isophote.</p>
+</div>
+<div class="section" id="ap-isofit-superellipse-bool-default-false">
+<h2>ap_isofit_superellipse (bool, default False)<a class="headerlink" href="#ap-isofit-superellipse-bool-default-false" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>If True, AutoProf will fit superellipses instead of regular
+ellipses. A superellipse is typically used to represent
+boxy/disky isophotes. The variable controlling the transition
+from a rectangle to an ellipse to a four-armed-star like shape
+is C. A value of C = 2 represents an ellipse and is the starting
+point of the optimization.</p>
+</div>
+<div class="section" id="ap-isoinit-ellip-set-float-default-none">
+<h2>ap_isoinit_ellip_set (float, default None)<a class="headerlink" href="#ap-isoinit-ellip-set-float-default-none" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Initialize" title="pipeline_steps.Isophote_Initialize.Isophote_Initialize"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Initialize()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>User set initial ellipticity (1 - b/a), will override the calculation.</p>
+</div>
+<div class="section" id="ap-isoinit-pa-set-float-default-none">
+<h2>ap_isoinit_pa_set (float, default None)<a class="headerlink" href="#ap-isoinit-pa-set-float-default-none" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Initialize.Isophote_Initialize" title="pipeline_steps.Isophote_Initialize.Isophote_Initialize"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Initialize()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>User set initial position angle in degrees, will override the calculation.</p>
 </div>
 <div class="section" id="ap-mask-file-string-default-none">
 <h2>ap_mask_file (string, default None)<a class="headerlink" href="#ap-mask-file-string-default-none" title="Permalink to this headline">¶</a></h2>
@@ -640,6 +793,18 @@ angle profile of the galaxy.</p>
 <p><strong>Description</strong></p>
 <p>User set width of radial sampling wedges in degrees.</p>
 </div>
+<div class="section" id="ap-regularize-scale-float-default-1">
+<h2>ap_regularize_scale (float, default 1)<a class="headerlink" href="#ap-regularize-scale-float-default-1" title="Permalink to this headline">¶</a></h2>
+<p><strong>Referencing Methods</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_mean()</span></code></a></p></li>
+</ul>
+<p><strong>Description</strong></p>
+<p>scale factor to apply to regularization coupling factor between
+isophotes.  Default of 1, larger values make smoother fits,
+smaller values give more chaotic fits.</p>
+</div>
 <div class="section" id="ap-sampleendr-float-default-none">
 <h2>ap_sampleendR (float, default None)<a class="headerlink" href="#ap-sampleendr-float-default-none" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
@@ -711,6 +876,8 @@ are: ‘linear’, ‘geometric’, ‘geometric-linear’</p>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FixedPhase()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean" title="pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_mean()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
 <p>growth scale when fitting isophotes, not the same as
@@ -747,7 +914,8 @@ are: ‘linear’, ‘geometric’, ‘geometric-linear’</p>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_2DGaussian" title="pipeline_steps.Center.Center_2DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_2DGaussian()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_1DGaussian" title="pipeline_steps.Center.Center_1DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_1DGaussian()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_OfMass" title="pipeline_steps.Center.Center_OfMass"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_OfMass()</span></code></a></p></li>
-<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_Peak" title="pipeline_steps.Center.Center_Peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_Peak()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_HillClimb" title="pipeline_steps.Center.Center_HillClimb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Center.Center_HillClimb_mean" title="pipeline_steps.Center.Center_HillClimb_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb_mean()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
 <p>user provided fixed center for rest of calculations. Center
@@ -823,6 +991,7 @@ slice. By default use the PSF.</p>
 <h2>ap_truncate_evaluation (bool, default False)<a class="headerlink" href="#ap-truncate-evaluation-bool-default-false" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 </ul>
 <p><strong>Description</strong></p>
@@ -834,6 +1003,7 @@ profile.</p>
 <h2>ap_zeropoint (float, default 22.5)<a class="headerlink" href="#ap-zeropoint-float-default-22-5" title="Permalink to this headline">¶</a></h2>
 <p><strong>Referencing Methods</strong></p>
 <ul class="simple">
+<li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract" title="pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils" title="pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Photutils()</span></code></a></p></li>
 <li><p><a class="reference internal" href="pipeline_steps.html#pipeline_steps.Ellipse_Model.EllipseModel" title="pipeline_steps.Ellipse_Model.EllipseModel"><code class="xref py py-func docutils literal notranslate"><span class="pre">EllipseModel()</span></code></a></p></li>

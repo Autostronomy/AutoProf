@@ -91,7 +91,8 @@ ap_centeringring (int, default 50)
 - :func:`~pipeline_steps.Center.Center_2DGaussian`
 - :func:`~pipeline_steps.Center.Center_1DGaussian`
 - :func:`~pipeline_steps.Center.Center_OfMass`
-- :func:`~pipeline_steps.Center.Center_Peak`
+- :func:`~pipeline_steps.Center.Center_HillClimb`
+- :func:`~pipeline_steps.Center.Center_HillClimb_mean`
 
 **Description**
 
@@ -146,13 +147,15 @@ ap_fit_limit (float, default 2)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+- :func:`~pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean`
 - :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
 
 **Description**
 
-noise level out to which to extend the fit in units of pixel
-background noise level. Default is 2, smaller values will end
-fitting further out in the galaxy image.
+noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.
 
 ap_forcing_profile (string, default None)
 ----------------------------------------------------------------------
@@ -179,7 +182,8 @@ ap_guess_center (dict, default None)
 - :func:`~pipeline_steps.Center.Center_2DGaussian`
 - :func:`~pipeline_steps.Center.Center_1DGaussian`
 - :func:`~pipeline_steps.Center.Center_OfMass`
-- :func:`~pipeline_steps.Center.Center_Peak`
+- :func:`~pipeline_steps.Center.Center_HillClimb`
+- :func:`~pipeline_steps.Center.Center_HillClimb_mean`
 
 **Description**
 
@@ -212,6 +216,7 @@ ap_iso_interpolate_method (string, default 'lanczos')
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -225,6 +230,7 @@ ap_iso_interpolate_start (float, default 5)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -237,6 +243,7 @@ ap_iso_interpolate_window (int, default 3)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -250,6 +257,7 @@ ap_iso_measurecoefs (tuple, default None)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -267,6 +275,7 @@ ap_isoaverage_method (string, default 'median')
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 - :func:`~pipeline_steps.Slice_Profiles.Slice_Profile`
 - :func:`~pipeline_steps.Axial_Profiles.Axial_Profiles`
@@ -287,6 +296,7 @@ ap_isoband_fixed (bool, default False)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -300,6 +310,7 @@ ap_isoband_start (float, default 2)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -314,6 +325,7 @@ ap_isoband_width (float, default 0.025)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -326,6 +338,7 @@ ap_isoclip (bool, default False)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -343,6 +356,7 @@ ap_isoclip_iterations (int, default None)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -356,6 +370,7 @@ ap_isoclip_nsigma (float, default 5)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -363,6 +378,174 @@ ap_isoclip_nsigma (float, default 5)
 Number of sigma above median to apply clipping. All values above
 (median + *ap_isoclip_nsigma* x sigma) are removed from the
 isophote.
+
+ap_isofit_fitcoefs (tuple, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+Tuple of FFT coefficients to use in fitting procedure. AutoProf
+will attemp to fit ellipses with these Fourier mode
+perturbations. Such perturbations allow for lopsided, boxy,
+disky, and other types of isophotes beyond straightforward
+ellipses. Must be a tuple, not a list. Note that AutoProf will
+first fit ellipses, then turn on the Fourier mode perturbations,
+thus the fitting time will always be longer.
+
+ap_isofit_fitcoefs_FFTinit (bool, default False)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+If True, the coefficients for the Fourier modes fitted from
+ap_isofit_fitcoefs will be initialized using an FFT
+decomposition along fitted elliptical isophotes. This can
+improve the fit result, though it is less stable and so users
+should examine the results after fitting.
+
+ap_isofit_iterlimitmax (int, default 300)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+Maximum number of iterations (each iteration adjusts every
+isophote once) before automatically stopping optimization. For
+galaxies with lots of structure (ie detailed spiral arms) more
+iterations may be needed to fully fit the light distribution,
+but runtime will be longer.
+
+ap_isofit_iterlimitmin (int, default 0)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+Minimum number of iterations before optimization is allowed to
+stop.
+
+ap_isofit_iterstopnochange (float, default 3)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+Number of iterations with no updates to parameters before
+optimization procedure stops. Lower values will process galaxies
+faster, but may still be stuck in local minima, higher values
+are more likely to converge on the global minimum but can take a
+long time to run. Fractional values are allowed though not
+recomended.
+
+ap_isofit_losscoefs (tuple, default (2,))
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+Tuple of FFT coefficients to use in optimization
+procedure. AutoProf will attemp to minimize the power in all
+listed FFT coefficients. Must be a tuple, not a list.
+
+ap_isofit_perturbscale_ellip (float, default 0.03)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+Sampling scale for random adjustments to ellipticity made while
+optimizing isophotes. Smaller values will converge faster, but
+get stuck in local minima; larger values will escape local
+minima, but takes longer to converge.
+
+ap_isofit_perturbscale_pa (float, default 0.06)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+Sampling scale for random adjustments to position angle made
+while optimizing isophotes. Smaller values will converge faster,
+but get stuck in local minima; larger values will escape local
+minima, but takes longer to converge.
+
+ap_isofit_robustclip (float, default 0.15)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+quantile of flux values at which to clip when extracting values
+along an isophote. Clipping outlier values (such as very bright
+stars) while fitting isophotes allows for robust computation of
+FFT coefficients along an isophote.
+
+ap_isofit_superellipse (bool, default False)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+
+**Description**
+
+If True, AutoProf will fit superellipses instead of regular
+ellipses. A superellipse is typically used to represent
+boxy/disky isophotes. The variable controlling the transition
+from a rectangle to an ellipse to a four-armed-star like shape
+is C. A value of C = 2 represents an ellipse and is the starting
+point of the optimization.
+
+ap_isoinit_ellip_set (float, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+
+**Description**
+
+User set initial ellipticity (1 - b/a), will override the calculation.
+
+ap_isoinit_pa_set (float, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+
+**Description**
+
+User set initial position angle in degrees, will override the calculation.
 
 ap_mask_file (string, default None)
 ----------------------------------------------------------------------
@@ -471,6 +654,20 @@ ap_radialprofiles_width (float, default 15)
 
 User set width of radial sampling wedges in degrees.
 
+ap_regularize_scale (float, default 1)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
+
+**Description**
+
+scale factor to apply to regularization coupling factor between
+isophotes.  Default of 1, larger values make smoother fits,
+smaller values give more chaotic fits.
+
 ap_sampleendR (float, default None)
 ----------------------------------------------------------------------
 
@@ -555,6 +752,8 @@ ap_scale (float, default 0.2)
 **Referencing Methods**
 
 - :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+- :func:`~pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
 
 **Description**
 
@@ -597,7 +796,8 @@ ap_set_center (dict, default None)
 - :func:`~pipeline_steps.Center.Center_2DGaussian`
 - :func:`~pipeline_steps.Center.Center_1DGaussian`
 - :func:`~pipeline_steps.Center.Center_OfMass`
-- :func:`~pipeline_steps.Center.Center_Peak`
+- :func:`~pipeline_steps.Center.Center_HillClimb`
+- :func:`~pipeline_steps.Center.Center_HillClimb_mean`
 
 **Description**
 
@@ -689,6 +889,7 @@ ap_truncate_evaluation (bool, default False)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 
 **Description**
@@ -702,6 +903,7 @@ ap_zeropoint (float, default 22.5)
 
 **Referencing Methods**
 
+- :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract`
 - :func:`~pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils`
 - :func:`~pipeline_steps.Ellipse_Model.EllipseModel`

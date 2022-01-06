@@ -1224,6 +1224,10 @@ fitting further out in the galaxy image.</p></li>
 <li><p><strong>ap_regularize_scale</strong> (<em>float</em><em>, </em><em>default 1</em>) – scale factor to apply to regularization coupling factor between
 isophotes.  Default of 1, larger values make smoother fits,
 smaller values give more chaotic fits.</p></li>
+<li><p><strong>ap_isofit_robustclip</strong> (<em>float</em><em>, </em><em>default 0.15</em>) – quantile of flux values at which to clip when extracting values
+along an isophote. Clipping outlier values (such as very bright
+stars) while fitting isophotes allows for robust computation of
+FFT coefficients along an isophote.</p></li>
 <li><p><strong>ap_isofit_losscoefs</strong> (<em>tuple</em><em>, </em><em>default</em><em> (</em><em>2</em><em>,</em><em>)</em>) – Tuple of FFT coefficients to use in optimization
 procedure. AutoProf will attemp to minimize the power in all
 listed FFT coefficients. Must be a tuple, not a list.</p></li>
