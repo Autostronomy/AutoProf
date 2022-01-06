@@ -63,6 +63,7 @@ User Documentation
    pipelinemanipulation.rst
    decisiontrees.rst
    extramethods.rst
+   troubleshooting.rst
    
 
 |br|
