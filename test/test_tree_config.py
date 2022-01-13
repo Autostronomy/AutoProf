@@ -68,7 +68,7 @@ ap_new_pipeline_steps = {
         "center",
         "isophoteinit",
         "branch edgeon",
-    ],  #                        # <--             This area just tests that all these optional functions run properly              -->
+    ],  
     "standard": [
         "isophotefit",
         "starmask",

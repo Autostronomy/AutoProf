@@ -63,9 +63,9 @@ def Radial_Profiles(IMG, results, options):
     Notes
     ----------
     :References:
-    - 'prof header'
-    - 'prof units'
-    - 'prof data'
+    - 'prof header' (optional)
+    - 'prof units' (optional)
+    - 'prof data' (optional)
     - 'mask' (optional)
     - 'background'
     - 'center'
@@ -115,7 +115,7 @@ def Radial_Profiles(IMG, results, options):
         R = np.logspace(
             np.log10(startR),
             np.log10(endR),
-            np.log10(endR / startR)
+            int(np.log10(endR / startR)
             / np.log10(
                 1
                 + (
@@ -123,7 +123,7 @@ def Radial_Profiles(IMG, results, options):
                     if "ap_samplegeometricscale" in options
                     else 0.1
                 )
-            ),
+            )),
         )
     if (
         "ap_radialprofiles_variable_pa" in options
