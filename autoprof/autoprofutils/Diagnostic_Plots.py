@@ -16,6 +16,7 @@ from autoprofutils.SharedFunctions import (
     _inv_x_to_eps,
     _inv_x_to_pa,
     LSBImage,
+    AddScale,
     AddLogo,
     _average,
     _scatter,
@@ -80,6 +81,7 @@ def Plot_PSF_Stars(
     IMG, stars_x, stars_y, stars_fwhm, psf, results, options, flagstars=None
 ):
     LSBImage(IMG - results["background"], results["background noise"])
+    AddScale(plt.gca(), IMG.shape[0]*options['ap_pixscale'])
     for i in range(len(stars_fwhm)):
         plt.gca().add_patch(
             Ellipse(
@@ -127,7 +129,7 @@ def Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, o
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
-    
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
     plt.gca().add_patch(
         Ellipse(
             (
@@ -234,6 +236,8 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
+
     for i in range(len(sample_radii)):
         N = max(15, int(0.9 * 2 * np.pi * sample_radii[i]))
         theta = np.linspace(0, 2 * np.pi * (1.0 - 1.0 / N), N)
@@ -307,6 +311,7 @@ def _Plot_Isophotes(dat, R, parameters, results, options):
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
     fitlim = results["fit R"][-1] if "fit R" in results else np.inf
     for i in range(len(R)):
         N = max(15, int(0.9 * 2 * np.pi * R[i]))
@@ -389,6 +394,8 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
     plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
     plt.ylabel("Surface Brightness [mag arcsec$^{-2}$]", fontsize=16)
     plt.xlim([0, None])
+    if 'ap_plot_sbprof_ylim' in options:
+        plt.ylim(options['ap_plot_sbprof_ylim'])
     bkgrdnoise = (
         -2.5 * np.log10(results["background noise"])
         + zeropoint
@@ -462,6 +469,8 @@ def Plot_I_Profile(dat, R, I, I_e, parameters, results, options):
     plt.ylabel("Intensity [flux arcsec$^{-2}$]", fontsize=16)
     plt.yscale("log")
     plt.xlim([0, None])
+    if 'ap_plot_sbprof_ylim' in options:
+        plt.ylim(options['ap_plot_sbprof_ylim'])
     bkgrdnoise = results["background noise"] / (options["ap_pixscale"] ** 2)
     lnlist.append(
         plt.axhline(
@@ -687,6 +696,7 @@ def Plot_Radial_Profiles(
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
 
     cx, cy = (
         results["center"]["x"] - ranges[0][0],
@@ -855,6 +865,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
     count = 0
     cmap = matplotlib.cm.get_cmap("hsv")
     colorind = (np.linspace(0, 1 - 1 / 4, 4) + 0.1) % 1

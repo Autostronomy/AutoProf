@@ -403,6 +403,10 @@ def Isophote_Extract_Forced(IMG, results, options):
     ap_zeropoint : float, default 22.5
       Photometric zero point. For converting flux to mag units.
 
+    ap_fluxunits : str, default "mag"
+      units for outputted photometry. Can either be "mag" for log
+      units, or "intensity" for linear units.
+    
     ap_isoband_start : float, default 2
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
@@ -475,6 +479,11 @@ def Isophote_Extract_Forced(IMG, results, options):
       fourier coefficient. Not activated by default as it adds to
       computation time.
 
+    ap_plot_sbprof_ylim : tuple, default None
+      Tuple with axes limits for the y-axis in the SB profile
+      diagnostic plot. Be careful when using intensity units
+      since this will change the ideal axis limits.
+    
     Notes
     ----------
     :References:
@@ -563,6 +572,10 @@ def Isophote_Extract(IMG, results, options):
     ap_zeropoint : float, default 22.5
       Photometric zero point. For converting flux to mag units.
 
+    ap_fluxunits : str, default "mag"
+      units for outputted photometry. Can either be "mag" for log
+      units, or "intensity" for linear units.
+    
     ap_samplegeometricscale : float, default 0.1
       growth scale for isophotes when sampling for the final output
       profile.  Used when sampling geometrically. By default, each
@@ -665,6 +678,11 @@ def Isophote_Extract(IMG, results, options):
       fourier coefficient. Not activated by default as it adds to
       computation time.
 
+    ap_plot_sbprof_ylim : tuple, default None
+      Tuple with axes limits for the y-axis in the SB profile
+      diagnostic plot. Be careful when using intensity units
+      since this will change the ideal axis limits.
+    
     Notes
     ----------
     :References:
@@ -857,6 +875,15 @@ def Isophote_Extract_Photutils(IMG, results, options):
     ap_zeropoint : float, default 22.5
       Photometric zero point. For converting flux to mag units.
 
+    ap_fluxunits : str, default "mag"
+      units for outputted photometry. Can either be "mag" for log
+      units, or "intensity" for linear units.
+    
+    ap_plot_sbprof_ylim : tuple, default None
+      Tuple with axes limits for the y-axis in the SB profile
+      diagnostic plot. Be careful when using intensity units
+      since this will change the ideal axis limits.
+    
     Notes
     ----------
     :References:

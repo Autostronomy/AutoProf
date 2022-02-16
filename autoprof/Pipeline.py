@@ -119,6 +119,11 @@ class Isophote_Pipeline(object):
         returns list of times for each pipeline step if successful. else returns 1
         """
 
+        # Remove any options with None value so they don't interfere with analysis logic
+        for key in list(options.keys()):
+            if options[key] is None:
+                del options[key]
+        
         # Seed the random number generator in numpy so each thread gets unique random numbers
         try:
             sleep(0.01)

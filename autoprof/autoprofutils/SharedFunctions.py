@@ -88,6 +88,53 @@ def LSBImage(dat, noise):
     plt.ylim([0, dat.shape[0]])
 
 
+def _display_time(seconds):
+    intervals = (
+        ('hours', 3600),    # 60 * 60
+        ('arcminutes', 60),
+        ('arcseconds', 1),
+    )
+    result = []
+
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip('s')
+            result.append("{} {}".format(value, name))
+    return ', '.join(result)
+
+    
+def AddScale(ax, img_width, loc = 'lower right'):
+    """
+    ax: figure axis object
+    img_width: image width in arcseconds
+    loc: location to put hte scale bar
+    """
+    scale_width = int(img_width/6)
+    
+    if scale_width > 60 and scale_width % 60 <= 15:
+        scale_width -= scale_width % 60
+    if scale_width > 45 and scale_width % 60 >= 45:
+        scale_width += 60 - (scale_width % 60)
+    if 15 < scale_width % 60 < 45:
+        scale_width += 30 - (scale_width % 60)
+        
+    label = _display_time(scale_width)
+
+    xloc = 0.05 if 'left' in loc else 0.95
+    yloc = 0.95 if 'upper' in loc else 0.05
+    
+    ax.text(xloc - 0.5*scale_width/img_width, yloc + 0.005, label,
+            horizontalalignment = 'center', verticalalignment = 'bottom',
+            transform=ax.transAxes,
+            fontsize = 'x-small' if len(label) < 20 else 'xx-small',
+            weight = 'bold', color = autocolours['red1'])
+    ax.plot([xloc - scale_width/img_width,xloc], [yloc,yloc],
+            transform=ax.transAxes, color = autocolours['red1'])
+    
+        
 def AddLogo(fig, loc=[0.8, 0.01, 0.844 / 5, 0.185 / 5], white=False):
     im = plt.imread(
         get_sample_data(
@@ -956,7 +1003,6 @@ def _x_to_eps(x):
     return 0.5 + np.arctan(x - 0.5) / np.pi  # 0.02 + 0.96/(1. + np.exp(-(x - 0.5)))
 
 
-#
 def _inv_x_to_eps(eps):
     """
     Internal, inverse of _x_to_eps function
@@ -1321,7 +1367,7 @@ def SBprof_to_COG(R, SB, parameters):
     #                         mag_to_L(m[i-1], band), band)
 
     return flux_to_mag(
-        Fmode_fluxdens_to_fluxsum(R, mag_to_flux(SB, 2.5), parameters), 2.5
+        Fmode_fluxdens_to_fluxsum(R, mag_to_flux(SB, 20.), parameters), 20.
     )
 
 
@@ -1374,13 +1420,13 @@ def SBprof_to_COG_errorprop(R, SB, SBE, parameters, N=100, symmetric_error=True)
     #     return COG_profile, np.abs(COG_lower + COG_upper)/2
     # else:
     #     return COG_profile, COG_lower, COG_upper
-    I, Ie = mag_to_flux(SB, 2.5, SBE)
+    I, Ie = mag_to_flux(SB, 20., SBE)
     res = Fmode_fluxdens_to_fluxsum_errorprop(
         R, I, Ie, parameters, N=N, symmetric_error=symmetric_error
     )
     if symmetric_error:
-        return flux_to_mag(res[0], 2.5, res[1])
+        return flux_to_mag(res[0], 20., res[1])
     else:
-        lower = flux_to_mag(res[0], 2.5, res[1])
-        upper = flux_to_mag(res[0], 2.5, res[2])
+        lower = flux_to_mag(res[0], 20., res[1])
+        upper = flux_to_mag(res[0], 20., res[2])
         return lower[0], lower[1], upper[1]
