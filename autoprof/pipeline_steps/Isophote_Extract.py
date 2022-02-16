@@ -484,6 +484,10 @@ def Isophote_Extract_Forced(IMG, results, options):
       diagnostic plot. Be careful when using intensity units
       since this will change the ideal axis limits.
     
+    ap_plot_sbprof_xlim : tuple, default None
+      Tuple with axes limits for the x-axis in the SB profile
+      diagnostic plot.
+    
     Notes
     ----------
     :References:
@@ -682,6 +686,10 @@ def Isophote_Extract(IMG, results, options):
       Tuple with axes limits for the y-axis in the SB profile
       diagnostic plot. Be careful when using intensity units
       since this will change the ideal axis limits.
+    
+    ap_plot_sbprof_xlim : tuple, default None
+      Tuple with axes limits for the x-axis in the SB profile
+      diagnostic plot.
     
     Notes
     ----------
@@ -883,6 +891,10 @@ def Isophote_Extract_Photutils(IMG, results, options):
       Tuple with axes limits for the y-axis in the SB profile
       diagnostic plot. Be careful when using intensity units
       since this will change the ideal axis limits.
+    
+    ap_plot_sbprof_xlim : tuple, default None
+      Tuple with axes limits for the x-axis in the SB profile
+      diagnostic plot.
     
     Notes
     ----------

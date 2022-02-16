@@ -393,7 +393,10 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
     )
     plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
     plt.ylabel("Surface Brightness [mag arcsec$^{-2}$]", fontsize=16)
-    plt.xlim([0, None])
+    if 'ap_plot_sbprof_xlim' in options:
+        plt.xlim(options['ap_plot_sbprof_xlim'])
+    else:
+        plt.xlim([0, None])
     if 'ap_plot_sbprof_ylim' in options:
         plt.ylim(options['ap_plot_sbprof_ylim'])
     bkgrdnoise = (
@@ -468,7 +471,10 @@ def Plot_I_Profile(dat, R, I, I_e, parameters, results, options):
     plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
     plt.ylabel("Intensity [flux arcsec$^{-2}$]", fontsize=16)
     plt.yscale("log")
-    plt.xlim([0, None])
+    if 'ap_plot_sbprof_xlim' in options:
+        plt.xlim(options['ap_plot_sbprof_xlim'])
+    else:
+        plt.xlim([0, None])
     if 'ap_plot_sbprof_ylim' in options:
         plt.ylim(options['ap_plot_sbprof_ylim'])
     bkgrdnoise = results["background noise"] / (options["ap_pixscale"] ** 2)
