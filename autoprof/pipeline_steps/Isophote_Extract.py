@@ -487,6 +487,11 @@ def Isophote_Extract_Forced(IMG, results, options):
     ap_plot_sbprof_xlim : tuple, default None
       Tuple with axes limits for the x-axis in the SB profile
       diagnostic plot.
+
+    ap_plot_sbprof_set_errscale : float, default None
+      Float value by which to scale errorbars on the SB profile
+      this makes them more visible in cases where the statistical
+      errors are very small.
     
     Notes
     ----------
@@ -690,6 +695,11 @@ def Isophote_Extract(IMG, results, options):
     ap_plot_sbprof_xlim : tuple, default None
       Tuple with axes limits for the x-axis in the SB profile
       diagnostic plot.
+    
+    ap_plot_sbprof_set_errscale : float, default None
+      Float value by which to scale errorbars on the SB profile
+      this makes them more visible in cases where the statistical
+      errors are very small.
     
     Notes
     ----------
@@ -895,6 +905,11 @@ def Isophote_Extract_Photutils(IMG, results, options):
     ap_plot_sbprof_xlim : tuple, default None
       Tuple with axes limits for the x-axis in the SB profile
       diagnostic plot.
+    
+    ap_plot_sbprof_set_errscale : float, default None
+      Float value by which to scale errorbars on the SB profile
+      this makes them more visible in cases where the statistical
+      errors are very small.
     
     Notes
     ----------

@@ -367,8 +367,8 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
     errscale = 1.0
     if np.all(SB_e[CHOOSE] < 0.5):
         errscale = 1 / np.max(SB_e[CHOOSE])
-    if 'ap_plot_errscale' in options:
-        errscale = options['ap_plot_errscale']
+    if 'ap_plot_sbprof_set_errscale' in options:
+        errscale = options['ap_plot_sbprof_set_errscale']
         
     lnlist = []
     lnlist.append(
