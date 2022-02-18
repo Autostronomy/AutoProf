@@ -371,6 +371,10 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
         errscale = options['ap_plot_sbprof_set_errscale']
         
     lnlist = []
+    if errscale > 1.01 or 'ap_plot_sbprof_set_errscale' in options:
+        errlabel = ' (err$\\times$%.1f)'  % errscale
+    else:
+        errlabel = ''
     lnlist.append(
         plt.errorbar(
             R[CHOOSE],
@@ -381,7 +385,7 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
             marker=".",
             markersize=5,
             color=autocolours["red1"],
-            label="Surface Brightness (err$\\cdot$%.1f)" % errscale,
+            label="Surface Brightness" + errlabel,
         )
     )
     plt.errorbar(
