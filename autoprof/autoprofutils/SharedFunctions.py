@@ -888,6 +888,7 @@ def StarFind(
                 reject_size * fwhm_guess,
                 {"ellip": 0.0, "pa": 0.0},
                 {"x": newcenter[0], "y": newcenter[1]},
+                interp_method = 'bicubic',
             )
         )
         flux = [
@@ -897,6 +898,7 @@ def StarFind(
                     0.0,
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
+                    interp_method = 'bicubic',
                 )
             )
             - local_flux
@@ -916,6 +918,7 @@ def StarFind(
                     R[-1],
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
+                    interp_method = 'bicubic',
                 )
             except:
                 R = np.zeros(101)  # cause finder to skip this star
