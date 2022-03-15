@@ -642,22 +642,14 @@ def Plot_Radial_Profiles(
 ):
 
     zeropoint = options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5
-    try:
-        SBE = np.array(results["prof data"]["SB_e"])
-        CHOOSE = SBE < 0.2
-        firstbad = np.argmax(np.logical_not(CHOOSE))
-        if firstbad > 3:
-            CHOOSE[firstbad:] = False
-    except:
-        CHOOSE = np.ones(len(R), dtype=bool)
     ranges = [
         [
-            max(0, int(results["center"]["x"] - 1.5 * R[CHOOSE][-1] - 2)),
-            min(dat.shape[1], int(results["center"]["x"] + 1.5 * R[CHOOSE][-1] + 2)),
+            max(0, int(results["center"]["x"] - 1.5 * R[-1] - 2)),
+            min(dat.shape[1], int(results["center"]["x"] + 1.5 * R[-1] + 2)),
         ],
         [
-            max(0, int(results["center"]["y"] - 1.5 * R[CHOOSE][-1] - 2)),
-            min(dat.shape[0], int(results["center"]["y"] + 1.5 * R[CHOOSE][-1] + 2)),
+            max(0, int(results["center"]["y"] - 1.5 * R[-1] - 2)),
+            min(dat.shape[0], int(results["center"]["y"] + 1.5 * R[-1] + 2)),
         ],
     ]
     
