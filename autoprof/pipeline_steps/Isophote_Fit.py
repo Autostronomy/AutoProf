@@ -879,15 +879,13 @@ def Isophote_Fit_Forced(IMG, results, options):
     force["pa"] = PA_shift_convention(np.array(force["pa"]), deg=True)
 
     if "ap_doplot" in options and options["ap_doplot"]:
+        parameters = []
+        for i in range(len(force["R"])):
+            parameters.append({'ellip': force["ellip"][i], 'pa': force["pa"][i], 'C': None})
         Plot_Isophote_Fit(
             IMG - results["background"],
             np.array(force["R"]),
-            np.array(force["ellip"]),
-            np.array(force["pa"]),
-            np.array(force["ellip_e"])
-            if "ellip_e" in force
-            else np.zeros(len(force["R"])),
-            np.array(force["pa_e"]) if "pa_e" in force else np.zeros(len(force["R"])),
+            parameters,
             results,
             options,
         )
