@@ -254,7 +254,7 @@ class Isophote_Pipeline(object):
         else:
             startat = 0
         if '.' in config_file:
-            use_config = config_file[startat:config_file.find('.', startat)]
+            use_config = config_file[startat:config_file.rfind('.')]
         else:
             use_config = config_file[startat:]
         if '/' in config_file:
