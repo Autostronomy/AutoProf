@@ -129,7 +129,7 @@ def EllipseModel(IMG, results, options):
         - results["center"]["y"]
         + float(ranges[1][0]),
     )
-    theta = np.arctan(YY / XX) + np.pi * (XX < 0)
+    theta = np.arctan2(YY, XX) #np.arctan(YY / XX) + np.pi * (XX < 0)
     Radius = np.sqrt(XX ** 2 + YY ** 2)
     MM = np.zeros(XX.shape, dtype=np.float32)
     Prox = np.zeros(XX.shape, dtype=np.float32) + np.inf

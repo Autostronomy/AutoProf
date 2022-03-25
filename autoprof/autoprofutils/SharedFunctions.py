@@ -15,12 +15,12 @@ import numpy as np
 from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, IsophoteList
 from photutils.isophote import Ellipse as Photutils_Ellipse
 import logging
-from copy import deepcopy
+from copy import deepcopy, copy
 from time import time
 import matplotlib.cm as cm
 from matplotlib.cbook import get_sample_data
 from matplotlib.colors import LinearSegmentedColormap
-
+import warnings
 Abs_Mag_Sun = {
     "u": 6.39,
     "g": 5.11,
@@ -69,17 +69,18 @@ def LSBImage(dat, noise):
         dat,
         origin="lower",
         cmap="Greys",
-        norm=ImageNormalize(stretch=HistEqStretch(dat)),
+        norm=ImageNormalize(stretch=HistEqStretch(dat[dat <= 3*noise]), clip = False, vmax = 3*noise, vmin = np.min(dat)),
     )
-    my_cmap = cm.Greys_r
+    my_cmap = copy(cm.Greys_r)
     my_cmap.set_under("k", alpha=0)
+    
     plt.imshow(
-        np.clip(dat, a_min=noise, a_max=None),
+        np.ma.masked_where(dat < 3*noise, dat), 
         origin="lower",
         cmap=my_cmap,
-        norm=ImageNormalize(stretch=LogStretch(), clip=False),
+        norm=ImageNormalize(stretch=LogStretch(),clip = False),
         clim=[3 * noise, None],
-        vmin=3 * noise,
+        interpolation = 'none',
     )
     plt.xticks([])
     plt.yticks([])
@@ -431,9 +432,10 @@ def parametric_Fmodes(theta, modes, Am, Phim):
 
 
 def Rscale_SuperEllipse(theta, ellip, C=2):
-    return (1 - ellip) / (
+    res = (1 - ellip) / (
         np.abs((1 - ellip) * np.cos(theta)) ** (C) + np.abs(np.sin(theta)) ** (C)
     ) ** (1.0 / C)
+    return res
 
 
 def parametric_SuperEllipse(theta, ellip, C=2):
@@ -536,7 +538,7 @@ def _iso_between(
         - c["y"]
         + float(ranges[1][0]),
     )
-    theta = np.arctan(YY / XX) + np.pi * (XX < 0)
+    theta = np.arctan2(YY, XX) #np.arctan(YY / XX) + np.pi * (XX < 0)
     RR = np.sqrt(XX ** 2 + YY ** 2)
     Fmode_Rscale = (
         1.0

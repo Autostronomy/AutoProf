@@ -223,9 +223,8 @@ def _pa_smooth(R, PA, deg):
     pred_pa_s = np.clip(model_s.predict(np.log10(R).reshape(-1, 1)), a_min=-1, a_max=1)
     pred_pa_c = np.clip(model_c.predict(np.log10(R).reshape(-1, 1)), a_min=-1, a_max=1)
 
-    return (
-        (np.arctan(pred_pa_s / pred_pa_c) + (np.pi * (pred_pa_c < 0))) % (2 * np.pi)
-    ) / 2
+    #  np.arctan(pred_pa_s / pred_pa_c) + (np.pi * (pred_pa_c < 0))
+    return ((np.arctan2(pred_pa_s, pred_pa_c)) % (2 * np.pi)) / 2
 
 
 def _FFT_Robust_loss(
@@ -323,7 +322,7 @@ def _FFT_Robust_Errors(
                         [
                             PARAMS[low_ri],
                             {
-                                "ellip": np.clip(x[0], 0, 1),
+                                "ellip": np.clip(x[0], 0, 0.999),
                                 "pa": x[1] % np.pi,
                                 "m": PARAMS[ri]["m"],
                                 "Am": PARAMS[ri]["Am"],

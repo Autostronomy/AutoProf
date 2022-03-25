@@ -813,9 +813,8 @@ def Isophote_Extract(IMG, results, options):
             results["fit R"], _inv_x_to_eps(results["fit ellip"]), ext=3, s=0
         )(R)
     )
-    PA = _x_to_pa(
-        ((np.arctan(tmp_pa_s / tmp_pa_c) + (np.pi * (tmp_pa_c < 0))) % (2 * np.pi)) / 2
-    )
+    # np.arctan(tmp_pa_s / tmp_pa_c) + (np.pi * (tmp_pa_c < 0))
+    PA = _x_to_pa(((np.arctan2(tmp_pa_s, tmp_pa_c)) % (2 * np.pi)) / 2) 
     parameters = list({"ellip": E[i], "pa": PA[i]} for i in range(len(R)))
 
     if "fit Fmodes" in results:
