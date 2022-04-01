@@ -45,7 +45,7 @@ def Plot_Background(values, bkgrnd, noise, results, options):
     plt.figure(figsize=(5, 5))
     plt.bar(
         bins[:-1],
-        np.log10(hist),
+        np.log10(np.where(hist > 0, hist, np.nan)),
         width=bins[1] - bins[0],
         color="k",
         label="pixel values",
