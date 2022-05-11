@@ -41,6 +41,8 @@ It was written by `Connor Stone <https://connorjstone.com/>`_ with contributions
 `Stéphane Courteau <https://www.physics.queensu.ca/facultysites/courteau/>`_,
 and `Jean-Charles Cuillandre <https://www.cfht.hawaii.edu/~jcc/>`_.
 
+Check out the `AutoProf introduction video <https://youtu.be/OFtVYRGrqrY>`_ to get started!
+
 This documentation is a work in progress, further updates will come.
 
 .. toctree::
