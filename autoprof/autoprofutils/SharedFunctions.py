@@ -1028,7 +1028,7 @@ def Read_Image(filename, options):
 
     # Read a fits file
     if filename[filename.rfind(".") + 1 :].lower() == "fits":
-        hdul = fits.open(filename)
+        hdul = fits.open(filename, uint = False)
         dat = hdul[options["ap_hdulelement"] if "ap_hdulelement" in options else 0].data
     # Read a numpy array file
     if filename[filename.rfind(".") + 1 :].lower() == "npy":
