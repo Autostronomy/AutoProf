@@ -100,7 +100,7 @@ def Center_Forced(IMG, results, options):
                 options["ap_set_center"],
             )[0],
             options["ap_pixscale"],
-            options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
         )
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
@@ -134,7 +134,7 @@ def Center_Forced(IMG, results, options):
             IMG - results["background"], 0.0, {"ellip": 0.0, "pa": 0.0}, current_center
         )[0],
         options["ap_pixscale"],
-        options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
     )
     return IMG, {
         "center": current_center,
@@ -569,7 +569,7 @@ def Center_OfMass(IMG, results, options):
                 0
             ],
             options["ap_pixscale"],
-            options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
         )
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
@@ -617,7 +617,7 @@ def Center_OfMass(IMG, results, options):
     sb0 = flux_to_sb(
         _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center)[0],
         options["ap_pixscale"],
-        options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
     )
     return IMG, {
         "center": current_center,
@@ -647,7 +647,7 @@ def Center_Peak(IMG, results, options):
                 0
             ],
             options["ap_pixscale"],
-            options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
         )
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
@@ -700,7 +700,7 @@ def Center_Peak(IMG, results, options):
     sb0 = flux_to_sb(
         _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center)[0],
         options["ap_pixscale"],
-        options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
     )
     return IMG, {
         "center": current_center,
@@ -818,7 +818,7 @@ def Center_HillClimb(IMG, results, options):
                 0
             ],
             options["ap_pixscale"],
-            options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
         )
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
@@ -918,7 +918,7 @@ def Center_HillClimb(IMG, results, options):
     sb0 = flux_to_sb(
         _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center)[0],
         options["ap_pixscale"],
-        options["ap_zeropoint"] if "zeropoint" in options else 22.5,
+        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
     )
     return IMG, {
         "center": current_center,
