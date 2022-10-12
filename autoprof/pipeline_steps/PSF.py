@@ -177,16 +177,20 @@ def PSF_StarFind(IMG, results, options):
     else:
         fwhm_guess = max(1.0, 1.0 / options["ap_pixscale"])
 
-    edge_mask = np.zeros(IMG.shape, dtype=bool)
-    edge_mask[
-        int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
-        int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
-    ] = True
+    if "mask" in results:
+        use_mask = results["mask"]
+    else:
+        use_mask = np.zeros(IMG.shape, dtype=bool)
+        use_mask[
+            int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
+            int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
+        ] = True
+    
     stars = StarFind(
         IMG - results["background"],
         fwhm_guess,
         results["background noise"],
-        edge_mask,
+        use_mask,
         maxstars=50,
     )
     if len(stars["fwhm"]) <= 10:

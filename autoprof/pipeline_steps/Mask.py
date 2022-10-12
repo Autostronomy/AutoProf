@@ -68,7 +68,9 @@ def Bad_Pixel_Mask(IMG, results, options):
         Mask[IMG <= options["ap_badpixel_low"]] = True
     if "ap_badpixel_exact" in options:
         Mask[IMG == options["ap_badpixel_exact"]] = True
-
+    if np.any(np.logical_not(np.isfinite(IMG))):
+        Mask[np.logical_not(np.isfinite(IMG))] = True
+        
     if "mask" in results:
         mask = np.logical_or(mask, results["mask"])
 

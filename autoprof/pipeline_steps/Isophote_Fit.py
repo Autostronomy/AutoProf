@@ -241,8 +241,12 @@ def _FFT_Robust_loss(
         interp_method="bicubic",
     )
 
-    coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 1. - robust_clip), a_min=None))
-
+    try:
+        coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 1. - robust_clip), a_min=None))
+    except:
+        coefs = np.zeros(100)
+        isovals = np.zeros(100)
+        
     if fit_coefs is None:
         f2_loss = np.abs(coefs[2]) / (
             len(isovals) * (max(0, np.median(isovals)) + noise / np.sqrt(len(isovals)))

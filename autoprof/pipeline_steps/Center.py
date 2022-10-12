@@ -814,7 +814,7 @@ def Center_HillClimb(IMG, results, options):
             % (options["ap_name"], str(options["ap_set_center"]))
         )
         sb0 = flux_to_sb(
-            _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, options["ap_set_center"])[
+            _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, options["ap_set_center"], mask = results.get("mask", None))[
                 0
             ],
             options["ap_pixscale"],
@@ -842,7 +842,8 @@ def Center_HillClimb(IMG, results, options):
         for r in sampleradii:
             isovals.append(
                 _iso_extract(
-                    dat, r, {"ellip": 0.0, "pa": 0.0}, current_center, more=True
+                    dat, r, {"ellip": 0.0, "pa": 0.0}, current_center, more=True,
+                    mask = results.get("mask", None)
                 )
             )
             coefs.append(
@@ -916,7 +917,7 @@ def Center_HillClimb(IMG, results, options):
     track_centers.append([current_center["x"], current_center["y"]])
 
     sb0 = flux_to_sb(
-        _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center)[0],
+        _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center, mask = results.get("mask", None))[0],
         options["ap_pixscale"],
         options["ap_zeropoint"] if "zeropoint" in options else 22.5,
     )

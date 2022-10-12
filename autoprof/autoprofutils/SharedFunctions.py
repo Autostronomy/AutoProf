@@ -777,13 +777,13 @@ def StarFind(
     deformities = []
     fwhms = []
     peaks = []
-
     # Select pixels which edge detector identifies
     if mask is None:
         highpixels = np.argwhere(new > detect_threshold * iqr(new))
     else:
+        use_mask = np.logical_and(np.logical_not(mask), np.isfinite(new))
         highpixels = np.argwhere(
-            np.logical_and(new > detect_threshold * iqr(new), np.logical_not(mask))
+            np.logical_and(new > detect_threshold * iqr(new[use_mask]), use_mask)
         )
     np.random.shuffle(highpixels)
     # meshgrid for 2D polynomial fit (pre-built for efficiency)
@@ -882,6 +882,8 @@ def StarFind(
             np.sqrt(np.sum((newcenter - centers) ** 2, axis=1)) < minsep * fwhm_guess
         ):
             continue
+        if not np.all(np.isfinite(newcenter)):
+            continue
 
         # Extract flux as a function of radius
         local_flux = np.median(
@@ -890,6 +892,7 @@ def StarFind(
                 reject_size * fwhm_guess,
                 {"ellip": 0.0, "pa": 0.0},
                 {"x": newcenter[0], "y": newcenter[1]},
+                mask = mask,
                 interp_method = 'bicubic',
             )
         )
@@ -900,6 +903,7 @@ def StarFind(
                     0.0,
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
+                    mask = mask,
                     interp_method = 'bicubic',
                 )
             )
@@ -920,6 +924,7 @@ def StarFind(
                     R[-1],
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
+                    mask = mask,
                     interp_method = 'bicubic',
                 )
             except:
@@ -938,7 +943,7 @@ def StarFind(
         fwhm_fit = np.interp(flux[0] / 2, list(reversed(flux)), list(reversed(R))) * 2
 
         # reject if fitted FWHM unrealistically large
-        if fwhm_fit > reject_size * fwhm_guess:
+        if fwhm_fit > reject_size * fwhm_guess or fwhm_fit < 0 or not np.isfinite(fwhm_fit):
             continue
         # Add star to list
         if len(centers) == 0:
