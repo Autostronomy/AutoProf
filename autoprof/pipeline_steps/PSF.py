@@ -455,6 +455,7 @@ def PSF_deconvolve(IMG, results, options):
         psf_img = np.exp(-(XX ** 2 + YY ** 2) / (2 * psf_std ** 2)) / np.sqrt(
             2 * np.pi * psf_std ** 2
         )
+        psf_img /= np.sum(psf_img)
 
     if np.abs(np.sum(psf_img) - 1) > 1e-7:
         logging.warn("PSF image not normalized! sum(PSF) = %.3e" % np.sum(psf_img))
@@ -469,4 +470,17 @@ def PSF_deconvolve(IMG, results, options):
     )
     dat_deconv = (dat_deconv + 0.5) * (dmax - dmin) + dmin
 
+    if "ap_psf_deconvolve_save" in options and options["ap_psf_deconvolve_save"]:
+        header = fits.Header()
+        hdul = fits.HDUList([fits.PrimaryHDU(header=header), fits.ImageHDU(dat_deconv)])
+        
+        hdul.writeto(
+            os.path.join(
+                options["ap_saveto"] if "ap_saveto" in options else "",
+                "%s_deconvolved.fits" % options["ap_name"],
+            ),
+            overwrite=True,
+        )
+        
+    
     return dat_deconv, {}
