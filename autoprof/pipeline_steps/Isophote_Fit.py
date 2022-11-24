@@ -1151,11 +1151,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         if not ("ap_nologo" in options and options["ap_nologo"]):
             AddLogo(plt.gcf())
         plt.savefig(
-            "%sfit_ellipse_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            ),
+            f"{options.get('ap_plotpath','')}fit_ellipse_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
         )
         plt.close()
@@ -1185,11 +1181,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         if not ("ap_nologo" in options and options["ap_nologo"]):
             AddLogo(plt.gcf())
         plt.savefig(
-            "%sphaseprofile_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            ),
+            f"{options.get('ap_plotpath','')}phaseprofile_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
         )
         plt.close()

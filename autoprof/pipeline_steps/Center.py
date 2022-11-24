@@ -302,11 +302,8 @@ def Center_2DGaussian(IMG, results, options):
             color="y",
         )
         plt.savefig(
-            "%scenter_vis_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            )
+            f"{options.get('ap_plotpath','')}center_vis_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
+            dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,            
         )
         plt.close()
     logging.info("%s Center found: x %.1f, y %.1f" % (options["ap_name"], x, y))
@@ -471,11 +468,8 @@ def Center_1DGaussian(IMG, results, options):
         )
         plt.plot([y], [x], marker="x", markersize=10, color="y")
         plt.savefig(
-            "%scenter_vis_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            )
+            f"{options.get('ap_plotpath','')}center_vis_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
+            dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,            
         )
         plt.close()
     logging.info("%s Center found: x %.1f, y %.1f" % (options["ap_name"], x, y))

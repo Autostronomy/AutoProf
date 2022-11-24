@@ -288,11 +288,7 @@ def Slice_Profile(IMG, results, options):
         if not ("ap_nologo" in options and options["ap_nologo"]):
             AddLogo(plt.gcf())
         plt.savefig(
-            "%sslice_profile_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            ),
+            f"{options.get('ap_plotpath','')}slice_profile_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
         )
         plt.close()
@@ -366,11 +362,7 @@ def Slice_Profile(IMG, results, options):
         if not ("ap_nologo" in options and options["ap_nologo"]):
             AddLogo(plt.gcf())
         plt.savefig(
-            "%sslice_profile_window_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            ),
+            f"{options.get('ap_plotpath','')}slice_profile_window_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
         )
         plt.close()

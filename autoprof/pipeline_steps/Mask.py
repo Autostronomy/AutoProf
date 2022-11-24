@@ -179,11 +179,7 @@ def Mask_Segmentation_Map(IMG, results, options):
         if not ("ap_nologo" in options and options["ap_nologo"]):
             AddLogo(plt.gcf())
         plt.savefig(
-            "%smask_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            ),
+            f"{options.get('ap_plotpath','')}mask_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
         )
         plt.close()
@@ -296,11 +292,7 @@ def Star_Mask_IRAF(IMG, results, options):
         dat[dat == 0] = np.nan
         plt.imshow(dat, origin="lower", cmap="Reds_r", alpha=0.7)
         plt.savefig(
-            "%smask_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            ),
+            f"{options.get('ap_plotpath','')}mask_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
         )
         plt.close()
@@ -408,11 +400,7 @@ def Star_Mask(IMG, results, options):
         plt.imshow(dat, origin="lower", cmap="Reds_r", alpha=0.7)
         plt.tight_layout()
         plt.savefig(
-            "%smask_%s.jpg"
-            % (
-                options["ap_plotpath"] if "ap_plotpath" in options else "",
-                options["ap_name"],
-            ),
+            f"{options.get('ap_plotpath','')}mask_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
         )
         plt.close()

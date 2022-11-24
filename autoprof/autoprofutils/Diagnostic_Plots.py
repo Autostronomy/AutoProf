@@ -70,7 +70,7 @@ def Plot_Background(values, bkgrnd, noise, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "Background_hist_%s.jpg" % options["ap_name"],
+            f"Background_hist_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -102,7 +102,7 @@ def Plot_PSF_Stars(
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "PSF_Stars_%s.jpg" % options["ap_name"],
+            f"PSF_Stars_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -156,7 +156,7 @@ def Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, o
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "initialize_ellipse_%s.jpg" % options["ap_name"],
+            f"initialize_ellipse_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -202,7 +202,7 @@ def Plot_Isophote_Init_Optimize(
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "initialize_ellipse_optimize_%s.jpg" % options["ap_name"],
+            f"initialize_ellipse_optimize_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -277,7 +277,7 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "fit_ellipse_%s.jpg" % options["ap_name"],
+            f"fit_ellipse_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -350,7 +350,7 @@ def _Plot_Isophotes(dat, R, parameters, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "photometry_ellipse_%s.jpg" % options["ap_name"],
+            f"photometry_ellipse_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -430,7 +430,7 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "photometry_%s.jpg" % options["ap_name"],
+            f"photometry_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -503,7 +503,7 @@ def Plot_I_Profile(dat, R, I, I_e, parameters, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "photometry_%s.jpg" % options["ap_name"],
+            f"photometry_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -572,7 +572,7 @@ def Plot_Phase_Profile(R, parameters, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "phase_profile_%s.jpg" % options["ap_name"],
+            f"phase_profile_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -630,7 +630,7 @@ def Plot_Meas_Fmodes(R, parameters, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "phase_profile_%s.jpg" % options["ap_name"],
+            f"phase_profile_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -691,7 +691,7 @@ def Plot_Radial_Profiles(
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "radial_profiles_%s.jpg" % options["ap_name"],
+            f"radial_profiles_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -759,7 +759,7 @@ def Plot_Radial_Profiles(
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "radial_profiles_wedges_%s.jpg" % options["ap_name"],
+            f"radial_profiles_wedges_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -842,7 +842,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
             plt.savefig(
                 os.path.join(
                     options["ap_plotpath"] if "ap_plotpath" in options else "",
-                    "axial_profile_q%i_%s.jpg" % (count, options["ap_name"]),
+                    f"axial_profile_{count}_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
                 ),
                 dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
             )
@@ -914,7 +914,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "axial_profile_lines_%s.jpg" % options["ap_name"],
+            f"axial_profile_lines_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -952,7 +952,7 @@ def Plot_EllipseModel(IMG, Model, R, modeltype, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "ellipsemodel_%s_%s.jpg" % (modeltype, options["ap_name"]),
+            f"ellipsemodel_{modeltype}_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
@@ -986,7 +986,7 @@ def Plot_EllipseModel(IMG, Model, R, modeltype, results, options):
     plt.savefig(
         os.path.join(
             options["ap_plotpath"] if "ap_plotpath" in options else "",
-            "ellipseresidual_%s_%s.jpg" % (modeltype, options["ap_name"]),
+            f"ellipseresidual_{modeltype}_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
         ),
         dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,
     )
