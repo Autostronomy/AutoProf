@@ -1,5 +1,7 @@
 <img src="docs/_static/AP_logo.png" alt="AutoProf" width="300"/>
 
+**NOTICE: This is AutoProf-Legacy, for the newest AutoProf version [follow this link](https://connorstoneastro.github.io/AutoProf/)**
+
 AutoProf is a pipeline for basic and advanced non-parametric galaxy image analysis.
 Its design allows for fast startup and provides flexibility to explore new ideas and support advanced users.
 It was written by [Connor Stone](https://connorjstone.com/) with contributions from
