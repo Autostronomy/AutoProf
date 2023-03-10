@@ -260,6 +260,27 @@ def Isophote_Initialize(IMG, results, options):
                 )
             )
         )
+    # Find global ellipticity: second pass
+    ellip = test_ellip[np.argmin(test_f2)]
+    test_ellip = np.linspace(ellip - 0.05, ellip + 0.05, 15)
+    test_f2 = []
+    for e in test_ellip:
+        test_f2.append(
+            sum(
+                list(
+                    _fitEllip_loss(
+                        e,
+                        dat,
+                        circ_ellipse_radii[-2] * m,
+                        phase,
+                        results["center"],
+                        results["background noise"],
+                        mask,
+                    )
+                    for m in np.linspace(0.8, 1.2, 5)
+                )
+            )
+        )
     ellip = test_ellip[np.argmin(test_f2)]
     res = minimize(
         lambda e, d, r, p, c, n, msk: sum(
@@ -463,6 +484,26 @@ def Isophote_Initialize_mean(IMG, results, options):
 
     # Find global ellipticity
     test_ellip = np.linspace(0.05, 0.95, 15)
+    test_f2 = []
+    for e in test_ellip:
+        test_f2.append(
+            sum(
+                list(
+                    _fitEllip_mean_loss(
+                        e,
+                        dat,
+                        circ_ellipse_radii[-2] * m,
+                        phase,
+                        results["center"],
+                        results["background noise"],
+                    )
+                    for m in np.linspace(0.8, 1.2, 5)
+                )
+            )
+        )
+    # Find global ellipticity: second pass
+    ellip = test_ellip[np.argmin(test_f2)]
+    test_ellip = np.linspace(ellip - 0.05, ellip + 0.05, 15)
     test_f2 = []
     for e in test_ellip:
         test_f2.append(
