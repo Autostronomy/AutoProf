@@ -187,7 +187,7 @@ def Plot_Isophote_Init_Optimize(
     ax[0].axhline((phase - pa_err) * 180 / np.pi, color="r", linestyle="--")
     # ax[0].axvline(circ_ellipse_radii[-2], color = 'orange', linestyle = '--')
     ax[0].set_xlabel("Radius [pix]", fontsize=16)
-    ax[0].set_ylabel("FFT$_{1}$ phase [deg]", fontsize=16)
+    ax[0].set_ylabel("FFT$_{2}$ phase [deg]", fontsize=16)
     ax[0].tick_params(labelsize=12)
     ax[1].plot(test_ellip, test_f2, color="k")
     ax[1].axvline(ellip, color="r")
