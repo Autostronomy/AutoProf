@@ -33,7 +33,7 @@ AutoProf
 
 |br|
 
-.. Notice::
+.. Note::
     This is AutoProf-Legacy, if you are looking for the most up to date AutoProf please `follow this link <https://connorstoneastro.github.io/AutoProf/>`_.
 
 |br|

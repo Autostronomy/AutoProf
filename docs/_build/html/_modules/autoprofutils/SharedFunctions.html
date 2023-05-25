@@ -1,71 +1,30 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html4" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>autoprofutils.SharedFunctions &mdash; AutoProf 0.8 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>autoprofutils.SharedFunctions &mdash; AutoProf 0.8 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../../index.html" class="icon icon-home"> AutoProf
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -73,18 +32,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
@@ -98,71 +46,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../decisiontrees.html">Decision Trees</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting AutoProf</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">AutoProf</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-        
-      <li>autoprofutils.SharedFunctions</li>
-    
-    
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">autoprofutils.SharedFunctions</li>
       <li class="wy-breadcrumbs-aside">
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <h1>Source code for autoprofutils.SharedFunctions</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -181,12 +91,12 @@
 <span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">EllipseSample</span><span class="p">,</span> <span class="n">EllipseGeometry</span><span class="p">,</span> <span class="n">Isophote</span><span class="p">,</span> <span class="n">IsophoteList</span>
 <span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">Ellipse</span> <span class="k">as</span> <span class="n">Photutils_Ellipse</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span><span class="p">,</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="k">as</span> <span class="nn">cm</span>
 <span class="kn">from</span> <span class="nn">matplotlib.cbook</span> <span class="kn">import</span> <span class="n">get_sample_data</span>
 <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LinearSegmentedColormap</span>
-
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="n">Abs_Mag_Sun</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;u&quot;</span><span class="p">:</span> <span class="mf">6.39</span><span class="p">,</span>
     <span class="s2">&quot;g&quot;</span><span class="p">:</span> <span class="mf">5.11</span><span class="p">,</span>
@@ -235,17 +145,18 @@
         <span class="n">dat</span><span class="p">,</span>
         <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span>
         <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Greys&quot;</span><span class="p">,</span>
-        <span class="n">norm</span><span class="o">=</span><span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">HistEqStretch</span><span class="p">(</span><span class="n">dat</span><span class="p">)),</span>
+        <span class="n">norm</span><span class="o">=</span><span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">HistEqStretch</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="n">dat</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="o">*</span><span class="n">noise</span><span class="p">]),</span> <span class="n">clip</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="n">noise</span><span class="p">,</span> <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dat</span><span class="p">)),</span>
     <span class="p">)</span>
-    <span class="n">my_cmap</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">Greys_r</span>
+    <span class="n">my_cmap</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">Greys_r</span><span class="p">)</span>
     <span class="n">my_cmap</span><span class="o">.</span><span class="n">set_under</span><span class="p">(</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    
     <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">dat</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="o">*</span><span class="n">noise</span><span class="p">,</span> <span class="n">dat</span><span class="p">),</span> 
         <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span>
         <span class="n">cmap</span><span class="o">=</span><span class="n">my_cmap</span><span class="p">,</span>
-        <span class="n">norm</span><span class="o">=</span><span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">(),</span> <span class="n">clip</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">norm</span><span class="o">=</span><span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">(),</span><span class="n">clip</span> <span class="o">=</span> <span class="kc">False</span><span class="p">),</span>
         <span class="n">clim</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span> <span class="o">*</span> <span class="n">noise</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
-        <span class="n">vmin</span><span class="o">=</span><span class="mi">3</span> <span class="o">*</span> <span class="n">noise</span><span class="p">,</span>
+        <span class="n">interpolation</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([])</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
@@ -254,6 +165,53 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span></div>
 
 
+<span class="k">def</span> <span class="nf">_display_time</span><span class="p">(</span><span class="n">seconds</span><span class="p">):</span>
+    <span class="n">intervals</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;hours&#39;</span><span class="p">,</span> <span class="mi">3600</span><span class="p">),</span>    <span class="c1"># 60 * 60</span>
+        <span class="p">(</span><span class="s1">&#39;arcminutes&#39;</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;arcseconds&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">intervals</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">//</span> <span class="n">count</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">seconds</span> <span class="o">-=</span> <span class="n">value</span> <span class="o">*</span> <span class="n">count</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    
+<div class="viewcode-block" id="AddScale"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.SharedFunctions.AddScale">[docs]</a><span class="k">def</span> <span class="nf">AddScale</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">img_width</span><span class="p">,</span> <span class="n">loc</span> <span class="o">=</span> <span class="s1">&#39;lower right&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ax: figure axis object</span>
+<span class="sd">    img_width: image width in arcseconds</span>
+<span class="sd">    loc: location to put hte scale bar</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scale_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">img_width</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">scale_width</span> <span class="o">&gt;</span> <span class="mi">60</span> <span class="ow">and</span> <span class="n">scale_width</span> <span class="o">%</span> <span class="mi">60</span> <span class="o">&lt;=</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="n">scale_width</span> <span class="o">-=</span> <span class="n">scale_width</span> <span class="o">%</span> <span class="mi">60</span>
+    <span class="k">if</span> <span class="n">scale_width</span> <span class="o">&gt;</span> <span class="mi">45</span> <span class="ow">and</span> <span class="n">scale_width</span> <span class="o">%</span> <span class="mi">60</span> <span class="o">&gt;=</span> <span class="mi">45</span><span class="p">:</span>
+        <span class="n">scale_width</span> <span class="o">+=</span> <span class="mi">60</span> <span class="o">-</span> <span class="p">(</span><span class="n">scale_width</span> <span class="o">%</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">15</span> <span class="o">&lt;</span> <span class="n">scale_width</span> <span class="o">%</span> <span class="mi">60</span> <span class="o">&lt;</span> <span class="mi">45</span><span class="p">:</span>
+        <span class="n">scale_width</span> <span class="o">+=</span> <span class="mi">30</span> <span class="o">-</span> <span class="p">(</span><span class="n">scale_width</span> <span class="o">%</span> <span class="mi">60</span><span class="p">)</span>
+        
+    <span class="n">label</span> <span class="o">=</span> <span class="n">_display_time</span><span class="p">(</span><span class="n">scale_width</span><span class="p">)</span>
+
+    <span class="n">xloc</span> <span class="o">=</span> <span class="mf">0.05</span> <span class="k">if</span> <span class="s1">&#39;left&#39;</span> <span class="ow">in</span> <span class="n">loc</span> <span class="k">else</span> <span class="mf">0.95</span>
+    <span class="n">yloc</span> <span class="o">=</span> <span class="mf">0.95</span> <span class="k">if</span> <span class="s1">&#39;upper&#39;</span> <span class="ow">in</span> <span class="n">loc</span> <span class="k">else</span> <span class="mf">0.05</span>
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xloc</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">scale_width</span><span class="o">/</span><span class="n">img_width</span><span class="p">,</span> <span class="n">yloc</span> <span class="o">+</span> <span class="mf">0.005</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span>
+            <span class="n">horizontalalignment</span> <span class="o">=</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span> <span class="o">=</span> <span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span>
+            <span class="n">fontsize</span> <span class="o">=</span> <span class="s1">&#39;x-small&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">20</span> <span class="k">else</span> <span class="s1">&#39;xx-small&#39;</span><span class="p">,</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="n">autocolours</span><span class="p">[</span><span class="s1">&#39;red1&#39;</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">xloc</span> <span class="o">-</span> <span class="n">scale_width</span><span class="o">/</span><span class="n">img_width</span><span class="p">,</span><span class="n">xloc</span><span class="p">],</span> <span class="p">[</span><span class="n">yloc</span><span class="p">,</span><span class="n">yloc</span><span class="p">],</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="n">autocolours</span><span class="p">[</span><span class="s1">&#39;red1&#39;</span><span class="p">])</span></div>
+    
+        
 <div class="viewcode-block" id="AddLogo"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.SharedFunctions.AddLogo">[docs]</a><span class="k">def</span> <span class="nf">AddLogo</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="p">[</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.844</span> <span class="o">/</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">0.185</span> <span class="o">/</span> <span class="mi">5</span><span class="p">],</span> <span class="n">white</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">im</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span>
         <span class="n">get_sample_data</span><span class="p">(</span>
@@ -550,9 +508,10 @@
 
 
 <div class="viewcode-block" id="Rscale_SuperEllipse"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.SharedFunctions.Rscale_SuperEllipse">[docs]</a><span class="k">def</span> <span class="nf">Rscale_SuperEllipse</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">ellip</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ellip</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ellip</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ellip</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span> <span class="o">**</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span> <span class="o">**</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span>
-    <span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">C</span><span class="p">)</span></div>
+    <span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">C</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span></div>
 
 
 <div class="viewcode-block" id="parametric_SuperEllipse"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.SharedFunctions.parametric_SuperEllipse">[docs]</a><span class="k">def</span> <span class="nf">parametric_SuperEllipse</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">ellip</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
@@ -655,7 +614,7 @@
         <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
         <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
     <span class="p">)</span>
-    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">YY</span> <span class="o">/</span> <span class="n">XX</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">XX</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">YY</span><span class="p">,</span> <span class="n">XX</span><span class="p">)</span> <span class="c1">#np.arctan(YY / XX) + np.pi * (XX &lt; 0)</span>
     <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">XX</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">YY</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">Fmode_Rscale</span> <span class="o">=</span> <span class="p">(</span>
         <span class="mf">1.0</span>
@@ -894,13 +853,13 @@
     <span class="n">deformities</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">fwhms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">peaks</span> <span class="o">=</span> <span class="p">[]</span>
-
     <span class="c1"># Select pixels which edge detector identifies</span>
     <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">highpixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">new</span> <span class="o">&gt;</span> <span class="n">detect_threshold</span> <span class="o">*</span> <span class="n">iqr</span><span class="p">(</span><span class="n">new</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="n">use_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">new</span><span class="p">))</span>
         <span class="n">highpixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">new</span> <span class="o">&gt;</span> <span class="n">detect_threshold</span> <span class="o">*</span> <span class="n">iqr</span><span class="p">(</span><span class="n">new</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">))</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">new</span> <span class="o">&gt;</span> <span class="n">detect_threshold</span> <span class="o">*</span> <span class="n">iqr</span><span class="p">(</span><span class="n">new</span><span class="p">[</span><span class="n">use_mask</span><span class="p">]),</span> <span class="n">use_mask</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">highpixels</span><span class="p">)</span>
     <span class="c1"># meshgrid for 2D polynomial fit (pre-built for efficiency)</span>
@@ -999,6 +958,8 @@
             <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">newcenter</span> <span class="o">-</span> <span class="n">centers</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">minsep</span> <span class="o">*</span> <span class="n">fwhm_guess</span>
         <span class="p">):</span>
             <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">newcenter</span><span class="p">)):</span>
+            <span class="k">continue</span>
 
         <span class="c1"># Extract flux as a function of radius</span>
         <span class="n">local_flux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span>
@@ -1007,6 +968,8 @@
                 <span class="n">reject_size</span> <span class="o">*</span> <span class="n">fwhm_guess</span><span class="p">,</span>
                 <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
                 <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">newcenter</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">newcenter</span><span class="p">[</span><span class="mi">1</span><span class="p">]},</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">,</span>
+                <span class="n">interp_method</span> <span class="o">=</span> <span class="s1">&#39;bicubic&#39;</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="n">flux</span> <span class="o">=</span> <span class="p">[</span>
@@ -1016,6 +979,8 @@
                     <span class="mf">0.0</span><span class="p">,</span>
                     <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
                     <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">newcenter</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">newcenter</span><span class="p">[</span><span class="mi">1</span><span class="p">]},</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">,</span>
+                    <span class="n">interp_method</span> <span class="o">=</span> <span class="s1">&#39;bicubic&#39;</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="o">-</span> <span class="n">local_flux</span>
@@ -1035,6 +1000,8 @@
                     <span class="n">R</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
                     <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
                     <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">newcenter</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">newcenter</span><span class="p">[</span><span class="mi">1</span><span class="p">]},</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">,</span>
+                    <span class="n">interp_method</span> <span class="o">=</span> <span class="s1">&#39;bicubic&#39;</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">101</span><span class="p">)</span>  <span class="c1"># cause finder to skip this star</span>
@@ -1052,7 +1019,7 @@
         <span class="n">fwhm_fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">flux</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">flux</span><span class="p">)),</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">R</span><span class="p">)))</span> <span class="o">*</span> <span class="mi">2</span>
 
         <span class="c1"># reject if fitted FWHM unrealistically large</span>
-        <span class="k">if</span> <span class="n">fwhm_fit</span> <span class="o">&gt;</span> <span class="n">reject_size</span> <span class="o">*</span> <span class="n">fwhm_guess</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fwhm_fit</span> <span class="o">&gt;</span> <span class="n">reject_size</span> <span class="o">*</span> <span class="n">fwhm_guess</span> <span class="ow">or</span> <span class="n">fwhm_fit</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fwhm_fit</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="c1"># Add star to list</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1122,7 +1089,6 @@
     <span class="k">return</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># 0.02 + 0.96/(1. + np.exp(-(x - 0.5)))</span>
 
 
-<span class="c1">#</span>
 <span class="k">def</span> <span class="nf">_inv_x_to_eps</span><span class="p">(</span><span class="n">eps</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Internal, inverse of _x_to_eps function</span>
@@ -1143,7 +1109,7 @@
 
     <span class="c1"># Read a fits file</span>
     <span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="n">filename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;fits&quot;</span><span class="p">:</span>
-        <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">uint</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
         <span class="n">dat</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_hdulelement&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_hdulelement&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
     <span class="c1"># Read a numpy array file</span>
     <span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="n">filename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
@@ -1487,7 +1453,7 @@
     <span class="c1">#                         mag_to_L(m[i-1], band), band)</span>
 
     <span class="k">return</span> <span class="n">flux_to_mag</span><span class="p">(</span>
-        <span class="n">Fmode_fluxdens_to_fluxsum</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">mag_to_flux</span><span class="p">(</span><span class="n">SB</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">parameters</span><span class="p">),</span> <span class="mf">2.5</span>
+        <span class="n">Fmode_fluxdens_to_fluxsum</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">mag_to_flux</span><span class="p">(</span><span class="n">SB</span><span class="p">,</span> <span class="mf">20.</span><span class="p">),</span> <span class="n">parameters</span><span class="p">),</span> <span class="mf">20.</span>
     <span class="p">)</span></div>
 
 
@@ -1540,59 +1506,43 @@
     <span class="c1">#     return COG_profile, np.abs(COG_lower + COG_upper)/2</span>
     <span class="c1"># else:</span>
     <span class="c1">#     return COG_profile, COG_lower, COG_upper</span>
-    <span class="n">I</span><span class="p">,</span> <span class="n">Ie</span> <span class="o">=</span> <span class="n">mag_to_flux</span><span class="p">(</span><span class="n">SB</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">SBE</span><span class="p">)</span>
+    <span class="n">I</span><span class="p">,</span> <span class="n">Ie</span> <span class="o">=</span> <span class="n">mag_to_flux</span><span class="p">(</span><span class="n">SB</span><span class="p">,</span> <span class="mf">20.</span><span class="p">,</span> <span class="n">SBE</span><span class="p">)</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">Fmode_fluxdens_to_fluxsum_errorprop</span><span class="p">(</span>
         <span class="n">R</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">Ie</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">,</span> <span class="n">symmetric_error</span><span class="o">=</span><span class="n">symmetric_error</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">symmetric_error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">flux_to_mag</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">flux_to_mag</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">20.</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">lower</span> <span class="o">=</span> <span class="n">flux_to_mag</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">upper</span> <span class="o">=</span> <span class="n">flux_to_mag</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">lower</span> <span class="o">=</span> <span class="n">flux_to_mag</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">20.</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">upper</span> <span class="o">=</span> <span class="n">flux_to_mag</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">20.</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">lower</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lower</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">upper</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Connor Stone.
-
-    </p>
+    <p>&#169; Copyright 2021, Connor Stone.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

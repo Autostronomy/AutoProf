@@ -1,72 +1,31 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html4" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Troubleshooting AutoProf &mdash; AutoProf 0.8 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Troubleshooting AutoProf &mdash; AutoProf 0.8 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Extra Methods" href="extramethods.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> AutoProf
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -74,18 +33,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
@@ -108,88 +56,47 @@
 </li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">AutoProf</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Troubleshooting AutoProf</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Troubleshooting AutoProf</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/troubleshooting.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <div class="section" id="troubleshooting-autoprof">
-<h1>Troubleshooting AutoProf<a class="headerlink" href="#troubleshooting-autoprof" title="Permalink to this headline">¶</a></h1>
+<h1>Troubleshooting AutoProf<a class="headerlink" href="#troubleshooting-autoprof" title="Permalink to this headline"></a></h1>
 <p>Here we list some common troubles that users can run into when getting started or when beginning to access some of AutoProf’s more advanced features. By it’s nature this is an evolving page, so if you run into something that you think should be addressed on this page please reach out to <a class="reference external" href="https://connorjstone.com/">Connor Stone</a>!</p>
 <div class="section" id="the-error-bars-on-the-sb-profile-diagnostic-plot-are-too-large">
-<h2>The error bars on the SB profile diagnostic plot are too large<a class="headerlink" href="#the-error-bars-on-the-sb-profile-diagnostic-plot-are-too-large" title="Permalink to this headline">¶</a></h2>
+<h2>The error bars on the SB profile diagnostic plot are too large<a class="headerlink" href="#the-error-bars-on-the-sb-profile-diagnostic-plot-are-too-large" title="Permalink to this headline"></a></h2>
 <p>The diagnostic SB plot is intended for evaluating the quality of a fit. With many SB profiles, the statistical errors are too small to see in a plot and so they are scaled up arbitrarily to make them visible. The error-bar scaling factor can be seen in the legend as <em>(err.xx)</em> where xx is the scaling factor. When scaling is applied it is done such that the largest error bar on the plot is now 1 mag arcsec^-2.</p>
 </div>
 <div class="section" id="i-want-to-hold-the-pa-and-ellipticity-fixed-at-a-global-value-instead-of-fitting-each-isophote">
-<h2>I want to hold the PA and ellipticity fixed at a global value instead of fitting each isophote<a class="headerlink" href="#i-want-to-hold-the-pa-and-ellipticity-fixed-at-a-global-value-instead-of-fitting-each-isophote" title="Permalink to this headline">¶</a></h2>
+<h2>I want to hold the PA and ellipticity fixed at a global value instead of fitting each isophote<a class="headerlink" href="#i-want-to-hold-the-pa-and-ellipticity-fixed-at-a-global-value-instead-of-fitting-each-isophote" title="Permalink to this headline"></a></h2>
 <p>This can be done with the “isophotefit fixed” pipeline step replacing the standard “isophotefit” step. For information on adjusting the AutoProf pipeline see <a class="reference internal" href="pipelinemanipulation.html"><span class="doc">AutoProf Pipeline Control</span></a>.</p>
 </div>
 <div class="section" id="the-isophotes-go-far-beyond-the-extent-of-the-galaxy-in-the-image">
-<h2>The isophotes go far beyond the extent of the galaxy in the image<a class="headerlink" href="#the-isophotes-go-far-beyond-the-extent-of-the-galaxy-in-the-image" title="Permalink to this headline">¶</a></h2>
+<h2>The isophotes go far beyond the extent of the galaxy in the image<a class="headerlink" href="#the-isophotes-go-far-beyond-the-extent-of-the-galaxy-in-the-image" title="Permalink to this headline"></a></h2>
 <p>This can happen for a few reasons. First, and most straightforward, if the <em>ap_extractfull</em> parameter is set to true then AutoProf will typically evaluate out to the edge of the image regardless of if it has any signal. Second, AutoProf will by default extract isophotes out to three times the largest fitted radius. At the low S/N outskirts of a galaxy it is challenging to robustly fit isophotes, however with fixed PA and ellipticity it is possible to detect signal out quite a bit further. If you wish to control this behaviour you can use the <em>ap_fit_limit</em>, <em>ap_sampleendR</em>, and <em>ap_truncate_evaluation</em> parameters to control various aspects of the extrapolation (see: <a class="reference internal" href="parameters.html"><span class="doc">AutoProf Parameters</span></a>). Third, it may be a result of the sources in the image. If the image contains galactic ciri or diffracted light from a very bright star it is possible that AutoProf will extend very far (beyond the extent of the target galaxy) before reaching the background noise level. In this case one can often see in the SB profile where the dominant light source switched from the target galaxy to the diffuse source as the SB profile will flatten at a non-zero signal. Unless you have some sophisticated way to remove the spurious signal, users may wish to heavily truncate the SB profile or reject the galaxy form their sample as accurate extended photometry will be nearly impossible to acquire.</p>
 </div>
 <div class="section" id="the-fitted-isophotes-are-too-smooth-they-are-missing-features">
-<h2>The fitted isophotes are too smooth, they are missing features<a class="headerlink" href="#the-fitted-isophotes-are-too-smooth-they-are-missing-features" title="Permalink to this headline">¶</a></h2>
+<h2>The fitted isophotes are too smooth, they are missing features<a class="headerlink" href="#the-fitted-isophotes-are-too-smooth-they-are-missing-features" title="Permalink to this headline"></a></h2>
 <p>AutoProf is intended for use on large surveys with thousands to millions of objects.
 By default it applies a certain amount of profile smoothing to achieve reliable automated results.
 In some cases this smoothing can overdo it and will cause AutoProf to skip over a real feature (it will still fit the global structure though).
@@ -204,49 +111,32 @@ It is not advised to turn off these features when batch processing large numbers
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="extramethods.html" class="btn btn-neutral float-left" title="Extra Methods" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Connor Stone.
-
-    </p>
+    <p>&#169; Copyright 2021, Connor Stone.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

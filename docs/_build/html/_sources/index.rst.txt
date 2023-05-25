@@ -31,6 +31,13 @@ AutoProf
 
 |br|
 
+|br|
+
+.. Note::
+    This is AutoProf-Legacy, if you are looking for the most up to date AutoProf please `follow this link <https://connorstoneastro.github.io/AutoProf/>`_.
+
+|br|
+
 Getting Started
 ===============
 
@@ -40,6 +47,8 @@ It was written by `Connor Stone <https://connorjstone.com/>`_ with contributions
 `Nikhil Arora <https://www.astronikhil.com/>`_,
 `Stéphane Courteau <https://www.physics.queensu.ca/facultysites/courteau/>`_,
 and `Jean-Charles Cuillandre <https://www.cfht.hawaii.edu/~jcc/>`_.
+
+Check out the `AutoProf introduction video <https://youtu.be/OFtVYRGrqrY>`_ to get started!
 
 This documentation is a work in progress, further updates will come.
 

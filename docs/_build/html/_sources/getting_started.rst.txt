@@ -2,6 +2,9 @@
 Getting Started
 ===============
 
+.. Note::
+    This is AutoProf-Legacy, if you are looking for the most up to date AutoProf please `follow this link <https://connorstoneastro.github.io/AutoProf/>`_.
+
 AutoProf is a :class:`Pipeline` building code at its core. However, the rich functionality provided by this framework is safely hidden beneath a simple to use exterior. As a beginning user, you need only provide the most basic information (path to an image, pixel scale, maybe the photometric zero point) and AutoProf will assume the rest. As you get better aquainted with the configuration file construction, you will be able to access more powerful functionality.
 
 Getting Started On A Single Image
