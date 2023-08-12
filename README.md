@@ -1,6 +1,6 @@
 <img src="docs/_static/AP_logo.png" alt="AutoProf" width="300"/>
 
-**NOTICE: This is AutoProf-Legacy, for the newest version called "AutoPhot" [follow this link](https://github.com/Autostronomy/AutoPhot)**
+**NOTICE: This is AutoProf-Legacy, for the newest version called "AstroPhot" [follow this link](https://github.com/Autostronomy/AstroPhot)**
 
 AutoProf is a pipeline for basic and advanced non-parametric galaxy image analysis.
 Its design allows for fast startup and provides flexibility to explore new ideas and support advanced users.
@@ -15,4 +15,4 @@ See our [documentation](https://autoprof.readthedocs.io/en/latest/) for a full d
 
 # Citation
 
-Please see the [ADS Bibliographic Record](https://ui.adsabs.harvard.edu/abs/2021arXiv210613809S/abstract) of the AutoProf paper for proper citation.
+Please see the [ADS Bibliographic Record](https://ui.adsabs.harvard.edu/abs/2021MNRAS.508.1870S/abstract) of the AutoProf paper for proper citation.
