@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoProf Pipeline Control &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Decision Trees" href="decisiontrees.html" />
+    <link rel="prev" title="AutoProf Parameters" href="parameters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">AutoProf Pipeline Control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#modifying-pipeline-methods">Modifying Pipeline Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline-method-template">Pipeline Method Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#modifying-pipeline-steps">Modifying Pipeline Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">autoprof</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">AutoProf Pipeline Control</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pipelinemanipulation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="autoprof-pipeline-control">
+<h1>AutoProf Pipeline Control<a class="headerlink" href="#autoprof-pipeline-control" title="Permalink to this heading"></a></h1>
+<section id="modifying-pipeline-methods">
+<h2>Modifying Pipeline Methods<a class="headerlink" href="#modifying-pipeline-methods" title="Permalink to this heading"></a></h2>
+<p>This is done with the <em>ap_new_pipeline_methods</em> argument, which is formatted as a dictionary with string keys and functions as values.
+In this way you can add to or alter the methods used by AutoProf in it’s pipeline.</p>
+<p>Each of the methods in <a class="reference internal" href="defaultpipeline.html"><span class="doc">Default AutoProf Pipeline</span></a> has a pipeline label, this is how the code identifies the functions and their outputs.
+Thus, one can create their own version of any method and modify the pipeline by assigning the function to that label.
+For example, if you wrote a new center finding method, you could update the pipeline by including:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ap_new_pipeline_methods</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="n">My_Center_Finding_Method</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>in your config file.
+You can also make up any other methods and add them to the pipeline functions list, assigning whatever key you like.
+However, AutoProf will only look for methods that are in the <em>pipeline_steps</em> object, so see <a class="reference internal" href="#modifying-pipeline-steps">Modifying Pipeline Steps</a> for how to add/remove/reorder steps in the pipeline.</p>
+</section>
+<section id="pipeline-method-template">
+<h2>Pipeline Method Template<a class="headerlink" href="#pipeline-method-template" title="Permalink to this heading"></a></h2>
+<p>Every function in the pipeline has the same template.
+To add a new function, or replace an existing one, you must format it as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">My_New_Function</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="c1"># Code here</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;results&#39;</span><span class="p">:</span> <span class="n">of</span><span class="p">,</span> <span class="s1">&#39;the&#39;</span><span class="p">:</span> <span class="n">calculations</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>where <em>IMG</em> is the input image, <em>results</em> is a dictionary containing the output of all previous pipeline steps, and <em>options</em> is a dictionary with all user specified arguments (any variable in the config file that starts with <em>ap_</em>) if they have non-default values (None).
+The output of every method in the pipeline is an image and a dictionary with strings for keys.
+The output image is assigned to replace the input image, so if you wish to alter the input image you can do so in a way that all future steps will see.
+The dictionary output is used to update the <em>results</em> dictionary that is passed to all future methods, you can therefore add new elements to the dictionary or replace older ones.
+If you wish to replace a method, make sure to have the output follow this format.
+So long as your output dictionary has the same keys/value format, it should be able to seamlessly replace a step in the pipeline.
+If you wish to include more information, you can include as many other entries in the dictionary as you like, the default methods functions will ignore them.
+See the corresponding documentation for the expected outputs from each function.</p>
+</section>
+<section id="modifying-pipeline-steps">
+<h2>Modifying Pipeline Steps<a class="headerlink" href="#modifying-pipeline-steps" title="Permalink to this heading"></a></h2>
+<p>This is done with the <em>ap_new_pipeline_steps</em> argument, which is formatted as a list of strings which tells AutoProf what order to run it’s pipeline methods.
+In this way you can alter the order of operations used by AutoProf in it’s pipeline.</p>
+<p>Each function must be run in a specific order as they often rely on the output from another step.
+The basic pipeline step order is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteinit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophotefit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract&#39;</span><span class="p">,</span> <span class="s1">&#39;checkfit&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For forced photometry the default pipeline step order is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;center forced&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteinit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophotefit forced&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract forced&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If you would like to change this behaviour, just provide a <em>ap_new_pipeline_steps</em> list.
+For example if you wished to use forced photometry but you want to re-fit the center you can change <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_Forced" title="autoprof.pipeline_steps.Center.Center_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_Forced()</span></code></a> back to <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb" title="autoprof.pipeline_steps.Center.Center_HillClimb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a> with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ap_new_pipeline_steps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteinit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophotefit forced&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract forced&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>in your config file.</p>
+<p>You can create your own order, or add in new functions by supplying a new list.
+For example, if you had your own method to run after the centering function you could do so by including:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ap_new_pipeline_methods</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mymethod&#39;</span><span class="p">:</span> <span class="n">My_New_Method</span><span class="p">}</span>
+<span class="n">ap_new_pipeline_steps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;mymethod&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteinit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophotefit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract&#39;</span><span class="p">,</span> <span class="s1">&#39;checkfit&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>in your config file.
+Note that for <em>ap_new_pipeline_methods</em> you need only include the new function, while for <em>ap_new_pipeline_steps</em> you must write out the full pipeline steps.
+If you wish to skip a step, it is sometimes better to write your own “null” version of the function (and change <em>ap_new_pipeline_methods</em>) that just returns do-nothing values for it’s dictionary as the other functions may still look for the output and could crash.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parameters.html" class="btn btn-neutral float-left" title="AutoProf Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="decisiontrees.html" class="btn btn-neutral float-right" title="Decision Trees" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

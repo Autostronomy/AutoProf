@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprof.pipeline_steps.Isophote_Fit &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoprof.html">autoprof package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../autoprof.html">autoprof</a></li>
+      <li class="breadcrumb-item active">autoprof.pipeline_steps.Isophote_Fit</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autoprof.pipeline_steps.Isophote_Fit</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
+<span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">PolynomialFeatures</span>
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">make_pipeline</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">RANSACRegressor</span><span class="p">,</span> <span class="n">HuberRegressor</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
+<span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">EllipseSample</span><span class="p">,</span> <span class="n">EllipseGeometry</span><span class="p">,</span> <span class="n">Isophote</span><span class="p">,</span> <span class="n">IsophoteList</span>
+<span class="kn">from</span> <span class="nn">photutils.isophote</span> <span class="kn">import</span> <span class="n">Ellipse</span> <span class="k">as</span> <span class="n">Photutils_Ellipse</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Ellipse</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">..autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_iso_extract</span><span class="p">,</span>
+    <span class="n">_x_to_pa</span><span class="p">,</span>
+    <span class="n">_x_to_eps</span><span class="p">,</span>
+    <span class="n">_inv_x_to_eps</span><span class="p">,</span>
+    <span class="n">_inv_x_to_pa</span><span class="p">,</span>
+    <span class="n">Angle_TwoAngles_sin</span><span class="p">,</span>
+    <span class="n">Angle_TwoAngles_cos</span><span class="p">,</span>
+    <span class="n">Angle_Scatter</span><span class="p">,</span>
+    <span class="n">LSBImage</span><span class="p">,</span>
+    <span class="n">AddLogo</span><span class="p">,</span>
+    <span class="n">PA_shift_convention</span><span class="p">,</span>
+    <span class="n">autocolours</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="n">Plot_Isophote_Fit</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Photutils_Fit&quot;</span><span class="p">,</span> <span class="s2">&quot;Isophote_Fit_FixedPhase&quot;</span><span class="p">,</span> <span class="s2">&quot;Isophote_Fit_FFT_Robust&quot;</span><span class="p">,</span> <span class="s2">&quot;Isophote_Fit_Forced&quot;</span><span class="p">,</span> <span class="s2">&quot;Isophote_Fit_FFT_mean&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Photutils_Fit"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Photutils_Fit">[docs]</a><span class="k">def</span> <span class="nf">Photutils_Fit</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Photutils elliptical isophote wrapper.</span>
+
+<span class="sd">    This simply gives users access to the photutils isophote</span>
+<span class="sd">    fitting method. See: `photutils</span>
+<span class="sd">    &lt;https://photutils.readthedocs.io/en/stable/isophote.html&gt;`_ for</span>
+<span class="sd">    more information.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">    - &#39;init R&#39;</span>
+<span class="sd">    - &#39;init ellip&#39;</span>
+<span class="sd">    - &#39;init pa&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+<span class="sd">         &#39;auxfile fitlimit&#39;: # optional, auxfile message (string)</span>
+
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="n">geo</span> <span class="o">=</span> <span class="n">EllipseGeometry</span><span class="p">(</span>
+        <span class="n">x0</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">],</span>
+        <span class="n">y0</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">],</span>
+        <span class="n">sma</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;init R&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">eps</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">],</span>
+        <span class="n">pa</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">ellipse</span> <span class="o">=</span> <span class="n">Photutils_Ellipse</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">geometry</span><span class="o">=</span><span class="n">geo</span><span class="p">)</span>
+
+    <span class="n">isolist</span> <span class="o">=</span> <span class="n">ellipse</span><span class="o">.</span><span class="n">fit_image</span><span class="p">(</span><span class="n">fix_center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">linear</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;fit R&quot;</span><span class="p">:</span> <span class="n">isolist</span><span class="o">.</span><span class="n">sma</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+        <span class="s2">&quot;fit ellip&quot;</span><span class="p">:</span> <span class="n">isolist</span><span class="o">.</span><span class="n">eps</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+        <span class="s2">&quot;fit ellip_err&quot;</span><span class="p">:</span> <span class="n">isolist</span><span class="o">.</span><span class="n">ellip_err</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+        <span class="s2">&quot;fit pa&quot;</span><span class="p">:</span> <span class="n">isolist</span><span class="o">.</span><span class="n">pa</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+        <span class="s2">&quot;fit pa_err&quot;</span><span class="p">:</span> <span class="n">isolist</span><span class="o">.</span><span class="n">pa_err</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+        <span class="s2">&quot;fit photutils isolist&quot;</span><span class="p">:</span> <span class="n">isolist</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile fitlimit&quot;</span><span class="p">:</span> <span class="s2">&quot;fit limit semi-major axis: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span> <span class="o">%</span> <span class="n">isolist</span><span class="o">.</span><span class="n">sma</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">Plot_Isophote_Fit</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit R&quot;</span><span class="p">],</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit ellip&quot;</span><span class="p">],</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit pa&quot;</span><span class="p">],</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit ellip_err&quot;</span><span class="p">],</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit pa_err&quot;</span><span class="p">],</span>
+            <span class="n">results</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="Isophote_Fit_FixedPhase"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FixedPhase</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simply applies fixed position angle and ellipticity at the initialization values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_scale : float, default 0.2</span>
+<span class="sd">      growth scale when fitting isophotes, not the same as</span>
+<span class="sd">      *ap_sample---scale*.</span>
+
+<span class="sd">    ap_fit_limit : float, default 2</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel</span>
+<span class="sd">      background noise level. Default is 2, smaller values will end</span>
+<span class="sd">      fitting further out in the galaxy image.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">    - &#39;mask&#39; (optional)</span>
+<span class="sd">    - &#39;init ellip&#39;</span>
+<span class="sd">    - &#39;init pa&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+<span class="sd">         &#39;auxfile fitlimit&#39;: # optional, auxfile message (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_scale&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_scale&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="mf">0.2</span>
+    <span class="c1"># subtract background from image during processing</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Determine sampling radii</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">shrink</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">shrink</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">sample_radii</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span>
+        <span class="k">while</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+                <span class="n">dat</span><span class="p">,</span>
+                <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">],</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]},</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                <span class="n">more</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+                <span class="o">&lt;</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_fit_limit&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_fit_limit&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">sample_radii</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">scale</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">shrink</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="n">shrink</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="n">shrink</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">ellip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">]</span>
+    <span class="n">pa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: sample radii: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)))</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;fit ellip&quot;</span><span class="p">:</span> <span class="n">ellip</span><span class="p">,</span>
+        <span class="s2">&quot;fit pa&quot;</span><span class="p">:</span> <span class="n">pa</span><span class="p">,</span>
+        <span class="s2">&quot;fit R&quot;</span><span class="p">:</span> <span class="n">sample_radii</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile fitlimit&quot;</span><span class="p">:</span> <span class="s2">&quot;fit limit semi-major axis: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span> <span class="o">%</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="s2">&quot;init ellip_err&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit ellip_err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip_err&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;init pa_err&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit pa_err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa_err&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<span class="k">def</span> <span class="nf">_ellip_smooth</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">make_pipeline</span><span class="p">(</span><span class="n">PolynomialFeatures</span><span class="p">(</span><span class="n">deg</span><span class="p">),</span> <span class="n">HuberRegressor</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">2.0</span><span class="p">))</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">E</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">_x_to_eps</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+
+
+<span class="k">def</span> <span class="nf">_pa_smooth</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">PA</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
+
+    <span class="n">model_s</span> <span class="o">=</span> <span class="n">make_pipeline</span><span class="p">(</span><span class="n">PolynomialFeatures</span><span class="p">(</span><span class="n">deg</span><span class="p">),</span> <span class="n">HuberRegressor</span><span class="p">())</span>
+    <span class="n">model_c</span> <span class="o">=</span> <span class="n">make_pipeline</span><span class="p">(</span><span class="n">PolynomialFeatures</span><span class="p">(</span><span class="n">deg</span><span class="p">),</span> <span class="n">HuberRegressor</span><span class="p">())</span>
+    <span class="n">model_c</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">PA</span><span class="p">))</span>
+    <span class="n">model_s</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">PA</span><span class="p">))</span>
+    <span class="n">pred_pa_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">model_s</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">a_min</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">pred_pa_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">model_c</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">a_min</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1">#  np.arctan(pred_pa_s / pred_pa_c) + (np.pi * (pred_pa_c &lt; 0))</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pred_pa_s</span><span class="p">,</span> <span class="n">pred_pa_c</span><span class="p">))</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+
+
+<span class="k">def</span> <span class="nf">_FFT_Robust_loss</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">PARAMS</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">robust_clip</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">fit_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="p">):</span>
+
+    <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">,</span>
+        <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="n">C</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+        <span class="n">interp_mask</span><span class="o">=</span><span class="kc">False</span> <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">interp_method</span><span class="o">=</span><span class="s2">&quot;bicubic&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">robust_clip</span><span class="p">),</span> <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">fit_coefs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">f2_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">+</span> <span class="n">noise</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)))</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">f2_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fit_coefs</span><span class="p">)]))</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">fit_coefs</span><span class="p">)</span>
+            <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+            <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">+</span> <span class="n">noise</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)))</span>
+        <span class="p">)</span>
+
+    <span class="n">reg_loss</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fmode_scale</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span>
+            <span class="n">Angle_TwoAngles_sin</span><span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">],</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])):</span>
+                <span class="n">reg_loss</span> <span class="o">+=</span> <span class="n">fmode_scale</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">-</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">])</span> <span class="o">/</span> <span class="mf">0.2</span>
+                <span class="p">)</span>
+                <span class="n">reg_loss</span> <span class="o">+=</span> <span class="n">fmode_scale</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span>
+                    <span class="n">Angle_TwoAngles_cos</span><span class="p">(</span>
+                        <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">],</span>
+                        <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="mf">0.1</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span>
+            <span class="n">Angle_TwoAngles_sin</span><span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">],</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])):</span>
+                <span class="n">reg_loss</span> <span class="o">+=</span> <span class="n">fmode_scale</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">-</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">])</span> <span class="o">/</span> <span class="mf">0.2</span>
+                <span class="p">)</span>
+                <span class="n">reg_loss</span> <span class="o">+=</span> <span class="n">fmode_scale</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span>
+                    <span class="n">Angle_TwoAngles_cos</span><span class="p">(</span>
+                        <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">],</span>
+                        <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="mf">0.1</span>
+
+    <span class="k">return</span> <span class="n">f2_loss</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">reg_loss</span> <span class="o">*</span> <span class="n">reg_scale</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_FFT_Robust_Errors</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">PARAMS</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">robust_clip</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">fit_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="p">):</span>
+
+    <span class="n">PA_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">))</span>
+    <span class="n">E_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">ri</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)):</span>
+        <span class="n">temp_fits</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+            <span class="n">low_ri</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ri</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">high_ri</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ri</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">temp_fits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">minimize</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_FFT_Robust_loss</span><span class="p">(</span>
+                        <span class="n">dat</span><span class="p">,</span>
+                        <span class="p">[</span><span class="n">R</span><span class="p">[</span><span class="n">low_ri</span><span class="p">],</span> <span class="n">R</span><span class="p">[</span><span class="n">ri</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.05</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="mi">9</span><span class="p">),</span> <span class="n">R</span><span class="p">[</span><span class="n">high_ri</span><span class="p">]],</span>
+                        <span class="p">[</span>
+                            <span class="n">PARAMS</span><span class="p">[</span><span class="n">low_ri</span><span class="p">],</span>
+                            <span class="p">{</span>
+                                <span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">),</span>
+                                <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+                                <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">ri</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">],</span>
+                                <span class="s2">&quot;Am&quot;</span><span class="p">:</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">ri</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">],</span>
+                                <span class="s2">&quot;Phim&quot;</span><span class="p">:</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">ri</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">],</span>
+                            <span class="p">},</span>
+                            <span class="n">PARAMS</span><span class="p">[</span><span class="n">high_ri</span><span class="p">],</span>
+                        <span class="p">],</span>
+                        <span class="mi">1</span><span class="p">,</span>
+                        <span class="n">C</span><span class="p">,</span>
+                        <span class="n">noise</span><span class="p">,</span>
+                        <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+                        <span class="n">reg_scale</span><span class="o">=</span><span class="n">reg_scale</span><span class="p">,</span>
+                        <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
+                        <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="n">x0</span><span class="o">=</span><span class="p">[</span><span class="n">PARAMS</span><span class="p">[</span><span class="n">ri</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">],</span> <span class="n">PARAMS</span><span class="p">[</span><span class="n">ri</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]],</span>
+                    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;SLSQP&quot;</span><span class="p">,</span>
+                    <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ftol&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">},</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">x</span>
+            <span class="p">)</span>
+        <span class="n">temp_fits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp_fits</span><span class="p">)</span>
+        <span class="n">E_err</span><span class="p">[</span><span class="n">ri</span><span class="p">]</span> <span class="o">=</span> <span class="n">iqr</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">temp_fits</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">PA_err</span><span class="p">[</span><span class="n">ri</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">Angle_Scatter</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">temp_fits</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">/</span> <span class="mf">4.0</span>
+        <span class="p">)</span>  <span class="c1"># multiply by 2 to get [0, 2pi] range</span>
+    <span class="k">return</span> <span class="n">E_err</span><span class="p">,</span> <span class="n">PA_err</span>
+
+
+<div class="viewcode-block" id="Isophote_Fit_FFT_Robust"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_Robust</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</span>
+
+<span class="sd">    The isophotal fitting routine simultaneously optimizes a</span>
+<span class="sd">    collection of elliptical isophotes by minimizing the 2nd FFT</span>
+<span class="sd">    coefficient power, regularized for robustness. A series of</span>
+<span class="sd">    isophotes are constructed which grow geometrically until they</span>
+<span class="sd">    begin to reach the background level.  Then the algorithm</span>
+<span class="sd">    iteratively updates the position angle and ellipticity of each</span>
+<span class="sd">    isophote individually for many rounds.  Each round updates every</span>
+<span class="sd">    isophote in a random order.  Each round cycles between three</span>
+<span class="sd">    options: optimizing position angle, ellipticity, or both.  To</span>
+<span class="sd">    optimize the parameters, 5 values (pa, ellip, or both) are</span>
+<span class="sd">    randomly sampled and the &quot;loss&quot; is computed.  The loss is a</span>
+<span class="sd">    combination of the relative amplitude of the second FFT</span>
+<span class="sd">    coefficient (compared to the median flux), and a regularization</span>
+<span class="sd">    term.  The regularization term penalizes adjacent isophotes for</span>
+<span class="sd">    having different position angle or ellipticity (using the l1</span>
+<span class="sd">    norm).  Thus, all the isophotes are coupled and tend to fit</span>
+<span class="sd">    smoothly varying isophotes.  When the optimization has completed</span>
+<span class="sd">    three rounds without any isophotes updating, the profile is</span>
+<span class="sd">    assumed to have converged.</span>
+
+<span class="sd">    An uncertainty for each ellipticity and position angle value is</span>
+<span class="sd">    determined by repeatedly re-optimizing each ellipse with slight</span>
+<span class="sd">    adjustments to it&#39;s semi-major axis length (+- 5%). The standard</span>
+<span class="sd">    deviation of the PA/ellipticity after repeated fitting gives the</span>
+<span class="sd">    uncertainty.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_scale : float, default 0.2</span>
+<span class="sd">      growth scale when fitting isophotes, not the same as</span>
+<span class="sd">      *ap_sample---scale*.</span>
+
+<span class="sd">    ap_fit_limit : float, default 2</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel</span>
+<span class="sd">      background noise level. Default is 2, smaller values will end</span>
+<span class="sd">      fitting further out in the galaxy image.</span>
+
+<span class="sd">    ap_regularize_scale : float, default 1</span>
+<span class="sd">      scale factor to apply to regularization coupling factor between</span>
+<span class="sd">      isophotes.  Default of 1, larger values make smoother fits,</span>
+<span class="sd">      smaller values give more chaotic fits.</span>
+
+<span class="sd">    ap_isofit_robustclip : float, default 0.15</span>
+<span class="sd">      quantile of flux values at which to clip when extracting values</span>
+<span class="sd">      along an isophote. Clipping outlier values (such as very bright</span>
+<span class="sd">      stars) while fitting isophotes allows for robust computation of</span>
+<span class="sd">      FFT coefficients along an isophote.</span>
+
+<span class="sd">    ap_isofit_losscoefs : tuple, default (2,)</span>
+<span class="sd">      Tuple of FFT coefficients to use in optimization</span>
+<span class="sd">      procedure. AutoProf will attemp to minimize the power in all</span>
+<span class="sd">      listed FFT coefficients. Must be a tuple, not a list.</span>
+
+<span class="sd">    ap_isofit_superellipse : bool, default False</span>
+<span class="sd">      If True, AutoProf will fit superellipses instead of regular</span>
+<span class="sd">      ellipses. A superellipse is typically used to represent</span>
+<span class="sd">      boxy/disky isophotes. The variable controlling the transition</span>
+<span class="sd">      from a rectangle to an ellipse to a four-armed-star like shape</span>
+<span class="sd">      is C. A value of C = 2 represents an ellipse and is the starting</span>
+<span class="sd">      point of the optimization.</span>
+
+<span class="sd">    ap_isofit_fitcoefs : tuple, default None</span>
+<span class="sd">      Tuple of FFT coefficients to use in fitting procedure. AutoProf</span>
+<span class="sd">      will attemp to fit ellipses with these Fourier mode</span>
+<span class="sd">      perturbations. Such perturbations allow for lopsided, boxy,</span>
+<span class="sd">      disky, and other types of isophotes beyond straightforward</span>
+<span class="sd">      ellipses. Must be a tuple, not a list. Note that AutoProf will</span>
+<span class="sd">      first fit ellipses, then turn on the Fourier mode perturbations,</span>
+<span class="sd">      thus the fitting time will always be longer.</span>
+
+<span class="sd">    ap_isofit_fitcoefs_FFTinit : bool, default False</span>
+<span class="sd">      If True, the coefficients for the Fourier modes fitted from</span>
+<span class="sd">      ap_isofit_fitcoefs will be initialized using an FFT</span>
+<span class="sd">      decomposition along fitted elliptical isophotes. This can</span>
+<span class="sd">      improve the fit result, though it is less stable and so users</span>
+<span class="sd">      should examine the results after fitting.</span>
+
+<span class="sd">    ap_isofit_perturbscale_ellip : float, default 0.03</span>
+<span class="sd">      Sampling scale for random adjustments to ellipticity made while</span>
+<span class="sd">      optimizing isophotes. Smaller values will converge faster, but</span>
+<span class="sd">      get stuck in local minima; larger values will escape local</span>
+<span class="sd">      minima, but takes longer to converge.</span>
+
+<span class="sd">    ap_isofit_perturbscale_pa : float, default 0.06</span>
+<span class="sd">      Sampling scale for random adjustments to position angle made</span>
+<span class="sd">      while optimizing isophotes. Smaller values will converge faster,</span>
+<span class="sd">      but get stuck in local minima; larger values will escape local</span>
+<span class="sd">      minima, but takes longer to converge.</span>
+
+<span class="sd">    ap_isofit_iterlimitmax : int, default 300</span>
+<span class="sd">      Maximum number of iterations (each iteration adjusts every</span>
+<span class="sd">      isophote once) before automatically stopping optimization. For</span>
+<span class="sd">      galaxies with lots of structure (ie detailed spiral arms) more</span>
+<span class="sd">      iterations may be needed to fully fit the light distribution,</span>
+<span class="sd">      but runtime will be longer.</span>
+
+<span class="sd">    ap_isofit_iterlimitmin : int, default 0</span>
+<span class="sd">      Minimum number of iterations before optimization is allowed to</span>
+<span class="sd">      stop.</span>
+
+<span class="sd">    ap_isofit_iterstopnochange : float, default 3</span>
+<span class="sd">      Number of iterations with no updates to parameters before</span>
+<span class="sd">      optimization procedure stops. Lower values will process galaxies</span>
+<span class="sd">      faster, but may still be stuck in local minima, higher values</span>
+<span class="sd">      are more likely to converge on the global minimum but can take a</span>
+<span class="sd">      long time to run. Fractional values are allowed though not</span>
+<span class="sd">      recomended.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">    - &#39;mask&#39; (optional)</span>
+<span class="sd">    - &#39;init ellip&#39;</span>
+<span class="sd">    - &#39;init pa&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+<span class="sd">         &#39;fit C&#39;: , # optional, superellipse scale parameter (ndarray)</span>
+<span class="sd">         &#39;fit Fmodes&#39;: , # optional, fitted Fourier mode indices (tuple)</span>
+<span class="sd">         &#39;fit Fmode A*&#39;: , # optional, fitted Fourier mode amplitudes, * for each index (ndarray)</span>
+<span class="sd">         &#39;fit Fmode Phi*&#39;: , # optional, fitted Fourier mode phases, * for each index (ndarray)</span>
+<span class="sd">         &#39;auxfile fitlimit&#39;: # optional, auxfile message (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_scale&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_scale&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+    <span class="c1"># subtract background from image during processing</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Determine sampling radii</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">shrink</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">shrink</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">sample_radii</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span>
+        <span class="k">while</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+                <span class="n">dat</span><span class="p">,</span>
+                <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">],</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]},</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                <span class="n">more</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+                <span class="o">&lt;</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_fit_limit&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_fit_limit&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">sample_radii</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">scale</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">shrink</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="n">shrink</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="n">shrink</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">ellip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">]</span>
+    <span class="n">pa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: sample radii: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)))</span>
+    <span class="c1"># Fit isophotes</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">perturb_scale</span> <span class="o">=</span> <span class="mf">0.03</span>
+    <span class="n">regularize_scale</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_regularize_scale&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_regularize_scale&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">1.0</span>
+    <span class="p">)</span>
+    <span class="n">robust_clip</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_robustclip&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_isofit_robustclip&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">0.15</span>
+    <span class="p">)</span>
+    <span class="n">N_perturb</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">fit_coefs</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_losscoefs&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_isofit_losscoefs&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="n">fit_params</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_fitcoefs&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_isofit_fitcoefs&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="n">fit_superellipse</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_superellipse&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_isofit_superellipse&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">ellip</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">pa</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="n">fit_params</span><span class="p">,</span>
+            <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">fit_superellipse</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;Am&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">fit_params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fit_params</span><span class="p">)),</span>
+            <span class="s2">&quot;Phim&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">fit_params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fit_params</span><span class="p">)),</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ellip</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">iterlimitmax</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_iterlimitmax&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_isofit_iterlimitmax&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="mi">1000</span>
+    <span class="p">)</span>
+    <span class="n">iterlimitmin</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_iterlimitmin&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_isofit_iterlimitmin&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">iterstopnochange</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_iterstopnochange&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ap_isofit_iterstopnochange&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="k">else</span> <span class="mi">3</span>
+    <span class="p">)</span>
+    <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">use_center</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">])</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)))</span>
+    <span class="n">param_cycle</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">base_params</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">fit_superellipse</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">iterlimitmax</span><span class="p">:</span>
+        <span class="c1"># Periodically include logging message</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: count: </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">count</span><span class="p">))</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
+        <span class="n">N_perturb</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">10</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">count</span><span class="p">)))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">I</span><span class="p">:</span>
+            <span class="n">perturbations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">perturbations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">parameters</span><span class="p">))</span>
+            <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_FFT_Robust_loss</span><span class="p">(</span>
+                <span class="n">dat</span><span class="p">,</span>
+                <span class="n">sample_radii</span><span class="p">,</span>
+                <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">i</span><span class="p">,</span>
+                <span class="n">use_center</span><span class="p">,</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+                <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
+                <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_perturb</span><span class="p">):</span>
+                <span class="n">perturbations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">parameters</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_x_to_eps</span><span class="p">(</span>
+                        <span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">])</span>
+                        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">perturb_scale</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">perturb_scale</span><span class="p">)</span>
+                    <span class="p">)</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">])</span>
+                        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">perturb_scale</span><span class="p">))</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">base_params</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])):</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">][</span>
+                        <span class="p">(</span><span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span><span class="p">)</span> <span class="o">-</span> <span class="n">base_params</span>
+                    <span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">perturb_scale</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">base_params</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])):</span>
+                    <span class="n">phim_index</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span><span class="p">)</span> <span class="o">-</span> <span class="n">base_params</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])</span>
+                    <span class="p">)</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">phim_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">phim_index</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+                            <span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">scale</span><span class="o">=</span><span class="mi">2</span>
+                            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                            <span class="o">*</span> <span class="n">perturb_scale</span>
+                            <span class="o">/</span> <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">phim_index</span><span class="p">],</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">phim_index</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                        <span class="s2">&quot;Unrecognized optimization parameter id: </span><span class="si">%i</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">count</span> <span class="o">%</span> <span class="n">param_cycle</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_FFT_Robust_loss</span><span class="p">(</span>
+                    <span class="n">dat</span><span class="p">,</span>
+                    <span class="n">sample_radii</span><span class="p">,</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">i</span><span class="p">,</span>
+                    <span class="n">use_center</span><span class="p">,</span>
+                    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                    <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+                    <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
+                    <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+                <span class="p">)</span>
+
+            <span class="n">best</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">perturbations</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">best</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parameters</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">perturbations</span><span class="p">[</span><span class="n">best</span><span class="p">])</span>
+                <span class="k">del</span> <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span>
+                <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count_nochange</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+                <span class="n">count_nochange</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">iterstopnochange</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="ow">or</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">iterlimitmin</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">param_cycle</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fit_superellipse</span>
+                <span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span> <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fit_superellipse</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Started C fitting at iteration </span><span class="si">%i</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">count</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">param_cycle</span> <span class="o">=</span> <span class="mi">3</span>
+                    <span class="n">iterstopnochange</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">iterstopnochange</span><span class="p">,</span> <span class="n">param_cycle</span><span class="p">)</span>
+                    <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">fit_coefs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">fit_coefs</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Started Fmode fitting at iteration </span><span class="si">%i</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">count</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">fit_superellipse</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Started C fitting at iteration </span><span class="si">%i</span><span class="s2">&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">count</span><span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="n">param_cycle</span> <span class="o">=</span> <span class="n">base_params</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])</span>
+                    <span class="n">iterstopnochange</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">iterstopnochange</span><span class="p">,</span> <span class="n">param_cycle</span><span class="p">)</span>
+                    <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">fit_coefs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fit_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">fit_coefs</span> <span class="o">=</span> <span class="n">fit_params</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="mi">2</span> <span class="ow">in</span> <span class="n">fit_coefs</span><span class="p">:</span>
+                            <span class="n">fit_coefs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">fit_coefs</span><span class="p">))))</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="ow">not</span> <span class="s2">&quot;ap_isofit_losscoefs&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="ow">or</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_losscoefs&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="p">):</span>
+                        <span class="n">fit_coefs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">fit_coefs</span><span class="p">))))</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="s2">&quot;ap_isofit_fitcoefs_FFTinit&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isofit_fitcoefs_FFTinit&quot;</span><span class="p">]</span>
+                    <span class="p">):</span>
+                        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">I</span><span class="p">:</span>
+                            <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+                                <span class="n">dat</span><span class="p">,</span>
+                                <span class="n">sample_radii</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span>
+                                <span class="n">parameters</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span>
+                                <span class="n">use_center</span><span class="p">,</span>
+                                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+                                <span class="n">interp_mask</span><span class="o">=</span><span class="kc">False</span> <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">True</span><span class="p">,</span>
+                                <span class="n">interp_method</span><span class="o">=</span><span class="s2">&quot;bicubic&quot;</span><span class="p">,</span>
+                            <span class="p">)</span>
+
+                            <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span>
+                                    <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                                        <span class="n">isovals</span><span class="p">,</span>
+                                        <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">),</span>
+                                        <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                    <span class="p">)</span>
+                                <span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span>
+                                    <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                                        <span class="n">isovals</span><span class="p">,</span>
+                                        <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span>
+                                        <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                    <span class="p">)</span>
+                                <span class="p">)</span>
+                            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">])):</span>
+                                <span class="n">parameters</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                                    <span class="n">coefs</span><span class="p">[</span><span class="n">parameters</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]]</span> <span class="o">/</span> <span class="n">coefs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                                <span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">parameters</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]]))</span>
+                                <span class="n">parameters</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span>
+                                    <span class="n">coefs</span><span class="p">[</span><span class="n">parameters</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="s2">&quot;m&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]]</span>
+                                <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">count_nochange</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">iterstopnochange</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="ow">or</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">iterlimitmin</span>
+        <span class="p">):</span>
+            <span class="k">break</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Completed isohpote fit in </span><span class="si">%i</span><span class="s2"> itterations&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">count</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Compute errors</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">ellip_err</span><span class="p">,</span> <span class="n">pa_err</span> <span class="o">=</span> <span class="n">_FFT_Robust_Errors</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">,</span>
+        <span class="n">sample_radii</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">,</span>
+        <span class="n">use_center</span><span class="p">,</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+        <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span><span class="p">,</span>
+        <span class="n">robust_clip</span> <span class="o">=</span> <span class="n">robust_clip</span><span class="p">,</span>
+        <span class="n">fit_coefs</span><span class="o">=</span><span class="n">fit_coefs</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ellip</span><span class="p">)):</span>
+        <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;ellip err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ellip_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;pa err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pa_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="c1"># Plot fitting results</span>
+    <span class="c1">######################################################################</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">Plot_Isophote_Fit</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">sample_radii</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;fit ellip&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)))</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;fit pa&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)))),</span>
+        <span class="s2">&quot;fit R&quot;</span><span class="p">:</span> <span class="n">sample_radii</span><span class="p">,</span>
+        <span class="s2">&quot;fit ellip_err&quot;</span><span class="p">:</span> <span class="n">ellip_err</span><span class="p">,</span>
+        <span class="s2">&quot;fit pa_err&quot;</span><span class="p">:</span> <span class="n">pa_err</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile fitlimit&quot;</span><span class="p">:</span> <span class="s2">&quot;fit limit semi-major axis: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span> <span class="o">%</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fit_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;fit Fmodes&quot;</span><span class="p">:</span> <span class="n">fit_params</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fit_params</span><span class="p">)):</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;fit Fmode A</span><span class="si">%i</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">fit_params</span><span class="p">[</span><span class="n">m</span><span class="p">]:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                        <span class="nb">list</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Am&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)))</span>
+                    <span class="p">),</span>
+                    <span class="s2">&quot;fit Fmode Phi</span><span class="si">%i</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">fit_params</span><span class="p">[</span><span class="n">m</span><span class="p">]:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                        <span class="nb">list</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;Phim&quot;</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)))</span>
+                    <span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">fit_superellipse</span><span class="p">:</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;fit C&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="nb">list</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)))</span>
+                <span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="Isophote_Fit_Forced"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read previously fit PA/ellipticity profile.</span>
+
+<span class="sd">    Reads a .prof file and extracts the corresponding PA/ellipticity profile. The profile is extracted generically, so any csv file with columns for &#39;R&#39;, &#39;pa&#39;, &#39;ellip&#39;, and optionally &#39;pa_e&#39; and &#39;ellip_e&#39; will be able to create a forced fit. This can be used for testing purposes, such as selecting a specific isophote to extract or comparing AutoProf SB extraction methods with other softwares.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_forcing_profile : string, default None</span>
+<span class="sd">        File path to .prof file providing forced photometry PA and</span>
+<span class="sd">        ellip values to apply to *ap_image_file* (required for forced</span>
+<span class="sd">        photometry)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_forcing_profile&quot;</span><span class="p">],</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;#&quot;</span><span class="p">:</span>
+                <span class="n">readfrom</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="k">break</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">[</span><span class="n">readfrom</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
+        <span class="n">force</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">header</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">[</span><span class="n">readfrom</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:]:</span>
+            <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">),</span> <span class="n">header</span><span class="p">):</span>
+                <span class="n">force</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+
+    <span class="n">force</span><span class="p">[</span><span class="s2">&quot;pa&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;pa&quot;</span><span class="p">]),</span> <span class="n">deg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">])):</span>
+            <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;ellip&#39;</span><span class="p">:</span> <span class="n">force</span><span class="p">[</span><span class="s2">&quot;ellip&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="s1">&#39;pa&#39;</span><span class="p">:</span> <span class="n">force</span><span class="p">[</span><span class="s2">&quot;pa&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+        <span class="n">Plot_Isophote_Fit</span><span class="p">(</span>
+            <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">],</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">]),</span>
+            <span class="n">parameters</span><span class="p">,</span>
+            <span class="n">results</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;fit ellip&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;ellip&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;fit pa&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;pa&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">,</span>
+        <span class="s2">&quot;fit R&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">]),</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="s2">&quot;ellip_e&quot;</span> <span class="ow">in</span> <span class="n">force</span> <span class="ow">and</span> <span class="s2">&quot;pa_e&quot;</span> <span class="ow">in</span> <span class="n">force</span><span class="p">:</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit ellip_err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;ellip_e&quot;</span><span class="p">])</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;fit pa_err&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force</span><span class="p">[</span><span class="s2">&quot;pa_e&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<span class="c1">######################################################################</span>
+<span class="k">def</span> <span class="nf">_FFT_mean_loss</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">PA</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+    <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">,</span>
+        <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">PA</span><span class="p">[</span><span class="n">i</span><span class="p">]},</span>
+        <span class="n">C</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+        <span class="n">interp_mask</span><span class="o">=</span><span class="kc">False</span> <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">isovals</span><span class="p">)):</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to evaluate isophotal flux values, skipping this ellip/pa combination&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+
+    <span class="n">f2_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">+</span> <span class="n">noise</span><span class="p">))</span>
+
+    <span class="n">reg_loss</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Angle_TwoAngles_sin</span><span class="p">(</span><span class="n">PA</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">PA</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="n">reg_loss</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Angle_TwoAngles_sin</span><span class="p">(</span><span class="n">PA</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">PA</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">f2_loss</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">reg_loss</span> <span class="o">*</span> <span class="n">reg_scale</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Isophote_Fit_FFT_mean"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Fit_FFT_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit elliptical isophotes to a galaxy image using FFT coefficients and regularization.</span>
+
+<span class="sd">    Same as the standard isophote fitting routine, except uses less</span>
+<span class="sd">    robust mean/std measures. This is only intended for low S/N data</span>
+<span class="sd">    where pixels have low integer counts.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_scale : float, default 0.2</span>
+<span class="sd">      growth scale when fitting isophotes, not the same as</span>
+<span class="sd">      *ap_sample---scale*.</span>
+
+<span class="sd">    ap_fit_limit : float, default 2</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel</span>
+<span class="sd">      background noise level. Default is 2, smaller values will end</span>
+<span class="sd">      fitting further out in the galaxy image.</span>
+
+<span class="sd">    ap_regularize_scale : float, default 1</span>
+<span class="sd">      scale factor to apply to regularization coupling factor between</span>
+<span class="sd">      isophotes.  Default of 1, larger values make smoother fits,</span>
+<span class="sd">      smaller values give more chaotic fits.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;init ellip&#39;</span>
+<span class="sd">    - &#39;init pa&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;fit ellip&#39;: , # array of ellipticity values (ndarray)</span>
+<span class="sd">         &#39;fit pa&#39;: , # array of PA values (ndarray)</span>
+<span class="sd">         &#39;fit R&#39;: , # array of semi-major axis values (ndarray)</span>
+<span class="sd">         &#39;fit ellip_err&#39;: , # optional, array of ellipticity error values (ndarray)</span>
+<span class="sd">         &#39;fit pa_err&#39;: , # optional, array of PA error values (ndarray)</span>
+<span class="sd">         &#39;auxfile fitlimit&#39;: # optional, auxfile message (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_scale&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_scale&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+    <span class="c1"># subtract background from image during processing</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Determine sampling radii</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">shrink</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">shrink</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">sample_radii</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="k">while</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+                <span class="n">dat</span><span class="p">,</span>
+                <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">],</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]},</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                <span class="n">more</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+                <span class="o">&lt;</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_fit_limit&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_fit_limit&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">sample_radii</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">scale</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">shrink</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="n">shrink</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="n">shrink</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;Unable to initialize ellipse fit, check diagnostic plots. Possible missed center.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">ellip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">]</span>
+    <span class="n">pa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: sample radii: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)))</span>
+
+    <span class="c1"># Fit isophotes</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">perturb_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">])</span>
+    <span class="n">regularize_scale</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_regularize_scale&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_regularize_scale&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">1.0</span>
+    <span class="p">)</span>
+    <span class="n">N_perturb</span> <span class="o">=</span> <span class="mi">5</span>
+
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">use_center</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">])</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)))</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">300</span> <span class="ow">and</span> <span class="n">count_nochange</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)):</span>
+        <span class="c1"># Periodically include logging message</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: count: </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">count</span><span class="p">))</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">I</span><span class="p">:</span>
+            <span class="n">perturbations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">perturbations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="n">ellip</span><span class="p">),</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="n">pa</span><span class="p">)})</span>
+            <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_FFT_mean_loss</span><span class="p">(</span>
+                <span class="n">dat</span><span class="p">,</span>
+                <span class="n">sample_radii</span><span class="p">,</span>
+                <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">],</span>
+                <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">],</span>
+                <span class="n">i</span><span class="p">,</span>
+                <span class="n">use_center</span><span class="p">,</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+                <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_perturb</span><span class="p">):</span>
+                <span class="n">perturbations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="n">ellip</span><span class="p">),</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="n">pa</span><span class="p">)})</span>
+                <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="mi">3</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_x_to_eps</span><span class="p">(</span>
+                        <span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">perturb_scale</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="mi">3</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">perturb_scale</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="p">)</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_FFT_mean_loss</span><span class="p">(</span>
+                    <span class="n">dat</span><span class="p">,</span>
+                    <span class="n">sample_radii</span><span class="p">,</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">],</span>
+                    <span class="n">perturbations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">],</span>
+                    <span class="n">i</span><span class="p">,</span>
+                    <span class="n">use_center</span><span class="p">,</span>
+                    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                    <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+                    <span class="n">reg_scale</span><span class="o">=</span><span class="n">regularize_scale</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span>
+                <span class="p">)</span>
+
+            <span class="n">best</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">perturbations</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">best</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ellip</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">perturbations</span><span class="p">[</span><span class="n">best</span><span class="p">][</span><span class="s2">&quot;ellip&quot;</span><span class="p">])</span>
+                <span class="n">pa</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">perturbations</span><span class="p">[</span><span class="n">best</span><span class="p">][</span><span class="s2">&quot;pa&quot;</span><span class="p">])</span>
+                <span class="n">count_nochange</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count_nochange</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Completed isohpote fit in </span><span class="si">%i</span><span class="s2"> itterations&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">count</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># detect collapsed center</span>
+    <span class="c1">######################################################################</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="n">ellip</span><span class="p">[:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ellip</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">pa</span><span class="p">[:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pa</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Smooth ellip and pa profile</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">smooth_ellip</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span>
+    <span class="n">smooth_pa</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span>
+    <span class="n">ellip</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ellip</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">smooth_ellip</span> <span class="o">=</span> <span class="n">_ellip_smooth</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">,</span> <span class="n">smooth_ellip</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">smooth_pa</span> <span class="o">=</span> <span class="n">_pa_smooth</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">,</span> <span class="n">smooth_pa</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.2</span><span class="p">)),</span>
+                <span class="nb">min</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.2</span><span class="p">)),</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.2</span><span class="p">)),</span>
+                <span class="nb">min</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.2</span><span class="p">)),</span>
+            <span class="p">],</span>
+        <span class="p">]</span>
+        <span class="n">LSBImage</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],</span>
+        <span class="c1">#                    a_min = 0,a_max = None), origin = &#39;lower&#39;, cmap = &#39;Greys&#39;, norm = ImageNormalize(stretch=LogStretch()))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">)):</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span>
+                <span class="n">Ellipse</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="mi">2</span> <span class="o">*</span> <span class="n">sample_radii</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="mi">2</span> <span class="o">*</span> <span class="n">sample_radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">ellip</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                    <span class="n">pa</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+                    <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">linewidth</span><span class="o">=</span><span class="p">((</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_nologo&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_nologo&quot;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">fit_ellipse_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">,</span> <span class="n">ellip</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;ellip&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">,</span> <span class="n">pa</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;pa/$np.pi$&quot;</span><span class="p">)</span>
+        <span class="n">show_ellip</span> <span class="o">=</span> <span class="n">_ellip_smooth</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">,</span> <span class="n">ellip</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">show_pa</span> <span class="o">=</span> <span class="n">_pa_smooth</span><span class="p">(</span><span class="n">sample_radii</span><span class="p">,</span> <span class="n">pa</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">sample_radii</span><span class="p">,</span>
+            <span class="n">show_ellip</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;smooth ellip&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">sample_radii</span><span class="p">,</span>
+            <span class="n">show_pa</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;purple&quot;</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;smooth pa/$np.pi$&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># plt.xscale(&#39;log&#39;)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_nologo&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_nologo&quot;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">phaseprofile_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># Compute errors</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">ellip_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ellip</span><span class="p">))</span>
+    <span class="n">ellip_err</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">ellip</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">-</span> <span class="n">smooth_ellip</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">ellip_err</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">ellip</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">-</span> <span class="n">smooth_ellip</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">pa_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pa</span><span class="p">))</span>
+    <span class="n">pa_err</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">pa</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">-</span> <span class="n">smooth_pa</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">pa_err</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">pa</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">-</span> <span class="n">smooth_pa</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">ellip_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">ellip</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">smooth_ellip</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span>
+        <span class="p">)</span>
+        <span class="n">pa_err</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">pa</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">smooth_pa</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span>
+        <span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;fit ellip&quot;</span><span class="p">:</span> <span class="n">ellip</span><span class="p">,</span>
+        <span class="s2">&quot;fit pa&quot;</span><span class="p">:</span> <span class="n">pa</span><span class="p">,</span>
+        <span class="s2">&quot;fit R&quot;</span><span class="p">:</span> <span class="n">sample_radii</span><span class="p">,</span>
+        <span class="s2">&quot;fit ellip_err&quot;</span><span class="p">:</span> <span class="n">ellip_err</span><span class="p">,</span>
+        <span class="s2">&quot;fit pa_err&quot;</span><span class="p">:</span> <span class="n">pa_err</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile fitlimit&quot;</span><span class="p">:</span> <span class="s2">&quot;fit limit semi-major axis: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span> <span class="o">%</span> <span class="n">sample_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">res</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprof.Pipeline &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoprof.html">autoprof package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../autoprof.html">autoprof</a></li>
+      <li class="breadcrumb-item active">autoprof.Pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autoprof.Pipeline</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">.pipeline_steps</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="c1"># from .pipeline_steps.Plotting_Steps import Plot_Galaxy_Image</span>
+<span class="c1"># from .pipeline_steps.Background import Background_Mode, Background_DilatedSources, Background_Unsharp, Background_Basic</span>
+<span class="c1"># from .pipeline_steps.PSF import PSF_IRAF, PSF_StarFind, PSF_Image, PSF_deconvolve</span>
+<span class="c1"># from .pipeline_steps.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean</span>
+<span class="c1"># from .pipeline_steps.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced</span>
+<span class="c1"># from .pipeline_steps.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean, Isophote_Fit_FixedPhase</span>
+<span class="c1"># from .pipeline_steps.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask, Star_Mask</span>
+<span class="c1"># from .pipeline_steps.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced, Isophote_Extract_Photutils</span>
+<span class="c1"># from .pipeline_steps.Check_Fit import Check_Fit</span>
+<span class="c1"># from .pipeline_steps.Write_Prof import WriteProf</span>
+<span class="c1"># from .pipeline_steps.Write_Fi import WriteFi</span>
+<span class="c1"># from .pipeline_steps.Ellipse_Model import EllipseModel</span>
+<span class="c1"># from .pipeline_steps.Radial_Profiles import Radial_Profiles</span>
+<span class="c1"># from .pipeline_steps.Axial_Profiles import Axial_Profiles</span>
+<span class="c1"># from .pipeline_steps.Slice_Profiles import Slice_Profile</span>
+<span class="kn">from</span> <span class="nn">.autoprofutils.ImageTransform</span> <span class="kn">import</span> <span class="n">Crop</span>
+<span class="kn">from</span> <span class="nn">.autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">GetOptions</span><span class="p">,</span> <span class="n">Read_Image</span><span class="p">,</span> <span class="n">PA_shift_convention</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span><span class="p">,</span> <span class="n">current_process</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">starmap</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">sleep</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">astropy.io.fits.verify</span> <span class="kn">import</span> <span class="n">VerifyWarning</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">VerifyWarning</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Isophote_Pipeline"><a class="viewcode-back" href="../../autoprof.html#autoprof.Pipeline.Isophote_Pipeline">[docs]</a><span class="k">class</span> <span class="nc">Isophote_Pipeline</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loggername</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize pipeline object, user can replace functions with their own if they want, otherwise defaults are used.</span>
+
+<span class="sd">        loggername: String to use for logging messages</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Functions avaiable by default for building the pipeline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_methods</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;background&#39;</span><span class="p">:</span> <span class="n">Background_Mode</span><span class="p">,</span>
+                                 <span class="s1">&#39;background dilatedsources&#39;</span><span class="p">:</span> <span class="n">Background_DilatedSources</span><span class="p">,</span>
+                                 <span class="s1">&#39;background unsharp&#39;</span><span class="p">:</span> <span class="n">Background_Unsharp</span><span class="p">,</span>
+                                 <span class="s1">&#39;background basic&#39;</span><span class="p">:</span> <span class="n">Background_Basic</span><span class="p">,</span>
+                                 <span class="s1">&#39;psf&#39;</span><span class="p">:</span> <span class="n">PSF_StarFind</span><span class="p">,</span>
+                                 <span class="s1">&#39;psf IRAF&#39;</span><span class="p">:</span> <span class="n">PSF_IRAF</span><span class="p">,</span>
+                                 <span class="s1">&#39;psf img&#39;</span><span class="p">:</span> <span class="n">PSF_Image</span><span class="p">,</span>
+                                 <span class="s1">&#39;psf deconvolve&#39;</span><span class="p">:</span> <span class="n">PSF_deconvolve</span><span class="p">,</span>
+                                 <span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="n">Center_HillClimb</span><span class="p">,</span>
+                                 <span class="s1">&#39;center mean&#39;</span><span class="p">:</span> <span class="n">Center_HillClimb_mean</span><span class="p">,</span>
+                                 <span class="s1">&#39;center forced&#39;</span><span class="p">:</span> <span class="n">Center_Forced</span><span class="p">,</span>
+                                 <span class="s1">&#39;center 2DGaussian&#39;</span><span class="p">:</span> <span class="n">Center_2DGaussian</span><span class="p">,</span>
+                                 <span class="s1">&#39;center 1DGaussian&#39;</span><span class="p">:</span> <span class="n">Center_1DGaussian</span><span class="p">,</span>
+                                 <span class="s1">&#39;center OfMass&#39;</span><span class="p">:</span> <span class="n">Center_OfMass</span><span class="p">,</span>
+                                 <span class="s1">&#39;crop&#39;</span><span class="p">:</span> <span class="n">Crop</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophoteinit&#39;</span><span class="p">:</span> <span class="n">Isophote_Initialize</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophoteinit forced&#39;</span><span class="p">:</span> <span class="n">Isophote_Init_Forced</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophoteinit mean&#39;</span><span class="p">:</span> <span class="n">Isophote_Initialize_mean</span><span class="p">,</span>
+                                 <span class="s1">&#39;plot image&#39;</span><span class="p">:</span> <span class="n">Plot_Galaxy_Image</span><span class="p">,</span>
+                                 <span class="s1">&#39;writefi&#39;</span><span class="p">:</span> <span class="n">WriteFi</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophotefit&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_FFT_Robust</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophotefit fixed&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_FixedPhase</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophotefit mean&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_FFT_mean</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophotefit forced&#39;</span><span class="p">:</span> <span class="n">Isophote_Fit_Forced</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophotefit photutils&#39;</span><span class="p">:</span> <span class="n">Photutils_Fit</span><span class="p">,</span>
+                                 <span class="s1">&#39;mask badpixels&#39;</span><span class="p">:</span> <span class="n">Bad_Pixel_Mask</span><span class="p">,</span>
+                                 <span class="s1">&#39;starmask&#39;</span><span class="p">:</span> <span class="n">Star_Mask</span><span class="p">,</span>
+                                 <span class="s1">&#39;starmask IRAF&#39;</span><span class="p">:</span> <span class="n">Star_Mask_IRAF</span><span class="p">,</span>
+                                 <span class="s1">&#39;mask segmentation map&#39;</span><span class="p">:</span> <span class="n">Mask_Segmentation_Map</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophoteextract&#39;</span><span class="p">:</span> <span class="n">Isophote_Extract</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophoteextract photutils&#39;</span><span class="p">:</span> <span class="n">Isophote_Extract_Photutils</span><span class="p">,</span>
+                                 <span class="s1">&#39;isophoteextract forced&#39;</span><span class="p">:</span> <span class="n">Isophote_Extract_Forced</span><span class="p">,</span>
+                                 <span class="s1">&#39;checkfit&#39;</span><span class="p">:</span> <span class="n">Check_Fit</span><span class="p">,</span>
+                                 <span class="s1">&#39;writeprof&#39;</span><span class="p">:</span> <span class="n">WriteProf</span><span class="p">,</span>
+                                 <span class="s1">&#39;ellipsemodel&#39;</span><span class="p">:</span> <span class="n">EllipseModel</span><span class="p">,</span>
+                                 <span class="s1">&#39;radialprofiles&#39;</span><span class="p">:</span> <span class="n">Radial_Profiles</span><span class="p">,</span>
+                                 <span class="s1">&#39;sliceprofile&#39;</span><span class="p">:</span> <span class="n">Slice_Profile</span><span class="p">,</span>
+                                 <span class="s1">&#39;axialprofiles&#39;</span><span class="p">:</span> <span class="n">Axial_Profiles</span><span class="p">}</span>
+        
+        <span class="c1"># Default pipeline analysis order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;head&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteinit&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;isophotefit&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteextract&#39;</span><span class="p">,</span> <span class="s1">&#39;checkfit&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">]}</span>
+        
+        <span class="c1"># Start the logger</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;AutoProf.log&#39;</span> <span class="k">if</span> <span class="n">loggername</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">loggername</span><span class="p">,</span> <span class="n">filemode</span> <span class="o">=</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Isophote_Pipeline.UpdatePipeline"><a class="viewcode-back" href="../../autoprof.html#autoprof.Pipeline.Isophote_Pipeline.UpdatePipeline">[docs]</a>    <span class="k">def</span> <span class="nf">UpdatePipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pipeline_methods</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">new_pipeline_steps</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        modify steps in the AutoProf pipeline.</span>
+
+<span class="sd">        new_pipeline_methods: update the dictionary of methods used by the pipeline. This can either add</span>
+<span class="sd">                                new methods or replace existing ones.</span>
+<span class="sd">        new_pipeline_steps: update the list of pipeline step strings. These strings refer to keys in</span>
+<span class="sd">                            pipeline_methods. It is posible to add/remove/rearrange steps here. Alternatively</span>
+<span class="sd">                            one can supply a dictionary with current pipeline steps as keys and new pipeline</span>
+<span class="sd">                            steps as values, the corresponding steps will be replaced.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">new_pipeline_methods</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;PIPELINE updating these pipeline methods: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_pipeline_methods</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_methods</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_pipeline_methods</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new_pipeline_steps</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;PIPELINE new steps: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_pipeline_steps</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">new_pipeline_steps</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="s1">&#39;head&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_pipeline_steps</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">new_pipeline_steps</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="s1">&#39;head&#39;</span> <span class="ow">in</span> <span class="n">new_pipeline_steps</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span> <span class="o">=</span> <span class="n">new_pipeline_steps</span></div>
+            
+<div class="viewcode-block" id="Isophote_Pipeline.Process_Image"><a class="viewcode-back" href="../../autoprof.html#autoprof.Pipeline.Isophote_Pipeline.Process_Image">[docs]</a>    <span class="k">def</span> <span class="nf">Process_Image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="p">{}):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function which runs the pipeline for a single image. Each sub-function of the pipeline is run</span>
+<span class="sd">        in order and the outputs are passed along. If multiple images are given, the pipeline is</span>
+<span class="sd">        excecuted on the first image and the isophotes are applied to the others.</span>
+
+<span class="sd">        returns list of times for each pipeline step if successful. else returns 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Remove any options with None value so they don&#39;t interfere with analysis logic</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        
+        <span class="c1"># Seed the random number generator in numpy so each thread gets unique random numbers</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span><span class="o">*</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">pid</span><span class="o">*</span><span class="p">(</span><span class="n">time</span><span class="p">()</span> <span class="o">%</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="o">**</span><span class="mi">15</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="c1"># use filename if no name is given</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;ap_name&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_image_file&#39;</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">base</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Read the primary image</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dat</span> <span class="o">=</span> <span class="n">Read_Image</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_image_file&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: could not read image </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_image_file&#39;</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="mi">1</span>
+            
+        <span class="c1"># Check that image data exists and is not corrupted</span>
+        <span class="k">if</span> <span class="n">dat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span><span class="o">-</span><span class="mi">10</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span><span class="o">-</span><span class="mi">10</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span><span class="o">+</span><span class="mi">10</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Large chunk of data missing, impossible to process image&#39;</span> <span class="o">%</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        
+        <span class="c1"># Track time to run analysis</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        
+        <span class="c1"># Run the Pipeline</span>
+        <span class="n">timers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;head&#39;</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">step</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">]):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> at: </span><span class="si">%.1f</span><span class="s1"> sec&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">step</span><span class="p">],</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> at: </span><span class="si">%.1f</span><span class="s1"> sec&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">step</span><span class="p">],</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+                <span class="k">if</span> <span class="s1">&#39;branch&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">step</span><span class="p">]:</span>
+                    <span class="n">decision</span><span class="p">,</span> <span class="n">newoptions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_methods</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">step</span><span class="p">]](</span><span class="n">dat</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+                    <span class="n">options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newoptions</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">decision</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                        <span class="n">key</span> <span class="o">=</span> <span class="n">decision</span>
+                        <span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">step_start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+                    <span class="n">dat</span><span class="p">,</span> <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_methods</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">step</span><span class="p">]](</span><span class="n">dat</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+                    <span class="n">timers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">step</span><span class="p">]]</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">step_start</span>
+                    <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: on step </span><span class="si">%s</span><span class="s1"> got error: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_steps</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">step</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: with full trace: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
+                <span class="k">return</span> <span class="mi">1</span>
+            
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Processing Complete! (at </span><span class="si">%.1f</span><span class="s1"> sec)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Processing Complete! (at </span><span class="si">%.1f</span><span class="s1"> sec)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">],</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">timers</span></div>
+    
+<div class="viewcode-block" id="Isophote_Pipeline.Process_List"><a class="viewcode-back" href="../../autoprof.html#autoprof.Pipeline.Isophote_Pipeline.Process_List">[docs]</a>    <span class="k">def</span> <span class="nf">Process_List</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper function to run &quot;Process_Image&quot; in parallel for many images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_image_file&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span>
+        
+        <span class="c1"># Format the inputs so that they can be zipped with the images files</span>
+        <span class="c1"># and passed to the Process_Image function.</span>
+        <span class="n">use_options</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_image_file&#39;</span><span class="p">])):</span>
+            <span class="n">tmp_options</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ap_new_pipeline_steps&#39;</span><span class="p">]:</span>
+                    <span class="n">tmp_options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tmp_options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">use_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_options</span><span class="p">)</span>
+        <span class="c1"># Track how long it takes to run the analysis</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        
+        <span class="c1"># Create a multiprocessing pool to parallelize image processing</span>
+        <span class="n">n_procs</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_n_procs&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;ap_n_procs&#39;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">n_procs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n_procs</span><span class="p">))</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Process_Image</span><span class="p">,</span> <span class="n">use_options</span><span class="p">,</span>
+                               <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">5</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_image_file&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">100</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Process_Image</span><span class="p">,</span> <span class="n">use_options</span><span class="p">))</span>
+            
+        <span class="c1"># Report completed processing, and track time used</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;All Images Finished Processing at </span><span class="si">%.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+        <span class="n">timers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">timers</span><span class="p">:</span>
+                    <span class="n">timers</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+=</span> <span class="n">r</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                    <span class="n">counts</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">timers</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                    <span class="n">counts</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">timers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;All images failed to process!&#39;</span><span class="p">)</span>
+            <span class="k">return</span> 
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">timers</span><span class="p">:</span>
+            <span class="n">timers</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">/=</span> <span class="n">counts</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> took </span><span class="si">%.3f</span><span class="s1"> seconds on average&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">timers</span><span class="p">[</span><span class="n">s</span><span class="p">]))</span>
+        
+        <span class="c1"># Return the success/fail indicators for every Process_Image excecution</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+        
+<div class="viewcode-block" id="Isophote_Pipeline.Process_ConfigFile"><a class="viewcode-back" href="../../autoprof.html#autoprof.Pipeline.Isophote_Pipeline.Process_ConfigFile">[docs]</a>    <span class="k">def</span> <span class="nf">Process_ConfigFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads in a configuration file and sets parameters for the pipeline. The configuration</span>
+<span class="sd">        file should have variables corresponding to the desired parameters to be set.</span>
+
+<span class="sd">        congig_file: string path to configuration file</span>
+
+<span class="sd">        returns: timing of each pipeline step if successful. Else returns 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Import the config file regardless of where it is from</span>
+        <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">config_file</span><span class="p">:</span>
+            <span class="n">startat</span> <span class="o">=</span> <span class="n">config_file</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">startat</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">config_file</span><span class="p">:</span>
+            <span class="n">use_config</span> <span class="o">=</span> <span class="n">config_file</span><span class="p">[</span><span class="n">startat</span><span class="p">:</span><span class="n">config_file</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">use_config</span> <span class="o">=</span> <span class="n">config_file</span><span class="p">[</span><span class="n">startat</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">config_file</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config_file</span><span class="p">[:</span><span class="n">config_file</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">use_config</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">use_config</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;forced&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">ap_process_mode</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">UpdatePipeline</span><span class="p">(</span><span class="n">new_pipeline_steps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;center forced&#39;</span><span class="p">,</span> <span class="s1">&#39;isophoteinit forced&#39;</span><span class="p">,</span>
+                                                      <span class="s1">&#39;isophoteextract forced&#39;</span><span class="p">,</span> <span class="s1">&#39;writeprof&#39;</span><span class="p">])</span>
+            
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">UpdatePipeline</span><span class="p">(</span><span class="n">new_pipeline_methods</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">ap_new_pipeline_methods</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">UpdatePipeline</span><span class="p">(</span><span class="n">new_pipeline_steps</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">ap_new_pipeline_steps</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+            
+        <span class="n">use_options</span> <span class="o">=</span> <span class="n">GetOptions</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">ap_process_mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="s1">&#39;forced image&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Process_Image</span><span class="p">(</span><span class="n">use_options</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span><span class="o">.</span><span class="n">ap_process_mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;image list&#39;</span><span class="p">,</span> <span class="s1">&#39;forced image list&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Process_List</span><span class="p">(</span><span class="n">use_options</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Unrecognized process_mode! Should be in: [image, image list, forced image, forced image list]&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span></div></div>
+        
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

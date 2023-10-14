@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Default AutoProf Pipeline &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="AutoProf Parameters" href="parameters.html" />
+    <link rel="prev" title="LICENSE" href="license.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Default AutoProf Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#standard-photometry">Standard Photometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forced-photometry">Forced Photometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-config-parameters">Main Config Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">autoprof</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Default AutoProf Pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/defaultpipeline.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="default-autoprof-pipeline">
+<h1>Default AutoProf Pipeline<a class="headerlink" href="#default-autoprof-pipeline" title="Permalink to this heading"></a></h1>
+<p>In the <a class="reference internal" href="getting_started.html"><span class="doc">Getting Started</span></a> section, we learned how to run AutoProf,
+now we will dive into what is actually happening. Here you will learn
+what is going on by default, and some of the ways that you can change
+the setting to suit your project.</p>
+<p>If your just looking for a config file to get you started, here it is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_process_mode</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span>
+
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="s2">&quot;&lt;path to your image file&gt;.fits&quot;</span>
+<span class="n">ap_name</span> <span class="o">=</span> <span class="s2">&quot;yourimagename&quot;</span>
+<span class="n">ap_pixscale</span> <span class="o">=</span> <span class="mf">0.262</span>
+<span class="n">ap_zeropoint</span> <span class="o">=</span> <span class="mf">22.5</span>
+<span class="n">ap_doplot</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">ap_isoclip</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Below are some details on what will actually happen when you run the code!</p>
+<section id="standard-photometry">
+<h2>Standard Photometry<a class="headerlink" href="#standard-photometry" title="Permalink to this heading"></a></h2>
+<p>The default photometry pipeline includes a minimalist set of pipeline
+steps to go from an image to an SB profile. In general, AutoProf
+attempts to make no assumptions about the size of the object in the
+image, although certain requirements are included for practical
+purposes. The main ones to keep in mind is that the galaxy should be
+roughly centered, there should be a border of sky around the galaxy
+(ie, it doesn’t go to the edge), and it should not be overlapping with
+a similarly size or larger object.</p>
+<p>Put plainly, the default AutoProf pipeline is as follows:</p>
+<ol class="arabic simple">
+<li><p>Background: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Mode" title="autoprof.pipeline_steps.Background.Background_Mode"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Mode()</span></code></a></p></li>
+<li><p>PSF: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_StarFind" title="autoprof.pipeline_steps.PSF.PSF_StarFind"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_StarFind()</span></code></a></p></li>
+<li><p>Center: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb" title="autoprof.pipeline_steps.Center.Center_HillClimb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a></p></li>
+<li><p>Initial Isophote: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize" title="autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Initialize()</span></code></a></p></li>
+<li><p>Fit Isophotes: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></p></li>
+<li><p>Extract SB Profile: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract" title="autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></p></li>
+<li><p>Check Fit: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Check_Fit.Check_Fit" title="autoprof.pipeline_steps.Check_Fit.Check_Fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">Check_Fit()</span></code></a></p></li>
+<li><p>Write the SB Profile: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Write_Prof.WriteProf" title="autoprof.pipeline_steps.Write_Prof.WriteProf"><code class="xref py py-func docutils literal notranslate"><span class="pre">WriteProf()</span></code></a></p></li>
+</ol>
+<p>each function above links to a detailed description of the method, and
+the parameters that it accepts.</p>
+<p>The reason a boarder is needed around the galaxy is because the
+<a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Mode" title="autoprof.pipeline_steps.Background.Background_Mode"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Mode()</span></code></a> method uses a 1/5th
+border around the image to estimate the average background level.  The
+galaxy needs to be roughly centered on the image because
+<a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb" title="autoprof.pipeline_steps.Center.Center_HillClimb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a> starts at the image
+center by default, you can change this and give it alternate starting
+coordinates if you like.  The galaxy should be non-overlapping with
+large sources because that would violate the assumptions in the
+<a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust" title="autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a> step and
+the <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract" title="autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a> step.</p>
+<p>The final output should be two files: a profile and an aux file. The
+profile (.prof) contains the SB profile and a number of other
+important parameters. These include the profile of ellipticity and
+position angle, but also some other useful calculations. The profile
+is extended by certain options, for example you can choose to add
+Fourier coefficients to the profile (typically used to examing b4/a4),
+or you can run steps like the
+<a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles" title="autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">Radial_Profiles()</span></code></a> which will add
+more columns. The aux file contains global information such as the
+time when the fit completed, the settings used, the global
+PA/ellipticity, and any other diagnostic messages added by the various
+pipeline steps.</p>
+</section>
+<section id="forced-photometry">
+<h2>Forced Photometry<a class="headerlink" href="#forced-photometry" title="Permalink to this heading"></a></h2>
+<p>Forced photometry allows a user to apply the solution from one image
+onto another image. The default forced photometry pipeline works as
+follows:</p>
+<ol class="arabic simple">
+<li><p>Background: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Mode" title="autoprof.pipeline_steps.Background.Background_Mode"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Mode()</span></code></a></p></li>
+<li><p>PSF: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_StarFind" title="autoprof.pipeline_steps.PSF.PSF_StarFind"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_StarFind()</span></code></a></p></li>
+<li><p>Center: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_Forced" title="autoprof.pipeline_steps.Center.Center_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_Forced()</span></code></a></p></li>
+<li><p>Initial Isophote: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Init_Forced" title="autoprof.pipeline_steps.Isophote_Initialize.Isophote_Init_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Init_Forced()</span></code></a></p></li>
+<li><p>Fit Isophotes: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_Forced" title="autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_Forced()</span></code></a></p></li>
+<li><p>Extract SB Profile: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced" title="autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></p></li>
+<li><p>Write the SB Profile: <a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Write_Prof.WriteProf" title="autoprof.pipeline_steps.Write_Prof.WriteProf"><code class="xref py py-func docutils literal notranslate"><span class="pre">WriteProf()</span></code></a></p></li>
+</ol>
+<p>each function above links to a detailed description of the method, and
+the parameters that it accepts.</p>
+<p>Note that some steps remain unchanged. THe background is still
+calculated as normal, this is because it is typical for the background
+to change from image-to-image and between bands, so there is little
+reason to expect that to remain constant. A similar argument applies
+for the PSF, between observing nights and bands, the PSF can be very
+different so it is re-calculated. By default the previously fit center
+is used, however if you would like a new center to be fit, you can
+swap out this step with the <code class="xref py py-func docutils literal notranslate"><span class="pre">standard</span> <span class="pre">centering</span></code> method; this is explained in
+<a class="reference internal" href="pipelinemanipulation.html"><span class="doc">AutoProf Pipeline Control</span></a>. The global isophote fit, and the full
+isophote fit are of course taken from the original fit, the pixel
+scale can vary between images and AutoProf will adjust
+accordingly. The isophote extraction has a forcing specific method
+which is near identical to the <code class="xref py py-func docutils literal notranslate"><span class="pre">standard</span> <span class="pre">extraction</span></code> method, except
+that it is set up to evaluate at exactly the same ellipse parameters
+as the original fit. There is no need for fit checks as no fitting has
+occured. Then the profile is written as usual.</p>
+</section>
+<section id="main-config-parameters">
+<h2>Main Config Parameters<a class="headerlink" href="#main-config-parameters" title="Permalink to this heading"></a></h2>
+<p>Below is a list of parameters which affect the pipeline at a global
+level. Method specific parameters are included in their documentation.</p>
+<p><strong>Required Parameters</strong></p>
+<dl class="simple">
+<dt>ap_pixscale</dt><dd><p>pixel scale in arcsec/pixel (float)</p>
+</dd>
+<dt>ap_image_file</dt><dd><p>path to fits file with image data (string)</p>
+</dd>
+<dt>ap_process_mode</dt><dd><p>analysis mode for AutoProf to run in (string)</p>
+</dd>
+<dt>ap_forcing_profile</dt><dd><p>(required for forced photometry) file path to .prof file providing
+forced photometry PA and ellip values to apply to <em>ap_image_file</em>
+(string)</p>
+</dd>
+</dl>
+<p><strong>High Level Parameters</strong></p>
+<dl class="simple">
+<dt>ap_saveto</dt><dd><p>path to directory where final profile should be saved. Default is
+the current directory. (string)</p>
+</dd>
+<dt>ap_name</dt><dd><p>name to use for the galaxy, this will be the name used in output
+files and in the log file. Default is taken from the filename of the
+fits image. (string)</p>
+</dd>
+<dt>ap_n_procs</dt><dd><p>number of processes to create when running in batch mode. Default
+is 1. (int)</p>
+</dd>
+<dt>ap_doplot</dt><dd><p>Generate diagnostic plots during processing. Default is
+False. (bool).</p>
+</dd>
+<dt>ap_plotpath</dt><dd><p>Path to file where diagnostic plots should be written, see also
+<em>ap_doplot</em>. Default is current directory. (string)</p>
+</dd>
+<dt>ap_plotdpi</dt><dd><p>sets dpi for plots (default 300). Can be used to reduce file size,
+or to increase detail in images (int)</p>
+</dd>
+<dt>ap_hdulelement</dt><dd><p>index for hdul of fits file where image exists. Default is 0. (int)</p>
+</dd>
+<dt>ap_new_pipeline_methods</dt><dd><p>Allows user to set methods for the AutoProf pipeline analysis. See
+<a class="reference internal" href="pipelinemanipulation.html"><span class="doc">AutoProf Pipeline Control</span></a> for more information (dict)</p>
+</dd>
+<dt>ap_new_pipeline_steps</dt><dd><p>Allows user to change the AutoProf analysis pipeline by adding,
+removing, or re-ordering steps. See <a class="reference internal" href="pipelinemanipulation.html"><span class="doc">AutoProf Pipeline Control</span></a> for
+more information (list)</p>
+</dd>
+<dt>ap_zeropoint</dt><dd><p>Photometric zero point, default is 22.5 (float)</p>
+</dd>
+<dt>ap_nologo</dt><dd><p>tells AutoProf not to put it’s logo on plots. Please only use this
+for figures that will be used in publications that don’t allow logos
+(bool)</p>
+</dd>
+</dl>
+<p>There is one argument that AutoProf can take in the command line,
+which is the name of the log file.  The log file stores information
+about everything that AutoProf is doing, this is useful for diagnostic
+purposes.  By default, AutoProf will name the log file <em>AutoProf.log</em>,
+if you wish to make it a different filename then add the filename when
+running AutoProf:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>autoprof<span class="w"> </span>config.py<span class="w"> </span>newlogfilename.log
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="license.html" class="btn btn-neutral float-left" title="LICENSE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parameters.html" class="btn btn-neutral float-right" title="AutoProf Parameters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

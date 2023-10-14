@@ -10,13 +10,14 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import os
 import sys
-os.environ['AUTOPROF'] = os.path.abspath('..')
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../autoprof/'))
+sys.path.append("/home/connor/Programming/AutoProf/autoprof")
+import autoprof
 import sphinx_rtd_theme
 #import autoprofutils
+
 
 # -- Project information -----------------------------------------------------
 
@@ -25,7 +26,7 @@ copyright = '2021, Connor Stone'
 author = 'Connor Stone'
 
 # The full version, including alpha/beta/rc tags
-release = '0.8'
+release = '1.0'
 
 master_doc = 'index'
 
@@ -37,8 +38,10 @@ master_doc = 'index'
 extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
+    "sphinx.ext.autosummary",
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

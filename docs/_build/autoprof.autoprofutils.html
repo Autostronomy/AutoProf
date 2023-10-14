@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprof.autoprofutils package &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="autoprof.pipeline_steps package" href="autoprof.pipeline_steps.html" />
+    <link rel="prev" title="autoprof package" href="autoprof.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoprof</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="autoprof.html">autoprof package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="autoprof.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">autoprof.autoprofutils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoprof.pipeline_steps.html">autoprof.pipeline_steps package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.html#module-autoprof.Pipeline">autoprof.Pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.html#module-autoprof.autoprof">autoprof.autoprof module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.html#module-autoprof">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Pipeline.html">Pipeline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoprofutils.html">autoprofutils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline_steps.html">pipeline_steps package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">autoprof</a></li>
+          <li class="breadcrumb-item"><a href="autoprof.html">autoprof package</a></li>
+      <li class="breadcrumb-item active">autoprof.autoprofutils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/autoprof.autoprofutils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="autoprof-autoprofutils-package">
+<h1>autoprof.autoprofutils package<a class="headerlink" href="#autoprof-autoprofutils-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-autoprof.autoprofutils.Diagnostic_Plots">
+<span id="autoprof-autoprofutils-diagnostic-plots-module"></span><h2>autoprof.autoprofutils.Diagnostic_Plots module<a class="headerlink" href="#module-autoprof.autoprofutils.Diagnostic_Plots" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Axial_Profiles">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Axial_Profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sbE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Axial_Profiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Axial_Profiles" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Background">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Background</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bkgrnd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Background"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Background" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_EllipseModel">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_EllipseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modeltype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_EllipseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_EllipseModel" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_I_Profile">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_I_Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_I_Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_I_Profile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Fit">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Isophote_Fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_radii</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Isophote_Fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Fit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Init_Ellipse">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Isophote_Init_Ellipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circ_ellipse_radii</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Isophote_Init_Ellipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Init_Ellipse" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Init_Optimize">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Isophote_Init_Optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circ_ellipse_radii</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allphase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pa_err</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_ellip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_f2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellip_err</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Isophote_Init_Optimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Init_Optimize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Meas_Fmodes">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Meas_Fmodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Meas_Fmodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Meas_Fmodes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_PSF_Stars">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_PSF_Stars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stars_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stars_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stars_fwhm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flagstars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_PSF_Stars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_PSF_Stars" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Phase_Profile">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Phase_Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Phase_Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Phase_Profile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_Radial_Profiles">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_Radial_Profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sbE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nwedges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wedgeangles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wedgewidth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_Radial_Profiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_Radial_Profiles" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.Diagnostic_Plots.Plot_SB_Profile">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.Diagnostic_Plots.</span></span><span class="sig-name descname"><span class="pre">Plot_SB_Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SB</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SB_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/Diagnostic_Plots.html#Plot_SB_Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.Diagnostic_Plots.Plot_SB_Profile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-autoprof.autoprofutils.ImageTransform">
+<span id="autoprof-autoprofutils-imagetransform-module"></span><h2>autoprof.autoprofutils.ImageTransform module<a class="headerlink" href="#module-autoprof.autoprofutils.ImageTransform" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.ImageTransform.Crop">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.ImageTransform.</span></span><span class="sig-name descname"><span class="pre">Crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/ImageTransform.html#Crop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.ImageTransform.Crop" title="Permalink to this definition"></a></dt>
+<dd><p>Crop the edges of an image about a center point.</p>
+<p>If a ‘Center’ method has been applied before in the pipeline we use that to
+define the galaxy center, otherwise we define the center as half the image.</p>
+<p>ap_cropto states the new size of the image after cropping.
+We default to 512*512.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.ImageTransform.Resolution">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.ImageTransform.</span></span><span class="sig-name descname"><span class="pre">Resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/ImageTransform.html#Resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.ImageTransform.Resolution" title="Permalink to this definition"></a></dt>
+<dd><p>Change the resolution of an image</p>
+<p>Can be used to resample an image at a new pixel scale. The new
+image can have finer sampling (smaller pixels) or coarser sampling
+(larger pixels) and this can be accomplished with a variety of
+methods. First, there are pooling methods which can only reduce
+the resolution, these methods take a certain block as defined by
+<em>ap_resolution_shape</em> and perform a mean, median, or max operation
+on those pixels. That value then becomes the pixel value for a
+downsampled image. Alternatively, one can use either bicubic or
+Lanczos interpolation, which can upsample or downsample the
+image. The parameter <em>ap_resolution_shape</em> is then the desired new
+shape of the image, which will be fit to represent the same area
+on the sky. To match the same area on the sky, each pixel is
+assumed to have a width of 1, thus representing a 1x1 square on
+the sky.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ap_resolution_method</strong> (<em>string</em><em>, </em><em>default 'lanczos'</em>) – Method which is used to perform resolution resampling. Options
+are: ‘max pool’, ‘mean pool’, ‘median pool’, ‘bicubic’, and
+‘lanczos’. Lanczos is very slow, but represents the best
+interpolation method according to information theory.</p></li>
+<li><p><strong>ap_resolution_shape</strong> (<em>tuple</em><em>, </em><em>default None</em>) – Shape used for resampling. For pooling methods, this represents
+the size of the pool/box in which a calcualtion is done. For
+other methods this is the size of the final desired image. This
+parameter is required.</p></li>
+<li><p><strong>ap_resolution_dtype</strong> (<em>object</em><em>, </em><em>default None</em>) – Optional parameter to set a new dtype for the image after
+resampling. This can be used to reduce precision if it is
+unnecessary, limiting the size of the final image if it is very
+finely resampled.</p></li>
+<li><p><strong>ap_iso_interpolate_window</strong> (<em>int</em><em>, </em><em>default 5</em>) – Only used by Lanczos interpolation, this will set the area of
+pixels used to calculate the Lanczos interpolated values. Larger
+values are more accurate, but require quadratically more
+computation time.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The inputted pixel scale will be incorrect after this operation if
+it is set for the original image.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul>
+<li><p><strong>IMG</strong> (<em>ndarray</em>) – Resampled galaxy image according to user specified sampling
+method.</p></li>
+<li><p><strong>results</strong> (<em>dict</em>) –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-autoprof.autoprofutils.SharedFunctions">
+<span id="autoprof-autoprofutils-sharedfunctions-module"></span><h2>autoprof.autoprofutils.SharedFunctions module<a class="headerlink" href="#module-autoprof.autoprofutils.SharedFunctions" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.AddLogo">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">AddLogo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.8,</span> <span class="pre">0.01,</span> <span class="pre">0.1688,</span> <span class="pre">0.037]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">white</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#AddLogo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.AddLogo" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.AddScale">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">AddScale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">right'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#AddScale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.AddScale" title="Permalink to this definition"></a></dt>
+<dd><p>ax: figure axis object
+img_width: image width in arcseconds
+loc: location to put hte scale bar</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Angle_Average">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_Average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Angle_Average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Angle_Average" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the average for a list of angles, which may wrap around a cyclic boundary.</p>
+<p>a: list of angles in the range [0,2pi]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Angle_Median">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_Median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Angle_Median"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Angle_Median" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the median for a list of angles, which may wrap around a cyclic boundary.</p>
+<p>a: list of angles in the range [0,2pi]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Angle_Scatter">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_Scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Angle_Scatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Angle_Scatter" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the scatter for a list of angles, which may wrap around a cyclic boundary.</p>
+<p>a: list of angles in the range [0,2pi]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Angle_TwoAngles_cos">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_TwoAngles_cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Angle_TwoAngles_cos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Angle_TwoAngles_cos" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the angle between two vectors at angles a1 and a2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Angle_TwoAngles_sin">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Angle_TwoAngles_sin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Angle_TwoAngles_sin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Angle_TwoAngles_sin" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the angle between two vectors at angles a1 and a2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Fmode_Areas">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Fmode_Areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Fmode_Areas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Fmode_Areas" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Fmode_fluxdens_to_fluxsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Fmode_fluxdens_to_fluxsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum" title="Permalink to this definition"></a></dt>
+<dd><p>Integrate a flux density profile, with isophotes including Fourier perturbations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>arcsec</em>) – semi-major axis length</p></li>
+<li><p><strong>I</strong> (<em>flux/arcsec^2</em>) – flux density</p></li>
+<li><p><strong>parameters</strong> (<em>list</em><em> of </em><em>dictionaries</em>) – <p>list of dictionary of isophote shape parameters for each radius.
+formatted as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;ellip&#39;</span><span class="p">:</span> <span class="n">ellipticity</span><span class="p">,</span>
+ <span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">modes</span> <span class="n">used</span><span class="p">,</span>
+ <span class="s1">&#39;Am&#39;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">mode</span> <span class="n">powers</span><span class="p">,</span>
+ <span class="s1">&#39;Phim&#39;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">mode</span> <span class="n">phases</span>
+</pre></div>
+</div>
+<p>}</p>
+<p>entries for each radius.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum_errorprop">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Fmode_fluxdens_to_fluxsum_errorprop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Fmode_fluxdens_to_fluxsum_errorprop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum_errorprop" title="Permalink to this definition"></a></dt>
+<dd><p>Integrate a flux density profile, with isophotes including Fourier perturbations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>arcsec</em>) – semi-major axis length</p></li>
+<li><p><strong>I</strong> (<em>flux/arcsec^2</em>) – flux density</p></li>
+<li><p><strong>parameters</strong> (<em>list</em><em> of </em><em>dictionaries</em>) – <p>list of dictionary of isophote shape parameters for each radius.
+formatted as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;ellip&#39;</span><span class="p">:</span> <span class="n">ellipticity</span><span class="p">,</span>
+ <span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">modes</span> <span class="n">used</span><span class="p">,</span>
+ <span class="s1">&#39;Am&#39;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">mode</span> <span class="n">powers</span><span class="p">,</span>
+ <span class="s1">&#39;Phim&#39;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">mode</span> <span class="n">phases</span>
+</pre></div>
+</div>
+<p>}</p>
+<p>entries for each radius.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.GetOptions">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">GetOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#GetOptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.GetOptions" title="Permalink to this definition"></a></dt>
+<dd><p>Extract all of the AutoProf user optionional parameters form the config file.
+User options are identified as any python object that starts with “ap_” in the
+variable name.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.ISB_to_muSB">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">ISB_to_muSB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#ISB_to_muSB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.ISB_to_muSB" title="Permalink to this definition"></a></dt>
+<dd><p>Converts surface brightness in Lsolar pc^-2 into mag arcsec^-2</p>
+<p>I: surface brightness, (L/Lsun) pc^-2
+band: Photometric band in which measurements were taken
+returns: surface brightness in mag arcsec^-2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.LSBImage">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">LSBImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#LSBImage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.LSBImage" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.L_to_mag">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">L_to_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Le</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#L_to_mag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.L_to_mag" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the Absolute magnitude of a star given its luminosity and distance
+L: Luminosity in solar luminosities
+band: Photometric band in which measurements were taken
+Le: Uncertainty in luminosity
+zeropoint: user defined zero point</p>
+<p>returns: Absolute magnitude</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.PA_shift_convention">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">PA_shift_convention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#PA_shift_convention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.PA_shift_convention" title="Permalink to this definition"></a></dt>
+<dd><p>Alternates between standard mathematical convention for angles, and astronomical position angle convention.
+The standard convention is to measure angles counter-clockwise relative to the positive x-axis
+The astronomical convention is to measure angles counter-clockwise relative to the positive y-axis</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Read_Image">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Read_Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Read_Image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Read_Image" title="Permalink to this definition"></a></dt>
+<dd><p>Reads a galaxy image given a file name. In a fits image the data is assumed to exist in the
+primary HDU unless given ‘hdulelement’. In a numpy file, it is assumed that only one image
+is in the file.</p>
+<p>filename: A string containing the full path to an image file</p>
+<p>returns: Extracted image data as numpy 2D array</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Rotate_Cartesian">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Rotate_Cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Rotate_Cartesian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Rotate_Cartesian" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Rscale_Fmodes">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Rscale_Fmodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Am</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Rscale_Fmodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Rscale_Fmodes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Rscale_SuperEllipse">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Rscale_SuperEllipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Rscale_SuperEllipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Rscale_SuperEllipse" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.SBprof_to_COG">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">SBprof_to_COG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SB</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#SBprof_to_COG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.SBprof_to_COG" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a surface brightness profile to a curve of growth by integrating
+the SB profile in flux units then converting back to mag units. Two methods
+are implemented, one using the trapezoid method and one assuming constant
+SB between isophotes. Trapezoid method is in principle more accurate, but
+may become unstable with erratic data.</p>
+<p>R: Radius in arcsec
+SB: surface brightness in mag arcsec^-2
+axisratio: b/a indicating degree of isophote ellipticity
+method: 0 for trapezoid, 1 for constant</p>
+<p>returns: magnitude values at each radius of the profile in mag</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.SBprof_to_COG_errorprop">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">SBprof_to_COG_errorprop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SB</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SBE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#SBprof_to_COG_errorprop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.SBprof_to_COG_errorprop" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a surface brightness profile to a curve of growth by integrating
+the SB profile in flux units then converting back to mag units. Two methods
+are implemented, one using the trapezoid method and one assuming constant
+SB between isophotes. Trapezoid method is in principle more accurate, but
+may become unstable with erratic data. An uncertainty profile is also
+computed, from a given SB uncertainty profile and optional axisratio
+uncertainty profile.</p>
+<p>R: Radius in arcsec
+SB: surface brightness in mag arcsec^-2
+SBE: surface brightness uncertainty relative mag arcsec^-2
+axisratio: b/a indicating degree of isophote ellipticity
+axisratioE: uncertainty in b/a
+N: number of iterations for computing uncertainty
+method: 0 for trapezoid, 1 for constant</p>
+<p>returns: magnitude and uncertainty profile in mag</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Sigma_Clip_Upper">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Sigma_Clip_Upper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Sigma_Clip_Upper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Sigma_Clip_Upper" title="Permalink to this definition"></a></dt>
+<dd><p>Perform sigma clipping on the “v” array. Each iteration involves
+computing the median and 16-84 range, these are used to clip beyond
+“nsigma” number of sigma above the median. This is repeated for
+“iterations” number of iterations, or until convergence if None.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.Smooth_Mode">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">Smooth_Mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#Smooth_Mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.Smooth_Mode" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.StarFind">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">StarFind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IMG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhm_guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background_noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peakmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minsep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reject_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxstars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#StarFind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.StarFind" title="Permalink to this definition"></a></dt>
+<dd><p>Find stars in an image, determine their fwhm and peak flux values.</p>
+<p>IMG: image data as numpy 2D array
+fwhm_guess: A guess at the PSF fwhm, can be within a factor of 2 and everything should work
+background_noise: image background flux noise
+mask: masked pixels as numpy 2D array with same dimensions as IMG
+peakmax: maximum allowed peak flux value for a star, used to remove saturated pixels
+detect_threshold: threshold (in units of sigma) value for convolved image to consider a pixel as a star candidate.
+minsep: minimum allowed separation between stars, in units of fwhm_guess
+reject_size: reject stars with fitted FWHM greater than this times the fwhm_guess
+maxstars: stop once this number of stars have been found, this is for speed purposes</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.abs_mag_to_app_mag">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">abs_mag_to_app_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Me</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#abs_mag_to_app_mag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.abs_mag_to_app_mag" title="Permalink to this definition"></a></dt>
+<dd><p>Converts an absolute magnitude to an apparent magnitude
+M: Absolute magnitude at 10 parcecs
+D: Distance to object in parsecs
+returns: Apparent magnitude</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.app_mag_to_abs_mag">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">app_mag_to_abs_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">me</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#app_mag_to_abs_mag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.app_mag_to_abs_mag" title="Permalink to this definition"></a></dt>
+<dd><p>Converts an apparent magnitude to an absolute magnitude
+m: Apparent magnitude
+D: Distance to object in parsecs
+returns: Absolute magnitude at 10 parcecs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.arcsec_to_pc">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">arcsec_to_pc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thetae</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#arcsec_to_pc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.arcsec_to_pc" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a size in arcseconds to parsec</p>
+<p>theta: angle in arcsec
+D: distance in pc</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.flux_to_mag">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">flux_to_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluxe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#flux_to_mag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.flux_to_mag" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.flux_to_sb">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">flux_to_sb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#flux_to_sb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.flux_to_sb" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.fluxdens_to_fluxsum">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">fluxdens_to_fluxsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#fluxdens_to_fluxsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.fluxdens_to_fluxsum" title="Permalink to this definition"></a></dt>
+<dd><p>Integrate a flux density profile</p>
+<p>R: semi-major axis length (arcsec)
+I: flux density (flux/arcsec^2)
+axisratio: b/a profile</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.fluxdens_to_fluxsum_errorprop">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">fluxdens_to_fluxsum_errorprop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisratioE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#fluxdens_to_fluxsum_errorprop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.fluxdens_to_fluxsum_errorprop" title="Permalink to this definition"></a></dt>
+<dd><p>Integrate a flux density profile</p>
+<p>R: semi-major axis length (arcsec)
+I: flux density (flux/arcsec^2)
+axisratio: b/a profile</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.halfmag">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">halfmag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#halfmag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.halfmag" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the magnitude corresponding to half in log space.
+Effectively, converts to luminosity, divides by 2, then
+converts back to magnitude. Distance is not needed as it
+cancels out. Here is a basic walk through:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_1</span> <span class="o">-</span> <span class="n">m_ref</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="n">I_1</span><span class="o">/</span><span class="n">I_ref</span><span class="p">)</span>
+<span class="n">m_2</span> <span class="o">-</span> <span class="n">m_ref</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="n">I_1</span><span class="o">/</span><span class="mi">2</span><span class="n">I_ref</span><span class="p">)</span>
+            <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="n">I_1</span><span class="o">/</span><span class="n">I_ref</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">m_2</span> <span class="o">=</span> <span class="n">m_1</span> <span class="o">+</span> <span class="mf">2.5</span><span class="n">log10</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.interpolate_Lanczos">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">interpolate_Lanczos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#interpolate_Lanczos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.interpolate_Lanczos" title="Permalink to this definition"></a></dt>
+<dd><p>Perform Lanczos interpolation on an image.
+<a class="reference external" href="https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html">https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.interpolate_bicubic">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">interpolate_bicubic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#interpolate_bicubic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.interpolate_bicubic" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.mag_to_L">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">mag_to_L</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#mag_to_L"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.mag_to_L" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the luminosity (in solar luminosities) given the absolute magnitude and reference point.
+mag: Absolute magnitude
+band: Photometric band in which measurements were taken
+mage: uncertainty in absolute magnitude
+zeropoint: user defined zero point
+returns: Luminosity in solar luminosities</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.mag_to_flux">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">mag_to_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#mag_to_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.mag_to_flux" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.mag_to_magperarcsec2">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">mag_to_magperarcsec2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#mag_to_magperarcsec2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.mag_to_magperarcsec2" title="Permalink to this definition"></a></dt>
+<dd><p>Converts mag to mag/arcsec^2
+m: mag
+a: semi major axis radius (arcsec)
+b: semi minor axis radius (arcsec)
+A: pre-calculated area (arcsec^2)
+returns: mag/arcsec^2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.magperarcsec2_to_mag">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">magperarcsec2_to_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#magperarcsec2_to_mag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.magperarcsec2_to_mag" title="Permalink to this definition"></a></dt>
+<dd><p>Converts mag/arcsec^2 to mag
+mu: mag/arcsec^2
+a: semi major axis radius (arcsec)
+b: semi minor axis radius (arcsec)
+A: pre-calculated area (arcsec^2)
+returns: mag</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.muSB_to_ISB">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">muSB_to_ISB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#muSB_to_ISB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.muSB_to_ISB" title="Permalink to this definition"></a></dt>
+<dd><p>Converts surface brightness in mag arcsec^-2 into Lsolar pc^-2</p>
+<p>mu: surface brightness, mag arcsec^-2
+band: Photometric band in which measurements were taken
+returns: surface brightness in (L/Lsun) pc^-2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.parametric_Fmodes">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">parametric_Fmodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Am</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Phim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#parametric_Fmodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.parametric_Fmodes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.parametric_SuperEllipse">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">parametric_SuperEllipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#parametric_SuperEllipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.parametric_SuperEllipse" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.pc_to_arcsec">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">pc_to_arcsec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Re</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">De</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#pc_to_arcsec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.pc_to_arcsec" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a size in parsec to arcseconds</p>
+<p>R: length in pc
+D: distance in pc</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.autoprofutils.SharedFunctions.sb_to_flux">
+<span class="sig-prename descclassname"><span class="pre">autoprof.autoprofutils.SharedFunctions.</span></span><span class="sig-name descname"><span class="pre">sb_to_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeropoint</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/autoprofutils/SharedFunctions.html#sb_to_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.autoprofutils.SharedFunctions.sb_to_flux" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-autoprof.autoprofutils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autoprof.autoprofutils" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="autoprof.html" class="btn btn-neutral float-left" title="autoprof package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autoprof.pipeline_steps.html" class="btn btn-neutral float-right" title="autoprof.pipeline_steps package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

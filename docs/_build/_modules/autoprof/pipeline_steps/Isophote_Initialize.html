@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprof.pipeline_steps.Isophote_Initialize &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoprof.html">autoprof package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../autoprof.html">autoprof</a></li>
+      <li class="breadcrumb-item active">autoprof.pipeline_steps.Isophote_Initialize</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autoprof.pipeline_steps.Isophote_Initialize</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">idct</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">iqr</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">..autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_iso_extract</span><span class="p">,</span>
+    <span class="n">_x_to_eps</span><span class="p">,</span>
+    <span class="n">_x_to_pa</span><span class="p">,</span>
+    <span class="n">_inv_x_to_pa</span><span class="p">,</span>
+    <span class="n">_inv_x_to_eps</span><span class="p">,</span>
+    <span class="n">LSBImage</span><span class="p">,</span>
+    <span class="n">Angle_Average</span><span class="p">,</span>
+    <span class="n">Angle_Median</span><span class="p">,</span>
+    <span class="n">AddLogo</span><span class="p">,</span>
+    <span class="n">PA_shift_convention</span><span class="p">,</span>
+    <span class="n">Sigma_Clip_Upper</span><span class="p">,</span>
+    <span class="n">autocolours</span><span class="p">,</span>
+    <span class="n">Smooth_Mode</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..autoprofutils.Diagnostic_Plots</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Plot_Isophote_Init_Ellipse</span><span class="p">,</span>
+    <span class="n">Plot_Isophote_Init_Optimize</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Ellipse</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Isophote_Init_Forced&quot;</span><span class="p">,</span> <span class="s2">&quot;Isophote_Initialize&quot;</span><span class="p">,</span> <span class="s2">&quot;Isophote_Initialize_mean&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Isophote_Init_Forced"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Init_Forced">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Init_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read global elliptical isophote to a galaxy from an aux file.</span>
+
+<span class="sd">    Extracts global ellipse parameters from the corresponding aux file for a given .prof file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_forcing_profile : string, default None</span>
+<span class="sd">      File path to .prof file providing forced photometry PA and</span>
+<span class="sd">      ellip values to apply to *ap_image_file* (required for forced</span>
+<span class="sd">      photometry)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;init ellip&#39;: , # Ellipticity of the global fit (float)</span>
+<span class="sd">         &#39;init pa&#39;: ,# Position angle of the global fit (float)</span>
+<span class="sd">         &#39;init R&#39;: ,# Semi-major axis length of global fit (float)</span>
+<span class="sd">         &#39;auxfile initialize&#39;: # optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_forcing_profile&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;aux&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;global ellipticity&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">ellip</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;+-&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">ellip_err</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;+-&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">pa</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">PA_shift_convention</span><span class="p">(</span>
+                        <span class="nb">float</span><span class="p">(</span>
+                            <span class="n">line</span><span class="p">[</span>
+                                <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;pa:&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;+-&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;pa:&quot;</span><span class="p">))</span>
+                            <span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                        <span class="p">),</span>
+                        <span class="n">deg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                    <span class="o">/</span> <span class="mi">180</span>
+                <span class="p">)</span>
+                <span class="n">pa_err</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span>
+                        <span class="n">line</span><span class="p">[</span>
+                            <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;+-&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;pa:&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+                        <span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                    <span class="o">/</span> <span class="mi">180</span>
+                <span class="p">)</span>
+                <span class="n">R</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                    <span class="n">line</span><span class="p">[</span>
+                        <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;size:&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">5</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;pix&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;size:&quot;</span><span class="p">))</span>
+                    <span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="k">break</span>
+
+    <span class="n">auxmessage</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;global ellipticity: </span><span class="si">%.3f</span><span class="s2"> +- </span><span class="si">%.3f</span><span class="s2">, pa: </span><span class="si">%.3f</span><span class="s2"> +- </span><span class="si">%.3f</span><span class="s2"> deg, size: </span><span class="si">%f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">ellip</span><span class="p">,</span>
+            <span class="n">ellip_err</span><span class="p">,</span>
+            <span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">pa_err</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">R</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;init ellip&quot;</span><span class="p">:</span> <span class="n">ellip</span><span class="p">,</span>
+        <span class="s2">&quot;init ellip_err&quot;</span><span class="p">:</span> <span class="n">ellip_err</span><span class="p">,</span>
+        <span class="s2">&quot;init pa&quot;</span><span class="p">:</span> <span class="n">pa</span><span class="p">,</span>
+        <span class="s2">&quot;init pa_err&quot;</span><span class="p">:</span> <span class="n">pa_err</span><span class="p">,</span>
+        <span class="s2">&quot;init R&quot;</span><span class="p">:</span> <span class="n">R</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile initialize&quot;</span><span class="p">:</span> <span class="n">auxmessage</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<span class="k">def</span> <span class="nf">_fitEllip_loss</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">dat</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+    <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">,</span>
+        <span class="n">r</span><span class="p">,</span>
+        <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">e</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">p</span><span class="p">},</span>
+        <span class="n">c</span><span class="p">,</span>
+        <span class="n">sigmaclip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">sclip_nsigma</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+        <span class="n">interp_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">),</span> <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">iqr</span><span class="p">(</span><span class="n">isovals</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span>
+        <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">+</span> <span class="n">n</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="Isophote_Initialize"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit global elliptical isophote to a galaxy image using FFT coefficients.</span>
+
+<span class="sd">    A global position angle and ellipticity are fit in a two step</span>
+<span class="sd">    process.  First, a series of circular isophotes are geometrically</span>
+<span class="sd">    sampled until they approach the background level of the image.  An</span>
+<span class="sd">    FFT is taken for the flux values around each isophote and the</span>
+<span class="sd">    phase of the second coefficient is used to determine a direction.</span>
+<span class="sd">    The average direction for the outer isophotes is taken as the</span>
+<span class="sd">    position angle of the galaxy.  Second, with fixed position angle</span>
+<span class="sd">    the ellipticity is optimized to minimize the amplitude of the</span>
+<span class="sd">    second FFT coefficient relative to the median flux in an isophote.</span>
+
+<span class="sd">    To compute the error on position angle we use the standard</span>
+<span class="sd">    deviation of the outer values from step one.  For ellipticity the</span>
+<span class="sd">    error is computed by optimizing the ellipticity for multiple</span>
+<span class="sd">    isophotes within 1 PSF length of each other.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_fit_limit : float, default 2</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.</span>
+
+<span class="sd">    ap_isoinit_pa_set : float, default None</span>
+<span class="sd">      User set initial position angle in degrees, will override the calculation.</span>
+
+<span class="sd">    ap_isoinit_ellip_set : float, default None</span>
+<span class="sd">      User set initial ellipticity (1 - b/a), will override the calculation.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;init ellip&#39;: , # Ellipticity of the global fit (float)</span>
+<span class="sd">         &#39;init pa&#39;: ,# Position angle of the global fit (float)</span>
+<span class="sd">         &#39;init R&#39;: ,# Semi-major axis length of global fit (float)</span>
+<span class="sd">         &#39;auxfile initialize&#39;: # optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">######################################################################</span>
+    <span class="c1"># Initial attempt to find size of galaxy in image</span>
+    <span class="c1"># based on when isophotes SB values start to get</span>
+    <span class="c1"># close to the background noise level</span>
+    <span class="n">circ_ellipse_radii</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">allphase</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">while</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">IMG</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">circ_ellipse_radii</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">))</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+            <span class="n">more</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+            <span class="n">sigmaclip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">sclip_nsigma</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">interp_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">allphase</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="c1"># Stop when at 3 time background noise</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.8</span><span class="p">)</span>
+            <span class="o">&lt;</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_fit_limit&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="s2">&quot;ap_fit_limit&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">circ_ellipse_radii</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span>
+        <span class="p">):</span>
+            <span class="k">break</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: init scale: </span><span class="si">%f</span><span class="s2"> pix&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="c1"># Find global position angle.</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">Angle_Median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">allphase</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_isoinit_pa_set&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoinit_pa_set&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+
+    <span class="c1"># Find global ellipticity</span>
+    <span class="n">test_ellip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="n">test_f2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">test_ellip</span><span class="p">:</span>
+        <span class="n">test_f2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">_fitEllip_loss</span><span class="p">(</span>
+                        <span class="n">e</span><span class="p">,</span>
+                        <span class="n">dat</span><span class="p">,</span>
+                        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span>
+                        <span class="n">phase</span><span class="p">,</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                        <span class="n">mask</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="c1"># Find global ellipticity: second pass</span>
+    <span class="n">ellip</span> <span class="o">=</span> <span class="n">test_ellip</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">test_f2</span><span class="p">)]</span>
+    <span class="n">test_ellip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ellip</span> <span class="o">-</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">ellip</span> <span class="o">+</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="n">test_f2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">test_ellip</span><span class="p">:</span>
+        <span class="n">test_f2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">_fitEllip_loss</span><span class="p">(</span>
+                        <span class="n">e</span><span class="p">,</span>
+                        <span class="n">dat</span><span class="p">,</span>
+                        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span>
+                        <span class="n">phase</span><span class="p">,</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                        <span class="n">mask</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">ellip</span> <span class="o">=</span> <span class="n">test_ellip</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">test_f2</span><span class="p">)]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">msk</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span>
+                <span class="n">_fitEllip_loss</span><span class="p">(</span><span class="n">_x_to_eps</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">msk</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">x0</span><span class="o">=</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">),</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">phase</span><span class="p">,</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+            <span class="n">mask</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Nelder-Mead&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;initial_simplex&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: using optimal ellipticity </span><span class="si">%.3f</span><span class="s2"> over grid ellipticity </span><span class="si">%.3f</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">_x_to_eps</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">ellip</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">ellip</span> <span class="o">=</span> <span class="n">_x_to_eps</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_isoinit_ellip_set&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">ellip</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_isoinit_ellip_set&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Compute the error on the parameters</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">],</span>
+        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">],</span>
+        <span class="mi">10</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">errallphase</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">RR</span><span class="p">:</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span>
+            <span class="n">rr</span><span class="p">,</span>
+            <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+            <span class="n">more</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">sigmaclip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">sclip_nsigma</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">interp_mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">errallphase</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">sample_pas</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">errallphase</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errallphase</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">pa_err</span> <span class="o">=</span> <span class="n">iqr</span><span class="p">(</span><span class="n">sample_pas</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">res_multi</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">rrp</span><span class="p">:</span> <span class="n">minimize</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="n">_fitEllip_loss</span><span class="p">(</span>
+                <span class="n">_x_to_eps</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span>
+            <span class="p">),</span>
+            <span class="n">x0</span><span class="o">=</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">),</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">dat</span><span class="p">,</span>
+                <span class="n">rrp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">rrp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                <span class="n">mask</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Nelder-Mead&quot;</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;initial_simplex&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+                    <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+        <span class="p">),</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">RR</span><span class="p">,</span> <span class="n">sample_pas</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">ellip_err</span> <span class="o">=</span> <span class="n">iqr</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_x_to_eps</span><span class="p">(</span><span class="n">rm</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">rm</span> <span class="ow">in</span> <span class="n">res_multi</span><span class="p">),</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="n">circ_ellipse_radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">circ_ellipse_radii</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">Plot_Isophote_Init_Ellipse</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span> <span class="n">circ_ellipse_radii</span><span class="p">,</span> <span class="n">ellip</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span>
+        <span class="p">)</span>
+        <span class="n">Plot_Isophote_Init_Optimize</span><span class="p">(</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">,</span>
+            <span class="n">allphase</span><span class="p">,</span>
+            <span class="n">phase</span><span class="p">,</span>
+            <span class="n">pa_err</span><span class="p">,</span>
+            <span class="n">test_ellip</span><span class="p">,</span>
+            <span class="n">test_f2</span><span class="p">,</span>
+            <span class="n">ellip</span><span class="p">,</span>
+            <span class="n">ellip_err</span><span class="p">,</span>
+            <span class="n">results</span><span class="p">,</span>
+            <span class="n">options</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">auxmessage</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;global ellipticity: </span><span class="si">%.3f</span><span class="s2"> +- </span><span class="si">%.3f</span><span class="s2">, pa: </span><span class="si">%.3f</span><span class="s2"> +- </span><span class="si">%.3f</span><span class="s2"> deg, size: </span><span class="si">%f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">ellip</span><span class="p">,</span>
+            <span class="n">ellip_err</span><span class="p">,</span>
+            <span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">pa_err</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;init ellip&quot;</span><span class="p">:</span> <span class="n">ellip</span><span class="p">,</span>
+        <span class="s2">&quot;init ellip_err&quot;</span><span class="p">:</span> <span class="n">ellip_err</span><span class="p">,</span>
+        <span class="s2">&quot;init pa&quot;</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
+        <span class="s2">&quot;init pa_err&quot;</span><span class="p">:</span> <span class="n">pa_err</span><span class="p">,</span>
+        <span class="s2">&quot;init R&quot;</span><span class="p">:</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s2">&quot;auxfile initialize&quot;</span><span class="p">:</span> <span class="n">auxmessage</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<span class="k">def</span> <span class="nf">_fitEllip_mean_loss</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">dat</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="n">e</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="n">p</span><span class="p">},</span> <span class="n">c</span><span class="p">)</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">+</span> <span class="n">n</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Isophote_Initialize_mean"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean">[docs]</a><span class="k">def</span> <span class="nf">Isophote_Initialize_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit global elliptical isophote to a galaxy image using FFT coefficients.</span>
+
+<span class="sd">    Same as the default isophote initialization routine, except uses</span>
+<span class="sd">    mean/std measures for low S/N applications.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_fit_limit : float, default 2</span>
+<span class="sd">      noise level out to which to extend the fit in units of pixel</span>
+<span class="sd">      background noise level. Default is 2, smaller values will end</span>
+<span class="sd">      fitting further out in the galaxy image.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;init ellip&#39;: , # Ellipticity of the global fit (float)</span>
+<span class="sd">         &#39;init pa&#39;: ,# Position angle of the global fit (float)</span>
+<span class="sd">         &#39;init R&#39;: ,# Semi-major axis length of global fit (float)</span>
+<span class="sd">         &#39;auxfile initialize&#39;: # optional, message for aux file to record the global ellipticity and postition angle (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">######################################################################</span>
+    <span class="c1"># Initial attempt to find size of galaxy in image</span>
+    <span class="c1"># based on when isophotes SB values start to get</span>
+    <span class="c1"># close to the background noise level</span>
+    <span class="n">circ_ellipse_radii</span> <span class="o">=</span> <span class="p">[</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]]</span>
+    <span class="n">allphase</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+
+    <span class="k">while</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">IMG</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">circ_ellipse_radii</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">))</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+            <span class="n">more</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">allphase</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="c1"># Stop when at 3 times background noise</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">])</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">circ_ellipse_radii</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span>
+        <span class="p">):</span>
+            <span class="k">break</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: init scale: </span><span class="si">%f</span><span class="s2"> pix&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="c1"># Find global position angle.</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="o">-</span><span class="n">Angle_Median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">allphase</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]))</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># (-np.angle(np.mean(allphase[-5:]))/2) % np.pi</span>
+
+    <span class="c1"># Find global ellipticity</span>
+    <span class="n">test_ellip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="n">test_f2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">test_ellip</span><span class="p">:</span>
+        <span class="n">test_f2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">_fitEllip_mean_loss</span><span class="p">(</span>
+                        <span class="n">e</span><span class="p">,</span>
+                        <span class="n">dat</span><span class="p">,</span>
+                        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span>
+                        <span class="n">phase</span><span class="p">,</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="c1"># Find global ellipticity: second pass</span>
+    <span class="n">ellip</span> <span class="o">=</span> <span class="n">test_ellip</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">test_f2</span><span class="p">)]</span>
+    <span class="n">test_ellip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ellip</span> <span class="o">-</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">ellip</span> <span class="o">+</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="n">test_f2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">test_ellip</span><span class="p">:</span>
+        <span class="n">test_f2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">_fitEllip_mean_loss</span><span class="p">(</span>
+                        <span class="n">e</span><span class="p">,</span>
+                        <span class="n">dat</span><span class="p">,</span>
+                        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span>
+                        <span class="n">phase</span><span class="p">,</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">ellip</span> <span class="o">=</span> <span class="n">test_ellip</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">test_f2</span><span class="p">)]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span>
+                <span class="n">_fitEllip_mean_loss</span><span class="p">(</span><span class="n">_x_to_eps</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">x0</span><span class="o">=</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">),</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">phase</span><span class="p">,</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Nelder-Mead&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;initial_simplex&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: using optimal ellipticity </span><span class="si">%.3f</span><span class="s2"> over grid ellipticity </span><span class="si">%.3f</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">_x_to_eps</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">ellip</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">ellip</span> <span class="o">=</span> <span class="n">_x_to_eps</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Compute the error on the parameters</span>
+    <span class="c1">######################################################################</span>
+    <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">],</span>
+        <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">],</span>
+        <span class="mi">10</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">errallphase</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">RR</span><span class="p">:</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">,</span> <span class="n">rr</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span> <span class="n">more</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">errallphase</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">sample_pas</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">errallphase</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">errallphase</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">pa_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">sample_pas</span><span class="p">)</span>
+    <span class="n">res_multi</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">rrp</span><span class="p">:</span> <span class="n">minimize</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">_fitEllip_mean_loss</span><span class="p">(</span>
+                <span class="n">_x_to_eps</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">d</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">n</span>
+            <span class="p">),</span>
+            <span class="n">x0</span><span class="o">=</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">),</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">rrp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rrp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]),</span>
+            <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Nelder-Mead&quot;</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;initial_simplex&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+                    <span class="p">[</span><span class="n">_inv_x_to_eps</span><span class="p">(</span><span class="n">ellip</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">15</span><span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">},</span>
+        <span class="p">),</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">RR</span><span class="p">,</span> <span class="n">sample_pas</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">ellip_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_x_to_eps</span><span class="p">(</span><span class="n">rm</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">rm</span> <span class="ow">in</span> <span class="n">res_multi</span><span class="p">))</span>
+
+    <span class="n">circ_ellipse_radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">circ_ellipse_radii</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+
+        <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)),</span>
+                <span class="nb">min</span><span class="p">(</span>
+                    <span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">),</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)),</span>
+                <span class="nb">min</span><span class="p">(</span>
+                    <span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">),</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">]</span>
+
+        <span class="n">LSBImage</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># plt.imshow(np.clip(dat[ranges[1][0]: ranges[1][1], ranges[0][0]: ranges[0][1]],a_min = 0, a_max = None),</span>
+        <span class="c1">#            origin = &#39;lower&#39;, cmap = &#39;Greys_r&#39;, norm = ImageNormalize(stretch=LogStretch()))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span>
+            <span class="n">Ellipse</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="mi">2</span> <span class="o">*</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="mi">2</span> <span class="o">*</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">ellip</span><span class="p">),</span>
+                <span class="n">phase</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+                <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="p">[</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+            <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_nologo&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_nologo&quot;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">initialize_ellipse_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">allphase</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">phase</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axhline</span><span class="p">((</span><span class="n">phase</span> <span class="o">+</span> <span class="n">pa_err</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axhline</span><span class="p">((</span><span class="n">phase</span> <span class="o">-</span> <span class="n">pa_err</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+        <span class="c1"># ax[0].axvline(circ_ellipse_radii[-2], color = &#39;orange&#39;, linestyle = &#39;--&#39;)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Radius [pix]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;FFT$_</span><span class="si">{1}</span><span class="s2">$ phase [deg]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">test_ellip</span><span class="p">,</span> <span class="n">test_f2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">ellip</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">ellip</span> <span class="o">+</span> <span class="n">ellip_err</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">ellip</span> <span class="o">-</span> <span class="n">ellip_err</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Ellipticity [1 - b/a]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Loss [FFT$_</span><span class="si">{2}</span><span class="s2">$/med(flux)]&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_nologo&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_nologo&quot;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">initialize_ellipse_optimize_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">auxmessage</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;global ellipticity: </span><span class="si">%.3f</span><span class="s2"> +- </span><span class="si">%.3f</span><span class="s2">, pa: </span><span class="si">%.3f</span><span class="s2"> +- </span><span class="si">%.3f</span><span class="s2"> deg, size: </span><span class="si">%f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">ellip</span><span class="p">,</span>
+            <span class="n">ellip_err</span><span class="p">,</span>
+            <span class="n">PA_shift_convention</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">pa_err</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+            <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;init ellip&quot;</span><span class="p">:</span> <span class="n">ellip</span><span class="p">,</span>
+        <span class="s2">&quot;init ellip_err&quot;</span><span class="p">:</span> <span class="n">ellip_err</span><span class="p">,</span>
+        <span class="s2">&quot;init pa&quot;</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
+        <span class="s2">&quot;init pa_err&quot;</span><span class="p">:</span> <span class="n">pa_err</span><span class="p">,</span>
+        <span class="s2">&quot;init R&quot;</span><span class="p">:</span> <span class="n">circ_ellipse_radii</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s2">&quot;auxfile initialize&quot;</span><span class="p">:</span> <span class="n">auxmessage</span><span class="p">,</span>
+    <span class="p">}</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

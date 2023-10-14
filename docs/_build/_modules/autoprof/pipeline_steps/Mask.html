@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprof.pipeline_steps.Mask &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoprof.html">autoprof package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../autoprof.html">autoprof</a></li>
+      <li class="breadcrumb-item active">autoprof.pipeline_steps.Mask</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autoprof.pipeline_steps.Mask</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">photutils</span> <span class="kn">import</span> <span class="n">DAOStarFinder</span><span class="p">,</span> <span class="n">IRAFStarFinder</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">mode</span><span class="p">,</span> <span class="n">iqr</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">..autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="n">Read_Image</span><span class="p">,</span> <span class="n">LSBImage</span><span class="p">,</span> <span class="n">AddLogo</span><span class="p">,</span> <span class="n">StarFind</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Bad_Pixel_Mask&quot;</span><span class="p">,</span> <span class="s2">&quot;Mask_Segmentation_Map&quot;</span><span class="p">,</span> <span class="s2">&quot;Star_Mask_IRAF&quot;</span><span class="p">,</span> <span class="s2">&quot;Star_Mask&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Bad_Pixel_Mask"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Bad_Pixel_Mask">[docs]</a><span class="k">def</span> <span class="nf">Bad_Pixel_Mask</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple masking routine to clip pixels based on thresholds.</span>
+
+<span class="sd">    Creates a mask image using user provided limits on highest/lowest</span>
+<span class="sd">    pixels values allowed. Also users can reject pixels with a</span>
+<span class="sd">    specific value. This can be used on its own, or in combination</span>
+<span class="sd">    with other masking routines. Multiple Mask calls with perform</span>
+<span class="sd">    boolean-or operation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_badpixel_high : float, default None</span>
+<span class="sd">      flux value that corresponds to a saturated pixel or bad pixel</span>
+<span class="sd">      flag, all values above *ap_badpixel_high* will be masked if</span>
+<span class="sd">      using the *Bad_Pixel_Mask* pipeline method.</span>
+
+<span class="sd">    ap_badpixel_low : float, default None</span>
+<span class="sd">      flux value that corresponds to a bad pixel flag, all values</span>
+<span class="sd">      below *ap_badpixel_low* will be masked if using the</span>
+<span class="sd">      *Bad_Pixel_Mask* pipeline method.</span>
+
+<span class="sd">    ap_badpixel_exact : float, default None</span>
+<span class="sd">      flux value that corresponds to a precise bad pixel flag, all</span>
+<span class="sd">      values equal to *ap_badpixel_exact* will be masked if using the</span>
+<span class="sd">      *Bad_Pixel_Mask* pipeline method.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask : bool, default False</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;mask&#39; (optional)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)</span>
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_badpixel_high&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">Mask</span><span class="p">[</span><span class="n">IMG</span> <span class="o">&gt;=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_badpixel_high&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_badpixel_low&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">Mask</span><span class="p">[</span><span class="n">IMG</span> <span class="o">&lt;=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_badpixel_low&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_badpixel_exact&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">Mask</span><span class="p">[</span><span class="n">IMG</span> <span class="o">==</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_badpixel_exact&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">IMG</span><span class="p">))):</span>
+        <span class="n">Mask</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">IMG</span><span class="p">))]</span> <span class="o">=</span> <span class="kc">True</span>
+        
+    <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">])</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: masking </span><span class="si">%i</span><span class="s2"> bad pixels&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Mask</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="n">Mask</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Mask_Segmentation_Map"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Mask_Segmentation_Map">[docs]</a><span class="k">def</span> <span class="nf">Mask_Segmentation_Map</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads the results from other masking routines into AutoProf.</span>
+
+<span class="sd">    Creates a mask from a supplied segmentation map. Such maps</span>
+<span class="sd">    typically number each source with an integer. In such a case,</span>
+<span class="sd">    AutoProf will check to see if the object center lands on one of</span>
+<span class="sd">    these segments, if so it will zero out that source-id before</span>
+<span class="sd">    converting the segmentation map into a mask. If the supplied image</span>
+<span class="sd">    is just a 0, 1 mask then AutoProf will take it as is.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_mask_file : string, default None</span>
+<span class="sd">      path to fits file which is a mask for the image. Must have the same dimensions as the main image.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask : bool, default False</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39; (optional)</span>
+<span class="sd">    - &#39;background noise&#39; (optional)</span>
+<span class="sd">    - &#39;center&#39; (optional)</span>
+<span class="sd">    - &#39;mask&#39; (optional)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)</span>
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ap_mask_file&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">or</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_mask_file&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">Read_Image</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_mask_file&quot;</span><span class="p">],</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;center&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">])]</span> <span class="o">&gt;</span> <span class="mf">1.1</span><span class="p">:</span>
+            <span class="n">mask</span><span class="p">[</span>
+                <span class="n">mask</span> <span class="o">==</span> <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">])]</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">])]</span>
+            <span class="o">&gt;</span> <span class="mf">1.1</span>
+        <span class="p">):</span>
+            <span class="n">mask</span><span class="p">[</span>
+                <span class="n">mask</span>
+                <span class="o">==</span> <span class="n">mask</span><span class="p">[</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]),</span>
+                <span class="p">]</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">mask</span><span class="p">[</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]),</span>
+            <span class="p">]</span>
+            <span class="o">&gt;</span> <span class="mf">1.1</span>
+        <span class="p">):</span>
+            <span class="n">mask</span><span class="p">[</span>
+                <span class="n">mask</span>
+                <span class="o">==</span> <span class="n">mask</span><span class="p">[</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]),</span>
+                <span class="p">]</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span> <span class="o">&gt;</span> <span class="mf">1.1</span><span class="p">:</span>
+        <span class="n">mask</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="n">mask</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Plot star mask for diagnostic purposes</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">bkgrnd</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;background&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">IMG</span><span class="p">)</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;background noise&quot;</span> <span class="ow">in</span> <span class="n">results</span>
+            <span class="k">else</span> <span class="n">iqr</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">LSBImage</span><span class="p">(</span><span class="n">IMG</span> <span class="o">-</span> <span class="n">bkgrnd</span><span class="p">,</span> <span class="n">noise</span><span class="p">)</span>
+        <span class="n">showmask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="n">showmask</span><span class="p">[</span><span class="n">showmask</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">showmask</span><span class="p">[</span><span class="n">showmask</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">showmask</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Reds_r&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;ap_nologo&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_nologo&quot;</span><span class="p">]):</span>
+            <span class="n">AddLogo</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">mask_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)}</span></div>
+
+
+<div class="viewcode-block" id="Star_Mask_IRAF"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Star_Mask_IRAF">[docs]</a><span class="k">def</span> <span class="nf">Star_Mask_IRAF</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Masking routine which identifies stars and masks a region around them.</span>
+
+<span class="sd">    An IRAF star finder wrapper (from photutils) is applied to the</span>
+<span class="sd">    image and then the identified sources are masked form the image.</span>
+<span class="sd">    The size of the mask depends on the flux in the source roughly as</span>
+<span class="sd">    sqrt(log(f)), thus an inverse of a Gaussian.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask : bool, default False</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">    - &#39;mask&#39; (optional)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)</span>
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fwhm</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+    <span class="n">use_center</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Find scale of bounding box for galaxy. Stars will only be found within this box</span>
+    <span class="n">smaj</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;fit R&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;fit R&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">xbox</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">smaj</span><span class="p">)</span>
+    <span class="n">ybox</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">smaj</span><span class="p">)</span>
+    <span class="n">xbounds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">xbox</span><span class="p">)),</span>
+        <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">xbox</span><span class="p">),</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+    <span class="p">]</span>
+    <span class="n">ybounds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ybox</span><span class="p">)),</span>
+        <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ybox</span><span class="p">),</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Run photutils wrapper for IRAF star finder</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="n">iraffind</span> <span class="o">=</span> <span class="n">IRAFStarFinder</span><span class="p">(</span>
+        <span class="n">fwhm</span><span class="o">=</span><span class="n">fwhm</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">10.0</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span> <span class="n">brightest</span><span class="o">=</span><span class="mi">50</span>
+    <span class="p">)</span>
+    <span class="n">irafsources</span> <span class="o">=</span> <span class="n">iraffind</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="c1"># Mask star pixels and area around proportionate to their total flux</span>
+    <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">range</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">irafsources</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">irafsources</span><span class="p">[</span><span class="s2">&quot;xcentroid&quot;</span><span class="p">],</span> <span class="n">irafsources</span><span class="p">[</span><span class="s2">&quot;ycentroid&quot;</span><span class="p">],</span> <span class="n">irafsources</span><span class="p">[</span><span class="s2">&quot;flux&quot;</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="p">(</span><span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                    <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="p">(</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="p">)</span>
+                <span class="o">&lt;</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="c1"># compute distance of every pixel to the identified star</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">YY</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">XX</span> <span class="o">-</span> <span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="c1"># Compute the flux of the star</span>
+            <span class="c1"># f = np.sum(IMG[R &lt; 10*fwhm])</span>
+            <span class="c1"># Compute radius to reach background noise level, assuming gaussian</span>
+            <span class="n">Rstar</span> <span class="o">=</span> <span class="p">(</span><span class="n">fwhm</span> <span class="o">/</span> <span class="mf">2.355</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                <span class="mi">2</span>
+                <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                    <span class="n">f</span>
+                    <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">fwhm</span> <span class="o">/</span> <span class="mf">2.355</span><span class="p">)</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">R</span> <span class="o">&lt;</span> <span class="n">Rstar</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Plot star mask for diagnostic purposes</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                <span class="n">dat</span><span class="p">[</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                <span class="n">a_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Greys_r&quot;</span><span class="p">,</span>
+            <span class="n">norm</span><span class="o">=</span><span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="n">dat</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)[</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">dat</span><span class="p">[</span><span class="n">dat</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Reds_r&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">mask_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="n">mask</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Star_Mask"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Star_Mask">[docs]</a><span class="k">def</span> <span class="nf">Star_Mask</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Masking routine which identifies stars and masks a region around them.</span>
+
+<span class="sd">    Using an edge detecting convolutional filter, sources are</span>
+<span class="sd">    identified that are of similar scale as the PSF. These sources are</span>
+<span class="sd">    masked with a region roughly 2 times the FWHM of the source.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ap_savemask : bool, default False</span>
+<span class="sd">      indicates if the mask should be saved after fitting</span>
+
+<span class="sd">    starfind</span>
+<span class="sd">      :func:`autoprofutils.SharedFunctions.StarFind`</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+<span class="sd">    - &#39;center&#39;</span>
+<span class="sd">    - &#39;mask&#39; (optional)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;mask&#39;:  # 2d mask image with boolean datatype (ndarray)</span>
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fwhm</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+    <span class="n">use_center</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Find scale of bounding box for galaxy. Stars will only be found within this box</span>
+    <span class="n">smaj</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;fit R&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;fit R&quot;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">xbox</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">smaj</span><span class="p">)</span>
+    <span class="n">ybox</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">smaj</span><span class="p">)</span>
+    <span class="n">xbounds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">xbox</span><span class="p">)),</span>
+        <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">xbox</span><span class="p">),</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+    <span class="p">]</span>
+    <span class="n">ybounds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ybox</span><span class="p">)),</span>
+        <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">use_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ybox</span><span class="p">),</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Run photutils wrapper for IRAF star finder</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+
+    <span class="n">all_stars</span> <span class="o">=</span> <span class="n">StarFind</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">[</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+        <span class="n">fwhm</span><span class="p">,</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+        <span class="n">detect_threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">minsep</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">reject_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="c1"># Mask star pixels and area around proportionate to their total flux</span>
+    <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">range</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">all_stars</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span>
+        <span class="n">all_stars</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span>
+        <span class="n">all_stars</span><span class="p">[</span><span class="s2">&quot;fwhm&quot;</span><span class="p">],</span>
+        <span class="n">all_stars</span><span class="p">[</span><span class="s2">&quot;deformity&quot;</span><span class="p">],</span>
+        <span class="n">all_stars</span><span class="p">[</span><span class="s2">&quot;peak&quot;</span><span class="p">],</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="p">(</span><span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="p">(</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="o">&lt;</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="c1"># compute distance of every pixel to the identified star</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">YY</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">XX</span> <span class="o">-</span> <span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">mask</span><span class="p">[</span><span class="n">R</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">p</span> <span class="o">/</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Plot star mask for diagnostic purposes</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">LSBImage</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">[</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">dat</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)[</span><span class="n">ybounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ybounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">xbounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">dat</span><span class="p">[</span><span class="n">dat</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Reds_r&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">mask_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="n">mask</span><span class="p">}</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

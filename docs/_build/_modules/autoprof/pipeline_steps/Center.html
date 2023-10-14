@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprof.pipeline_steps.Center &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoprof.html">autoprof package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../autoprof.html">autoprof</a></li>
+      <li class="breadcrumb-item active">autoprof.pipeline_steps.Center</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autoprof.pipeline_steps.Center</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">..autoprofutils.SharedFunctions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_iso_extract</span><span class="p">,</span>
+    <span class="n">AddLogo</span><span class="p">,</span>
+    <span class="n">Angle_Median</span><span class="p">,</span>
+    <span class="n">flux_to_sb</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">photutils.centroids</span> <span class="kn">import</span> <span class="n">centroid_2dg</span><span class="p">,</span> <span class="n">centroid_com</span><span class="p">,</span> <span class="n">centroid_1dg</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization</span> <span class="kn">import</span> <span class="n">SqrtStretch</span><span class="p">,</span> <span class="n">LogStretch</span>
+<span class="kn">from</span> <span class="nn">astropy.visualization.mpl_normalize</span> <span class="kn">import</span> <span class="n">ImageNormalize</span>
+<span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Ellipse</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Center_Forced&quot;</span><span class="p">,</span> <span class="s2">&quot;Center_2DGaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Center_1DGaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Center_OfMass&quot;</span><span class="p">,</span> <span class="s2">&quot;Center_Peak&quot;</span><span class="p">,</span> <span class="s2">&quot;Center_HillClimb&quot;</span><span class="p">,</span> <span class="s2">&quot;Center_HillClimb_mean&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Center_Forced"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_Forced">[docs]</a><span class="k">def</span> <span class="nf">Center_Forced</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extracts previously fit center coordinates.</span>
+
+<span class="sd">    Extracts the center coordinates from an aux file for a previous</span>
+<span class="sd">    AutoProf fit. Can instead simply be given a set center value, just</span>
+<span class="sd">    like other centering methods. A given center will override teh</span>
+<span class="sd">    fitted aux file center.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_guess_center : dict, default None</span>
+<span class="sd">      user provided starting point for center fitting. Center should</span>
+<span class="sd">      be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_set_center : dict, default None</span>
+<span class="sd">      user provided fixed center for rest of calculations. Center</span>
+<span class="sd">      should be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_forcing_profile : string, default None</span>
+<span class="sd">      (required for forced photometry) file path to .prof file</span>
+<span class="sd">      providing forced photometry PA and ellip values to apply to</span>
+<span class="sd">      *ap_image_file*.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;center&#39;: {&#39;x&#39;: , # x coordinate of the center (pix)</span>
+<span class="sd">                    &#39;y&#39;: }, # y coordinate of the center (pix)</span>
+
+<span class="sd">         &#39;auxfile center&#39;: # optional, message for aux file to record galaxy center (string)</span>
+<span class="sd">         &#39;auxfile centeral sb&#39;: # optional, central surface brightness value (float)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center initialized by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_center</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center set by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+            <span class="n">_iso_extract</span><span class="p">(</span>
+                <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">],</span>
+                <span class="mf">0.0</span><span class="p">,</span>
+                <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">],</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span>
+            <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_forcing_profile&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;aux&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">line</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span><span class="p">:</span>
+                    <span class="n">x_loc</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;x:&quot;</span><span class="p">)</span>
+                    <span class="n">y_loc</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;y:&quot;</span><span class="p">)</span>
+                    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">x_loc</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;pix&quot;</span><span class="p">)]),</span>
+                        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">y_loc</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;pix&quot;</span><span class="p">)]),</span>
+                    <span class="p">}</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Forced center failed! Using image center (or guess).&quot;</span>
+                    <span class="o">%</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Forced center failed! Using image center (or guess).&quot;</span>
+            <span class="o">%</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+        <span class="n">_iso_extract</span><span class="p">(</span>
+            <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">current_center</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile center&quot;</span><span class="p">:</span> <span class="s2">&quot;center x: </span><span class="si">%.2f</span><span class="s2"> pix, y: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span> <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Center_2DGaussian"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_2DGaussian">[docs]</a><span class="k">def</span> <span class="nf">Center_2DGaussian</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find galaxy center with a 2D gaussian fit to the image..</span>
+
+<span class="sd">    Compute the pixel location of the galaxy center by fitting a 2d</span>
+<span class="sd">    Gaussian as implimented by the photutils package.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_guess_center : dict, default None</span>
+<span class="sd">      user provided starting point for center fitting. Center should</span>
+<span class="sd">      be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_set_center : dict, default None</span>
+<span class="sd">      user provided fixed center for rest of calculations. Center</span>
+<span class="sd">      should be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_centeringring : int, default 50</span>
+<span class="sd">      Size of ring to use when finding galaxy center, in units of</span>
+<span class="sd">      PSF. Larger rings will give the 2D fit more data to work with</span>
+<span class="sd">      and allow for the starting position to be further from the true</span>
+<span class="sd">      galaxy center.  Smaller rings will include fewer spurious</span>
+<span class="sd">      objects, and can stop the 2D fit from being distracted by larger</span>
+<span class="sd">      nearby objects/galaxies.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;center&#39;: {&#39;x&#39;: , # x coordinate of the center (pix)</span>
+<span class="sd">                    &#39;y&#39;: }, # y coordinate of the center (pix)</span>
+
+<span class="sd">         &#39;auxfile center&#39;: # optional, message for aux file to record galaxy center (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center initialized by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_center</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center set by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">])}</span>
+
+    <span class="c1"># Create mask to focus centering algorithm on the center of the image</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="nb">min</span><span class="p">(</span>
+                <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="nb">min</span><span class="p">(</span>
+                <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">]</span>
+    <span class="n">centralize_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">centralize_mask</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">centroid_2dg</span><span class="p">(</span><span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="n">centralize_mask</span><span class="p">)</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">}</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: 2D Gaussian center finding failed! using image center (or guess).&quot;</span>
+            <span class="o">%</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Plot center value for diagnostic purposes</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">],</span> <span class="n">a_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+            <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Greys_r&quot;</span><span class="p">,</span>
+            <span class="n">norm</span><span class="o">=</span><span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]],</span>
+            <span class="p">[</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]],</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+            <span class="n">markersize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">center_vis_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>            
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Center found: x </span><span class="si">%.1f</span><span class="s2">, y </span><span class="si">%.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile center&quot;</span><span class="p">:</span> <span class="s2">&quot;center x: </span><span class="si">%.2f</span><span class="s2"> pix, y: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Center_1DGaussian"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_1DGaussian">[docs]</a><span class="k">def</span> <span class="nf">Center_1DGaussian</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find galaxy center with many 1D gaussian fits to the image..</span>
+
+<span class="sd">    Compute the pixel location of the galaxy center using a photutils</span>
+<span class="sd">    method.  Looking at 100 seeing lengths around the center of the</span>
+<span class="sd">    image (images should already be mostly centered), finds the galaxy</span>
+<span class="sd">    center by fitting several 1d Gaussians.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_guess_center : dict, default None</span>
+<span class="sd">      user provided starting point for center fitting. Center should</span>
+<span class="sd">      be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_set_center : dict, default None</span>
+<span class="sd">      user provided fixed center for rest of calculations. Center</span>
+<span class="sd">      should be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_centeringring : int, default 50</span>
+<span class="sd">      Size of ring to use when finding galaxy center, in units of</span>
+<span class="sd">      PSF. Larger rings will give the 1D fits more data to work with</span>
+<span class="sd">      and allow for the starting position to be further from the true</span>
+<span class="sd">      galaxy center.  Smaller rings will include fewer spurious</span>
+<span class="sd">      objects, and can stop the 1D fits from being distracted by</span>
+<span class="sd">      larger nearby objects/galaxies.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;center&#39;: {&#39;x&#39;: , # x coordinate of the center (pix)</span>
+<span class="sd">                    &#39;y&#39;: }, # y coordinate of the center (pix)</span>
+
+<span class="sd">         &#39;auxfile center&#39;: # optional, message for aux file to record galaxy center (string)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center initialized by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_center</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center set by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">])}</span>
+
+    <span class="c1"># Create mask to focus centering algorithm on the center of the image</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="nb">min</span><span class="p">(</span>
+                <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="nb">min</span><span class="p">(</span>
+                <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                        <span class="k">else</span> <span class="mi">50</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">]</span>
+    <span class="n">centralize_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">centralize_mask</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">centroid_1dg</span><span class="p">(</span><span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="n">centralize_mask</span><span class="p">)</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">}</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: 2D Gaussian center finding failed! using image center (or guess).&quot;</span>
+            <span class="o">%</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Plot center value for diagnostic purposes</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_doplot&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_doplot&quot;</span><span class="p">]:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">],</span> <span class="n">a_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+            <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Greys_r&quot;</span><span class="p">,</span>
+            <span class="n">norm</span><span class="o">=</span><span class="n">ImageNormalize</span><span class="p">(</span><span class="n">stretch</span><span class="o">=</span><span class="n">LogStretch</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">y</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plotpath&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">center_vis_</span><span class="si">{</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ap_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ap_plot_extension&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;jpg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_plotdpi&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_plotdpi&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">300</span><span class="p">,</span>            
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Center found: x </span><span class="si">%.1f</span><span class="s2">, y </span><span class="si">%.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile center&quot;</span><span class="p">:</span> <span class="s2">&quot;center x: </span><span class="si">%.2f</span><span class="s2"> pix, y: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Center_OfMass"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_OfMass">[docs]</a><span class="k">def</span> <span class="nf">Center_OfMass</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the light weighted galaxy center.</span>
+
+<span class="sd">    Iteratively computes the light weighted centroid within a window,</span>
+<span class="sd">    moves to the new center and computes the light weighted centroid</span>
+<span class="sd">    again.  The size of the search area is 10PSF by default. The</span>
+<span class="sd">    iterative process will continue until the center is updated by</span>
+<span class="sd">    less than 1/10th of the PSF size or when too mny iterations have</span>
+<span class="sd">    been reached.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_guess_center : dict, default None</span>
+<span class="sd">      user provided starting point for center fitting. Center should</span>
+<span class="sd">      be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_set_center : dict, default None</span>
+<span class="sd">      user provided fixed center for rest of calculations. Center</span>
+<span class="sd">      should be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_centeringring : int, default 10</span>
+<span class="sd">      Size of ring to use when finding galaxy center, in units of</span>
+<span class="sd">      PSF. Larger rings will allow for the starting position to be</span>
+<span class="sd">      further from the true galaxy center.  Smaller rings will include</span>
+<span class="sd">      fewer spurious objects, and can stop the centroid from being</span>
+<span class="sd">      distracted by larger nearby objects/galaxies.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;center&#39;: {&#39;x&#39;: , # x coordinate of the center (pix)</span>
+<span class="sd">                    &#39;y&#39;: }, # y coordinate of the center (pix)</span>
+
+<span class="sd">         &#39;auxfile center&#39;: # optional, message for aux file to record galaxy center (string)</span>
+<span class="sd">         &#39;auxfile centeral sb&#39;: # optional, central surface brightness value (float)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center initialized by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_center</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center set by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+            <span class="n">_iso_extract</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">])[</span>
+                <span class="mi">0</span>
+            <span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span>
+            <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">searchring</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">searchring</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">searchring</span><span class="p">))</span>
+    <span class="n">N_updates</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">N_updates</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">N_updates</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">old_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">current_center</span><span class="p">)</span>
+        <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+                <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+                <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+                <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="p">],</span>
+        <span class="p">]</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="n">xx</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]),</span>
+            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="n">yy</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]),</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">abs</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">old_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">old_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="k">break</span>
+
+    <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+        <span class="n">_iso_extract</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">current_center</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile center&quot;</span><span class="p">:</span> <span class="s2">&quot;center x: </span><span class="si">%.2f</span><span class="s2"> pix, y: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span> <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Center_Peak"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_Peak">[docs]</a><span class="k">def</span> <span class="nf">Center_Peak</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center initialized by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_center</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center set by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+            <span class="n">_iso_extract</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">])[</span>
+                <span class="mi">0</span>
+            <span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span>
+            <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">searchring</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">searchring</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">searchring</span><span class="p">))</span>
+    <span class="n">xx</span> <span class="o">=</span> <span class="n">xx</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">yy</span> <span class="o">=</span> <span class="n">yy</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+            <span class="n">xx</span><span class="p">,</span>
+            <span class="n">yy</span><span class="p">,</span>
+            <span class="n">xx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">yy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span><span class="p">,</span>
+            <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">yy</span> <span class="o">*</span> <span class="n">xx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">xx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">yy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="nb">min</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">searchring</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+        <span class="p">],</span>
+    <span class="p">]</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+        <span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+        <span class="n">a_min</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">poly2dfit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">flatten</span><span class="p">()),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="o">-</span><span class="n">poly2dfit</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">poly2dfit</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span> <span class="o">+</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="o">-</span><span class="n">poly2dfit</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">poly2dfit</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span> <span class="o">+</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+        <span class="n">_iso_extract</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">current_center</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile center&quot;</span><span class="p">:</span> <span class="s2">&quot;center x: </span><span class="si">%.2f</span><span class="s2"> pix, y: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span> <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<span class="k">def</span> <span class="nf">_hillclimb_loss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">PSF</span><span class="p">,</span> <span class="n">noise</span><span class="p">):</span>
+    <span class="n">center_loss</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">RR</span> <span class="o">=</span> <span class="p">(</span><span class="n">rr</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">PSF</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+            <span class="n">IMG</span><span class="p">,</span>
+            <span class="n">RR</span><span class="p">,</span>
+            <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">a_min</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="n">RR</span><span class="p">),</span> <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">-</span> <span class="n">RR</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">a_min</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="n">RR</span><span class="p">),</span> <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">-</span> <span class="n">RR</span><span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="n">more</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">rad_interp</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">PSF</span><span class="p">,</span>
+            <span class="n">interp_method</span><span class="o">=</span><span class="s2">&quot;lanczos&quot;</span><span class="p">,</span>
+            <span class="n">interp_window</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+        <span class="n">center_loss</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">isovals</span><span class="p">))</span> <span class="o">+</span> <span class="n">noise</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">center_loss</span>
+
+
+<div class="viewcode-block" id="Center_HillClimb"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb">[docs]</a><span class="k">def</span> <span class="nf">Center_HillClimb</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Follow locally increasing brightness (robust to PSF size objects) to find peak.</span>
+
+<span class="sd">    Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient</span>
+<span class="sd">    phases are averaged to find the direction of increasing flux. Flux values are sampled</span>
+<span class="sd">    along this direction and a quadratic fit gives the maximum. This is iteratively</span>
+<span class="sd">    repeated until the step size becomes very small.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_guess_center : dict, default None</span>
+<span class="sd">      user provided starting point for center fitting. Center should</span>
+<span class="sd">      be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_set_center : dict, default None</span>
+<span class="sd">      user provided fixed center for rest of calculations. Center</span>
+<span class="sd">      should be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_centeringring : int, default 10</span>
+<span class="sd">      Size of ring to use when finding galaxy center, in units of</span>
+<span class="sd">      PSF. Larger rings will be robust to features (i.e., foreground</span>
+<span class="sd">      stars), while smaller rings may be needed for small galaxies.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;center&#39;: {&#39;x&#39;: , # x coordinate of the center (pix)</span>
+<span class="sd">                    &#39;y&#39;: }, # y coordinate of the center (pix)</span>
+
+<span class="sd">         &#39;auxfile center&#39;: # optional, message for aux file to record galaxy center (string)</span>
+<span class="sd">         &#39;auxfile centeral sb&#39;: # optional, central surface brightness value (float)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center initialized by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_center</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center set by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+            <span class="n">_iso_extract</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">],</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))[</span>
+                <span class="mi">0</span>
+            <span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span>
+            <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">searchring</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">10</span>
+    <span class="p">)</span>
+    <span class="n">sampleradii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">searchring</span><span class="p">,</span> <span class="n">searchring</span><span class="p">)</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+
+    <span class="n">track_centers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">small_update_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">small_update_count</span> <span class="o">&lt;=</span> <span class="mi">5</span> <span class="ow">and</span> <span class="n">total_count</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">total_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sampleradii</span><span class="p">:</span>
+            <span class="n">isovals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_iso_extract</span><span class="p">(</span>
+                    <span class="n">dat</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">current_center</span><span class="p">,</span> <span class="n">more</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">coefs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">fft</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                        <span class="n">isovals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">a_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.85</span><span class="p">),</span>
+                        <span class="n">a_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">phases</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">Angle_Median</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">level_locs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sampleradii</span><span class="p">):</span>
+            <span class="n">floc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">isovals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">-</span> <span class="n">direction</span><span class="p">))</span>
+            <span class="n">rloc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">-</span> <span class="p">((</span><span class="n">direction</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">smooth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ifft</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span> <span class="nb">min</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">i</span><span class="p">]))],</span> <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
+            <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smooth</span><span class="p">[</span><span class="n">floc</span><span class="p">])</span>
+            <span class="n">level_locs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="n">levels</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">smooth</span><span class="p">[</span><span class="n">rloc</span><span class="p">])</span>
+            <span class="n">level_locs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">level_locs</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                    <span class="o">-</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">a_min</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">level_locs</span><span class="p">),</span> <span class="n">a_max</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">level_locs</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">level_locs</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">levels</span><span class="p">)]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]):</span>
+            <span class="n">small_update_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">small_update_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">track_centers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]])</span>
+
+    <span class="c1"># refine center</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)),</span>
+            <span class="nb">min</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)),</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)),</span>
+            <span class="nb">min</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)),</span>
+        <span class="p">],</span>
+    <span class="p">]</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
+        <span class="n">_hillclimb_loss</span><span class="p">,</span>
+        <span class="n">x0</span><span class="o">=</span><span class="p">[</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">dat</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">],</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Nelder-Mead&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">track_centers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]])</span>
+
+    <span class="n">sb0</span> <span class="o">=</span> <span class="n">flux_to_sb</span><span class="p">(</span>
+        <span class="n">_iso_extract</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">current_center</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_pixscale&quot;</span><span class="p">],</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_zeropoint&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_zeropoint&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mf">22.5</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile center&quot;</span><span class="p">:</span> <span class="s2">&quot;center x: </span><span class="si">%.2f</span><span class="s2"> pix, y: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;auxfile central sb&quot;</span><span class="p">:</span> <span class="s2">&quot;central surface brightness: </span><span class="si">%.4f</span><span class="s2"> mag arcsec^-2&quot;</span> <span class="o">%</span> <span class="n">sb0</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<span class="k">def</span> <span class="nf">_hillclimb_mean_loss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">PSF</span><span class="p">,</span> <span class="n">noise</span><span class="p">):</span>
+    <span class="n">center_loss</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="n">_iso_extract</span><span class="p">(</span>
+            <span class="n">IMG</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">rr</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">PSF</span><span class="p">,</span>
+            <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]},</span>
+            <span class="n">more</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">rad_interp</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">PSF</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span>
+        <span class="n">center_loss</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">isovals</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">isovals</span><span class="p">)))</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">center_loss</span>
+
+
+<div class="viewcode-block" id="Center_HillClimb_mean"><a class="viewcode-back" href="../../../autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb_mean">[docs]</a><span class="k">def</span> <span class="nf">Center_HillClimb_mean</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Follow locally increasing brightness (robust to PSF size objects) to find peak.</span>
+
+<span class="sd">    Using 10 circular isophotes out to 10 times the PSF length, the</span>
+<span class="sd">    first FFT coefficient phases are averaged to find the direction of</span>
+<span class="sd">    increasing flux. Flux values are sampled along this direction and</span>
+<span class="sd">    a quadratic fit gives the maximum. This is iteratively repeated</span>
+<span class="sd">    until the step size becomes very small. This function is identical</span>
+<span class="sd">    to :func:`~autoprofutils.Center.Center_HillClimb` except that all</span>
+<span class="sd">    averages/scatters are mean/std based instead of median/iqr based.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_guess_center : dict, default None</span>
+<span class="sd">      user provided starting point for center fitting. Center should</span>
+<span class="sd">      be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_set_center : dict, default None</span>
+<span class="sd">      user provided fixed center for rest of calculations. Center</span>
+<span class="sd">      should be formatted as:</span>
+
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;x&#39;:float, &#39;y&#39;: float}</span>
+
+<span class="sd">      , where the floats are the center coordinates in pixels. If not</span>
+<span class="sd">      given, Autoprof will default to a guess of the image center.</span>
+
+<span class="sd">    ap_centeringring : int, default 10</span>
+<span class="sd">      Size of ring to use when finding galaxy center, in units of</span>
+<span class="sd">      PSF. Larger rings will be robust to features (i.e., foreground</span>
+<span class="sd">      stars), while smaller rings may be needed for small galaxies.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :References:</span>
+<span class="sd">    - &#39;background&#39;</span>
+<span class="sd">    - &#39;background noise&#39;</span>
+<span class="sd">    - &#39;psf fwhm&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Unaltered galaxy image</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {&#39;center&#39;: {&#39;x&#39;: , # x coordinate of the center (pix)</span>
+<span class="sd">                    &#39;y&#39;: }, # y coordinate of the center (pix)</span>
+
+<span class="sd">         &#39;auxfile center&#39;: # optional, message for aux file to record galaxy center (string)</span>
+<span class="sd">         &#39;auxfile centeral sb&#39;: # optional, central surface brightness value (float)</span>
+
+<span class="sd">        }</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+
+    <span class="n">current_center</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_guess_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">current_center</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_guess_center&quot;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center initialized by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_center</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ap_set_center&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Center set by user: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_set_center&quot;</span><span class="p">])}</span>
+
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">IMG</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+
+    <span class="n">searchring</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_centeringring&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="s2">&quot;ap_centeringring&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">10</span>
+    <span class="p">)</span>
+    <span class="n">sampleradii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">searchring</span><span class="p">,</span> <span class="n">searchring</span><span class="p">)</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+
+    <span class="n">track_centers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">small_update_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">small_update_count</span> <span class="o">&lt;=</span> <span class="mi">5</span> <span class="ow">and</span> <span class="n">total_count</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">total_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">isovals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sampleradii</span><span class="p">:</span>
+            <span class="n">isovals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_iso_extract</span><span class="p">(</span>
+                    <span class="n">dat</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;ellip&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;pa&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span> <span class="n">current_center</span><span class="p">,</span> <span class="n">more</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">coefs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fft</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">phases</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">Angle_Median</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">level_locs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sampleradii</span><span class="p">):</span>
+            <span class="n">floc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">direction</span><span class="p">))</span>
+            <span class="n">rloc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">isovals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">((</span><span class="n">direction</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)))</span>
+            <span class="p">)</span>
+            <span class="n">smooth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ifft</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span> <span class="nb">min</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">i</span><span class="p">]))],</span> <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
+            <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smooth</span><span class="p">[</span><span class="n">floc</span><span class="p">])</span>
+            <span class="n">level_locs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="n">levels</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">smooth</span><span class="p">[</span><span class="n">rloc</span><span class="p">])</span>
+            <span class="n">level_locs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">level_locs</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                    <span class="o">-</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">a_min</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">level_locs</span><span class="p">),</span> <span class="n">a_max</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">level_locs</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">level_locs</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">levels</span><span class="p">)]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mf">0.25</span> <span class="o">*</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">]):</span>
+            <span class="n">small_update_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">small_update_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">track_centers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]])</span>
+
+    <span class="c1"># refine center</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
+        <span class="n">_hillclimb_mean_loss</span><span class="p">,</span>
+        <span class="n">x0</span><span class="o">=</span><span class="p">[</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]],</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;psf fwhm&quot;</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;background noise&quot;</span><span class="p">]),</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Nelder-Mead&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">current_center</span><span class="p">,</span>
+        <span class="s2">&quot;auxfile center&quot;</span><span class="p">:</span> <span class="s2">&quot;center x: </span><span class="si">%.2f</span><span class="s2"> pix, y: </span><span class="si">%.2f</span><span class="s2"> pix&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">current_center</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
+    <span class="p">}</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -28,8 +28,8 @@ def Slice_Profile(IMG, results, options):
     pixels. While this tool can be used for examining the disk
     structure (such as for edge on galaxies), users will likely prefer
     the more powerful
-    :func:`~pipeline_steps.Axial_Profiles.Axial_Profiles` and
-    :func:`~pipeline_steps.Radial_Profiles.Radial_Profiles` methods
+    :func:`~autoprof.pipeline_steps.Axial_Profiles.Axial_Profiles` and
+    :func:`~autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles` methods
     for such analysis.
 
     Parameters

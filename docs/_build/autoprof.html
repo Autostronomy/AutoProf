@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprof package &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="autoprof.autoprofutils package" href="autoprof.autoprofutils.html" />
+    <link rel="prev" title="autoprof" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">autoprof</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">autoprof package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoprof.autoprofutils.html">autoprof.autoprofutils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoprof.pipeline_steps.html">autoprof.pipeline_steps package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-autoprof.Pipeline">autoprof.Pipeline module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#autoprof.Pipeline.Isophote_Pipeline"><code class="docutils literal notranslate"><span class="pre">Isophote_Pipeline</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-autoprof.autoprof">autoprof.autoprof module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-autoprof">Module contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#autoprof.run_from_terminal"><code class="docutils literal notranslate"><span class="pre">run_from_terminal()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Pipeline.html">Pipeline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoprofutils.html">autoprofutils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline_steps.html">pipeline_steps package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">autoprof</a></li>
+      <li class="breadcrumb-item active">autoprof package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/autoprof.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="autoprof-package">
+<h1>autoprof package<a class="headerlink" href="#autoprof-package" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="autoprof.autoprofutils.html">autoprof.autoprofutils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.autoprofutils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.autoprofutils.html#module-autoprof.autoprofutils.Diagnostic_Plots">autoprof.autoprofutils.Diagnostic_Plots module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Axial_Profiles"><code class="docutils literal notranslate"><span class="pre">Plot_Axial_Profiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Background"><code class="docutils literal notranslate"><span class="pre">Plot_Background()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_EllipseModel"><code class="docutils literal notranslate"><span class="pre">Plot_EllipseModel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_I_Profile"><code class="docutils literal notranslate"><span class="pre">Plot_I_Profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Fit"><code class="docutils literal notranslate"><span class="pre">Plot_Isophote_Fit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Init_Ellipse"><code class="docutils literal notranslate"><span class="pre">Plot_Isophote_Init_Ellipse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Isophote_Init_Optimize"><code class="docutils literal notranslate"><span class="pre">Plot_Isophote_Init_Optimize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Meas_Fmodes"><code class="docutils literal notranslate"><span class="pre">Plot_Meas_Fmodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_PSF_Stars"><code class="docutils literal notranslate"><span class="pre">Plot_PSF_Stars()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Phase_Profile"><code class="docutils literal notranslate"><span class="pre">Plot_Phase_Profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_Radial_Profiles"><code class="docutils literal notranslate"><span class="pre">Plot_Radial_Profiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.Diagnostic_Plots.Plot_SB_Profile"><code class="docutils literal notranslate"><span class="pre">Plot_SB_Profile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.autoprofutils.html#module-autoprof.autoprofutils.ImageTransform">autoprof.autoprofutils.ImageTransform module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.ImageTransform.Crop"><code class="docutils literal notranslate"><span class="pre">Crop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.ImageTransform.Resolution"><code class="docutils literal notranslate"><span class="pre">Resolution()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.autoprofutils.html#module-autoprof.autoprofutils.SharedFunctions">autoprof.autoprofutils.SharedFunctions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.AddLogo"><code class="docutils literal notranslate"><span class="pre">AddLogo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.AddScale"><code class="docutils literal notranslate"><span class="pre">AddScale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Angle_Average"><code class="docutils literal notranslate"><span class="pre">Angle_Average()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Angle_Median"><code class="docutils literal notranslate"><span class="pre">Angle_Median()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Angle_Scatter"><code class="docutils literal notranslate"><span class="pre">Angle_Scatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Angle_TwoAngles_cos"><code class="docutils literal notranslate"><span class="pre">Angle_TwoAngles_cos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Angle_TwoAngles_sin"><code class="docutils literal notranslate"><span class="pre">Angle_TwoAngles_sin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Fmode_Areas"><code class="docutils literal notranslate"><span class="pre">Fmode_Areas()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum"><code class="docutils literal notranslate"><span class="pre">Fmode_fluxdens_to_fluxsum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Fmode_fluxdens_to_fluxsum_errorprop"><code class="docutils literal notranslate"><span class="pre">Fmode_fluxdens_to_fluxsum_errorprop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.GetOptions"><code class="docutils literal notranslate"><span class="pre">GetOptions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.ISB_to_muSB"><code class="docutils literal notranslate"><span class="pre">ISB_to_muSB()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.LSBImage"><code class="docutils literal notranslate"><span class="pre">LSBImage()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.L_to_mag"><code class="docutils literal notranslate"><span class="pre">L_to_mag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.PA_shift_convention"><code class="docutils literal notranslate"><span class="pre">PA_shift_convention()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Read_Image"><code class="docutils literal notranslate"><span class="pre">Read_Image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Rotate_Cartesian"><code class="docutils literal notranslate"><span class="pre">Rotate_Cartesian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Rscale_Fmodes"><code class="docutils literal notranslate"><span class="pre">Rscale_Fmodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Rscale_SuperEllipse"><code class="docutils literal notranslate"><span class="pre">Rscale_SuperEllipse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.SBprof_to_COG"><code class="docutils literal notranslate"><span class="pre">SBprof_to_COG()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.SBprof_to_COG_errorprop"><code class="docutils literal notranslate"><span class="pre">SBprof_to_COG_errorprop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Sigma_Clip_Upper"><code class="docutils literal notranslate"><span class="pre">Sigma_Clip_Upper()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.Smooth_Mode"><code class="docutils literal notranslate"><span class="pre">Smooth_Mode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.StarFind"><code class="docutils literal notranslate"><span class="pre">StarFind()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.abs_mag_to_app_mag"><code class="docutils literal notranslate"><span class="pre">abs_mag_to_app_mag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.app_mag_to_abs_mag"><code class="docutils literal notranslate"><span class="pre">app_mag_to_abs_mag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.arcsec_to_pc"><code class="docutils literal notranslate"><span class="pre">arcsec_to_pc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.flux_to_mag"><code class="docutils literal notranslate"><span class="pre">flux_to_mag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.flux_to_sb"><code class="docutils literal notranslate"><span class="pre">flux_to_sb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.fluxdens_to_fluxsum"><code class="docutils literal notranslate"><span class="pre">fluxdens_to_fluxsum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.fluxdens_to_fluxsum_errorprop"><code class="docutils literal notranslate"><span class="pre">fluxdens_to_fluxsum_errorprop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.halfmag"><code class="docutils literal notranslate"><span class="pre">halfmag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.interpolate_Lanczos"><code class="docutils literal notranslate"><span class="pre">interpolate_Lanczos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.interpolate_bicubic"><code class="docutils literal notranslate"><span class="pre">interpolate_bicubic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.mag_to_L"><code class="docutils literal notranslate"><span class="pre">mag_to_L()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.mag_to_flux"><code class="docutils literal notranslate"><span class="pre">mag_to_flux()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.mag_to_magperarcsec2"><code class="docutils literal notranslate"><span class="pre">mag_to_magperarcsec2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.magperarcsec2_to_mag"><code class="docutils literal notranslate"><span class="pre">magperarcsec2_to_mag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.muSB_to_ISB"><code class="docutils literal notranslate"><span class="pre">muSB_to_ISB()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.parametric_Fmodes"><code class="docutils literal notranslate"><span class="pre">parametric_Fmodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.parametric_SuperEllipse"><code class="docutils literal notranslate"><span class="pre">parametric_SuperEllipse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.pc_to_arcsec"><code class="docutils literal notranslate"><span class="pre">pc_to_arcsec()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.autoprofutils.html#autoprof.autoprofutils.SharedFunctions.sb_to_flux"><code class="docutils literal notranslate"><span class="pre">sb_to_flux()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.autoprofutils.html#module-autoprof.autoprofutils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="autoprof.pipeline_steps.html">autoprof.pipeline_steps package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Axial_Profiles">autoprof.pipeline_steps.Axial_Profiles module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Axial_Profiles.Axial_Profiles"><code class="docutils literal notranslate"><span class="pre">Axial_Profiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Background">autoprof.pipeline_steps.Background module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Basic"><code class="docutils literal notranslate"><span class="pre">Background_Basic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Background.Background_DilatedSources"><code class="docutils literal notranslate"><span class="pre">Background_DilatedSources()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Mode"><code class="docutils literal notranslate"><span class="pre">Background_Mode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Unsharp"><code class="docutils literal notranslate"><span class="pre">Background_Unsharp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Center">autoprof.pipeline_steps.Center module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_1DGaussian"><code class="docutils literal notranslate"><span class="pre">Center_1DGaussian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_2DGaussian"><code class="docutils literal notranslate"><span class="pre">Center_2DGaussian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_Forced"><code class="docutils literal notranslate"><span class="pre">Center_Forced()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb"><code class="docutils literal notranslate"><span class="pre">Center_HillClimb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb_mean"><code class="docutils literal notranslate"><span class="pre">Center_HillClimb_mean()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_OfMass"><code class="docutils literal notranslate"><span class="pre">Center_OfMass()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Center.Center_Peak"><code class="docutils literal notranslate"><span class="pre">Center_Peak()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Check_Fit">autoprof.pipeline_steps.Check_Fit module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Check_Fit.Check_Fit"><code class="docutils literal notranslate"><span class="pre">Check_Fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Ellipse_Model">autoprof.pipeline_steps.Ellipse_Model module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Ellipse_Model.EllipseModel"><code class="docutils literal notranslate"><span class="pre">EllipseModel()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Isophote_Extract">autoprof.pipeline_steps.Isophote_Extract module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract"><code class="docutils literal notranslate"><span class="pre">Isophote_Extract()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced"><code class="docutils literal notranslate"><span class="pre">Isophote_Extract_Forced()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils"><code class="docutils literal notranslate"><span class="pre">Isophote_Extract_Photutils()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Isophote_Fit">autoprof.pipeline_steps.Isophote_Fit module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust"><code class="docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_Robust()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean"><code class="docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_mean()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase"><code class="docutils literal notranslate"><span class="pre">Isophote_Fit_FixedPhase()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_Forced"><code class="docutils literal notranslate"><span class="pre">Isophote_Fit_Forced()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Photutils_Fit"><code class="docutils literal notranslate"><span class="pre">Photutils_Fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Isophote_Initialize">autoprof.pipeline_steps.Isophote_Initialize module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Init_Forced"><code class="docutils literal notranslate"><span class="pre">Isophote_Init_Forced()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize"><code class="docutils literal notranslate"><span class="pre">Isophote_Initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean"><code class="docutils literal notranslate"><span class="pre">Isophote_Initialize_mean()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Mask">autoprof.pipeline_steps.Mask module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Bad_Pixel_Mask"><code class="docutils literal notranslate"><span class="pre">Bad_Pixel_Mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Mask_Segmentation_Map"><code class="docutils literal notranslate"><span class="pre">Mask_Segmentation_Map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Star_Mask"><code class="docutils literal notranslate"><span class="pre">Star_Mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Mask.Star_Mask_IRAF"><code class="docutils literal notranslate"><span class="pre">Star_Mask_IRAF()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.PSF">autoprof.pipeline_steps.PSF module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_IRAF"><code class="docutils literal notranslate"><span class="pre">PSF_IRAF()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_Image"><code class="docutils literal notranslate"><span class="pre">PSF_Image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_StarFind"><code class="docutils literal notranslate"><span class="pre">PSF_StarFind()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_deconvolve"><code class="docutils literal notranslate"><span class="pre">PSF_deconvolve()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Plotting_Steps">autoprof.pipeline_steps.Plotting_Steps module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Plotting_Steps.Plot_Galaxy_Image"><code class="docutils literal notranslate"><span class="pre">Plot_Galaxy_Image()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Radial_Profiles">autoprof.pipeline_steps.Radial_Profiles module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles"><code class="docutils literal notranslate"><span class="pre">Radial_Profiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Slice_Profiles">autoprof.pipeline_steps.Slice_Profiles module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Slice_Profiles.Slice_Profile"><code class="docutils literal notranslate"><span class="pre">Slice_Profile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Write_Fi">autoprof.pipeline_steps.Write_Fi module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Write_Fi.WriteFi"><code class="docutils literal notranslate"><span class="pre">WriteFi()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps.Write_Prof">autoprof.pipeline_steps.Write_Prof module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoprof.pipeline_steps.html#autoprof.pipeline_steps.Write_Prof.WriteProf"><code class="docutils literal notranslate"><span class="pre">WriteProf()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="autoprof.pipeline_steps.html#module-autoprof.pipeline_steps">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-autoprof.Pipeline">
+<span id="autoprof-pipeline-module"></span><h2>autoprof.Pipeline module<a class="headerlink" href="#module-autoprof.Pipeline" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="autoprof.Pipeline.Isophote_Pipeline">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autoprof.Pipeline.</span></span><span class="sig-name descname"><span class="pre">Isophote_Pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loggername</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/Pipeline.html#Isophote_Pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.Pipeline.Isophote_Pipeline" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autoprof.Pipeline.Isophote_Pipeline.Process_ConfigFile">
+<span class="sig-name descname"><span class="pre">Process_ConfigFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/Pipeline.html#Isophote_Pipeline.Process_ConfigFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.Pipeline.Isophote_Pipeline.Process_ConfigFile" title="Permalink to this definition"></a></dt>
+<dd><p>Reads in a configuration file and sets parameters for the pipeline. The configuration
+file should have variables corresponding to the desired parameters to be set.</p>
+<p>congig_file: string path to configuration file</p>
+<p>returns: timing of each pipeline step if successful. Else returns 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoprof.Pipeline.Isophote_Pipeline.Process_Image">
+<span class="sig-name descname"><span class="pre">Process_Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/Pipeline.html#Isophote_Pipeline.Process_Image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.Pipeline.Isophote_Pipeline.Process_Image" title="Permalink to this definition"></a></dt>
+<dd><p>Function which runs the pipeline for a single image. Each sub-function of the pipeline is run
+in order and the outputs are passed along. If multiple images are given, the pipeline is
+excecuted on the first image and the isophotes are applied to the others.</p>
+<p>returns list of times for each pipeline step if successful. else returns 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoprof.Pipeline.Isophote_Pipeline.Process_List">
+<span class="sig-name descname"><span class="pre">Process_List</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/Pipeline.html#Isophote_Pipeline.Process_List"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.Pipeline.Isophote_Pipeline.Process_List" title="Permalink to this definition"></a></dt>
+<dd><p>Wrapper function to run “Process_Image” in parallel for many images.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autoprof.Pipeline.Isophote_Pipeline.UpdatePipeline">
+<span class="sig-name descname"><span class="pre">UpdatePipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_pipeline_methods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_pipeline_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof/Pipeline.html#Isophote_Pipeline.UpdatePipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.Pipeline.Isophote_Pipeline.UpdatePipeline" title="Permalink to this definition"></a></dt>
+<dd><p>modify steps in the AutoProf pipeline.</p>
+<dl class="simple">
+<dt>new_pipeline_methods: update the dictionary of methods used by the pipeline. This can either add</dt><dd><p>new methods or replace existing ones.</p>
+</dd>
+<dt>new_pipeline_steps: update the list of pipeline step strings. These strings refer to keys in</dt><dd><p>pipeline_methods. It is posible to add/remove/rearrange steps here. Alternatively
+one can supply a dictionary with current pipeline steps as keys and new pipeline
+steps as values, the corresponding steps will be replaced.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-autoprof.autoprof">
+<span id="autoprof-autoprof-module"></span><h2>autoprof.autoprof module<a class="headerlink" href="#module-autoprof.autoprof" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-autoprof">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-autoprof" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="autoprof.run_from_terminal">
+<span class="sig-prename descclassname"><span class="pre">autoprof.</span></span><span class="sig-name descname"><span class="pre">run_from_terminal</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/autoprof.html#run_from_terminal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autoprof.run_from_terminal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="autoprof" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autoprof.autoprofutils.html" class="btn btn-neutral float-right" title="autoprof.autoprofutils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

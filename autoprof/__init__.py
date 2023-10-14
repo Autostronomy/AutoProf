@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .Pipeline import Isophote_Pipeline
+from . import autoprofutils, Pipeline, pipeline_steps
 
 __version__ = "1.0.0"
 __author__ = "Connor Stone"
@@ -23,7 +23,7 @@ def run_from_terminal():
     except:
         logfile = None
 
-    PIPELINE = Isophote_Pipeline(loggername=logfile)
+    PIPELINE = Pipeline.Isophote_Pipeline(loggername=logfile)
 
     PIPELINE.Process_ConfigFile(config_file)
     

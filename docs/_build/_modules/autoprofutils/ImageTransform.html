@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autoprofutils.ImageTransform &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoprof.html">autoprof package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">autoprofutils.ImageTransform</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autoprofutils.ImageTransform</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">.SharedFunctions</span> <span class="kn">import</span> <span class="n">interpolate_Lanczos</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Crop&quot;</span><span class="p">,</span> <span class="s2">&quot;Resolution&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Crop"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.ImageTransform.Crop">[docs]</a><span class="k">def</span> <span class="nf">Crop</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Crop the edges of an image about a center point.</span>
+
+<span class="sd">    If a &#39;Center&#39; method has been applied before in the pipeline we use that to</span>
+<span class="sd">    define the galaxy center, otherwise we define the center as half the image.</span>
+
+<span class="sd">    ap_cropto states the new size of the image after cropping.</span>
+<span class="sd">    We default to 512*512.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s2">&quot;center&quot;</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;center&quot;</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+
+    <span class="n">cropto</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_cropto&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;ap_cropto&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+
+    <span class="n">IMG</span> <span class="o">=</span> <span class="n">IMG</span><span class="p">[</span>
+        <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">cropto</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">cropto</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cropto</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">cropto</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="Resolution"><a class="viewcode-back" href="../../autoprofutils.html#autoprofutils.ImageTransform.Resolution">[docs]</a><span class="k">def</span> <span class="nf">Resolution</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Change the resolution of an image</span>
+
+<span class="sd">    Can be used to resample an image at a new pixel scale. The new</span>
+<span class="sd">    image can have finer sampling (smaller pixels) or coarser sampling</span>
+<span class="sd">    (larger pixels) and this can be accomplished with a variety of</span>
+<span class="sd">    methods. First, there are pooling methods which can only reduce</span>
+<span class="sd">    the resolution, these methods take a certain block as defined by</span>
+<span class="sd">    *ap_resolution_shape* and perform a mean, median, or max operation</span>
+<span class="sd">    on those pixels. That value then becomes the pixel value for a</span>
+<span class="sd">    downsampled image. Alternatively, one can use either bicubic or</span>
+<span class="sd">    Lanczos interpolation, which can upsample or downsample the</span>
+<span class="sd">    image. The parameter *ap_resolution_shape* is then the desired new</span>
+<span class="sd">    shape of the image, which will be fit to represent the same area</span>
+<span class="sd">    on the sky. To match the same area on the sky, each pixel is</span>
+<span class="sd">    assumed to have a width of 1, thus representing a 1x1 square on</span>
+<span class="sd">    the sky.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    ap_resolution_method : string, default &#39;lanczos&#39;</span>
+<span class="sd">      Method which is used to perform resolution resampling. Options</span>
+<span class="sd">      are: &#39;max pool&#39;, &#39;mean pool&#39;, &#39;median pool&#39;, &#39;bicubic&#39;, and</span>
+<span class="sd">      &#39;lanczos&#39;. Lanczos is very slow, but represents the best</span>
+<span class="sd">      interpolation method according to information theory.</span>
+
+<span class="sd">    ap_resolution_shape : tuple, default None</span>
+<span class="sd">      Shape used for resampling. For pooling methods, this represents</span>
+<span class="sd">      the size of the pool/box in which a calcualtion is done. For</span>
+<span class="sd">      other methods this is the size of the final desired image. This</span>
+<span class="sd">      parameter is required.</span>
+
+<span class="sd">    ap_resolution_dtype : object, default None</span>
+<span class="sd">      Optional parameter to set a new dtype for the image after</span>
+<span class="sd">      resampling. This can be used to reduce precision if it is</span>
+<span class="sd">      unnecessary, limiting the size of the final image if it is very</span>
+<span class="sd">      finely resampled.</span>
+
+<span class="sd">    ap_iso_interpolate_window : int, default 5</span>
+<span class="sd">      Only used by Lanczos interpolation, this will set the area of</span>
+<span class="sd">      pixels used to calculate the Lanczos interpolated values. Larger</span>
+<span class="sd">      values are more accurate, but require quadratically more</span>
+<span class="sd">      computation time.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The inputted pixel scale will be incorrect after this operation if</span>
+<span class="sd">    it is set for the original image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    IMG : ndarray</span>
+<span class="sd">      Resampled galaxy image according to user specified sampling</span>
+<span class="sd">      method.</span>
+
+<span class="sd">    results : dict</span>
+<span class="sd">      .. code-block:: python</span>
+
+<span class="sd">        {}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;ap_resolution_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;max pool&quot;</span>
+    <span class="p">):</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">K</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">]</span>
+        <span class="n">MK</span> <span class="o">=</span> <span class="n">M</span> <span class="o">//</span> <span class="n">K</span>
+        <span class="n">NL</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="n">L</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[:</span> <span class="n">MK</span> <span class="o">*</span> <span class="n">K</span><span class="p">,</span> <span class="p">:</span> <span class="n">NL</span> <span class="o">*</span> <span class="n">L</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">MK</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">NL</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;ap_resolution_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;mean pool&quot;</span>
+    <span class="p">):</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">K</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">]</span>
+        <span class="n">MK</span> <span class="o">=</span> <span class="n">M</span> <span class="o">//</span> <span class="n">K</span>
+        <span class="n">NL</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="n">L</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[:</span> <span class="n">MK</span> <span class="o">*</span> <span class="n">K</span><span class="p">,</span> <span class="p">:</span> <span class="n">NL</span> <span class="o">*</span> <span class="n">L</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">MK</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">NL</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;ap_resolution_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;median pool&quot;</span>
+    <span class="p">):</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">K</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">]</span>
+        <span class="n">MK</span> <span class="o">=</span> <span class="n">M</span> <span class="o">//</span> <span class="n">K</span>
+        <span class="n">NL</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="n">L</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[:</span> <span class="n">MK</span> <span class="o">*</span> <span class="n">K</span><span class="p">,</span> <span class="p">:</span> <span class="n">NL</span> <span class="o">*</span> <span class="n">L</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">MK</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">NL</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;ap_resolution_method&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;bicubic&quot;</span>
+    <span class="p">):</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_dtype&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;ap_resolution_dtype&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="k">else</span> <span class="n">IMG</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">)</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">interpolate_bicubic</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">XX</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">YY</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">newIMG</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newIMG</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_dtype&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;ap_resolution_dtype&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="k">else</span> <span class="n">IMG</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">XX</span><span class="p">,</span> <span class="n">YY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">IMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_resolution_shape&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newIMG</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="n">newIMG</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolate_Lanczos</span><span class="p">(</span>
+                <span class="n">IMG</span><span class="p">,</span>
+                <span class="n">XX</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">YY</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">scale</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;ap_iso_interpolate_window&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;ap_iso_interpolate_window&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+                <span class="k">else</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">newIMG</span><span class="p">,</span> <span class="p">{}</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -51,7 +51,7 @@ for name in sorted(param_docs.keys()):
     parameters.append('**Referencing Methods**\n\n')
     for P in param_docs[name]:
         step = P['step'][P['step'].rfind('/')+1:-3]
-        parameters.append(f"- :func:`~pipeline_steps.{step}.{P['func']}`\n")
+        parameters.append(f"- :func:`~autoprof.pipeline_steps.{step}.{P['func']}`\n")
     parameters.append('\n')
     parameters.append('**Description**\n\n')
     for d in param_docs[name][0]['parameter'].desc:
