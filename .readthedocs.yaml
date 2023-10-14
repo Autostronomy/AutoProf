@@ -8,6 +8,11 @@ sphinx:
 
 # Explicitly set the version of Python and its requirements
 python:
-  version: 3.6
+  version: 3.9
   install:
     - requirements: requirements.txt
+
+python:
+  install:
+    - method: pip
+      path: .
