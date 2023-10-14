@@ -22,6 +22,7 @@ setup(
                       "matplotlib",
                       "photutils",
                       "requests",
+                      "scikit-learn",
                       ],
     entry_points = {
         'console_scripts': [
