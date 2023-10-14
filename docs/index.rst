@@ -31,13 +31,6 @@ AutoProf
 
 |br|
 
-|br|
-
-.. Note::
-    This is AutoProf-Legacy, if you are looking for the most up to date code "AstroPhot" please `follow this link <https://github.com/Autostronomy/AstroPhot>`_.
-
-|br|
-
 Getting Started
 ===============
 
@@ -74,7 +67,6 @@ User Documentation
    extramethods.rst
    troubleshooting.rst
    
-
 |br|
 
 .. note::
@@ -82,7 +74,7 @@ User Documentation
     Like much astronomy software, AutoProf is an evolving package.
     I try to keep the API stable and consistent, however I will make
     changes to the interface if it considerably improves things
-    going forward. Please contact connor.stone@queensu.ca if you experience
+    going forward. Please contact connorstone628@gmail.com if you experience
     issues. If you would like to be notified of major changes send an email
     with the subject line "AUTOPROF MAILING LIST".
 

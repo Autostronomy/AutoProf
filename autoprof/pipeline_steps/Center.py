@@ -2,8 +2,7 @@ import numpy as np
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     AddLogo,
     Angle_Median,
@@ -19,6 +18,7 @@ from matplotlib.patches import Ellipse
 import logging
 from copy import copy, deepcopy
 
+__all__ = ("Center_Forced", "Center_2DGaussian", "Center_1DGaussian", "Center_OfMass", "Center_Peak", "Center_HillClimb", "Center_HillClimb_mean")
 
 def Center_Forced(IMG, results, options):
     """Extracts previously fit center coordinates.

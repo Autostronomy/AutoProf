@@ -1,4 +1,4 @@
-from photutils import make_source_mask
+from photutils.segmentation import SegmentationImage
 from photutils.isophote import (
     EllipseSample,
     Ellipse,
@@ -20,10 +20,10 @@ from astropy.visualization.mpl_normalize import ImageNormalize
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import AddLogo, Smooth_Mode
-from autoprofutils.Diagnostic_Plots import Plot_Background
+from ..autoprofutils.SharedFunctions import AddLogo, Smooth_Mode
+from ..autoprofutils.Diagnostic_Plots import Plot_Background
 
+__all__ = ("Background_Mode", "Background_DilatedSources", "Background_Basic", "Background_Basic", "Background_Unsharp")
 
 def Background_Mode(IMG, results, options):
     """Compute the mode flux in the border of an image.
@@ -173,8 +173,8 @@ def Background_DilatedSources(IMG, results, options):
     # such as stars and galaxies, including a boarder
     # around each source.
     if not ("ap_set_background" in options and "ap_set_background_noise" in options):
-        source_mask = make_source_mask(
-            IMG,
+        segm = SegmentationImage(IMG)
+        source_mask = segm.make_source_mask(
             nsigma=3,
             npixels=int(1.0 / options["ap_pixscale"]),
             dilate_size=40,

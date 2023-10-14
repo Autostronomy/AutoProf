@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _x_to_eps,
     _x_to_pa,
@@ -19,6 +18,7 @@ from autoprofutils.SharedFunctions import (
 )
 import logging
 
+__all__ = ("Plot_Galaxy_Image", )
 
 def Plot_Galaxy_Image(IMG, results, options):
     """Generate a plain image of the galaxy

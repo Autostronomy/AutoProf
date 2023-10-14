@@ -15,8 +15,7 @@ from scipy.fftpack import fft, ifft
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     StarFind,
     AddLogo,
     LSBImage,
@@ -25,9 +24,10 @@ from autoprofutils.SharedFunctions import (
     interpolate_bicubic,
     Read_Image,
 )
-from autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
+from ..autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
 from copy import deepcopy
 
+__all__ = ("PSF_IRAF", "PSF_StarFind", "PSF_Image", "PSF_deconvolve")
 
 def PSF_IRAF(IMG, results, options):
     """PSF routine which identifies stars and averages the FWHM.

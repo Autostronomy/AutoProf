@@ -5,8 +5,7 @@ from scipy.stats import iqr
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _x_to_eps,
     _x_to_pa,
@@ -21,7 +20,7 @@ from autoprofutils.SharedFunctions import (
     autocolours,
     Smooth_Mode,
 )
-from autoprofutils.Diagnostic_Plots import (
+from ..autoprofutils.Diagnostic_Plots import (
     Plot_Isophote_Init_Ellipse,
     Plot_Isophote_Init_Optimize,
 )
@@ -33,6 +32,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from time import time
 
+__all__ = ("Isophote_Init_Forced", "Isophote_Initialize", "Isophote_Initialize_mean")
 
 def Isophote_Init_Forced(IMG, results, options):
     """Read global elliptical isophote to a galaxy from an aux file.

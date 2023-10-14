@@ -140,7 +140,7 @@ def AddLogo(fig, loc=[0.8, 0.01, 0.844 / 5, 0.185 / 5], white=False):
     im = plt.imread(
         get_sample_data(
             os.path.join(
-                os.environ["AUTOPROF"],
+                os.path.dirname(os.path.dirname(__file__)),
                 "_static/",
                 ("AP_logo_white.png" if white else "AP_logo.png"),
             )

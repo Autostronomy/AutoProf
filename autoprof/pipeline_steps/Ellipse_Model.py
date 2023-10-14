@@ -6,18 +6,18 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     AddLogo,
     autocmap,
     LSBImage,
     Rscale_SuperEllipse,
     Rscale_Fmodes,
 )
-from autoprofutils.Diagnostic_Plots import Plot_EllipseModel
+from ..autoprofutils.Diagnostic_Plots import Plot_EllipseModel
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 
+__all__ = ("EllipseModel",)
 
 def EllipseModel(IMG, results, options):
     """Construct a smooth model image of the galaxy with fixed PA/elliptiicty.

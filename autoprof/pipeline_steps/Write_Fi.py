@@ -3,8 +3,7 @@ import numpy as np
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-
+__all__ = ("WriteFi", )
 
 def WriteFi(IMG, results, options):
     """

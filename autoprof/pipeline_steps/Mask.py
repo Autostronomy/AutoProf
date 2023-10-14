@@ -8,9 +8,9 @@ import logging
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import Read_Image, LSBImage, AddLogo, StarFind
+from ..autoprofutils.SharedFunctions import Read_Image, LSBImage, AddLogo, StarFind
 
+__all__ = ("Bad_Pixel_Mask", "Mask_Segmentation_Map", "Star_Mask_IRAF", "Star_Mask")
 
 def Bad_Pixel_Mask(IMG, results, options):
     """Simple masking routine to clip pixels based on thresholds.

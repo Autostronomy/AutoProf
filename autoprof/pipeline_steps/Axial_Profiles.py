@@ -2,8 +2,7 @@ import numpy as np
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _iso_between,
     LSBImage,
@@ -14,7 +13,7 @@ from autoprofutils.SharedFunctions import (
     _scatter,
     flux_to_sb,
 )
-from autoprofutils.Diagnostic_Plots import Plot_Axial_Profiles
+from ..autoprofutils.Diagnostic_Plots import Plot_Axial_Profiles
 from scipy.stats import iqr
 from astropy.visualization import SqrtStretch, LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -22,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import logging
 
+__all__ = ("Axial_Profiles",)
 
 def Axial_Profiles(IMG, results, options):
     """Extracts SB profiles perpendicular to the major (or minor) axis.
