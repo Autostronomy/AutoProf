@@ -2,8 +2,7 @@ import numpy as np
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _iso_between,
     LSBImage,
     _iso_line,
@@ -18,6 +17,7 @@ from scipy.stats import iqr
 import matplotlib.pyplot as plt
 import logging
 
+__all__ = ("Slice_Profile",)
 
 def Slice_Profile(IMG, results, options):
     """Extract a very basic SB profile along a line.

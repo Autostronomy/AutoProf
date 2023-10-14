@@ -16,8 +16,7 @@ import logging
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _x_to_pa,
     _x_to_eps,
     _inv_x_to_eps,
@@ -37,12 +36,13 @@ from autoprofutils.SharedFunctions import (
     Fmode_fluxdens_to_fluxsum_errorprop,
     mag_to_flux,
 )
-from autoprofutils.Diagnostic_Plots import (
+from ..autoprofutils.Diagnostic_Plots import (
     Plot_SB_Profile,
     Plot_I_Profile,
     Plot_Phase_Profile,
 )
 
+__all__ = ("Isophote_Extract_Forced", "Isophote_Extract", "Isophote_Extract_Photutils")
 
 def _Generate_Profile(IMG, results, R, parameters, options):
 

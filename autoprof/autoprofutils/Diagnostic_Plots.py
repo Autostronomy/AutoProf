@@ -9,8 +9,7 @@ from itertools import compress
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from .SharedFunctions import (
     _x_to_pa,
     _x_to_eps,
     _inv_x_to_eps,
@@ -31,6 +30,20 @@ from autoprofutils.SharedFunctions import (
     Rotate_Cartesian,
 )
 
+__all__ = (
+    "Plot_Background",
+    "Plot_PSF_Stars",
+    "Plot_Isophote_Init_Ellipse",
+    "Plot_Isophote_Init_Optimize",
+    "Plot_Isophote_Fit",
+    "Plot_SB_Profile",
+    "Plot_I_Profile",
+    "Plot_Phase_Profile",
+    "Plot_Meas_Fmodes",
+    "Plot_Radial_Profiles",
+    "Plot_Axial_Profiles",
+    "Plot_EllipseModel",
+)
 
 def Plot_Background(values, bkgrnd, noise, results, options):
 

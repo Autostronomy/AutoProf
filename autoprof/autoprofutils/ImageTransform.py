@@ -2,9 +2,9 @@ import numpy as np
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import interpolate_Lanczos
+from .SharedFunctions import interpolate_Lanczos
 
+__all__ = ("Crop", "Resolution")
 
 def Crop(IMG, results, options):
     """

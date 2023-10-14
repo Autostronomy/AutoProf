@@ -4,11 +4,11 @@ import numpy as np
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import PA_shift_convention
+from ..autoprofutils.SharedFunctions import PA_shift_convention
 from datetime import datetime
 from time import sleep
 
+__all__ = ("WriteProf", )
 
 def WriteProf(IMG, results, options):
     """Basic method to write SB profile to disk.

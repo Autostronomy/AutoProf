@@ -17,8 +17,7 @@ import logging
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _x_to_pa,
     _x_to_eps,
@@ -32,8 +31,9 @@ from autoprofutils.SharedFunctions import (
     PA_shift_convention,
     autocolours,
 )
-from autoprofutils.Diagnostic_Plots import Plot_Isophote_Fit
+from ..autoprofutils.Diagnostic_Plots import Plot_Isophote_Fit
 
+__all__ = ("Photutils_Fit", "Isophote_Fit_FixedPhase", "Isophote_Fit_FFT_Robust", "Isophote_Fit_Forced", "Isophote_Fit_FFT_mean")
 
 def Photutils_Fit(IMG, results, options):
     """Photutils elliptical isophote wrapper.

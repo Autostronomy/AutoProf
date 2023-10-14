@@ -1,23 +1,23 @@
 import sys
 import os
-sys.path.append(os.environ['AUTOPROF'])
-from pipeline_steps.Plotting_Steps import Plot_Galaxy_Image
-from pipeline_steps.Background import Background_Mode, Background_DilatedSources, Background_Unsharp, Background_Basic
-from pipeline_steps.PSF import PSF_IRAF, PSF_StarFind, PSF_Image, PSF_deconvolve
-from pipeline_steps.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
-from pipeline_steps.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced
-from pipeline_steps.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean, Isophote_Fit_FixedPhase
-from pipeline_steps.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask, Star_Mask
-from pipeline_steps.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced, Isophote_Extract_Photutils
-from pipeline_steps.Check_Fit import Check_Fit
-from pipeline_steps.Write_Prof import WriteProf
-from pipeline_steps.Write_Fi import WriteFi
-from pipeline_steps.Ellipse_Model import EllipseModel
-from pipeline_steps.Radial_Profiles import Radial_Profiles
-from pipeline_steps.Axial_Profiles import Axial_Profiles
-from pipeline_steps.Slice_Profiles import Slice_Profile
-from autoprofutils.ImageTransform import Crop
-from autoprofutils.SharedFunctions import GetOptions, Read_Image, PA_shift_convention
+from .pipeline_steps import *
+# from .pipeline_steps.Plotting_Steps import Plot_Galaxy_Image
+# from .pipeline_steps.Background import Background_Mode, Background_DilatedSources, Background_Unsharp, Background_Basic
+# from .pipeline_steps.PSF import PSF_IRAF, PSF_StarFind, PSF_Image, PSF_deconvolve
+# from .pipeline_steps.Center import Center_2DGaussian, Center_1DGaussian, Center_OfMass, Center_HillClimb, Center_Forced, Center_HillClimb_mean
+# from .pipeline_steps.Isophote_Initialize import Isophote_Initialize, Isophote_Initialize_mean, Isophote_Init_Forced
+# from .pipeline_steps.Isophote_Fit import Isophote_Fit_FFT_Robust, Isophote_Fit_Forced, Photutils_Fit, Isophote_Fit_FFT_mean, Isophote_Fit_FixedPhase
+# from .pipeline_steps.Mask import Star_Mask_IRAF, Mask_Segmentation_Map, Bad_Pixel_Mask, Star_Mask
+# from .pipeline_steps.Isophote_Extract import Isophote_Extract, Isophote_Extract_Forced, Isophote_Extract_Photutils
+# from .pipeline_steps.Check_Fit import Check_Fit
+# from .pipeline_steps.Write_Prof import WriteProf
+# from .pipeline_steps.Write_Fi import WriteFi
+# from .pipeline_steps.Ellipse_Model import EllipseModel
+# from .pipeline_steps.Radial_Profiles import Radial_Profiles
+# from .pipeline_steps.Axial_Profiles import Axial_Profiles
+# from .pipeline_steps.Slice_Profiles import Slice_Profile
+from .autoprofutils.ImageTransform import Crop
+from .autoprofutils.SharedFunctions import GetOptions, Read_Image, PA_shift_convention
 from multiprocessing import Pool, current_process
 from astropy.io import fits
 from scipy.stats import iqr

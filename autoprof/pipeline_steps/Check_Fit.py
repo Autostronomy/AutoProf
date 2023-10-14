@@ -5,8 +5,7 @@ import logging
 import sys
 import os
 
-sys.path.append(os.environ["AUTOPROF"])
-from autoprofutils.SharedFunctions import (
+from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _x_to_pa,
     _x_to_eps,
@@ -14,6 +13,7 @@ from autoprofutils.SharedFunctions import (
     _inv_x_to_pa,
 )
 
+__all__ = ("Check_Fit",)
 
 def Check_Fit(IMG, results, options):
     """Check for cases of failed isophote fits.
