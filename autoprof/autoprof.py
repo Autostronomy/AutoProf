@@ -1,4 +1,4 @@
-#!/home/connor/venvs/PY39/bin/python3
+#!/usr/bin/python3
 
 import subprocess
 
