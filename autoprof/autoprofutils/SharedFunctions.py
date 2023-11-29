@@ -141,7 +141,7 @@ def AddLogo(fig, loc=[0.8, 0.01, 0.844 / 5, 0.185 / 5], white=False):
         get_sample_data(
             os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
-                "_static/",
+                "media/",
                 ("AP_logo_white.png" if white else "AP_logo.png"),
             )
         )
