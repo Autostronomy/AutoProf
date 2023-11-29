@@ -144,7 +144,7 @@ def EllipseModel(IMG, results, options):
                 * (
                     options["ap_ellipsemodel_resolution"]
                     if "ap_ellipsemodel_resolution" in options
-                    else 1
+                    else 2.
                 )
             ),
         )
