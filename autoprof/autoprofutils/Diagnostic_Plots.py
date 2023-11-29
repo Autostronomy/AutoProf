@@ -98,10 +98,10 @@ def Plot_PSF_Stars(
     for i in range(len(stars_fwhm)):
         plt.gca().add_patch(
             Ellipse(
-                (stars_x[i], stars_y[i]),
-                20 * psf,
-                20 * psf,
-                0,
+                xy = (stars_x[i], stars_y[i]),
+                width = 20 * psf,
+                height = 20 * psf,
+                angle = 0,
                 fill=False,
                 linewidth=1.5,
                 color=autocolours["red1"]
@@ -145,13 +145,13 @@ def Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, o
     AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
     plt.gca().add_patch(
         Ellipse(
-            (
+            xy =(
                 results["center"]["x"] - ranges[0][0],
                 results["center"]["y"] - ranges[1][0],
             ),
-            2 * circ_ellipse_radii[-1],
-            2 * circ_ellipse_radii[-1] * (1.0 - ellip),
-            phase * 180 / np.pi,
+            width = 2 * circ_ellipse_radii[-1],
+            height = 2 * circ_ellipse_radii[-1] * (1.0 - ellip),
+            angle = phase * 180 / np.pi,
             fill=False,
             linewidth=1,
             color=autocolours["blue1"],
