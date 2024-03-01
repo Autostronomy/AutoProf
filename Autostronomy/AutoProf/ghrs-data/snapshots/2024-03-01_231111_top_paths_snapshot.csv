@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Autostronomy/AutoProf/tree/main/test,15,4
+/Autostronomy/AutoProf,12,4
+/Autostronomy/AutoProf/tree/main/autoprof,6,3
+/Autostronomy/AutoProf/blob/main/test/test_custom_config.py,6,2
+/Autostronomy/AutoProf/blob/main/test/test_config.py,6,1
+/Autostronomy/AutoProf/tree/main/autoprof/autoprofutils,4,2
+/Autostronomy/AutoProf/blob/main/autoprof/autoprofutils/Diagnostic_Plots.py,4,1
+/Autostronomy/AutoProf/blob/main/docs/Makefile,4,1
+/Autostronomy/AutoProf/blob/main/docs/install.rst,3,1
+/Autostronomy/AutoProf/blob/main/docs/autoprof.rst,2,1
