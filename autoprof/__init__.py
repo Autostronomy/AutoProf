@@ -3,9 +3,10 @@ import sys
 
 from . import autoprofutils, Pipeline, pipeline_steps
 
-__version__ = "1.0.2"
+__version__ = "1.1.0"
 __author__ = "Connor Stone"
 __email__ = "connorstone628@gmail.com"
+
 
 def run_from_terminal():
 
@@ -26,4 +27,3 @@ def run_from_terminal():
     PIPELINE = Pipeline.Isophote_Pipeline(loggername=logfile)
 
     PIPELINE.Process_ConfigFile(config_file)
-    
