@@ -13,7 +13,6 @@ sphinx:
 
 # Explicitly set the version of Python and its requirements
 python:
-  version: 3.8
   install:
     - requirements: requirements_build.txt
     - method: pip
