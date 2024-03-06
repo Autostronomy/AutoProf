@@ -206,7 +206,7 @@ def Isophote_Initialize(IMG, results, options):
             np.log10(options["ap_isoinit_R_set"]),
             10,
         ).tolist()
-        for r in circ_ellipse_radii:
+        for r in circ_ellipse_radii[1:]:
             isovals = _iso_extract(
                 dat,
                 r,
