@@ -45,14 +45,11 @@ __all__ = (
     "Plot_EllipseModel",
 )
 
+
 def Plot_Background(values, bkgrnd, noise, results, options):
 
     hist, bins = np.histogram(
-        values[
-            np.logical_and(
-                (values - bkgrnd) < 20 * noise, (values - bkgrnd) > -5 * noise
-            )
-        ],
+        values[np.logical_and((values - bkgrnd) < 20 * noise, (values - bkgrnd) > -5 * noise)],
         bins=max(10, int(np.sqrt(len(values)) / 2)),
     )
     plt.figure(figsize=(5, 5))
@@ -90,23 +87,23 @@ def Plot_Background(values, bkgrnd, noise, results, options):
     plt.close()
 
 
-def Plot_PSF_Stars(
-    IMG, stars_x, stars_y, stars_fwhm, psf, results, options, flagstars=None
-):
+def Plot_PSF_Stars(IMG, stars_x, stars_y, stars_fwhm, psf, results, options, flagstars=None):
     LSBImage(IMG - results["background"], results["background noise"])
-    AddScale(plt.gca(), IMG.shape[0]*options['ap_pixscale'])
+    AddScale(plt.gca(), IMG.shape[0] * options["ap_pixscale"])
     for i in range(len(stars_fwhm)):
         plt.gca().add_patch(
             Ellipse(
-                xy = (stars_x[i], stars_y[i]),
-                width = 20 * psf,
-                height = 20 * psf,
-                angle = 0,
+                xy=(stars_x[i], stars_y[i]),
+                width=20 * psf,
+                height=20 * psf,
+                angle=0,
                 fill=False,
                 linewidth=1.5,
-                color=autocolours["red1"]
-                if not flagstars is None and flagstars[i]
-                else autocolours["blue1"],
+                color=(
+                    autocolours["red1"]
+                    if not flagstars is None and flagstars[i]
+                    else autocolours["blue1"]
+                ),
             )
         )
     plt.tight_layout()
@@ -126,15 +123,11 @@ def Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, o
     ranges = [
         [
             max(0, int(results["center"]["x"] - circ_ellipse_radii[-1] * 1.5)),
-            min(
-                dat.shape[1], int(results["center"]["x"] + circ_ellipse_radii[-1] * 1.5)
-            ),
+            min(dat.shape[1], int(results["center"]["x"] + circ_ellipse_radii[-1] * 1.5)),
         ],
         [
             max(0, int(results["center"]["y"] - circ_ellipse_radii[-1] * 1.5)),
-            min(
-                dat.shape[0], int(results["center"]["y"] + circ_ellipse_radii[-1] * 1.5)
-            ),
+            min(dat.shape[0], int(results["center"]["y"] + circ_ellipse_radii[-1] * 1.5)),
         ],
     ]
 
@@ -142,16 +135,16 @@ def Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, o
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
-    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
     plt.gca().add_patch(
         Ellipse(
-            xy =(
+            xy=(
                 results["center"]["x"] - ranges[0][0],
                 results["center"]["y"] - ranges[1][0],
             ),
-            width = 2 * circ_ellipse_radii[-1],
-            height = 2 * circ_ellipse_radii[-1] * (1.0 - ellip),
-            angle = phase * 180 / np.pi,
+            width=2 * circ_ellipse_radii[-1],
+            height=2 * circ_ellipse_radii[-1] * (1.0 - ellip),
+            angle=phase * 180 / np.pi,
             fill=False,
             linewidth=1,
             color=autocolours["blue1"],
@@ -229,11 +222,7 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
     Rlim = sample_radii[-1] * (
         1.0
         if parameters[-1]["m"] is None
-        else np.exp(
-            sum(
-                np.abs(parameters[-1]["Am"][m]) for m in range(len(parameters[-1]["m"]))
-            )
-        )
+        else np.exp(sum(np.abs(parameters[-1]["Am"][m]) for m in range(len(parameters[-1]["m"]))))
     )
     ranges = [
         [
@@ -249,7 +238,7 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
-    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
 
     for i in range(len(sample_radii)):
         N = max(15, int(0.9 * 2 * np.pi * sample_radii[i]))
@@ -278,7 +267,7 @@ def Plot_Isophote_Fit(dat, sample_radii, parameters, results, options):
             R * X + results["center"]["x"] - ranges[0][0],
             R * Y + results["center"]["y"] - ranges[1][0],
         )
-        
+
         plt.plot(
             list(X) + [X[0]],
             list(Y) + [Y[0]],
@@ -304,11 +293,7 @@ def _Plot_Isophotes(dat, R, parameters, results, options):
     Rlim = R[-1] * (
         1.0
         if parameters[-1]["m"] is None
-        else np.exp(
-            sum(
-                np.abs(parameters[-1]["Am"][m]) for m in range(len(parameters[-1]["m"]))
-            )
-        )
+        else np.exp(sum(np.abs(parameters[-1]["Am"][m]) for m in range(len(parameters[-1]["m"]))))
     )
     ranges = [
         [
@@ -324,7 +309,7 @@ def _Plot_Isophotes(dat, R, parameters, results, options):
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
-    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
     fitlim = results["fit R"][-1] if "fit R" in results else np.inf
     for i in range(len(R)):
         N = max(15, int(0.9 * 2 * np.pi * R[i]))
@@ -380,14 +365,14 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
     errscale = 1.0
     if np.all(SB_e[CHOOSE] < 0.5):
         errscale = 1 / np.max(SB_e[CHOOSE])
-    if 'ap_plot_sbprof_set_errscale' in options:
-        errscale = options['ap_plot_sbprof_set_errscale']
-        
+    if "ap_plot_sbprof_set_errscale" in options:
+        errscale = options["ap_plot_sbprof_set_errscale"]
+
     lnlist = []
-    if errscale > 1.01 or 'ap_plot_sbprof_set_errscale' in options:
-        errlabel = ' (err$\\times$%.1f)'  % errscale
+    if errscale > 1.01 or "ap_plot_sbprof_set_errscale" in options:
+        errlabel = " (err$\\times$%.1f)" % errscale
     else:
-        errlabel = ''
+        errlabel = ""
     lnlist.append(
         plt.errorbar(
             R[CHOOSE],
@@ -413,12 +398,12 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
     )
     plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
     plt.ylabel("Surface Brightness [mag arcsec$^{-2}$]", fontsize=16)
-    if 'ap_plot_sbprof_xlim' in options:
-        plt.xlim(options['ap_plot_sbprof_xlim'])
+    if "ap_plot_sbprof_xlim" in options:
+        plt.xlim(options["ap_plot_sbprof_xlim"])
     else:
         plt.xlim([0, None])
-    if 'ap_plot_sbprof_ylim' in options:
-        plt.ylim(options['ap_plot_sbprof_ylim'])
+    if "ap_plot_sbprof_ylim" in options:
+        plt.ylim(options["ap_plot_sbprof_ylim"])
     bkgrdnoise = (
         -2.5 * np.log10(results["background noise"])
         + zeropoint
@@ -491,12 +476,12 @@ def Plot_I_Profile(dat, R, I, I_e, parameters, results, options):
     plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
     plt.ylabel("Intensity [flux arcsec$^{-2}$]", fontsize=16)
     plt.yscale("log")
-    if 'ap_plot_sbprof_xlim' in options:
-        plt.xlim(options['ap_plot_sbprof_xlim'])
+    if "ap_plot_sbprof_xlim" in options:
+        plt.xlim(options["ap_plot_sbprof_xlim"])
     else:
         plt.xlim([0, None])
-    if 'ap_plot_sbprof_ylim' in options:
-        plt.ylim(options['ap_plot_sbprof_ylim'])
+    if "ap_plot_sbprof_ylim" in options:
+        plt.ylim(options["ap_plot_sbprof_ylim"])
     bkgrdnoise = results["background noise"] / (options["ap_pixscale"] ** 2)
     lnlist.append(
         plt.axhline(
@@ -569,11 +554,8 @@ def Plot_Phase_Profile(R, parameters, results, options):
             )
             plt.plot(
                 R,
-                list(
-                    p["Phim"][m] / (np.pi * parameters[0]["m"][m]) for p in parameters
-                ),
-                label="$\\phi_%i$ [rad/%i$\\pi$]"
-                % (parameters[0]["m"][m], parameters[0]["m"][m]),
+                list(p["Phim"][m] / (np.pi * parameters[0]["m"][m]) for p in parameters),
+                label="$\\phi_%i$ [rad/%i$\\pi$]" % (parameters[0]["m"][m], parameters[0]["m"][m]),
             )
         plt.legend()
         plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
@@ -650,9 +632,7 @@ def Plot_Meas_Fmodes(R, parameters, results, options):
     plt.close()
 
 
-def Plot_Radial_Profiles(
-    dat, R, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options
-):
+def Plot_Radial_Profiles(dat, R, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, results, options):
 
     zeropoint = options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5
     ranges = [
@@ -665,7 +645,7 @@ def Plot_Radial_Profiles(
             min(dat.shape[0], int(results["center"]["y"] + 1.5 * R[-1] + 2)),
         ],
     ]
-    
+
     cmap = cm.get_cmap("hsv")
     colorind = (np.linspace(0, 1 - 1 / nwedges, nwedges) + 0.1) % 1.0
     for sa_i in range(len(wedgeangles)):
@@ -714,7 +694,7 @@ def Plot_Radial_Profiles(
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
-    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
 
     cx, cy = (
         results["center"]["x"] - ranges[0][0],
@@ -787,15 +767,11 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
         for ang in [1, -1]:
             key = (rd, ang)
             # cmap = matplotlib.cm.get_cmap('viridis_r')
-            norm = matplotlib.colors.Normalize(
-                vmin=0, vmax=R[-1] * options["ap_pixscale"]
-            )
+            norm = matplotlib.colors.Normalize(vmin=0, vmax=R[-1] * options["ap_pixscale"])
             for pi, pR in enumerate(R):
                 if pi % 3 != 0:
                     continue
-                CHOOSE = np.logical_and(
-                    np.array(sb[key][pi]) < 99, np.array(sbE[key][pi]) < 1
-                )
+                CHOOSE = np.logical_and(np.array(sb[key][pi]) < 99, np.array(sbE[key][pi]) < 1)
                 plt.errorbar(
                     np.array(R)[CHOOSE] * options["ap_pixscale"],
                     np.array(sb[key][pi])[CHOOSE],
@@ -810,22 +786,20 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
                 "%s-axis position on line [arcsec]"
                 % (
                     "Major"
-                    if "ap_axialprof_parallel" in options
-                    and options["ap_axialprof_parallel"]
+                    if "ap_axialprof_parallel" in options and options["ap_axialprof_parallel"]
                     else "Minor"
                 ),
                 fontsize=16,
             )
             plt.ylabel("Surface Brightness [mag arcsec$^{-2}$]", fontsize=16)
             cb1 = plt.colorbar(
-                matplotlib.cm.ScalarMappable(norm=norm, cmap=autocmap.reversed())
+                matplotlib.cm.ScalarMappable(norm=norm, cmap=autocmap.reversed()), ax=plt.gca()
             )
             cb1.set_label(
                 "%s-axis position of line [arcsec]"
                 % (
                     "Minor"
-                    if "ap_axialprof_parallel" in options
-                    and options["ap_axialprof_parallel"]
+                    if "ap_axialprof_parallel" in options and options["ap_axialprof_parallel"]
                     else "Major"
                 ),
                 fontsize=16,
@@ -866,9 +840,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
     firstbad = np.argmax(np.logical_not(CHOOSE))
     if firstbad > 3:
         CHOOSE[firstbad:] = False
-    outto = (
-        np.array(results["prof data"]["R"])[CHOOSE][-1] * 1.5 / options["ap_pixscale"]
-    )
+    outto = np.array(results["prof data"]["R"])[CHOOSE][-1] * 1.5 / options["ap_pixscale"]
     ranges = [
         [
             max(0, int(results["center"]["x"] - outto - 2)),
@@ -883,11 +855,11 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
         dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
         results["background noise"],
     )
-    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0])*options['ap_pixscale'])
+    AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
     count = 0
     cmap = matplotlib.cm.get_cmap("hsv")
     colorind = (np.linspace(0, 1 - 1 / 4, 4) + 0.1) % 1
-    colours = list(cmap(c) for c in colorind) 
+    colours = list(cmap(c) for c in colorind)
     for rd in [1, -1]:
         for ang in [1, -1]:
             key = (rd, ang)
@@ -912,11 +884,10 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
                     linewidth=0.5,
                     color=colours[count],
                     label=(
-                        "%sR : pa%s90"
-                        % ("+" if rd > 0 else "-", "+" if ang > 0 else "-")
-                    )
-                    if pi == 0
-                    else None,
+                        ("%sR : pa%s90" % ("+" if rd > 0 else "-", "+" if ang > 0 else "-"))
+                        if pi == 0
+                        else None
+                    ),
                 )
             count += 1
     plt.legend()
@@ -949,9 +920,7 @@ def Plot_EllipseModel(IMG, Model, R, modeltype, results, options):
     plt.figure(figsize=(7, 7))
     autocmap.set_under("k", alpha=0)
     showmodel = Model[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].copy()
-    showmodel[showmodel > 0] += np.max(showmodel) / (10 ** 3.5) - np.min(
-        showmodel[showmodel > 0]
-    )
+    showmodel[showmodel > 0] += np.max(showmodel) / (10**3.5) - np.min(showmodel[showmodel > 0])
     plt.imshow(
         showmodel,
         origin="lower",

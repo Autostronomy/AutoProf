@@ -27,7 +27,8 @@ from ..autoprofutils.SharedFunctions import (
 from ..autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
 from copy import deepcopy
 
-__all__ = ("PSF_IRAF", "PSF_StarFind", "PSF_Image", "PSF_deconvolve")
+__all__ = ("PSF_IRAF", "PSF_Assumed", "PSF_StarFind", "PSF_Image", "PSF_deconvolve")
+
 
 def PSF_IRAF(IMG, results, options):
     """PSF routine which identifies stars and averages the FWHM.
@@ -64,14 +65,11 @@ def PSF_IRAF(IMG, results, options):
 
     """
     if "ap_set_psf" in options:
-        logging.info(
-            "%s: PSF set by user: %.4e" % (options["ap_name"], options["ap_set_psf"])
-        )
+        logging.info("%s: PSF set by user: %.4e" % (options["ap_name"], options["ap_set_psf"]))
         return IMG, {"psf fwhm": options["ap_set_psf"]}
     elif "ap_guess_psf" in options:
         logging.info(
-            "%s: PSF initialized by user: %.4e"
-            % (options["ap_name"], options["ap_guess_psf"])
+            "%s: PSF initialized by user: %.4e" % (options["ap_name"], options["ap_guess_psf"])
         )
         fwhm_guess = options["ap_guess_psf"]
     else:
@@ -120,6 +118,27 @@ def PSF_IRAF(IMG, results, options):
     return IMG, {"psf fwhm": psf, "auxfile psf": "psf fwhm: %.3f pix" % psf}
 
 
+def PSF_Assumed(IMG, results, options):
+    """
+    Most astronomical data is assumed to be nyquist sampled, thus we assume a
+    PSF scale of 4.0 pix to speed things up. Note that AutoProf just uses the
+    PSF FWHM to initialize some length scales on the image, accuracy is not very
+    important for the PSF.
+    """
+    if "ap_set_psf" in options:
+        logging.info("%s: PSF set by user: %.4e pix" % (options["ap_name"], options["ap_set_psf"]))
+        fwhm_guess = options["ap_set_psf"]
+    elif "ap_guess_psf" in options:
+        logging.info(
+            "%s: PSF initialized by user: %.4e pix" % (options["ap_name"], options["ap_guess_psf"])
+        )
+        fwhm_guess = options["ap_guess_psf"]
+    else:
+        logging.info("%s: PSF assumed to be: %.4e pix" % (options["ap_name"], 4.0))
+        fwhm_guess = 4.0
+    return IMG, {"psf fwhm": fwhm_guess, "auxfile psf": "psf fwhm: %.3f pix" % fwhm_guess}
+
+
 def PSF_StarFind(IMG, results, options):
     """PSF routine which identifies stars and averages the FWHM.
 
@@ -164,14 +183,11 @@ def PSF_StarFind(IMG, results, options):
     """
 
     if "ap_set_psf" in options:
-        logging.info(
-            "%s: PSF set by user: %.4e" % (options["ap_name"], options["ap_set_psf"])
-        )
+        logging.info("%s: PSF set by user: %.4e" % (options["ap_name"], options["ap_set_psf"]))
         return IMG, {"psf fwhm": options["ap_set_psf"]}
     elif "ap_guess_psf" in options:
         logging.info(
-            "%s: PSF initialized by user: %.4e"
-            % (options["ap_name"], options["ap_guess_psf"])
+            "%s: PSF initialized by user: %.4e" % (options["ap_name"], options["ap_guess_psf"])
         )
         fwhm_guess = options["ap_guess_psf"]
     else:
@@ -185,7 +201,7 @@ def PSF_StarFind(IMG, results, options):
             int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
             int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
         ] = True
-    
+
     stars = StarFind(
         IMG - results["background"],
         fwhm_guess,
@@ -217,8 +233,7 @@ def PSF_StarFind(IMG, results, options):
         )
 
     logging.info(
-        "%s: found psf: %f with deformity clip of: %f"
-        % (options["ap_name"], psf, def_clip)
+        "%s: found psf: %f with deformity clip of: %f" % (options["ap_name"], psf, def_clip)
     )
     return IMG, {"psf fwhm": psf, "auxfile psf": "psf fwhm: %.3f pix" % psf}
 
@@ -266,14 +281,11 @@ def PSF_Image(IMG, results, options):
     """
 
     if "ap_set_psf" in options:
-        logging.info(
-            "%s: PSF set by user: %.4e" % (options["ap_name"], options["ap_set_psf"])
-        )
+        logging.info("%s: PSF set by user: %.4e" % (options["ap_name"], options["ap_set_psf"]))
         return IMG, {"psf fwhm": options["ap_set_psf"]}
     elif "ap_guess_psf" in options:
         logging.info(
-            "%s: PSF initialized by user: %.4e"
-            % (options["ap_name"], options["ap_guess_psf"])
+            "%s: PSF initialized by user: %.4e" % (options["ap_name"], options["ap_guess_psf"])
         )
         fwhm_guess = options["ap_guess_psf"]
     else:
@@ -331,9 +343,9 @@ def PSF_Image(IMG, results, options):
             or (dat.shape[1] - stars["y"][i]) < psf_size // 2
         ):
             continue
-        flux = interpolate_Lanczos(
-            dat, XX + stars["x"][i], YY + stars["y"][i], 10
-        ).reshape((1, psf_size, psf_size))
+        flux = interpolate_Lanczos(dat, XX + stars["x"][i], YY + stars["y"][i], 10).reshape(
+            (1, psf_size, psf_size)
+        )
         flux /= np.sum(flux)
         psf_img = flux if psf_img is None else np.concatenate((psf_img, flux))
 
@@ -448,9 +460,7 @@ def PSF_deconvolve(IMG, results, options):
             np.array(range(psf_size)) - psf_size // 2,
         )
         psf_std = results["psf fwhm"] / np.sqrt(8 * np.log(2))
-        psf_img = np.exp(-(XX ** 2 + YY ** 2) / (2 * psf_std ** 2)) / np.sqrt(
-            2 * np.pi * psf_std ** 2
-        )
+        psf_img = np.exp(-(XX**2 + YY**2) / (2 * psf_std**2)) / np.sqrt(2 * np.pi * psf_std**2)
         psf_img /= np.sum(psf_img)
 
     if np.abs(np.sum(psf_img) - 1) > 1e-7:
@@ -460,16 +470,18 @@ def PSF_deconvolve(IMG, results, options):
     dat_deconv = restoration.richardson_lucy(
         (IMG - dmin) / (dmax - dmin) - 0.5,
         psf_img,
-        iterations=options["ap_psf_deconvolution_iterations"]
-        if "ap_psf_deconvolution_iterations" in options
-        else 50,
+        iterations=(
+            options["ap_psf_deconvolution_iterations"]
+            if "ap_psf_deconvolution_iterations" in options
+            else 50
+        ),
     )
     dat_deconv = (dat_deconv + 0.5) * (dmax - dmin) + dmin
 
     if "ap_psf_deconvolve_save" in options and options["ap_psf_deconvolve_save"]:
         header = fits.Header()
         hdul = fits.HDUList([fits.PrimaryHDU(header=header), fits.ImageHDU(dat_deconv)])
-        
+
         hdul.writeto(
             os.path.join(
                 options["ap_saveto"] if "ap_saveto" in options else "",
@@ -477,6 +489,5 @@ def PSF_deconvolve(IMG, results, options):
             ),
             overwrite=True,
         )
-        
-    
+
     return dat_deconv, {}

@@ -34,6 +34,7 @@ from time import time
 
 __all__ = ("Isophote_Init_Forced", "Isophote_Initialize", "Isophote_Initialize_mean")
 
+
 def Isophote_Init_Forced(IMG, results, options):
     """Read global elliptical isophote to a galaxy from an aux file.
 
@@ -79,9 +80,7 @@ def Isophote_Init_Forced(IMG, results, options):
                 pa = (
                     PA_shift_convention(
                         float(
-                            line[
-                                line.find("pa:") + 3 : line.find("+-", line.find("pa:"))
-                            ].strip()
+                            line[line.find("pa:") + 3 : line.find("+-", line.find("pa:"))].strip()
                         ),
                         deg=True,
                     )
@@ -89,30 +88,21 @@ def Isophote_Init_Forced(IMG, results, options):
                     / 180
                 )
                 pa_err = (
-                    float(
-                        line[
-                            line.find("+-", line.find("pa:")) + 2 : line.find("deg")
-                        ].strip()
-                    )
+                    float(line[line.find("+-", line.find("pa:")) + 2 : line.find("deg")].strip())
                     * np.pi
                     / 180
                 )
                 R = float(
-                    line[
-                        line.find("size:") + 5 : line.find("pix", line.find("size:"))
-                    ].strip()
+                    line[line.find("size:") + 5 : line.find("pix", line.find("size:"))].strip()
                 )
                 break
 
-    auxmessage = (
-        "global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix"
-        % (
-            ellip,
-            ellip_err,
-            PA_shift_convention(pa) * 180 / np.pi,
-            pa_err * 180 / np.pi,
-            R,
-        )
+    auxmessage = "global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix" % (
+        ellip,
+        ellip_err,
+        PA_shift_convention(pa) * 180 / np.pi,
+        pa_err * 180 / np.pi,
+        R,
     )
 
     return IMG, {
@@ -207,34 +197,54 @@ def Isophote_Initialize(IMG, results, options):
     if not np.any(mask):
         mask = None
 
-    while circ_ellipse_radii[-1] < (len(IMG) / 2):
-        circ_ellipse_radii.append(circ_ellipse_radii[-1] * (1 + 0.2))
-        isovals = _iso_extract(
-            dat,
-            circ_ellipse_radii[-1],
-            {"ellip": 0.0, "pa": 0.0},
-            results["center"],
-            more=True,
-            mask=mask,
-            sigmaclip=True,
-            sclip_nsigma=3,
-            interp_mask=True,
-        )
-        coefs = fft(isovals[0])
-        allphase.append(coefs[2])
-        # Stop when at 3 time background noise
-        if (
-            np.quantile(isovals[0], 0.8)
-            < (
-                (options["ap_fit_limit"] + 1 if "ap_fit_limit" in options else 3)
-                * results["background noise"]
+    if "ap_isoinit_R_set" in options:
+        circ_ellipse_radii = np.logspace(
+            np.log10(circ_ellipse_radii[0]),
+            np.log10(options["ap_isoinit_R_set"]),
+            10,
+        ).tolist()
+        for r in circ_ellipse_radii:
+            isovals = _iso_extract(
+                dat,
+                r,
+                {"ellip": 0.0, "pa": 0.0},
+                results["center"],
+                more=True,
+                mask=mask,
+                sigmaclip=True,
+                sclip_nsigma=3,
+                interp_mask=True,
             )
-            and len(circ_ellipse_radii) > 4
-        ):
-            break
-    logging.info(
-        "%s: init scale: %f pix" % (options["ap_name"], circ_ellipse_radii[-1])
-    )
+            coefs = fft(isovals[0])
+            allphase.append(coefs[2])
+    else:
+        while circ_ellipse_radii[-1] < (len(IMG) / 2):
+            circ_ellipse_radii.append(circ_ellipse_radii[-1] * (1 + 0.2))
+            isovals = _iso_extract(
+                dat,
+                circ_ellipse_radii[-1],
+                {"ellip": 0.0, "pa": 0.0},
+                results["center"],
+                more=True,
+                mask=mask,
+                sigmaclip=True,
+                sclip_nsigma=3,
+                interp_mask=True,
+            )
+            coefs = fft(isovals[0])
+            allphase.append(coefs[2])
+            # Stop when at 3 time background noise
+            if (
+                np.quantile(isovals[0], 0.8)
+                < (
+                    (options["ap_fit_limit"] + 1 if "ap_fit_limit" in options else 3)
+                    * results["background noise"]
+                )
+                and len(circ_ellipse_radii) > 4
+            ):
+                break
+
+    logging.info("%s: init scale: %f pix" % (options["ap_name"], circ_ellipse_radii[-1]))
     # Find global position angle.
     phase = (-Angle_Median(np.angle(allphase[-5:])) / 2) % np.pi
     if "ap_isoinit_pa_set" in options:
@@ -336,15 +346,11 @@ def Isophote_Initialize(IMG, results, options):
         )
         coefs = fft(isovals[0])
         errallphase.append(coefs[2])
-    sample_pas = (
-        -np.angle(1j * np.array(errallphase) / np.mean(errallphase)) / 2
-    ) % np.pi
+    sample_pas = (-np.angle(1j * np.array(errallphase) / np.mean(errallphase)) / 2) % np.pi
     pa_err = iqr(sample_pas, rng=[16, 84]) / 2
     res_multi = map(
         lambda rrp: minimize(
-            lambda e, d, r, p, c, n, m: _fitEllip_loss(
-                _x_to_eps(e[0]), d, r, p, c, n, m
-            ),
+            lambda e, d, r, p, c, n, m: _fitEllip_loss(_x_to_eps(e[0]), d, r, p, c, n, m),
             x0=_inv_x_to_eps(ellip),
             args=(
                 dat,
@@ -369,9 +375,7 @@ def Isophote_Initialize(IMG, results, options):
     circ_ellipse_radii = np.array(circ_ellipse_radii)
 
     if "ap_doplot" in options and options["ap_doplot"]:
-        Plot_Isophote_Init_Ellipse(
-            dat, circ_ellipse_radii, ellip, phase, results, options
-        )
+        Plot_Isophote_Init_Ellipse(dat, circ_ellipse_radii, ellip, phase, results, options)
         Plot_Isophote_Init_Optimize(
             circ_ellipse_radii,
             allphase,
@@ -385,15 +389,12 @@ def Isophote_Initialize(IMG, results, options):
             options,
         )
 
-    auxmessage = (
-        "global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix"
-        % (
-            ellip,
-            ellip_err,
-            PA_shift_convention(phase) * 180 / np.pi,
-            pa_err * 180 / np.pi,
-            circ_ellipse_radii[-2],
-        )
+    auxmessage = "global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix" % (
+        ellip,
+        ellip_err,
+        PA_shift_convention(phase) * 180 / np.pi,
+        pa_err * 180 / np.pi,
+        circ_ellipse_radii[-2],
     )
     return IMG, {
         "init ellip": ellip,
@@ -469,14 +470,9 @@ def Isophote_Initialize_mean(IMG, results, options):
         coefs = fft(isovals[0])
         allphase.append(coefs[2])
         # Stop when at 3 times background noise
-        if (
-            np.mean(isovals[0]) < (3 * results["background noise"])
-            and len(circ_ellipse_radii) > 4
-        ):
+        if np.mean(isovals[0]) < (3 * results["background noise"]) and len(circ_ellipse_radii) > 4:
             break
-    logging.info(
-        "%s: init scale: %f pix" % (options["ap_name"], circ_ellipse_radii[-1])
-    )
+    logging.info("%s: init scale: %f pix" % (options["ap_name"], circ_ellipse_radii[-1]))
     # Find global position angle.
     phase = (
         -Angle_Median(np.angle(allphase[-5:])) / 2
@@ -561,20 +557,14 @@ def Isophote_Initialize_mean(IMG, results, options):
     )
     errallphase = []
     for rr in RR:
-        isovals = _iso_extract(
-            dat, rr, {"ellip": 0.0, "pa": 0.0}, results["center"], more=True
-        )
+        isovals = _iso_extract(dat, rr, {"ellip": 0.0, "pa": 0.0}, results["center"], more=True)
         coefs = fft(isovals[0])
         errallphase.append(coefs[2])
-    sample_pas = (
-        -np.angle(1j * np.array(errallphase) / np.mean(errallphase)) / 2
-    ) % np.pi
+    sample_pas = (-np.angle(1j * np.array(errallphase) / np.mean(errallphase)) / 2) % np.pi
     pa_err = np.std(sample_pas)
     res_multi = map(
         lambda rrp: minimize(
-            lambda e, d, r, p, c, n: _fitEllip_mean_loss(
-                _x_to_eps(e[0]), d, r, p, c, n
-            ),
+            lambda e, d, r, p, c, n: _fitEllip_mean_loss(_x_to_eps(e[0]), d, r, p, c, n),
             x0=_inv_x_to_eps(ellip),
             args=(dat, rrp[0], rrp[1], results["center"], results["background noise"]),
             method="Nelder-Mead",
@@ -618,13 +608,13 @@ def Isophote_Initialize_mean(IMG, results, options):
         #            origin = 'lower', cmap = 'Greys_r', norm = ImageNormalize(stretch=LogStretch()))
         plt.gca().add_patch(
             Ellipse(
-                xy = (
+                xy=(
                     results["center"]["x"] - ranges[0][0],
                     results["center"]["y"] - ranges[1][0],
                 ),
-                width = 2 * circ_ellipse_radii[-1],
-                height = 2 * circ_ellipse_radii[-1] * (1.0 - ellip),
-                angle = phase * 180 / np.pi,
+                width=2 * circ_ellipse_radii[-1],
+                height=2 * circ_ellipse_radii[-1] * (1.0 - ellip),
+                angle=phase * 180 / np.pi,
                 fill=False,
                 linewidth=1,
                 color="y",
@@ -673,15 +663,12 @@ def Isophote_Initialize_mean(IMG, results, options):
         )
         plt.close()
 
-    auxmessage = (
-        "global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix"
-        % (
-            ellip,
-            ellip_err,
-            PA_shift_convention(phase) * 180 / np.pi,
-            pa_err * 180 / np.pi,
-            circ_ellipse_radii[-2],
-        )
+    auxmessage = "global ellipticity: %.3f +- %.3f, pa: %.3f +- %.3f deg, size: %f pix" % (
+        ellip,
+        ellip_err,
+        PA_shift_convention(phase) * 180 / np.pi,
+        pa_err * 180 / np.pi,
+        circ_ellipse_radii[-2],
     )
     return IMG, {
         "init ellip": ellip,
