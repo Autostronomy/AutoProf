@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Extra Methods &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Troubleshooting AutoProf" href="troubleshooting.html" />
+    <link rel="prev" title="Decision Trees" href="decisiontrees.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Extra Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#background-dilated-sources">Background - Dilated Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#background-basic">Background - Basic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#background-unsharp-masking">Background - Unsharp masking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psf-iraf">PSF - IRAF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psf-image">PSF - Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psf-deconvolve">PSF - Deconvolve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#center-mean">Center - Mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#center-2d-gaussian">Center - 2D Gaussian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#center-1d-gaussian">Center - 1D Gaussian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#center-of-mass">Center - Of Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isophote-initialize-mean">Isophote Initialize - Mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-clean-image">Plot Clean Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isophote-fitting-fixed">Isophote Fitting - Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isophote-fitting-mean">Isophote Fitting - Mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isophote-fitting-photutils">Isophote Fitting - photutils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isophote-extraction-photutils">Isophote Extraction - photutils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#masking-bad-pixels">Masking - Bad Pixels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#star-masking-iraf">Star Masking - IRAF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#masking-segmentation-map">Masking - Segmentation Map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ellipse-model">Ellipse Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#radial-profiles">Radial Profiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#axial-profiles">Axial Profiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#slice-profile">Slice Profile</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">autoprof</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Extra Methods</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/extramethods.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="extra-methods">
+<h1>Extra Methods<a class="headerlink" href="#extra-methods" title="Permalink to this heading"></a></h1>
+<p>As well as the default pipeline, AutoProf has a number of pre-built methods for different use cases and extending one’s analysis beyond a direct isophote fit.
+Here we outline a basic description of those methods and some of their use cases (though you may find clever new uses!).
+Some are meant as drop-in replacements for methods in the default pipeline, and others are meant as entirely new methods.</p>
+<section id="background-dilated-sources">
+<h2>Background - Dilated Sources<a class="headerlink" href="#background-dilated-sources" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘background dilatedsources’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Background.Background_DilatedSources" title="autoprof.pipeline_steps.Background.Background_DilatedSources"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_DilatedSources()</span></code></a></p>
+<p>Using the photutils <em>make_source_mask</em> function, a mask is constructed for bright sources in the image.
+A “dilation” is then applied to expand the masked area around each source.
+The background is then taken as the median of the unmasked pixels.
+The noise is half the 16-84 quartile range of unmasked pixels.</p>
+</section>
+<section id="background-basic">
+<h2>Background - Basic<a class="headerlink" href="#background-basic" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘background basic’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Basic" title="autoprof.pipeline_steps.Background.Background_Basic"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Basic()</span></code></a></p>
+<p>All pixels in the outer boarder of the image (outer 1/4th of the image) are taken, the mean value is the background, standard deviation is the noise.</p>
+</section>
+<section id="background-unsharp-masking">
+<h2>Background - Unsharp masking<a class="headerlink" href="#background-unsharp-masking" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘background unsharp’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Background.Background_Unsharp" title="autoprof.pipeline_steps.Background.Background_Unsharp"><code class="xref py py-func docutils literal notranslate"><span class="pre">Background_Unsharp()</span></code></a></p>
+<p>A two-dimensional FFT is taken on the image, the background level is computed across the image using a low pass filter of the FFT coefficients.</p>
+</section>
+<section id="psf-iraf">
+<h2>PSF - IRAF<a class="headerlink" href="#psf-iraf" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘psf IRAF’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_IRAF" title="autoprof.pipeline_steps.PSF.PSF_IRAF"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_IRAF()</span></code></a></p>
+<p>The photutils IRAF star finder wrapper is used to identify stars in the image, the psf is taken as the average fwhm fitted by IRAF.</p>
+</section>
+<section id="psf-image">
+<h2>PSF - Image<a class="headerlink" href="#psf-image" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘psf img’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_Image" title="autoprof.pipeline_steps.PSF.PSF_Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_Image()</span></code></a></p>
+<p>Method to construct an image of the PSF by stacking many stars extracted from the image.</p>
+</section>
+<section id="psf-deconvolve">
+<h2>PSF - Deconvolve<a class="headerlink" href="#psf-deconvolve" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘psf deconvolve’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.PSF.PSF_deconvolve" title="autoprof.pipeline_steps.PSF.PSF_deconvolve"><code class="xref py py-func docutils literal notranslate"><span class="pre">PSF_deconvolve()</span></code></a></p>
+<p>Deconvolves a provided PSF from the primary image.</p>
+</section>
+<section id="center-mean">
+<h2>Center - Mean<a class="headerlink" href="#center-mean" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘center mean’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_HillClimb_mean" title="autoprof.pipeline_steps.Center.Center_HillClimb_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_HillClimb_mean()</span></code></a></p>
+<p>Similar to the standard center finding method, except flux values along circular apertures are evaluated using the mean (instead of the median) which is more accurate in the low S/N limit that pixel values are integers.</p>
+</section>
+<section id="center-2d-gaussian">
+<h2>Center - 2D Gaussian<a class="headerlink" href="#center-2d-gaussian" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘center 2DGaussian’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_2DGaussian" title="autoprof.pipeline_steps.Center.Center_2DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_2DGaussian()</span></code></a></p>
+<p>Wrapper for photutils center finding method which fits a 2D Gaussian to the image in order to find the center of a galaxy.</p>
+</section>
+<section id="center-1d-gaussian">
+<h2>Center - 1D Gaussian<a class="headerlink" href="#center-1d-gaussian" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘center 1DGaussian’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_1DGaussian" title="autoprof.pipeline_steps.Center.Center_1DGaussian"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_1DGaussian()</span></code></a></p>
+<p>Wrapper for photutils center finding method which fits a series of 1D Gaussians to slices of the image to identify the galaxy center.</p>
+</section>
+<section id="center-of-mass">
+<h2>Center - Of Mass<a class="headerlink" href="#center-of-mass" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘center OfMass’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Center.Center_OfMass" title="autoprof.pipeline_steps.Center.Center_OfMass"><code class="xref py py-func docutils literal notranslate"><span class="pre">Center_OfMass()</span></code></a></p>
+<p>Wrapper for basic method which finds the flux centroid of an image to determine the center.</p>
+</section>
+<section id="isophote-initialize-mean">
+<h2>Isophote Initialize - Mean<a class="headerlink" href="#isophote-initialize-mean" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘isophoteinit mean’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean" title="autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Initialize_mean()</span></code></a></p>
+<p>Similar to the standard isophote initialization method, except flux values along isophotes are evaluated using the mean (instead of the median) which is more accurate in the low S/N limit that pixel values are integers.</p>
+</section>
+<section id="plot-clean-image">
+<h2>Plot Clean Image<a class="headerlink" href="#plot-clean-image" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘plot image’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Plotting_Steps.Plot_Galaxy_Image" title="autoprof.pipeline_steps.Plotting_Steps.Plot_Galaxy_Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">Plot_Galaxy_Image()</span></code></a></p>
+<p>Simply plots an image of the galaxy using hybrid histogram equalization and log scale, without any other features or tests drawn on top. This can be useful for inspecting the image for spurious features without any ellipses, lines, or other objects drawn overtop. The size of the image will be based on when the step is called in the pipeline, if it is called early in the pipeline then a larger and less centered image will be used, calling later in the pipeline will use later pieces of information to choose the image size and centering.</p>
+</section>
+<section id="isophote-fitting-fixed">
+<h2>Isophote Fitting - Fixed<a class="headerlink" href="#isophote-fitting-fixed" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘isophotefit fixed’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase" title="autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FixedPhase()</span></code></a></p>
+<p>Simply applies fixed position angle and ellipticity at the initialization values instead of fitting each isophote.</p>
+</section>
+<section id="isophote-fitting-mean">
+<h2>Isophote Fitting - Mean<a class="headerlink" href="#isophote-fitting-mean" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘isophotefit mean’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean" title="autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Fit_FFT_mean()</span></code></a></p>
+<p>Similar to the standard isophote fitting method, except flux values along isophotes are evaluated using the mean (instead of the median) which is more accurate in the low S/N limit that pixel values are integers.</p>
+</section>
+<section id="isophote-fitting-photutils">
+<h2>Isophote Fitting - photutils<a class="headerlink" href="#isophote-fitting-photutils" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘isophotefit photutils’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Fit.Photutils_Fit" title="autoprof.pipeline_steps.Isophote_Fit.Photutils_Fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">Photutils_Fit()</span></code></a></p>
+<p>Wrapper for the photutils isophote fitting method which is based on Jedzejewski 1987.</p>
+</section>
+<section id="isophote-extraction-photutils">
+<h2>Isophote Extraction - photutils<a class="headerlink" href="#isophote-extraction-photutils" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘isophoteextract photutils’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils" title="autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils"><code class="xref py py-func docutils literal notranslate"><span class="pre">Isophote_Extract_Photutils()</span></code></a></p>
+<p>Wrapper for the photutils isophote extraction method which returns the mean intensity along each isophote. This method can be called without a fitting step (e.g. ‘isophotefit photutils’) as it will do it’s own fitting.</p>
+</section>
+<section id="masking-bad-pixels">
+<h2>Masking - Bad Pixels<a class="headerlink" href="#masking-bad-pixels" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘mask badpixels’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Mask.Bad_Pixel_Mask" title="autoprof.pipeline_steps.Mask.Bad_Pixel_Mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">Bad_Pixel_Mask()</span></code></a></p>
+<p>Identifies pixels that meet “bad pixel” criteria set by user options and constructs a mask.</p>
+</section>
+<section id="star-masking-iraf">
+<h2>Star Masking - IRAF<a class="headerlink" href="#star-masking-iraf" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘starmask’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Mask.Star_Mask_IRAF" title="autoprof.pipeline_steps.Mask.Star_Mask_IRAF"><code class="xref py py-func docutils literal notranslate"><span class="pre">Star_Mask_IRAF()</span></code></a></p>
+<p>Using the photutils wrapper of IRAF, identifies stars in the image and masks them.</p>
+</section>
+<section id="masking-segmentation-map">
+<h2>Masking - Segmentation Map<a class="headerlink" href="#masking-segmentation-map" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘mask segmentation map’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Mask.Mask_Segmentation_Map" title="autoprof.pipeline_steps.Mask.Mask_Segmentation_Map"><code class="xref py py-func docutils literal notranslate"><span class="pre">Mask_Segmentation_Map()</span></code></a></p>
+<p>Reads in a user provided segmentation map and converts it into a mask. If a galaxy center has been found it will ignore the segmentation ID where the center lays.</p>
+</section>
+<section id="ellipse-model">
+<h2>Ellipse Model<a class="headerlink" href="#ellipse-model" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘ellipsemodel’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Ellipse_Model.EllipseModel" title="autoprof.pipeline_steps.Ellipse_Model.EllipseModel"><code class="xref py py-func docutils literal notranslate"><span class="pre">EllipseModel()</span></code></a></p>
+<p>Constructs 2D model image of the galaxy based on the extracted surface brightness, ellipticity, and position angle profile.</p>
+</section>
+<section id="radial-profiles">
+<h2>Radial Profiles<a class="headerlink" href="#radial-profiles" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘radialprofiles’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles" title="autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">Radial_Profiles()</span></code></a></p>
+<p>Samples surface brightness values radially from the center of the galaxy. The radial samples are placed on the semi-minor/major axes by default, though more wedges can be requested and their angle can be specified by the user.</p>
+</section>
+<section id="axial-profiles">
+<h2>Axial Profiles<a class="headerlink" href="#axial-profiles" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘axialprofiles’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Axial_Profiles.Axial_Profiles" title="autoprof.pipeline_steps.Axial_Profiles.Axial_Profiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">Axial_Profiles()</span></code></a></p>
+<p>Samples surface brightness values along lines parallel to the semi-minor axis.</p>
+</section>
+<section id="slice-profile">
+<h2>Slice Profile<a class="headerlink" href="#slice-profile" title="Permalink to this heading"></a></h2>
+<p><strong>pipeline label: ‘sliceprofile’</strong></p>
+<p><a class="reference internal" href="pipeline_steps.html#autoprof.pipeline_steps.Slice_Profiles.Slice_Profile" title="autoprof.pipeline_steps.Slice_Profiles.Slice_Profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">Slice_Profile()</span></code></a></p>
+<p>Samples surface brightness values along a user specified line (slice) on the image. Mostly just for diagnostic purposes. Can be defined entirely in pixel coordinates instead of coordinates relative to galaxy.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="decisiontrees.html" class="btn btn-neutral float-left" title="Decision Trees" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="troubleshooting.html" class="btn btn-neutral float-right" title="Troubleshooting AutoProf" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started-on-a-single-image">Getting Started On A Single Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-processing-modes">Other Processing Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-autoprof-in-batch-mode">Running AutoProf In Batch Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forced-photometry">Forced Photometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-forced-photometry">Batch Forced Photometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#going-further-descision-tree-pipelines">Going further, descision tree pipelines</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">autoprof</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting Started</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/getting_started.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
+<p>AutoProf is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Pipeline</span></code> building code at its core. However, the rich functionality provided by this framework is safely hidden beneath a simple to use exterior. As a beginning user, you need only provide the most basic information (path to an image, pixel scale, maybe the photometric zero point) and AutoProf will assume the rest. As you get better aquainted with the configuration file construction, you will be able to access more powerful functionality.</p>
+<section id="getting-started-on-a-single-image">
+<h2>Getting Started On A Single Image<a class="headerlink" href="#getting-started-on-a-single-image" title="Permalink to this heading"></a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>image</p>
+</dd>
+</dl>
+<p>The fastest way to run AutoProf for yourself will be for a single image.
+The steps below describe how to get AutoProf to run on an image that you provide.
+To run in batch mode for many images there isn’t much to change, but that will be described later.</p>
+<ol class="arabic">
+<li><p>Copy the basic config file below.</p></li>
+<li><p>In the config file, edit the following lines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_pixscale</span> <span class="o">=</span> <span class="c1"># your image scale in arcsec/pix</span>
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="c1"># filename of your image</span>
+</pre></div>
+</div>
+<p>and change any other options as they pertain to your image. If you aren’t sure what to do, you can just remove an option from the config file. All that is truly needed to get started is <em>ap_process_mode</em>, <em>ap_pixscale</em>, and <em>ap_image_file</em>.</p>
+</li>
+<li><p>Run AutoProf on the configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autoprof</span> <span class="n">config</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</li>
+<li><p>Check the .prof file for the surface brightness profile.</p></li>
+</ol>
+<p>Here is the basic config file just make sure to save it as a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_process_mode</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span>
+
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="s2">&quot;&lt;path to your image file&gt;.fits&quot;</span>
+<span class="n">ap_name</span> <span class="o">=</span> <span class="s2">&quot;yourimagename&quot;</span>
+<span class="n">ap_pixscale</span> <span class="o">=</span> <span class="mf">0.262</span>
+<span class="n">ap_zeropoint</span> <span class="o">=</span> <span class="mf">22.5</span>
+<span class="n">ap_doplot</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">ap_isoclip</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Check the .aux file for extra information, including checks on the success of the fit.
+Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
+Also, look at the diagnostic plots to see if the fit appears to have worked.</p>
+<p>Note that AutoProf has a list of arguments that it is expecting and it only checks for those.
+You can therefore make any variables or functions you need in the config file to construct your list of image files so long as they don’t conflict with any of the expected AutoProf arguments.
+To see what parameters AutoProf uses by default, see the <a class="reference internal" href="parameters.html"><span class="doc">AutoProf Parameters</span></a> section.</p>
+</section>
+<section id="other-processing-modes">
+<h2>Other Processing Modes<a class="headerlink" href="#other-processing-modes" title="Permalink to this heading"></a></h2>
+<p>There are 4 main processing modes for AutoProf: image, image list, forced image, forced image list.
+The subsections below will outline how to use each mode.</p>
+</section>
+<section id="running-autoprof-in-batch-mode">
+<h2>Running AutoProf In Batch Mode<a class="headerlink" href="#running-autoprof-in-batch-mode" title="Permalink to this heading"></a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>image list</p>
+</dd>
+</dl>
+<p>Running AutoProf in batch mode is relatively simple once you have learned how to work with a single image.
+For an example batch processing config file, see the <em>test_batch_config.py</em> file in the AutoProf test directory.
+You must modify the <em>ap_process_mode</em> command to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_process_mode</span> <span class="o">=</span> <span class="s1">&#39;image list&#39;</span>
+</pre></div>
+</div>
+<p>Then, some config parameters will need to be turned into lists.
+The <em>ap_image_file</em> variable should now be a list of image files, instead of a single string.
+Any other config parameter can be made into a list or left as a single value.
+If a parameter is a list, it must be the same length as the <em>ap_image_file</em> list, if it is a single value then that value will be used for all instances.
+For example, the <em>ap_pixscale</em> variable can be left as a float value and AutoProf will use that same value for all images.</p>
+<p>Also unique to batch processing is the availability of parallel processing with the <em>ap_n_procs</em> variable.
+Since image analysis is an “embarrassingly parallel problem” AutoProf can analyze many images simultaneously.
+It is suggested that you set <em>ap_n_procs</em> equal to the number of processors you have, although you may need to experiment.
+Especially if you don’t have much ram, this may be the limiting factor.</p>
+<p>Here is an example batching config file just make sure to save it as a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_process_mode</span> <span class="o">=</span> <span class="s2">&quot;image list&quot;</span>
+
+<span class="n">ap_n_procs</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;&lt;path to file 1&gt;.fits&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&lt;path to file 2&gt;.fits&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&lt;path to file 3&gt;.fits&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&lt;path to file 4&gt;.fits&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">ap_pixscale</span> <span class="o">=</span> <span class="mf">0.262</span>
+<span class="n">ap_name</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;yourimagename1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;yourimagename2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;yourimagename3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;yourimagename4&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">ap_doplot</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Note that this is a python file meaning that your config file can have logic in it! For example you may use glob to collect all the files in a directory and assign them to the <code class="docutils literal notranslate"><span class="pre">ap_image_file</span></code> variable instead of writing them all out manually.</p>
+</section>
+<section id="forced-photometry">
+<h2>Forced Photometry<a class="headerlink" href="#forced-photometry" title="Permalink to this heading"></a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>forced image</p>
+</dd>
+</dl>
+<p>Forced photometry allows one to take an isophotal solution from one image and apply it (kind of) blindly to another image.
+An example forced photometry config file can be found in AutoProf test directory and is named <em>test_forced_config.py</em> which will only work once <em>test_config.py</em> has been run.
+Forced photometry can be used for multi-band images from the same telescope, or between telescopes.
+One may need to adjust for different pixel scales, or have to re-center between images, but the ultimate goal is to apply the same ellipticity and position angle profile to the galaxy in each band.
+Running forced photometry is very similar to the other processing modes with one extra required parameter (the pre-fit .prof file).</p>
+<ol class="arabic">
+<li><p>Copy the example forced photometry file below.</p></li>
+<li><p>In the config file, edit the following lines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_pixscale</span> <span class="o">=</span> <span class="c1"># your image scale in arcsec/pix</span>
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="c1"># filename of your image</span>
+<span class="n">ap_forcing_profile</span> <span class="o">=</span> <span class="c1"># filename for the .prof output</span>
+</pre></div>
+</div>
+</li>
+<li><p>Run AutoProf on the configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">autoprof</span> <span class="n">forced_config</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</li>
+<li><p>Check the .prof file for the surface brightness profile.</p></li>
+</ol>
+<p>Check the .aux file for extra information, including checks on the success of the fit.
+Check the .log file for messages about the progress of the fit, which are updated throughout the fitting procedure.
+Also, look at the diagnostic plots to see if the fit appears to have aligned properly with the new image.</p>
+<p><strong>forced photometry parameters</strong></p>
+<dl class="simple">
+<dt>ap_forced_pa_shift</dt><dd><p>global rotation to apply to all forced isophotes. Useful if the base image and the forced image are rotated relative to each other. Likely
+will also need to re-center the galaxy, which can be done by modifying <em>ap_new_pipeline_steps</em>. Default is zero. (float)</p>
+</dd>
+</dl>
+<p>Here is the forced photometry file just make sure to save it as a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ap_process_mode</span> <span class="o">=</span> <span class="s2">&quot;forced image&quot;</span>
+
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="s2">&quot;test_ESO479-G1_r.fits&quot;</span>
+<span class="n">ap_name</span> <span class="o">=</span> <span class="s2">&quot;testforcedimage&quot;</span>
+<span class="n">ap_pixscale</span> <span class="o">=</span> <span class="mf">0.262</span>
+<span class="n">ap_doplot</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">ap_isoclip</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">ap_forcing_profile</span> <span class="o">=</span> <span class="s2">&quot;testimage.prof&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="batch-forced-photometry">
+<h2>Batch Forced Photometry<a class="headerlink" href="#batch-forced-photometry" title="Permalink to this heading"></a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">ap_process_mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>forced image list</p>
+</dd>
+</dl>
+<p>You may be able to guess at this point.
+To run forced photometry in batch mode, start with a single image forced photometry config file and convert single values into lists wherever necessary.</p>
+</section>
+<section id="going-further-descision-tree-pipelines">
+<h2>Going further, descision tree pipelines<a class="headerlink" href="#going-further-descision-tree-pipelines" title="Permalink to this heading"></a></h2>
+<p>It’s possible to incorporate descision trees into the AutoProf pipeline. This is very flexible, allowing different steps to be run depending on the results from previous steps. Here is an example file to show what can be done:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">ap_process_mode</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span>
+
+<span class="n">ap_image_file</span> <span class="o">=</span> <span class="s2">&quot;test_ESO479-G1_r.fits&quot;</span>
+<span class="n">ap_pixscale</span> <span class="o">=</span> <span class="mf">0.262</span>
+<span class="n">ap_name</span> <span class="o">=</span> <span class="s2">&quot;testtreeimage&quot;</span>
+<span class="n">ap_doplot</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">ap_isoband_width</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">ap_samplegeometricscale</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">ap_truncate_evaluation</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">ap_ellipsemodel_resolution</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+<span class="n">ap_fouriermodes</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">ap_slice_anchor</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mf">1700.0</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mf">1350.0</span><span class="p">}</span>
+<span class="n">ap_slice_length</span> <span class="o">=</span> <span class="mf">300.0</span>
+<span class="n">ap_isoclip</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">My_Edgon_Fit_Method</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">return</span> <span class="n">IMG</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s2">&quot;fit ellip&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">]]</span> <span class="o">*</span> <span class="n">N</span><span class="p">),</span>
+        <span class="s2">&quot;fit pa&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;init pa&quot;</span><span class="p">]]</span> <span class="o">*</span> <span class="n">N</span><span class="p">),</span>
+        <span class="s2">&quot;fit ellip_err&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.05</span><span class="p">]</span> <span class="o">*</span> <span class="n">N</span><span class="p">),</span>
+        <span class="s2">&quot;fit pa_err&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">]</span> <span class="o">*</span> <span class="n">N</span><span class="p">),</span>
+        <span class="s2">&quot;fit R&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;init R&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="n">N</span><span class="p">),</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">whenrerun</span><span class="p">(</span><span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="n">count_checks</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;checkfit&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;checkfit&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]:</span>
+            <span class="n">count_checks</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">count_checks</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># if checks all passed, carry on</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;onloop&quot;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;onloop&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;onloop&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="s2">&quot;onloop&quot;</span> <span class="ow">in</span> <span class="n">options</span>
+    <span class="p">):</span>  <span class="c1"># start by simply re-running the analysis to see if AutoProf got stuck</span>
+        <span class="k">return</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;onloop&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;onloop&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;checkfit&quot;</span><span class="p">][</span><span class="s2">&quot;FFT coefficients&quot;</span><span class="p">]</span>
+        <span class="ow">or</span> <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;checkfit&quot;</span><span class="p">][</span><span class="s2">&quot;isophote variability&quot;</span><span class="p">]</span>
+    <span class="p">):</span>  <span class="c1"># Try smoothing the fit the result was chaotic</span>
+        <span class="k">return</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;onloop&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;ap_regularize_scale&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;ap_fit_limit&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="p">(</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;onloop&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;checkfit&quot;</span><span class="p">][</span><span class="s2">&quot;Light symmetry&quot;</span><span class="p">]</span>
+    <span class="p">):</span>  <span class="c1"># Try testing larger area to find center if fit found high asymmetry (possibly stuck on a star)</span>
+        <span class="k">return</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;onloop&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;ap_centeringring&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Don&#39;t try a third time, just give up</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;onloop&quot;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;onloop&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;onloop&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="mi">0</span><span class="p">}</span>
+
+
+<span class="n">ap_new_pipeline_methods</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;branch edgeon&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">IMG</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;edgeon&quot;</span> <span class="k">if</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;init ellip&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span> <span class="k">else</span> <span class="s2">&quot;standard&quot;</span><span class="p">,</span>
+        <span class="p">{},</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;branch rerun&quot;</span><span class="p">:</span> <span class="n">whenrerun</span><span class="p">,</span>
+    <span class="s2">&quot;edgeonfit&quot;</span><span class="p">:</span> <span class="n">My_Edgon_Fit_Method</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">ap_new_pipeline_steps</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;head&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;background&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;psf&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;isophoteinit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;branch edgeon&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;standard&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;isophotefit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;starmask&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;isophoteextract&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;checkfit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;branch rerun&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;writeprof&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;plot image&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ellipsemodel&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;axialprofiles&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;radialprofiles&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sliceprofile&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;edgeon&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;edgeonfit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;isophoteextract&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;radsample&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;axialprofiles&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;writeprof&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

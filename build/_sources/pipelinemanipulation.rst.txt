@@ -1,0 +1,82 @@
+=========================
+AutoProf Pipeline Control
+=========================
+
+Modifying Pipeline Methods
+--------------------------
+
+This is done with the *ap_new_pipeline_methods* argument, which is formatted as a dictionary with string keys and functions as values.
+In this way you can add to or alter the methods used by AutoProf in it's pipeline.
+
+Each of the methods in :doc:`defaultpipeline` has a pipeline label, this is how the code identifies the functions and their outputs.
+Thus, one can create their own version of any method and modify the pipeline by assigning the function to that label.
+For example, if you wrote a new center finding method, you could update the pipeline by including:
+
+.. code-block:: python
+   
+  ap_new_pipeline_methods = {'center': My_Center_Finding_Method}
+		
+in your config file.
+You can also make up any other methods and add them to the pipeline functions list, assigning whatever key you like.
+However, AutoProf will only look for methods that are in the *pipeline_steps* object, so see `Modifying Pipeline Steps`_ for how to add/remove/reorder steps in the pipeline.
+
+Pipeline Method Template
+------------------------
+
+Every function in the pipeline has the same template.
+To add a new function, or replace an existing one, you must format it as:
+
+.. code-block:: python
+   
+  def My_New_Function(IMG, results, options):
+      # Code here
+      return IMG, {'results': of, 'the': calculations}
+
+where *IMG* is the input image, *results* is a dictionary containing the output of all previous pipeline steps, and *options* is a dictionary with all user specified arguments (any variable in the config file that starts with *ap\_*) if they have non-default values (None).
+The output of every method in the pipeline is an image and a dictionary with strings for keys.
+The output image is assigned to replace the input image, so if you wish to alter the input image you can do so in a way that all future steps will see.
+The dictionary output is used to update the *results* dictionary that is passed to all future methods, you can therefore add new elements to the dictionary or replace older ones. 
+If you wish to replace a method, make sure to have the output follow this format.
+So long as your output dictionary has the same keys/value format, it should be able to seamlessly replace a step in the pipeline.
+If you wish to include more information, you can include as many other entries in the dictionary as you like, the default methods functions will ignore them.
+See the corresponding documentation for the expected outputs from each function.
+
+Modifying Pipeline Steps
+------------------------
+
+This is done with the *ap_new_pipeline_steps* argument, which is formatted as a list of strings which tells AutoProf what order to run it's pipeline methods.
+In this way you can alter the order of operations used by AutoProf in it's pipeline.
+
+Each function must be run in a specific order as they often rely on the output from another step.
+The basic pipeline step order is:
+
+.. code-block:: python
+   
+  ['background', 'psf', 'center', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
+
+For forced photometry the default pipeline step order is:
+
+.. code-block:: python
+   
+  ['background', 'psf', 'center forced', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
+
+If you would like to change this behaviour, just provide a *ap_new_pipeline_steps* list.
+For example if you wished to use forced photometry but you want to re-fit the center you can change :func:`~autoprof.pipeline_steps.Center.Center_Forced` back to :func:`~autoprof.pipeline_steps.Center.Center_HillClimb` with:
+
+.. code-block:: python
+   
+  ap_new_pipeline_steps = ['background', 'psf', 'center', 'isophoteinit', 'isophotefit forced', 'isophoteextract forced', 'writeprof']
+
+in your config file.
+
+You can create your own order, or add in new functions by supplying a new list.
+For example, if you had your own method to run after the centering function you could do so by including:
+
+.. code-block:: python
+   
+  ap_new_pipeline_methods = {'mymethod': My_New_Method}
+  ap_new_pipeline_steps = ['background', 'psf', 'center', 'mymethod', 'isophoteinit', 'isophotefit', 'isophoteextract', 'checkfit', 'writeprof']
+
+in your config file.
+Note that for *ap_new_pipeline_methods* you need only include the new function, while for *ap_new_pipeline_steps* you must write out the full pipeline steps.
+If you wish to skip a step, it is sometimes better to write your own "null" version of the function (and change *ap_new_pipeline_methods*) that just returns do-nothing values for it's dictionary as the other functions may still look for the output and could crash.
