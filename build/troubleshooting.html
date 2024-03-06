@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Troubleshooting AutoProf &mdash; AutoProf 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="autoprof" href="modules.html" />
+    <link rel="prev" title="Extra Methods" href="extramethods.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoProf
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citing AutoProf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">LICENSE</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="defaultpipeline.html">Default AutoProf Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">AutoProf Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipelinemanipulation.html">AutoProf Pipeline Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decisiontrees.html">Decision Trees</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extramethods.html">Extra Methods</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Troubleshooting AutoProf</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-error-bars-on-the-sb-profile-diagnostic-plot-are-too-large">The error bars on the SB profile diagnostic plot are too large</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i-want-to-hold-the-pa-and-ellipticity-fixed-at-a-global-value-instead-of-fitting-each-isophote">I want to hold the PA and ellipticity fixed at a global value instead of fitting each isophote</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-isophotes-go-far-beyond-the-extent-of-the-galaxy-in-the-image">The isophotes go far beyond the extent of the galaxy in the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-fitted-isophotes-are-too-smooth-they-are-missing-features">The fitted isophotes are too smooth, they are missing features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">autoprof</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoProf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Troubleshooting AutoProf</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/troubleshooting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="troubleshooting-autoprof">
+<h1>Troubleshooting AutoProf<a class="headerlink" href="#troubleshooting-autoprof" title="Permalink to this heading"></a></h1>
+<p>Here we list some common troubles that users can run into when getting started or when beginning to access some of AutoProf’s more advanced features. By it’s nature this is an evolving page, so if you run into something that you think should be addressed on this page please reach out to <a class="reference external" href="https://connorjstone.com/">Connor Stone</a>!</p>
+<section id="the-error-bars-on-the-sb-profile-diagnostic-plot-are-too-large">
+<h2>The error bars on the SB profile diagnostic plot are too large<a class="headerlink" href="#the-error-bars-on-the-sb-profile-diagnostic-plot-are-too-large" title="Permalink to this heading"></a></h2>
+<p>The diagnostic SB plot is intended for evaluating the quality of a fit. With many SB profiles, the statistical errors are too small to see in a plot and so they are scaled up arbitrarily to make them visible. The error-bar scaling factor can be seen in the legend as <em>(err.xx)</em> where xx is the scaling factor. When scaling is applied it is done such that the largest error bar on the plot is now 1 mag arcsec^-2.</p>
+</section>
+<section id="i-want-to-hold-the-pa-and-ellipticity-fixed-at-a-global-value-instead-of-fitting-each-isophote">
+<h2>I want to hold the PA and ellipticity fixed at a global value instead of fitting each isophote<a class="headerlink" href="#i-want-to-hold-the-pa-and-ellipticity-fixed-at-a-global-value-instead-of-fitting-each-isophote" title="Permalink to this heading"></a></h2>
+<p>This can be done with the “isophotefit fixed” pipeline step replacing the standard “isophotefit” step. For information on adjusting the AutoProf pipeline see <a class="reference internal" href="pipelinemanipulation.html"><span class="doc">AutoProf Pipeline Control</span></a>.</p>
+</section>
+<section id="the-isophotes-go-far-beyond-the-extent-of-the-galaxy-in-the-image">
+<h2>The isophotes go far beyond the extent of the galaxy in the image<a class="headerlink" href="#the-isophotes-go-far-beyond-the-extent-of-the-galaxy-in-the-image" title="Permalink to this heading"></a></h2>
+<p>This can happen for a few reasons. First, and most straightforward, if the <em>ap_extractfull</em> parameter is set to true then AutoProf will typically evaluate out to the edge of the image regardless of if it has any signal. Second, AutoProf will by default extract isophotes out to three times the largest fitted radius. At the low S/N outskirts of a galaxy it is challenging to robustly fit isophotes, however with fixed PA and ellipticity it is possible to detect signal out quite a bit further. If you wish to control this behaviour you can use the <em>ap_fit_limit</em>, <em>ap_sampleendR</em>, and <em>ap_truncate_evaluation</em> parameters to control various aspects of the extrapolation (see: <a class="reference internal" href="parameters.html"><span class="doc">AutoProf Parameters</span></a>). Third, it may be a result of the sources in the image. If the image contains galactic ciri or diffracted light from a very bright star it is possible that AutoProf will extend very far (beyond the extent of the target galaxy) before reaching the background noise level. In this case one can often see in the SB profile where the dominant light source switched from the target galaxy to the diffuse source as the SB profile will flatten at a non-zero signal. Unless you have some sophisticated way to remove the spurious signal, users may wish to heavily truncate the SB profile or reject the galaxy form their sample as accurate extended photometry will be nearly impossible to acquire.</p>
+</section>
+<section id="the-fitted-isophotes-are-too-smooth-they-are-missing-features">
+<h2>The fitted isophotes are too smooth, they are missing features<a class="headerlink" href="#the-fitted-isophotes-are-too-smooth-they-are-missing-features" title="Permalink to this heading"></a></h2>
+<p>AutoProf is intended for use on large surveys with thousands to millions of objects.
+By default it applies a certain amount of profile smoothing to achieve reliable automated results.
+In some cases this smoothing can overdo it and will cause AutoProf to skip over a real feature (it will still fit the global structure though).
+This smoothing is controlled by <em>ap_regularize_scale</em> which by default is 1.
+Decreasing the value will reduce the smoothing strength, at 0 there will be no smoothing applied.
+If the isophotes continue to come out too smooth then the culprit is likely the <em>ap_isofit_robustclip</em> parameter, which clips high flux values while fitting isophotes.
+It defaults to 0.15 meaning that the 15% highest flux values are clipped down to lower values.
+This parameter can also be set to 0 to turn off the effect.
+It is not advised to turn off these features when batch processing large numbers of galaxies since it will make the fit susceptible to spurious image features.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="extramethods.html" class="btn btn-neutral float-left" title="Extra Methods" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="autoprof" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Connor Stone.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
