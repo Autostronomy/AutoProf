@@ -33,7 +33,14 @@ from ..autoprofutils.SharedFunctions import (
 )
 from ..autoprofutils.Diagnostic_Plots import Plot_Isophote_Fit
 
-__all__ = ("Photutils_Fit", "Isophote_Fit_FixedPhase", "Isophote_Fit_FFT_Robust", "Isophote_Fit_Forced", "Isophote_Fit_FFT_mean")
+__all__ = (
+    "Photutils_Fit",
+    "Isophote_Fit_FixedPhase",
+    "Isophote_Fit_FFT_Robust",
+    "Isophote_Fit_Forced",
+    "Isophote_Fit_FFT_mean",
+)
+
 
 def Photutils_Fit(IMG, results, options):
     """Photutils elliptical isophote wrapper.
@@ -228,7 +235,7 @@ def _pa_smooth(R, PA, deg):
 
 
 def _FFT_Robust_loss(
-        dat, R, PARAMS, i, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
+    dat, R, PARAMS, i, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
 ):
 
     isovals = _iso_extract(
@@ -242,11 +249,11 @@ def _FFT_Robust_loss(
     )
 
     try:
-        coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 1. - robust_clip), a_min=None))
+        coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 1.0 - robust_clip), a_min=None))
     except:
         coefs = np.zeros(100)
         isovals = np.zeros(100)
-        
+
     if fit_coefs is None:
         f2_loss = np.abs(coefs[2]) / (
             len(isovals) * (max(0, np.median(isovals)) + noise / np.sqrt(len(isovals)))
@@ -265,14 +272,10 @@ def _FFT_Robust_loss(
         reg_loss += abs(
             (PARAMS[i]["ellip"] - PARAMS[i + 1]["ellip"]) / (1 - PARAMS[i + 1]["ellip"])
         )
-        reg_loss += abs(
-            Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[i + 1]["pa"]) / (0.2)
-        )
+        reg_loss += abs(Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[i + 1]["pa"]) / (0.2))
         if not PARAMS[i]["m"] is None:
             for m in range(len(PARAMS[i]["m"])):
-                reg_loss += fmode_scale * abs(
-                    (PARAMS[i]["Am"][m] - PARAMS[i + 1]["Am"][m]) / 0.2
-                )
+                reg_loss += fmode_scale * abs((PARAMS[i]["Am"][m] - PARAMS[i + 1]["Am"][m]) / 0.2)
                 reg_loss += fmode_scale * abs(
                     Angle_TwoAngles_cos(
                         PARAMS[i]["m"][m] * PARAMS[i]["Phim"][m],
@@ -286,14 +289,10 @@ def _FFT_Robust_loss(
         reg_loss += abs(
             (PARAMS[i]["ellip"] - PARAMS[i - 1]["ellip"]) / (1 - PARAMS[i - 1]["ellip"])
         )
-        reg_loss += abs(
-            Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[i - 1]["pa"]) / (0.2)
-        )
+        reg_loss += abs(Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[i - 1]["pa"]) / (0.2))
         if not PARAMS[i]["m"] is None:
             for m in range(len(PARAMS[i]["m"])):
-                reg_loss += fmode_scale * abs(
-                    (PARAMS[i]["Am"][m] - PARAMS[i - 1]["Am"][m]) / 0.2
-                )
+                reg_loss += fmode_scale * abs((PARAMS[i]["Am"][m] - PARAMS[i - 1]["Am"][m]) / 0.2)
                 reg_loss += fmode_scale * abs(
                     Angle_TwoAngles_cos(
                         PARAMS[i]["m"][m] * PARAMS[i]["Phim"][m],
@@ -308,7 +307,7 @@ def _FFT_Robust_loss(
 
 
 def _FFT_Robust_Errors(
-        dat, R, PARAMS, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
+    dat, R, PARAMS, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
 ):
 
     PA_err = np.zeros(len(R))
@@ -339,7 +338,7 @@ def _FFT_Robust_Errors(
                         noise,
                         mask=mask,
                         reg_scale=reg_scale,
-                        robust_clip = robust_clip,
+                        robust_clip=robust_clip,
                         fit_coefs=fit_coefs,
                         name=name,
                     ),
@@ -512,6 +511,12 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     if not np.any(mask):
         mask = None
 
+    if "ap_isoinit_R_set" in options:
+        minR = options["ap_isoinit_R_set"]
+    elif "init R" in results:
+        minR = results["init R"] * 0.8
+    else:
+        minR = 0.0
     # Determine sampling radii
     ######################################################################
     shrink = 0
@@ -527,7 +532,8 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 mask=mask,
             )
             if (
-                np.median(isovals)
+                sample_radii[-1] > minR
+                and np.median(isovals)
                 < (options["ap_fit_limit"] if "ap_fit_limit" in options else 2)
                 * results["background noise"]
             ):
@@ -547,23 +553,13 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     # Fit isophotes
     ######################################################################
     perturb_scale = 0.03
-    regularize_scale = (
-        options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
-    )
-    robust_clip = (
-        options["ap_isofit_robustclip"] if "ap_isofit_robustclip" in options else 0.15
-    )
+    regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
+    robust_clip = options["ap_isofit_robustclip"] if "ap_isofit_robustclip" in options else 0.15
     N_perturb = 5
-    fit_coefs = (
-        options["ap_isofit_losscoefs"] if "ap_isofit_losscoefs" in options else None
-    )
-    fit_params = (
-        options["ap_isofit_fitcoefs"] if "ap_isofit_fitcoefs" in options else None
-    )
+    fit_coefs = options["ap_isofit_losscoefs"] if "ap_isofit_losscoefs" in options else None
+    fit_params = options["ap_isofit_fitcoefs"] if "ap_isofit_fitcoefs" in options else None
     fit_superellipse = (
-        options["ap_isofit_superellipse"]
-        if "ap_isofit_superellipse" in options
-        else False
+        options["ap_isofit_superellipse"] if "ap_isofit_superellipse" in options else False
     )
     parameters = list(
         {
@@ -580,17 +576,11 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     count = 0
 
     iterlimitmax = (
-        options["ap_isofit_iterlimitmax"]
-        if "ap_isofit_iterlimitmax" in options
-        else 1000
+        options["ap_isofit_iterlimitmax"] if "ap_isofit_iterlimitmax" in options else 1000
     )
-    iterlimitmin = (
-        options["ap_isofit_iterlimitmin"] if "ap_isofit_iterlimitmin" in options else 0
-    )
+    iterlimitmin = options["ap_isofit_iterlimitmin"] if "ap_isofit_iterlimitmin" in options else 0
     iterstopnochange = (
-        options["ap_isofit_iterstopnochange"]
-        if "ap_isofit_iterstopnochange" in options
-        else 3
+        options["ap_isofit_iterstopnochange"] if "ap_isofit_iterstopnochange" in options else 3
     )
     count_nochange = 0
     use_center = copy(results["center"])
@@ -618,7 +608,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 results["background noise"],
                 mask=mask,
                 reg_scale=regularize_scale if count > 4 else 0,
-                robust_clip = robust_clip,
+                robust_clip=robust_clip,
                 fit_coefs=fit_coefs,
                 name=options["ap_name"],
             )
@@ -644,23 +634,17 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                         (count % param_cycle) - base_params
                     ] += np.random.normal(loc=0, scale=perturb_scale)
                 elif count % param_cycle < (base_params + 2 * len(parameters[i]["m"])):
-                    phim_index = (
-                        (count % param_cycle) - base_params - len(parameters[i]["m"])
-                    )
+                    phim_index = (count % param_cycle) - base_params - len(parameters[i]["m"])
                     perturbations[-1][i]["Phim"][phim_index] = (
                         perturbations[-1][i]["Phim"][phim_index]
                         + np.random.normal(
                             loc=0,
-                            scale=2
-                            * np.pi
-                            * perturb_scale
-                            / parameters[i]["m"][phim_index],
+                            scale=2 * np.pi * perturb_scale / parameters[i]["m"][phim_index],
                         )
                     ) % (2 * np.pi / parameters[i]["m"][phim_index])
                 else:
                     raise Exception(
-                        "Unrecognized optimization parameter id: %i"
-                        % (count % param_cycle)
+                        "Unrecognized optimization parameter id: %i" % (count % param_cycle)
                     )
                 perturbations[-1][i]["loss"] = _FFT_Robust_loss(
                     dat,
@@ -671,7 +655,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     results["background noise"],
                     mask=mask,
                     reg_scale=regularize_scale if count > 4 else 0,
-                    robust_clip = robust_clip,
+                    robust_clip=robust_clip,
                     fit_coefs=fit_coefs,
                     name=options["ap_name"],
                 )
@@ -687,14 +671,11 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 count_nochange < (iterstopnochange * (len(sample_radii) - 1))
                 or count < iterlimitmin
             ):
-                if param_cycle > 2 or (
-                    parameters[i]["m"] is None and not fit_superellipse
-                ):
+                if param_cycle > 2 or (parameters[i]["m"] is None and not fit_superellipse):
                     break
                 elif parameters[i]["m"] is None and fit_superellipse:
                     logging.info(
-                        "%s: Started C fitting at iteration %i"
-                        % (options["ap_name"], count)
+                        "%s: Started C fitting at iteration %i" % (options["ap_name"], count)
                     )
                     param_cycle = 3
                     iterstopnochange = max(iterstopnochange, param_cycle)
@@ -704,13 +685,11 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                         fit_coefs = (2, 4)
                 else:
                     logging.info(
-                        "%s: Started Fmode fitting at iteration %i"
-                        % (options["ap_name"], count)
+                        "%s: Started Fmode fitting at iteration %i" % (options["ap_name"], count)
                     )
                     if fit_superellipse:
                         logging.info(
-                            "%s: Started C fitting at iteration %i"
-                            % (options["ap_name"], count)
+                            "%s: Started C fitting at iteration %i" % (options["ap_name"], count)
                         )
                     param_cycle = base_params + 2 * len(parameters[i]["m"])
                     iterstopnochange = max(iterstopnochange, param_cycle)
@@ -765,14 +744,11 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                 ) % (2 * np.pi)
 
         if not (
-            count_nochange < (iterstopnochange * (len(sample_radii) - 1))
-            or count < iterlimitmin
+            count_nochange < (iterstopnochange * (len(sample_radii) - 1)) or count < iterlimitmin
         ):
             break
 
-    logging.info(
-        "%s: Completed isohpote fit in %i itterations" % (options["ap_name"], count)
-    )
+    logging.info("%s: Completed isohpote fit in %i itterations" % (options["ap_name"], count))
     # Compute errors
     ######################################################################
     ellip_err, pa_err = _FFT_Robust_Errors(
@@ -783,7 +759,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         results["background noise"],
         mask=mask,
         reg_scale=regularize_scale,
-        robust_clip = robust_clip,
+        robust_clip=robust_clip,
         fit_coefs=fit_coefs,
         name=options["ap_name"],
     )
@@ -796,9 +772,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         Plot_Isophote_Fit(dat, sample_radii, parameters, results, options)
 
     res = {
-        "fit ellip": np.array(
-            list(parameters[i]["ellip"] for i in range(len(parameters)))
-        ),
+        "fit ellip": np.array(list(parameters[i]["ellip"] for i in range(len(parameters)))),
         "fit pa": np.array(list(parameters[i]["pa"] for i in range(len(parameters)))),
         "fit R": sample_radii,
         "fit ellip_err": ellip_err,
@@ -821,13 +795,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 }
             )
     if fit_superellipse:
-        res.update(
-            {
-                "fit C": np.array(
-                    list(parameters[i]["C"] for i in range(len(parameters)))
-                )
-            }
-        )
+        res.update({"fit C": np.array(list(parameters[i]["C"] for i in range(len(parameters))))})
     return IMG, res
 
 
@@ -884,7 +852,7 @@ def Isophote_Fit_Forced(IMG, results, options):
     if "ap_doplot" in options and options["ap_doplot"]:
         parameters = []
         for i in range(len(force["R"])):
-            parameters.append({'ellip': force["ellip"][i], 'pa': force["pa"][i], 'C': None})
+            parameters.append({"ellip": force["ellip"][i], "pa": force["pa"][i], "C": None})
         Plot_Isophote_Fit(
             IMG - results["background"],
             np.array(force["R"]),
@@ -1036,9 +1004,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     # Fit isophotes
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
-    regularize_scale = (
-        options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
-    )
+    regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
     N_perturb = 5
 
     count = 0
@@ -1077,8 +1043,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                     )
                 if count % 3 in [1, 2]:
                     perturbations[-1]["pa"][i] = (
-                        perturbations[-1]["pa"][i]
-                        + np.random.normal(loc=0, scale=perturb_scale[1])
+                        perturbations[-1]["pa"][i] + np.random.normal(loc=0, scale=perturb_scale[1])
                     ) % np.pi
                 perturbations[-1]["loss"] = _FFT_mean_loss(
                     dat,
@@ -1101,9 +1066,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
             else:
                 count_nochange += 1
 
-    logging.info(
-        "%s: Completed isohpote fit in %i itterations" % (options["ap_name"], count)
-    )
+    logging.info("%s: Completed isohpote fit in %i itterations" % (options["ap_name"], count))
     # detect collapsed center
     ######################################################################
     for i in range(5):
@@ -1139,10 +1102,10 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         for i in range(len(sample_radii)):
             plt.gca().add_patch(
                 Ellipse(
-                    xy = (use_center["x"] - ranges[0][0], use_center["y"] - ranges[1][0]),
-                    width = 2 * sample_radii[i],
-                    height = 2 * sample_radii[i] * (1.0 - ellip[i]),
-                    angle = pa[i] * 180 / np.pi,
+                    xy=(use_center["x"] - ranges[0][0], use_center["y"] - ranges[1][0]),
+                    width=2 * sample_radii[i],
+                    height=2 * sample_radii[i] * (1.0 - ellip[i]),
+                    angle=pa[i] * 180 / np.pi,
                     fill=False,
                     linewidth=((i + 1) / len(sample_radii)) ** 2,
                     color="r",
@@ -1198,9 +1161,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         ellip_err[i] = np.sqrt(
             np.sum((ellip[i - 2 : i + 2] - smooth_ellip[i - 2 : i + 2]) ** 2) / 4
         )
-        pa_err[i] = np.sqrt(
-            np.sum((pa[i - 2 : i + 2] - smooth_pa[i - 2 : i + 2]) ** 2) / 4
-        )
+        pa_err[i] = np.sqrt(np.sum((pa[i - 2 : i + 2] - smooth_pa[i - 2 : i + 2]) ** 2) / 4)
 
     res = {
         "fit ellip": ellip,

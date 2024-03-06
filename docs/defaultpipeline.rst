@@ -35,7 +35,7 @@ a similarly size or larger object.
 Put plainly, the default AutoProf pipeline is as follows:
 
 1. Background: :func:`~autoprof.pipeline_steps.Background.Background_Mode`
-#. PSF: :func:`~autoprof.pipeline_steps.PSF.PSF_StarFind`
+#. PSF: :func:`~autoprof.pipeline_steps.PSF.PSF_Assumed`
 #. Center: :func:`~autoprof.pipeline_steps.Center.Center_HillClimb`
 #. Initial Isophote: :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize`
 #. Fit Isophotes: :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
@@ -78,7 +78,7 @@ onto another image. The default forced photometry pipeline works as
 follows:
 
 1. Background: :func:`~autoprof.pipeline_steps.Background.Background_Mode`
-#. PSF: :func:`~autoprof.pipeline_steps.PSF.PSF_StarFind`
+#. PSF: :func:`~autoprof.pipeline_steps.PSF.PSF_Assumed`
 #. Center: :func:`~autoprof.pipeline_steps.Center.Center_Forced`
 #. Initial Isophote: :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Init_Forced`
 #. Fit Isophotes: :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_Forced`

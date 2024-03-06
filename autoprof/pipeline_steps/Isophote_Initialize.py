@@ -161,6 +161,9 @@ def Isophote_Initialize(IMG, results, options):
     ap_isoinit_ellip_set : float, default None
       User set initial ellipticity (1 - b/a), will override the calculation.
 
+    ap_isoinit_R_set : float, default None
+        User set initial semi-major axis length, will override the calculation.
+
     Notes
     ----------
     :References:

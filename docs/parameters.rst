@@ -157,14 +157,28 @@ ap_fit_limit (float, default 2)
 
 noise level out to which to extend the fit in units of pixel background noise level. Default is 2, smaller values will end fitting further out in the galaxy image.
 
+ap_fluxunits (str, default "mag")
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils`
+
+**Description**
+
+units for outputted photometry. Can either be "mag" for log
+units, or "intensity" for linear units.
+
 ap_forcing_profile (string, default None)
 ----------------------------------------------------------------------
 
 **Referencing Methods**
 
 - :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Init_Forced`
-- :func:`~autoprof.pipeline_steps.Center.Center_Forced`
 - :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_Forced`
+- :func:`~autoprof.pipeline_steps.Center.Center_Forced`
 
 **Description**
 
@@ -275,9 +289,9 @@ ap_isoaverage_method (string, default 'median')
 
 **Referencing Methods**
 
+- :func:`~autoprof.pipeline_steps.Slice_Profiles.Slice_Profile`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
-- :func:`~autoprof.pipeline_steps.Slice_Profiles.Slice_Profile`
 - :func:`~autoprof.pipeline_steps.Axial_Profiles.Axial_Profiles`
 
 **Description**
@@ -525,6 +539,17 @@ from a rectangle to an ellipse to a four-armed-star like shape
 is C. A value of C = 2 represents an ellipse and is the starting
 point of the optimization.
 
+ap_isoinit_R_set (float, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+
+**Description**
+
+User set initial semi-major axis length, will override the calculation.
+
 ap_isoinit_ellip_set (float, default None)
 ----------------------------------------------------------------------
 
@@ -568,6 +593,50 @@ ap_name (string, default None)
 **Description**
 
 Name of the current galaxy, used for making filenames.
+
+ap_plot_sbprof_set_errscale (float, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils`
+
+**Description**
+
+Float value by which to scale errorbars on the SB profile
+this makes them more visible in cases where the statistical
+errors are very small.
+
+ap_plot_sbprof_xlim (tuple, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils`
+
+**Description**
+
+Tuple with axes limits for the x-axis in the SB profile
+diagnostic plot.
+
+ap_plot_sbprof_ylim (tuple, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils`
+
+**Description**
+
+Tuple with axes limits for the y-axis in the SB profile
+diagnostic plot. Be careful when using intensity units
+since this will change the ideal axis limits.
 
 ap_psf_deconvolution_iterations (int, default 50)
 ----------------------------------------------------------------------
@@ -903,11 +972,11 @@ ap_zeropoint (float, default 22.5)
 
 **Referencing Methods**
 
+- :func:`~autoprof.pipeline_steps.Slice_Profiles.Slice_Profile`
+- :func:`~autoprof.pipeline_steps.Ellipse_Model.EllipseModel`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Photutils`
-- :func:`~autoprof.pipeline_steps.Ellipse_Model.EllipseModel`
-- :func:`~autoprof.pipeline_steps.Slice_Profiles.Slice_Profile`
 - :func:`~autoprof.pipeline_steps.Axial_Profiles.Axial_Profiles`
 
 **Description**
