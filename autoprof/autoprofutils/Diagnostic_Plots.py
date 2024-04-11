@@ -310,6 +310,7 @@ def _Plot_Isophotes(dat, R, parameters, results, options):
         results["background noise"],
     )
     AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
+
     fitlim = results["fit R"][-1] if "fit R" in results else np.inf
     for i in range(len(R)):
         N = max(15, int(0.9 * 2 * np.pi * R[i]))
