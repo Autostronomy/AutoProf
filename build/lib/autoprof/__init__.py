@@ -3,7 +3,7 @@ import sys
 
 from . import autoprofutils, Pipeline, pipeline_steps
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __author__ = "Connor Stone"
 __email__ = "connorstone628@gmail.com"
 

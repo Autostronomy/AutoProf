@@ -21,6 +21,7 @@ import matplotlib.cm as cm
 from matplotlib.cbook import get_sample_data
 from matplotlib.colors import LinearSegmentedColormap
 import warnings
+
 Abs_Mag_Sun = {
     "u": 6.39,
     "g": 5.11,
@@ -65,22 +66,30 @@ autocolours = {
 
 def LSBImage(dat, noise):
     plt.figure(figsize=(6, 6))
-    plt.imshow(
-        dat,
-        origin="lower",
-        cmap="Greys",
-        norm=ImageNormalize(stretch=HistEqStretch(dat[dat <= 3*noise]), clip = False, vmax = 3*noise, vmin = np.min(dat)),
-    )
+    try:
+        plt.imshow(
+            dat,
+            origin="lower",
+            cmap="Greys",
+            norm=ImageNormalize(
+                stretch=HistEqStretch(dat[dat <= 3 * noise]),
+                clip=False,
+                vmax=3 * noise,
+                vmin=np.min(dat),
+            ),
+        )
+    except ValueError:
+        pass
     my_cmap = copy(cm.Greys_r)
     my_cmap.set_under("k", alpha=0)
-    
+
     plt.imshow(
-        np.ma.masked_where(dat < 3*noise, dat), 
+        np.ma.masked_where(dat < 3 * noise, dat),
         origin="lower",
         cmap=my_cmap,
-        norm=ImageNormalize(stretch=LogStretch(),clip = False),
+        norm=ImageNormalize(stretch=LogStretch(), clip=False),
         clim=[3 * noise, None],
-        interpolation = 'none',
+        interpolation="none",
     )
     plt.xticks([])
     plt.yticks([])
@@ -91,9 +100,9 @@ def LSBImage(dat, noise):
 
 def _display_time(seconds):
     intervals = (
-        ('hours', 3600),    # 60 * 60
-        ('arcminutes', 60),
-        ('arcseconds', 1),
+        ("hours", 3600),  # 60 * 60
+        ("arcminutes", 60),
+        ("arcseconds", 1),
     )
     result = []
 
@@ -102,40 +111,50 @@ def _display_time(seconds):
         if value:
             seconds -= value * count
             if value == 1:
-                name = name.rstrip('s')
+                name = name.rstrip("s")
             result.append("{} {}".format(value, name))
-    return ', '.join(result)
+    return ", ".join(result)
 
-    
-def AddScale(ax, img_width, loc = 'lower right'):
+
+def AddScale(ax, img_width, loc="lower right"):
     """
     ax: figure axis object
     img_width: image width in arcseconds
     loc: location to put hte scale bar
     """
-    scale_width = int(img_width/6)
-    
+    scale_width = int(img_width / 6)
+
     if scale_width > 60 and scale_width % 60 <= 15:
         scale_width -= scale_width % 60
     if scale_width > 45 and scale_width % 60 >= 45:
         scale_width += 60 - (scale_width % 60)
     if 15 < scale_width % 60 < 45:
         scale_width += 30 - (scale_width % 60)
-        
+
     label = _display_time(scale_width)
 
-    xloc = 0.05 if 'left' in loc else 0.95
-    yloc = 0.95 if 'upper' in loc else 0.05
-    
-    ax.text(xloc - 0.5*scale_width/img_width, yloc + 0.005, label,
-            horizontalalignment = 'center', verticalalignment = 'bottom',
-            transform=ax.transAxes,
-            fontsize = 'x-small' if len(label) < 20 else 'xx-small',
-            weight = 'bold', color = autocolours['red1'])
-    ax.plot([xloc - scale_width/img_width,xloc], [yloc,yloc],
-            transform=ax.transAxes, color = autocolours['red1'])
-    
-        
+    xloc = 0.05 if "left" in loc else 0.95
+    yloc = 0.95 if "upper" in loc else 0.05
+
+    ax.text(
+        xloc - 0.5 * scale_width / img_width,
+        yloc + 0.005,
+        label,
+        horizontalalignment="center",
+        verticalalignment="bottom",
+        transform=ax.transAxes,
+        fontsize="x-small" if len(label) < 20 else "xx-small",
+        weight="bold",
+        color=autocolours["red1"],
+    )
+    ax.plot(
+        [xloc - scale_width / img_width, xloc],
+        [yloc, yloc],
+        transform=ax.transAxes,
+        color=autocolours["red1"],
+    )
+
+
 def AddLogo(fig, loc=[0.8, 0.01, 0.844 / 5, 0.185 / 5], white=False):
     im = plt.imread(
         get_sample_data(
@@ -167,7 +186,7 @@ def flux_to_mag(flux, zeropoint, fluxe=None):
 
 
 def sb_to_flux(sb, pixscale, zeropoint):
-    return (pixscale ** 2) * 10 ** (-(sb - zeropoint) / 2.5)
+    return (pixscale**2) * 10 ** (-(sb - zeropoint) / 2.5)
 
 
 def mag_to_flux(mag, zeropoint, mage=None):
@@ -206,7 +225,7 @@ def mag_to_magperarcsec2(m, a=None, b=None, R=None, A=None):
     """
     assert (not A is None) or (not a is None and not b is None) or (not R is None)
     if not R is None:
-        A = np.pi * (R ** 2)
+        A = np.pi * (R**2)
     elif A is None:
         A = np.pi * a * b
     return m + 2.5 * np.log10(
@@ -305,7 +324,7 @@ def app_mag_to_abs_mag(m, D, me=0.0, De=0.0):
     if np.all(me == 0) and np.all(De == 0):
         return M
     else:
-        return M, np.sqrt(me ** 2 + (5.0 * De / (D * np.log(10))) ** 2)
+        return M, np.sqrt(me**2 + (5.0 * De / (D * np.log(10))) ** 2)
 
 
 def abs_mag_to_app_mag(M, D, Me=0.0, De=0.0):
@@ -320,7 +339,7 @@ def abs_mag_to_app_mag(M, D, Me=0.0, De=0.0):
     if np.all(Me == 0) and np.all(De == 0):
         return m
     else:
-        return m, np.sqrt(Me ** 2 + (5.0 * De / (D * np.log(10))) ** 2)
+        return m, np.sqrt(Me**2 + (5.0 * De / (D * np.log(10))) ** 2)
 
 
 def mag_to_L(mag, band, mage=None, zeropoint=None):
@@ -419,9 +438,7 @@ def _scatter(v, method="median"):
 
 
 def Rscale_Fmodes(theta, modes, Am, Phim):
-    return np.exp(
-        sum(Am[m] * np.cos(modes[m] * (theta + Phim[m])) for m in range(len(modes)))
-    )
+    return np.exp(sum(Am[m] * np.cos(modes[m] * (theta + Phim[m])) for m in range(len(modes))))
 
 
 def parametric_Fmodes(theta, modes, Am, Phim):
@@ -478,9 +495,7 @@ def interpolate_Lanczos(dat, X, Y, scale):
         XX = np.ones(chunk.shape)
         Lx = (
             np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i]))
-            * np.sinc(
-                (np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) / scale
-            )
+            * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) / scale)
         )[
             box[0][0]
             - int(round(np.floor(X[i]) - scale + 1)) : 2 * scale
@@ -489,9 +504,7 @@ def interpolate_Lanczos(dat, X, Y, scale):
         ]
         Ly = (
             np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i]))
-            * np.sinc(
-                (np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) / scale
-            )
+            * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) / scale)
         )[
             box[1][0]
             - int(round(np.floor(Y[i]) - scale + 1)) : 2 * scale
@@ -531,21 +544,15 @@ def _iso_between(
         [max(0, int(c["y"] - Rlim - 2)), min(IMG.shape[0], int(c["y"] + Rlim + 2))],
     ]
     XX, YY = np.meshgrid(
-        np.arange(ranges[0][1] - ranges[0][0], dtype=float)
-        - c["x"]
-        + float(ranges[0][0]),
-        np.arange(ranges[1][1] - ranges[1][0], dtype=float)
-        - c["y"]
-        + float(ranges[1][0]),
+        np.arange(ranges[0][1] - ranges[0][0], dtype=float) - c["x"] + float(ranges[0][0]),
+        np.arange(ranges[1][1] - ranges[1][0], dtype=float) - c["y"] + float(ranges[1][0]),
     )
-    theta = np.arctan2(YY, XX) #np.arctan(YY / XX) + np.pi * (XX < 0)
-    RR = np.sqrt(XX ** 2 + YY ** 2)
+    theta = np.arctan2(YY, XX)  # np.arctan(YY / XX) + np.pi * (XX < 0)
+    RR = np.sqrt(XX**2 + YY**2)
     Fmode_Rscale = (
         1.0
         if PARAMS["m"] is None
-        else Rscale_Fmodes(
-            theta - PARAMS["pa"], PARAMS["m"], PARAMS["Am"], PARAMS["Phim"]
-        )
+        else Rscale_Fmodes(theta - PARAMS["pa"], PARAMS["m"], PARAMS["Am"], PARAMS["Phim"])
     )
     SuperEllipse_Rscale = Rscale_SuperEllipse(
         theta - PARAMS["pa"], PARAMS["ellip"], 2 if PARAMS["C"] is None else PARAMS["C"]
@@ -615,9 +622,7 @@ def _iso_extract(
         N = max(minN, N)
     # points along ellipse to evaluate
     theta = np.linspace(0, 2 * np.pi * (1.0 - 1.0 / N), N)
-    theta = np.arctan((1.0 - PARAMS["ellip"]) * np.tan(theta)) + np.pi * (
-        np.cos(theta) < 0
-    )
+    theta = np.arctan((1.0 - PARAMS["ellip"]) * np.tan(theta)) + np.pi * (np.cos(theta) < 0)
     Fmode_Rscale = (
         1.0
         if PARAMS["m"] is None
@@ -661,8 +666,7 @@ def _iso_extract(
             flux = interpolate_Lanczos(IMG, X, Y, interp_window)
         else:
             raise ValueError(
-                "Unknown interpolate method %s. Should be one of lanczos or bicubic"
-                % interp_method
+                "Unknown interpolate method %s. Should be one of lanczos or bicubic" % interp_method
             )
     else:
         # round to integers and sample pixels values
@@ -671,9 +675,7 @@ def _iso_extract(
     CHOOSE = None
     # Mask pixels if a mask is given
     if not mask is None:
-        CHOOSE = np.logical_not(
-            mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]
-        )
+        CHOOSE = np.logical_not(mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)])
     # Perform sigma clipping if requested
     if sigmaclip:
         sclim = Sigma_Clip_Upper(flux, sclip_iterations, sclip_nsigma)
@@ -729,9 +731,7 @@ def _iso_line(IMG, length, width, pa, c, more=False):
     YY -= c["y"] - float(ranges[1][0])
     XX, YY = (XX * np.cos(-pa) - YY * np.sin(-pa), XX * np.sin(-pa) + YY * np.cos(-pa))
 
-    lselect = np.logical_and.reduce(
-        (XX >= -0.5, XX <= length, np.abs(YY) <= (width / 2))
-    )
+    lselect = np.logical_and.reduce((XX >= -0.5, XX <= length, np.abs(YY) <= (width / 2)))
     flux = IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][lselect]
 
     if more:
@@ -795,20 +795,19 @@ def StarFind(
             np.ones(xx.shape),
             xx,
             yy,
-            xx ** 2,
-            yy ** 2,
+            xx**2,
+            yy**2,
             xx * yy,
-            xx * yy ** 2,
-            yy * xx ** 2,
-            xx ** 2 * yy ** 2,
+            xx * yy**2,
+            yy * xx**2,
+            xx**2 * yy**2,
         ]
     ).T
 
     for i in range(len(highpixels)):
         # reject if near an existing center
         if len(centers) != 0 and np.any(
-            np.sqrt(np.sum((highpixels[i] - centers) ** 2, axis=1))
-            < minsep * fwhm_guess
+            np.sqrt(np.sum((highpixels[i] - centers) ** 2, axis=1)) < minsep * fwhm_guess
         ):
             continue
         # reject if near edge
@@ -867,12 +866,8 @@ def StarFind(
         # reject stars with too high flux
         if (not peakmax is None) and np.any(
             IMG[
-                int(newcenter[1] - minsep * fwhm_guess) : int(
-                    newcenter[1] + minsep * fwhm_guess
-                ),
-                int(newcenter[0] - minsep * fwhm_guess) : int(
-                    newcenter[0] + minsep * fwhm_guess
-                ),
+                int(newcenter[1] - minsep * fwhm_guess) : int(newcenter[1] + minsep * fwhm_guess),
+                int(newcenter[0] - minsep * fwhm_guess) : int(newcenter[0] + minsep * fwhm_guess),
             ]
             >= peakmax
         ):
@@ -892,8 +887,8 @@ def StarFind(
                 reject_size * fwhm_guess,
                 {"ellip": 0.0, "pa": 0.0},
                 {"x": newcenter[0], "y": newcenter[1]},
-                mask = mask,
-                interp_method = 'bicubic',
+                mask=mask,
+                interp_method="bicubic",
             )
         )
         flux = [
@@ -903,8 +898,8 @@ def StarFind(
                     0.0,
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
-                    mask = mask,
-                    interp_method = 'bicubic',
+                    mask=mask,
+                    interp_method="bicubic",
                 )
             )
             - local_flux
@@ -924,8 +919,8 @@ def StarFind(
                     R[-1],
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
-                    mask = mask,
-                    interp_method = 'bicubic',
+                    mask=mask,
+                    interp_method="bicubic",
                 )
             except:
                 R = np.zeros(101)  # cause finder to skip this star
@@ -1033,7 +1028,7 @@ def Read_Image(filename, options):
 
     # Read a fits file
     if filename[filename.rfind(".") + 1 :].lower() == "fits":
-        hdul = fits.open(filename, uint = False)
+        hdul = fits.open(filename, uint=False)
         dat = hdul[options["ap_hdulelement"] if "ap_hdulelement" in options else 0].data
     # Read a numpy array file
     if filename[filename.rfind(".") + 1 :].lower() == "npy":
@@ -1116,10 +1111,7 @@ def fluxdens_to_fluxsum(R, I, axisratio):
     S = np.zeros(len(R))
     S[0] = I[0] * np.pi * axisratio[0] * (R[0] ** 2)
     for i in range(1, len(R)):
-        S[i] = (
-            trapz(2 * np.pi * I[: i + 1] * R[: i + 1] * axisratio[: i + 1], R[: i + 1])
-            + S[0]
-        )
+        S[i] = trapz(2 * np.pi * I[: i + 1] * R[: i + 1] * axisratio[: i + 1], R[: i + 1]) + S[0]
     return S
 
 
@@ -1141,9 +1133,7 @@ def fluxdens_to_fluxsum_errorprop(
     I_CHOOSE = np.logical_and(np.isfinite(I), I > 0)
     if np.sum(I_CHOOSE) < 5:
         return (None, None) if symmetric_error else (None, None, None)
-    sum_results[0][I_CHOOSE] = fluxdens_to_fluxsum(
-        R[I_CHOOSE], I[I_CHOOSE], axisratio[I_CHOOSE]
-    )
+    sum_results[0][I_CHOOSE] = fluxdens_to_fluxsum(R[I_CHOOSE], I[I_CHOOSE], axisratio[I_CHOOSE])
     for i in range(1, N):
         # Randomly sampled SB profile
         tempI = np.random.normal(loc=I, scale=np.abs(IE))
@@ -1160,9 +1150,7 @@ def fluxdens_to_fluxsum_errorprop(
 
     # Condense monte-carlo evaluations into profile and uncertainty envelope
     sum_lower = sum_results[0] - np.quantile(sum_results, 0.317310507863 / 2, axis=0)
-    sum_upper = (
-        np.quantile(sum_results, 1.0 - 0.317310507863 / 2, axis=0) - sum_results[0]
-    )
+    sum_upper = np.quantile(sum_results, 1.0 - 0.317310507863 / 2, axis=0) - sum_results[0]
 
     # Return requested uncertainty format
     if symmetric_error:
@@ -1182,18 +1170,14 @@ def _Fmode_integrand(t, parameters):
         * np.sin(parameters["m"][m] * (t + parameters["Phim"][m]))
         for m in range(len(parameters["m"]))
     )
-    return (np.sin(t) ** 2) * np.exp(2 * fsum) + np.sin(t) * np.cos(t) * np.exp(
-        fsum
-    ) * dfsum
+    return (np.sin(t) ** 2) * np.exp(2 * fsum) + np.sin(t) * np.cos(t) * np.exp(fsum) * dfsum
 
 
 def Fmode_Areas(R, parameters):
 
     A = []
     for i in range(len(R)):
-        A.append(
-            (R[i] ** 2) * quad(_Fmode_integrand, 0, 2 * np.pi, args=(parameters[i],))[0]
-        )
+        A.append((R[i] ** 2) * quad(_Fmode_integrand, 0, 2 * np.pi, args=(parameters[i],))[0])
     return np.array(A)
 
 
@@ -1228,8 +1212,7 @@ def Fmode_fluxdens_to_fluxsum(R, I, parameters, A=None):
         return fluxdens_to_fluxsum(
             R,
             I,
-            1.0
-            - np.array(list(parameters[p]["ellip"] for p in range(len(parameters)))),
+            1.0 - np.array(list(parameters[p]["ellip"] for p in range(len(parameters)))),
         )
 
     S = np.zeros(len(R))
@@ -1244,9 +1227,7 @@ def Fmode_fluxdens_to_fluxsum(R, I, parameters, A=None):
     return S
 
 
-def Fmode_fluxdens_to_fluxsum_errorprop(
-    R, I, IE, parameters, N=100, symmetric_error=True
-):
+def Fmode_fluxdens_to_fluxsum_errorprop(R, I, IE, parameters, N=100, symmetric_error=True):
     """
     Integrate a flux density profile, with isophotes including Fourier perturbations.
 
@@ -1282,8 +1263,7 @@ def Fmode_fluxdens_to_fluxsum_errorprop(
             R,
             I,
             IE,
-            1.0
-            - np.array(list(parameters[p]["ellip"] for p in range(len(parameters)))),
+            1.0 - np.array(list(parameters[p]["ellip"] for p in range(len(parameters)))),
             np.array(list(parameters[p]["ellip err"] for p in range(len(parameters)))),
             N=N,
             symmetric_error=symmetric_error,
@@ -1320,9 +1300,7 @@ def Fmode_fluxdens_to_fluxsum_errorprop(
 
     # Condense monte-carlo evaluations into profile and uncertainty envelope
     sum_lower = sum_results[0] - np.quantile(sum_results, 0.317310507863 / 2, axis=0)
-    sum_upper = (
-        np.quantile(sum_results, 1.0 - 0.317310507863 / 2, axis=0) - sum_results[0]
-    )
+    sum_upper = np.quantile(sum_results, 1.0 - 0.317310507863 / 2, axis=0) - sum_results[0]
 
     # Return requested uncertainty format
     if symmetric_error:
@@ -1376,9 +1354,7 @@ def SBprof_to_COG(R, SB, parameters):
     #                         mag_to_L(magperarcsec2_to_mag(SB[i], A = np.pi*axisratio[i-1]*(R[i-1]**2)), band) + \
     #                         mag_to_L(m[i-1], band), band)
 
-    return flux_to_mag(
-        Fmode_fluxdens_to_fluxsum(R, mag_to_flux(SB, 20.), parameters), 20.
-    )
+    return flux_to_mag(Fmode_fluxdens_to_fluxsum(R, mag_to_flux(SB, 20.0), parameters), 20.0)
 
 
 def SBprof_to_COG_errorprop(R, SB, SBE, parameters, N=100, symmetric_error=True):
@@ -1430,13 +1406,13 @@ def SBprof_to_COG_errorprop(R, SB, SBE, parameters, N=100, symmetric_error=True)
     #     return COG_profile, np.abs(COG_lower + COG_upper)/2
     # else:
     #     return COG_profile, COG_lower, COG_upper
-    I, Ie = mag_to_flux(SB, 20., SBE)
+    I, Ie = mag_to_flux(SB, 20.0, SBE)
     res = Fmode_fluxdens_to_fluxsum_errorprop(
         R, I, Ie, parameters, N=N, symmetric_error=symmetric_error
     )
     if symmetric_error:
-        return flux_to_mag(res[0], 20., res[1])
+        return flux_to_mag(res[0], 20.0, res[1])
     else:
-        lower = flux_to_mag(res[0], 20., res[1])
-        upper = flux_to_mag(res[0], 20., res[2])
+        lower = flux_to_mag(res[0], 20.0, res[1])
+        upper = flux_to_mag(res[0], 20.0, res[2])
         return lower[0], lower[1], upper[1]
