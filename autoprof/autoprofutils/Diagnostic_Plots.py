@@ -310,6 +310,7 @@ def _Plot_Isophotes(dat, R, parameters, results, options):
         results["background noise"],
     )
     AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
+
     fitlim = results["fit R"][-1] if "fit R" in results else np.inf
     for i in range(len(R)):
         N = max(15, int(0.9 * 2 * np.pi * R[i]))
@@ -383,7 +384,7 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
             marker=".",
             markersize=5,
             color=autocolours["red1"],
-            label="Surface Brightness" + errlabel,
+            label="Surface brightness" + errlabel,
         )
     )
     plt.errorbar(
@@ -396,8 +397,8 @@ def Plot_SB_Profile(dat, R, SB, SB_e, parameters, results, options):
         markersize=5,
         color=autocolours["blue1"],
     )
-    plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
-    plt.ylabel("Surface Brightness [mag arcsec$^{-2}$]", fontsize=16)
+    plt.xlabel("Semi-major axis [arcsec]", fontsize=16)
+    plt.ylabel("Surface brightness [mag arcsec$^{-2}$]", fontsize=16)
     if "ap_plot_sbprof_xlim" in options:
         plt.xlim(options["ap_plot_sbprof_xlim"])
     else:
@@ -473,7 +474,7 @@ def Plot_I_Profile(dat, R, I, I_e, parameters, results, options):
         markersize=5,
         color=autocolours["blue1"],
     )
-    plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
+    plt.xlabel("Semi-major axis [arcsec]", fontsize=16)
     plt.ylabel("Intensity [flux arcsec$^{-2}$]", fontsize=16)
     plt.yscale("log")
     if "ap_plot_sbprof_xlim" in options:
@@ -539,7 +540,7 @@ def Plot_Phase_Profile(R, parameters, results, options):
         color=autocolours["blue1"],
     )
     plt.legend(fontsize=11)
-    plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
+    plt.xlabel("Semi-major axis [arcsec]", fontsize=16)
     plt.xscale("log")
     plt.tick_params(labelsize=14)
     if not parameters[0]["m"] is None:
@@ -558,7 +559,7 @@ def Plot_Phase_Profile(R, parameters, results, options):
                 label="$\\phi_%i$ [rad/%i$\\pi$]" % (parameters[0]["m"][m], parameters[0]["m"][m]),
             )
         plt.legend()
-        plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
+        plt.xlabel("Semi-major axis [arcsec]", fontsize=16)
         plt.xscale("log")
         plt.tick_params(labelsize=14)
     plt.tight_layout()
@@ -597,7 +598,7 @@ def Plot_Meas_Fmodes(R, parameters, results, options):
         color=autocolours["blue1"],
     )
     plt.legend(fontsize=11)
-    plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
+    plt.xlabel("Semi-major axis [arcsec]", fontsize=16)
     # plt.ylabel('Ellipticity and Position Angle')
     plt.tick_params(labelsize=14)
     if not parameters[0]["m"] is None:
@@ -616,7 +617,7 @@ def Plot_Meas_Fmodes(R, parameters, results, options):
                 label="$\\phi_%i$ [rad/$\\pi$]" % parameters[0]["m"][m],
             )
         plt.legend()
-        plt.xlabel("Semi-Major-Axis [arcsec]", fontsize=16)
+        plt.xlabel("Semi-major axis [arcsec]", fontsize=16)
         # plt.ylabel('Fourier Mode Parameters')
         plt.tick_params(labelsize=14)
     plt.tight_layout()
@@ -662,7 +663,7 @@ def Plot_Radial_Profiles(dat, R, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, 
             label="Wedge %.2f" % (wedgeangles[sa_i] * 180 / np.pi),
         )
     plt.xlabel("Radius [arcsec]", fontsize=16)
-    plt.ylabel("Surface Brightness [mag arcsec$^{-2}$]", fontsize=16)
+    plt.ylabel("Surface brightness [mag arcsec$^{-2}$]", fontsize=16)
     bkgrdnoise = (
         -2.5 * np.log10(results["background noise"])
         + zeropoint
@@ -791,7 +792,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
                 ),
                 fontsize=16,
             )
-            plt.ylabel("Surface Brightness [mag arcsec$^{-2}$]", fontsize=16)
+            plt.ylabel("Surface brightness [mag arcsec$^{-2}$]", fontsize=16)
             cb1 = plt.colorbar(
                 matplotlib.cm.ScalarMappable(norm=norm, cmap=autocmap.reversed()), ax=plt.gca()
             )
