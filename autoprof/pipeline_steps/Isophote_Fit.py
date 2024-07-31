@@ -1,21 +1,16 @@
 import numpy as np
 from scipy.stats import iqr
-from scipy.fftpack import fft, ifft
+from scipy.fftpack import fft
 from scipy.optimize import minimize
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import RANSACRegressor, HuberRegressor
-from time import time
-from astropy.visualization import SqrtStretch, LogStretch
-from astropy.visualization.mpl_normalize import ImageNormalize
-from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, IsophoteList
+from sklearn.linear_model import HuberRegressor
+from photutils.isophote import EllipseGeometry
 from photutils.isophote import Ellipse as Photutils_Ellipse
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from copy import copy, deepcopy
 import logging
-import sys
-import os
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
