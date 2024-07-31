@@ -1,6 +1,6 @@
 import sys
 import os
-from scipy.integrate import trapz, quad
+from scipy.integrate import trapezoid, quad
 from scipy.stats import iqr, norm
 from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariateSpline
 from scipy.fftpack import fft, ifft
@@ -1111,7 +1111,9 @@ def fluxdens_to_fluxsum(R, I, axisratio):
     S = np.zeros(len(R))
     S[0] = I[0] * np.pi * axisratio[0] * (R[0] ** 2)
     for i in range(1, len(R)):
-        S[i] = trapz(2 * np.pi * I[: i + 1] * R[: i + 1] * axisratio[: i + 1], R[: i + 1]) + S[0]
+        S[i] = (
+            trapezoid(2 * np.pi * I[: i + 1] * R[: i + 1] * axisratio[: i + 1], R[: i + 1]) + S[0]
+        )
     return S
 
 
@@ -1223,7 +1225,7 @@ def Fmode_fluxdens_to_fluxsum(R, I, parameters, A=None):
     S[0] = I[0] * Aq[0]
     Adiff = np.array([Aq[0]] + list(Aq[1:] - Aq[:-1]))
     for i in range(1, len(R)):
-        S[i] = trapz(I[: i + 1] * Adiff[: i + 1], R[: i + 1]) + S[0]
+        S[i] = trapezoid(I[: i + 1] * Adiff[: i + 1], R[: i + 1]) + S[0]
     return S
 
 
@@ -1343,7 +1345,7 @@ def SBprof_to_COG(R, SB, parameters):
     #     R = arcsec_to_pc(np.array(R), D)
     #     # Integrate up to each radius in the profile
     #     for i in range(1,len(R)):
-    #         m[i] = abs_mag_to_app_mag(L_to_mag(trapz(2*np.pi*I[:i+1]*R[:i+1]*axisratio[:i+1],R[:i+1]) + \
+    #         m[i] = abs_mag_to_app_mag(L_to_mag(trapezoid(2*np.pi*I[:i+1]*R[:i+1]*axisratio[:i+1],R[:i+1]) + \
     #                                            mag_to_L(app_mag_to_abs_mag(m[0], D), band), band),D)
     # elif method == 1:
     #     # Compute the starting point assuming constant SB within first isophote
