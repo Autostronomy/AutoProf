@@ -1,29 +1,20 @@
 from photutils.segmentation import SegmentationImage
-from photutils.isophote import (
-    EllipseSample,
-    Ellipse,
-    EllipseGeometry,
-    Isophote,
-    IsophoteList,
-)
-from astropy.stats import sigma_clipped_stats
 from scipy.stats import iqr
-from scipy.optimize import minimize
 from scipy.fftpack import fft2, ifft2
-from scipy.integrate import trapz
-from time import time
 import logging
 import numpy as np
-import matplotlib.pyplot as plt
-from astropy.visualization import SqrtStretch, LogStretch
-from astropy.visualization.mpl_normalize import ImageNormalize
-import sys
-import os
 
-from ..autoprofutils.SharedFunctions import AddLogo, Smooth_Mode
+from ..autoprofutils.SharedFunctions import Smooth_Mode
 from ..autoprofutils.Diagnostic_Plots import Plot_Background
 
-__all__ = ("Background_Mode", "Background_DilatedSources", "Background_Basic", "Background_Basic", "Background_Unsharp")
+__all__ = (
+    "Background_Mode",
+    "Background_DilatedSources",
+    "Background_Basic",
+    "Background_Basic",
+    "Background_Unsharp",
+)
+
 
 def Background_Mode(IMG, results, options):
     """Compute the mode flux in the border of an image.
@@ -102,9 +93,7 @@ def Background_Mode(IMG, results, options):
     # Compute the 1sigma range using negative flux values, which should almost exclusively be sky noise
     if "ap_set_background_noise" in options:
         noise = options["ap_set_background_noise"]
-        logging.info(
-            "%s: Background Noise set by user: %.4e" % (options["ap_name"], noise)
-        )
+        logging.info("%s: Background Noise set by user: %.4e" % (options["ap_name"], noise))
     else:
         noise = iqr(values[(values - bkgrnd) < 0], rng=[100 - 68.2689492137, 100])
         if not np.isfinite(noise):
@@ -198,9 +187,7 @@ def Background_DilatedSources(IMG, results, options):
     uncertainty = noise / np.sqrt(np.sum(np.logical_not(mask)))
 
     if "ap_doplot" in options and options["ap_doplot"]:
-        Plot_Background(
-            IMG[np.logical_not(mask)].ravel(), bkgrnd, noise, results, options
-        )
+        Plot_Background(IMG[np.logical_not(mask)].ravel(), bkgrnd, noise, results, options)
     return IMG, {
         "background": bkgrnd,
         "background noise": noise,
@@ -261,11 +248,7 @@ def Background_Basic(IMG, results, options):
         values = values[:: int(options["ap_background_speedup"])]
     values = values[np.isfinite(values)]
 
-    bkgrnd = (
-        options["ap_set_background"]
-        if "ap_set_background" in options
-        else np.mean(values)
-    )
+    bkgrnd = options["ap_set_background"] if "ap_set_background" in options else np.mean(values)
     noise = (
         options["ap_set_background_noise"]
         if "ap_set_background_noise" in options
