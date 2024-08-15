@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling", "hatch-requirements-txt", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "autoprof"
+dynamic = [
+        "dependencies",
+        "version"
+]
+authors = [
+  { name="Connor Stone", email="connorstone628@gmail.com" },
+]
+description = "Fast, robust, deep isophotal solutions for galaxy images."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+keywords = [
+        "autoprof",
+        "photometry",
+        "astronomy",
+        "scientific computing",
+        "astrophysics",
+]
+classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3"
+]
+
+[project.urls]
+Homepage = "https://autostronomy.github.io/AutoProf/"
+Documentation = "https://autoprof.readthedocs.io"
+Repository = "https://github.com/Autostronomy/AutoProf"
+Issues = "https://github.com/Autostronomy/AutoProf/issues"
+
+[project.scripts]
+astrophot = "autoprof:run_from_terminal"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "autoprof/_version.py"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"

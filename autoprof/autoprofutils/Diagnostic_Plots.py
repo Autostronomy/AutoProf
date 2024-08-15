@@ -1,31 +1,18 @@
 import numpy as np
-from astropy.visualization import SqrtStretch, LogStretch
+from astropy.visualization import LogStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse, Wedge
-import matplotlib.cm as cm
 import matplotlib
 from itertools import compress
-import sys
 import os
 
 from .SharedFunctions import (
-    _x_to_pa,
-    _x_to_eps,
-    _inv_x_to_eps,
-    _inv_x_to_pa,
     LSBImage,
     AddScale,
     AddLogo,
-    _average,
-    _scatter,
-    flux_to_sb,
-    flux_to_mag,
-    PA_shift_convention,
     autocolours,
     autocmap,
-    fluxdens_to_fluxsum_errorprop,
-    mag_to_flux,
     parametric_SuperEllipse,
     Rotate_Cartesian,
 )
@@ -647,7 +634,7 @@ def Plot_Radial_Profiles(dat, R, sb, sbE, pa, nwedges, wedgeangles, wedgewidth, 
         ],
     ]
 
-    cmap = cm.get_cmap("hsv")
+    cmap = matplotlib.colormaps["hsv"]
     colorind = (np.linspace(0, 1 - 1 / nwedges, nwedges) + 0.1) % 1.0
     for sa_i in range(len(wedgeangles)):
         CHOOSE = np.logical_and(np.array(sb[sa_i]) < 99, np.array(sbE[sa_i]) < 1)
@@ -767,7 +754,6 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
     for rd in [1, -1]:
         for ang in [1, -1]:
             key = (rd, ang)
-            # cmap = matplotlib.cm.get_cmap('viridis_r')
             norm = matplotlib.colors.Normalize(vmin=0, vmax=R[-1] * options["ap_pixscale"])
             for pi, pR in enumerate(R):
                 if pi % 3 != 0:
@@ -858,7 +844,7 @@ def Plot_Axial_Profiles(dat, R, sb, sbE, pa, results, options):
     )
     AddScale(plt.gca(), (ranges[0][1] - ranges[0][0]) * options["ap_pixscale"])
     count = 0
-    cmap = matplotlib.cm.get_cmap("hsv")
+    cmap = matplotlib.colormaps["hsv"]
     colorind = (np.linspace(0, 1 - 1 / 4, 4) + 0.1) % 1
     colours = list(cmap(c) for c in colorind)
     for rd in [1, -1]:

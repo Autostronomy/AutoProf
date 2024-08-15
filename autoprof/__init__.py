@@ -3,7 +3,16 @@ import sys
 
 from . import autoprofutils, Pipeline, pipeline_steps
 
-__version__ = "1.2.1"
+try:
+    from ._version import version as __version__  # noqa
+except ModuleNotFoundError:
+    __version__ = "0.0.0"
+    import warnings
+
+    warnings.warn(
+        "WARNING: AutoProf version number not found. This is likely because you are running Autoprof from a source directory."
+    )
+
 __author__ = "Connor Stone"
 __email__ = "connorstone628@gmail.com"
 
@@ -16,6 +25,9 @@ def run_from_terminal():
 
     config_file = sys.argv[1]
 
+    if config_file.strip().lower() == "--version":
+        print(__version__)
+        return
     try:
         if ".log" == sys.argv[2][-4:]:
             logfile = sys.argv[2]
