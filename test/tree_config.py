@@ -2,7 +2,7 @@ import numpy as np
 
 ap_process_mode = "image"
 
-ap_image_file = "test_ESO479-G1_r.fits"
+ap_image_file = "ESO479-G1_r.fits"
 ap_pixscale = 0.262
 ap_name = "testtreeimage"
 ap_doplot = True
@@ -68,7 +68,7 @@ ap_new_pipeline_steps = {
         "center",
         "isophoteinit",
         "branch edgeon",
-    ],  
+    ],
     "standard": [
         "isophotefit",
         "starmask",

@@ -18,7 +18,7 @@ import numpy as np
 
 ap_process_mode = "image"
 ap_doplot = True
-ap_image_file = "test_ESO479-G1_r.fits"
+ap_image_file = "ESO479-G1_r.fits"
 ap_name = "testcustomprocessing"
 ap_pixscale = 0.262
 ap_zeropoint = 22.5
@@ -57,9 +57,7 @@ def mywriteoutput(IMG, results, options):
 def count_pixel_range(IMG, results, options):
 
     count = np.sum(
-        np.logical_and(
-            IMG > options["ap_mycountrange_low"], IMG < options["ap_mycountrange_high"]
-        )
+        np.logical_and(IMG > options["ap_mycountrange_low"], IMG < options["ap_mycountrange_high"])
     )
 
     logging.info("%s: counted %i pixels in custom range" % (options["ap_name"], count))
