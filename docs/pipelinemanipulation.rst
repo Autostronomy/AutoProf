@@ -170,7 +170,7 @@ of pixels within a flux range.
   ap_mycountrange_low = 0.2
   ap_mycountrange_high = 0.3
 
-To try out this pipeline, download the `test file <https://github.com/Autostronomy/AutoProf/raw/main/test/test_ESO479-G1_r.fits>`_.
+To try out this pipeline, download the `test file <https://github.com/Autostronomy/AutoProf/raw/main/tests/ESO479-G1_r.fits>`_.
 
 Example Tree Pipeline
 ---------------------
@@ -273,4 +273,4 @@ pipeline based on the results of previous steps.
       ],
   }
 
-To try out this pipeline, download the `test file <https://github.com/Autostronomy/AutoProf/raw/main/test/test_ESO479-G1_r.fits>`_.
+To try out this pipeline, download the `test file <https://github.com/Autostronomy/AutoProf/raw/main/tests/ESO479-G1_r.fits>`_.
