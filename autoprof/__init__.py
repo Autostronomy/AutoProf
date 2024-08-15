@@ -10,7 +10,7 @@ except ModuleNotFoundError:
     import warnings
 
     warnings.warn(
-        "WARNING: AstroPhot version number not found. This is likely because you are running AstroPhot from a source directory."
+        "WARNING: AutoProf version number not found. This is likely because you are running Autoprof from a source directory."
     )
 
 __author__ = "Connor Stone"

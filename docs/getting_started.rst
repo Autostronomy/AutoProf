@@ -136,14 +136,14 @@ Here is the forced photometry file just make sure to save it as a ``.py`` file::
 
     ap_process_mode = "forced image"
     
-    ap_image_file = "test_ESO479-G1_r.fits"
+    ap_image_file = "ESO479-G1_r.fits"
     ap_name = "testforcedimage"
     ap_pixscale = 0.262
     ap_doplot = True
     ap_isoclip = True
     ap_forcing_profile = "testimage.prof"
 
-
+To try out this pipeline, download the `test file <https://github.com/Autostronomy/AutoProf/raw/main/test/test_ESO479-G1_r.fits>`_.
 
 Batch Forced Photometry
 -----------------------
@@ -162,7 +162,7 @@ It's possible to incorporate descision trees into the AutoProf pipeline. This is
 
     ap_process_mode = "image"
 
-    ap_image_file = "test_ESO479-G1_r.fits"
+    ap_image_file = "ESO479-G1_r.fits"
     ap_pixscale = 0.262
     ap_name = "testtreeimage"
     ap_doplot = True
@@ -251,3 +251,4 @@ It's possible to incorporate descision trees into the AutoProf pipeline. This is
         ],
     }
 
+To try out this pipeline, download the `test file <https://github.com/Autostronomy/AutoProf/raw/main/test/test_ESO479-G1_r.fits>`_.
