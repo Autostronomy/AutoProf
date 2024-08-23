@@ -37,7 +37,7 @@ Repository = "https://github.com/Autostronomy/AutoProf"
 Issues = "https://github.com/Autostronomy/AutoProf/issues"
 
 [project.scripts]
-astrophot = "autoprof:run_from_terminal"
+autoprof = "autoprof:run_from_terminal"
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements.txt"]
