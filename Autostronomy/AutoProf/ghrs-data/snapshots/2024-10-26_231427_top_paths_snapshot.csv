@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Autostronomy/AutoProf,4,4
+/Autostronomy/AutoProf/blob/main/docs/autoprof.rst,1,1
+/Autostronomy/AutoProf/blob/main/docs/getting_started.rst,1,1
+/Autostronomy/AutoProf/blob/main/docs/make_params.py,1,1
+/Autostronomy/AutoProf/blob/main/docs/parameters.rst,1,1
+/Autostronomy/AutoProf/blob/main/docs/Pipeline.rst,1,1
+/Autostronomy/AutoProf/blob/main/docs/pipeline_steps.rst,1,1
+/Autostronomy/AutoProf/blob/main/tests/basic_config.py,1,1
+/Autostronomy/AutoProf/blob/main/tests/test_run_tests.py,1,1
+/Autostronomy/AutoProf/blob/main/tests/tree_config.py,1,1
