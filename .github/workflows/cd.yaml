@@ -55,6 +55,10 @@ jobs:
           path: dist
       - name: List contents of built dist
         run: |
+          python -m pip install --upgrade pip
+          pip show pip
+          python -m pip install --upgrade pkginfo
+          pip show pkginfo
           ls -ltrh
           ls -ltrh dist
       - name: Publish to Test PyPI
@@ -66,8 +70,6 @@ jobs:
       - name: Check test pypi packages
         run: |
           sleep 3
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade pkginfo
 
           echo "=== Testing wheel file ==="
           # Install wheel to get dependencies and check import
