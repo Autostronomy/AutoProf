@@ -103,5 +103,5 @@ jobs:
           name: artifact
           path: dist
 
-      - uses: pypa/gh-action-pypi-publish@v1.12.2
+      - uses: pypa/gh-action-pypi-publish@v1.12.3
         if: startsWith(github.ref, 'refs/tags')
