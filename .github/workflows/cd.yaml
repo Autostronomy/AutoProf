@@ -67,11 +67,13 @@ jobs:
           ls -ltrh
           ls -ltrh dist
       - name: Publish to Test PyPI
-        uses: pypa/gh-action-pypi-publish@v1.12.2
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          verbose: true
-          skip-existing: true
+        run: |
+          python3 -m twine upload dist/* --repository-url https://test.pypi.org/legacy/ --verbose
+        # uses: pypa/gh-action-pypi-publish@v1.12.2
+        # with:
+        #   repository-url: https://test.pypi.org/legacy/
+        #   verbose: true
+        #   skip-existing: true
       - name: Check test pypi packages
         run: |
           sleep 3
