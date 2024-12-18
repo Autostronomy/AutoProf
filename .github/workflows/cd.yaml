@@ -64,6 +64,9 @@ jobs:
           echo "---upgrade twine---"
           python -m pip install --upgrade twine
           pip show twine
+          echo "---install keyring---"
+          python -m pip install keyring
+          pip show keyring
           ls -ltrh
           ls -ltrh dist
       - name: Publish to Test PyPI
