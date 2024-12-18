@@ -470,7 +470,7 @@ def PSF_deconvolve(IMG, results, options):
     dat_deconv = restoration.richardson_lucy(
         (IMG - dmin) / (dmax - dmin) - 0.5,
         psf_img,
-        iterations=(
+        num_iter=(
             options["ap_psf_deconvolution_iterations"]
             if "ap_psf_deconvolution_iterations" in options
             else 50
