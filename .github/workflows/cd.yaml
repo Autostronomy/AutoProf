@@ -55,10 +55,15 @@ jobs:
           path: dist
       - name: List contents of built dist
         run: |
+          echo "---upgrade pip---"
           python -m pip install --upgrade pip
           pip show pip
+          echo "---upgrade pkginfo---"
           python -m pip install --upgrade pkginfo
           pip show pkginfo
+          echo "---upgrade twine---"
+          python -m pip install --upgrade twine
+          pip show twine
           ls -ltrh
           ls -ltrh dist
       - name: Publish to Test PyPI
