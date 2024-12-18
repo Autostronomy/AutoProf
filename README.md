@@ -5,7 +5,7 @@ Its design allows for fast startup and provides flexibility to explore new ideas
 It was written by [Connor Stone](https://connorjstone.com/) with contributions from
 [Nikhil Arora](https://orcid.org/0000-0002-3929-9316),
 [Stephane Courteau](https://www.physics.queensu.ca/facultysites/courteau/),
-and [Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/).
+[Jean-Charles Cuillandre](https://www.cfht.hawaii.edu/~jcc/), and now more (see the GitHub contributors).
 
 # Install
 

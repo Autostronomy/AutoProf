@@ -61,7 +61,11 @@ PSF - Deconvolve
 
 :func:`~autoprof.pipeline_steps.PSF.PSF_deconvolve`
 
-Deconvolves a provided PSF from the primary image.
+Deconvolves a provided PSF from the primary image. Add the step 'psf deconvolve'
+early in the pipeline steps and the primary image will be deconvolved using
+Lucy-Richardson deconvolution. This is an approximate deconvolution useful in
+many scenarios, but it depends on the number of iterations. You can use
+`ap_psf_deconvolution_iterations` to set the number of iterations.
 
 Center - Mean
 ----------------------------------------------------------------------

@@ -426,6 +426,10 @@ def PSF_deconvolve(IMG, results, options):
       number of itterations of the Richardson-Lucy deconvolution
       algorithm to perform.
 
+    ap_psf_deconvolve_save : string, default None
+      Optional argument. Path to save the deconvolved FITS image. If not
+      given, the image will not be saved.
+
     Notes
     ----------
     :References:
