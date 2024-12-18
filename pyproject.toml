@@ -46,7 +46,7 @@ files = ["requirements.txt"]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "autoprof/_version.py"
+version-file = "src/autoprof/_version.py"
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
