@@ -50,3 +50,6 @@ version-file = "src/autoprof/_version.py"
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
+
+[metadata]
+version = "2.1"
