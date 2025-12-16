@@ -500,9 +500,10 @@ def Isophote_Extract_Forced(IMG, results, options):
     with open(options["ap_forcing_profile"], "r") as f:
         raw = f.readlines()
         for i, l in enumerate(raw):
-            if len(l) > 0 and l[0] != "#":
-                readfrom = i
-                break
+            if len(l.strip()) == 0 or l[0] == "#":
+                continue
+            readfrom = i
+            break
         header = list(h.strip() for h in raw[readfrom].split(","))
         force = dict((h, []) for h in header)
         for l in raw[readfrom + 1 :]:
