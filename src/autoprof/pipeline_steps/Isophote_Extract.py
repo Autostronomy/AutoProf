@@ -44,6 +44,7 @@ from ..autoprofutils.Diagnostic_Plots import (
 
 __all__ = ("Isophote_Extract_Forced", "Isophote_Extract", "Isophote_Extract_Photutils")
 
+
 def _Generate_Profile(IMG, results, R, parameters, options):
 
     # Create image array with background and mask applied
@@ -86,9 +87,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     compare_interp = []
     for i in range(len(R)):
         if "ap_isoband_fixed" in options and options["ap_isoband_fixed"]:
-            isobandwidth = (
-                options["ap_isoband_width"] if "ap_isoband_width" in options else 0.5
-            )
+            isobandwidth = options["ap_isoband_width"] if "ap_isoband_width" in options else 0.5
         else:
             isobandwidth = R[i] * (
                 options["ap_isoband_width"] if "ap_isoband_width" in options else 0.025
@@ -126,12 +125,10 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                     else 5
                 ),
                 sigmaclip=options["ap_isoclip"] if "ap_isoclip" in options else False,
-                sclip_iterations=options["ap_isoclip_iterations"]
-                if "ap_isoclip_iterations" in options
-                else 10,
-                sclip_nsigma=options["ap_isoclip_nsigma"]
-                if "ap_isoclip_nsigma" in options
-                else 5,
+                sclip_iterations=(
+                    options["ap_isoclip_iterations"] if "ap_isoclip_iterations" in options else 10
+                ),
+                sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
         else:
             isisophoteband = True
@@ -144,32 +141,21 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 mask=mask,
                 more=True,
                 sigmaclip=options["ap_isoclip"] if "ap_isoclip" in options else False,
-                sclip_iterations=options["ap_isoclip_iterations"]
-                if "ap_isoclip_iterations" in options
-                else 10,
-                sclip_nsigma=options["ap_isoclip_nsigma"]
-                if "ap_isoclip_nsigma" in options
-                else 5,
+                sclip_iterations=(
+                    options["ap_isoclip_iterations"] if "ap_isoclip_iterations" in options else 10
+                ),
+                sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
-        isotot = np.sum(
-            _iso_between(dat, 0, R[i], parameters[i], results["center"], mask=mask)
-        )
+        isotot = np.sum(_iso_between(dat, 0, R[i], parameters[i], results["center"], mask=mask))
         medflux = _average(
             isovals[0],
-            options["ap_isoaverage_method"]
-            if "ap_isoaverage_method" in options
-            else "median",
+            options["ap_isoaverage_method"] if "ap_isoaverage_method" in options else "median",
         )
         scatflux = _scatter(
             isovals[0],
-            options["ap_isoaverage_method"]
-            if "ap_isoaverage_method" in options
-            else "median",
+            options["ap_isoaverage_method"] if "ap_isoaverage_method" in options else "median",
         )
-        if (
-            "ap_iso_measurecoefs" in options
-            and not options["ap_iso_measurecoefs"] is None
-        ):
+        if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
             if (
                 mask is None
                 and (not "ap_isoclip" in options or not options["ap_isoclip"])
@@ -203,9 +189,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             cogdirect.append(isotot)
         else:
             sb.append(
-                flux_to_sb(medflux, options["ap_pixscale"], zeropoint)
-                if medflux > 0
-                else 99.999
+                flux_to_sb(medflux, options["ap_pixscale"], zeropoint) if medflux > 0 else 99.999
             )
             sbE.append(
                 (2.5 * scatflux / (np.sqrt(len(isovals[0])) * medflux * np.log(10)))
@@ -327,14 +311,10 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     SBprof_data["ellip"] = list(parameters[p]["ellip"] for p in range(end_prof))
     SBprof_data["ellip_e"] = list(parameters[p]["ellip err"] for p in range(end_prof))
     SBprof_data["pa"] = list(parameters[p]["pa"] * 180 / np.pi for p in range(end_prof))
-    SBprof_data["pa_e"] = list(
-        parameters[p]["pa err"] * 180 / np.pi for p in range(end_prof)
-    )
+    SBprof_data["pa_e"] = list(parameters[p]["pa err"] * 180 / np.pi for p in range(end_prof))
     SBprof_data["pixels"] = list(pixels)
     SBprof_data["maskedpixels"] = list(maskedpixels)
-    SBprof_data[
-        "totflux_direct" if fluxunits == "intensity" else "totmag_direct"
-    ] = list(cogdirect)
+    SBprof_data["totflux_direct" if fluxunits == "intensity" else "totmag_direct"] = list(cogdirect)
 
     if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
         whichcoefs = [0] + list(options["ap_iso_measurecoefs"])
@@ -363,9 +343,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
         SBprof_data["C"] = list(p["C"] for p in parameters[:end_prof])
 
     if "ap_doplot" in options and options["ap_doplot"]:
-        Plot_Phase_Profile(
-            np.array(SBprof_data["R"]), parameters[:end_prof], results, options
-        )
+        Plot_Phase_Profile(np.array(SBprof_data["R"]), parameters[:end_prof], results, options)
         if fluxunits == "intensity":
             Plot_I_Profile(
                 dat,
@@ -406,7 +384,7 @@ def Isophote_Extract_Forced(IMG, results, options):
     ap_fluxunits : str, default "mag"
       units for outputted photometry. Can either be "mag" for log
       units, or "intensity" for linear units.
-    
+
     ap_isoband_start : float, default 2
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
@@ -483,7 +461,7 @@ def Isophote_Extract_Forced(IMG, results, options):
       Tuple with axes limits for the y-axis in the SB profile
       diagnostic plot. Be careful when using intensity units
       since this will change the ideal axis limits.
-    
+
     ap_plot_sbprof_xlim : tuple, default None
       Tuple with axes limits for the x-axis in the SB profile
       diagnostic plot.
@@ -492,7 +470,7 @@ def Isophote_Extract_Forced(IMG, results, options):
       Float value by which to scale errorbars on the SB profile
       this makes them more visible in cases where the statistical
       errors are very small.
-    
+
     Notes
     ----------
     :References:
@@ -522,13 +500,23 @@ def Isophote_Extract_Forced(IMG, results, options):
     with open(options["ap_forcing_profile"], "r") as f:
         raw = f.readlines()
         for i, l in enumerate(raw):
-            if l[0] != "#":
-                readfrom = i
-                break
+            if len(l.strip()) == 0 or l[0] == "#":
+                continue
+            readfrom = i
+            break
         header = list(h.strip() for h in raw[readfrom].split(","))
         force = dict((h, []) for h in header)
-        for l in raw[readfrom + 2 :]:
-            for d, h in zip(l.split(","), header):
+        for l in raw[readfrom + 1 :]:
+            if len(l) > 0 and l[0] == "#":
+                continue  # skip comments
+            D = list(l.split(","))
+            if len(D) != len(header):
+                continue  # Skip missmatched rows with header
+            try:
+                float(D[0].strip())
+            except ValueError:
+                continue  # Skip non-numeric rows
+            for d, h in zip(D, header):
                 force[h].append(float(d.strip()))
 
     force["pa"] = PA_shift_convention(np.array(force["pa"]), deg=True) * np.pi / 180
@@ -538,11 +526,7 @@ def Isophote_Extract_Forced(IMG, results, options):
             "ellip": force["ellip"][i],
             "pa": (
                 force["pa"][i]
-                + (
-                    options["ap_forced_pa_shift"]
-                    if "ap_forced_pa_shift" in options
-                    else 0.0
-                )
+                + (options["ap_forced_pa_shift"] if "ap_forced_pa_shift" in options else 0.0)
             )
             % np.pi,
         }
@@ -584,7 +568,7 @@ def Isophote_Extract(IMG, results, options):
     ap_fluxunits : str, default "mag"
       units for outputted photometry. Can either be "mag" for log
       units, or "intensity" for linear units.
-    
+
     ap_samplegeometricscale : float, default 0.1
       growth scale for isophotes when sampling for the final output
       profile.  Used when sampling geometrically. By default, each
@@ -691,16 +675,16 @@ def Isophote_Extract(IMG, results, options):
       Tuple with axes limits for the y-axis in the SB profile
       diagnostic plot. Be careful when using intensity units
       since this will change the ideal axis limits.
-    
+
     ap_plot_sbprof_xlim : tuple, default None
       Tuple with axes limits for the x-axis in the SB profile
       diagnostic plot.
-    
+
     ap_plot_sbprof_set_errscale : float, default None
       Float value by which to scale errorbars on the SB profile
       this makes them more visible in cases where the statistical
       errors are very small.
-    
+
     Notes
     ----------
     :References:
@@ -735,9 +719,11 @@ def Isophote_Extract(IMG, results, options):
 
     # Radius values to evaluate isophotes
     R = [
-        options["ap_sampleinitR"]
-        if "ap_sampleinitR" in options
-        else min(1.0, results["psf fwhm"] / 2)
+        (
+            options["ap_sampleinitR"]
+            if "ap_sampleinitR" in options
+            else min(1.0, results["psf fwhm"] / 2)
+        )
     ]
     while (
         (
@@ -746,10 +732,7 @@ def Isophote_Extract(IMG, results, options):
         )
         or (options["ap_extractfull"] if "ap_extractfull" in options else False)
     ) and R[-1] < max(IMG.shape) / np.sqrt(2):
-        if (
-            "ap_samplestyle" in options
-            and options["ap_samplestyle"] == "geometric-linear"
-        ):
+        if "ap_samplestyle" in options and options["ap_samplestyle"] == "geometric-linear":
             if len(R) > 1 and abs(R[-1] - R[-2]) >= (
                 options["ap_samplelinearscale"]
                 if "ap_samplelinearscale" in options
@@ -797,24 +780,16 @@ def Isophote_Extract(IMG, results, options):
                 )
             )
     R = np.array(R)
-    logging.info(
-        "%s: R complete in range [%.1f,%.1f]" % (options["ap_name"], R[0], R[-1])
-    )
+    logging.info("%s: R complete in range [%.1f,%.1f]" % (options["ap_name"], R[0], R[-1]))
 
     # Interpolate profile values, when extrapolating just take last point
-    tmp_pa_s = UnivariateSpline(
-        results["fit R"], np.sin(2 * results["fit pa"]), ext=3, s=0
-    )(R)
-    tmp_pa_c = UnivariateSpline(
-        results["fit R"], np.cos(2 * results["fit pa"]), ext=3, s=0
-    )(R)
+    tmp_pa_s = UnivariateSpline(results["fit R"], np.sin(2 * results["fit pa"]), ext=3, s=0)(R)
+    tmp_pa_c = UnivariateSpline(results["fit R"], np.cos(2 * results["fit pa"]), ext=3, s=0)(R)
     E = _x_to_eps(
-        UnivariateSpline(
-            results["fit R"], _inv_x_to_eps(results["fit ellip"]), ext=3, s=0
-        )(R)
+        UnivariateSpline(results["fit R"], _inv_x_to_eps(results["fit ellip"]), ext=3, s=0)(R)
     )
     # np.arctan(tmp_pa_s / tmp_pa_c) + (np.pi * (tmp_pa_c < 0))
-    PA = _x_to_pa(((np.arctan2(tmp_pa_s, tmp_pa_c)) % (2 * np.pi)) / 2) 
+    PA = _x_to_pa(((np.arctan2(tmp_pa_s, tmp_pa_c)) % (2 * np.pi)) / 2)
     parameters = list({"ellip": E[i], "pa": PA[i]} for i in range(len(R)))
 
     if "fit Fmodes" in results:
@@ -857,16 +832,12 @@ def Isophote_Extract(IMG, results, options):
             and (not results["fit pa_err"] is None)
         ):
             parameters[i]["ellip err"] = np.clip(
-                UnivariateSpline(
-                    results["fit R"], results["fit ellip_err"], ext=3, s=0
-                )(R[i]),
+                UnivariateSpline(results["fit R"], results["fit ellip_err"], ext=3, s=0)(R[i]),
                 a_min=1e-3,
                 a_max=None,
             )
             parameters[i]["pa err"] = np.clip(
-                UnivariateSpline(results["fit R"], results["fit pa_err"], ext=3, s=0)(
-                    R[i]
-                ),
+                UnivariateSpline(results["fit R"], results["fit pa_err"], ext=3, s=0)(R[i]),
                 a_min=1e-3,
                 a_max=None,
             )
@@ -895,21 +866,21 @@ def Isophote_Extract_Photutils(IMG, results, options):
     ap_fluxunits : str, default "mag"
       units for outputted photometry. Can either be "mag" for log
       units, or "intensity" for linear units.
-    
+
     ap_plot_sbprof_ylim : tuple, default None
       Tuple with axes limits for the y-axis in the SB profile
       diagnostic plot. Be careful when using intensity units
       since this will change the ideal axis limits.
-    
+
     ap_plot_sbprof_xlim : tuple, default None
       Tuple with axes limits for the x-axis in the SB profile
       diagnostic plot.
-    
+
     ap_plot_sbprof_set_errscale : float, default None
       Float value by which to scale errorbars on the SB profile
       this makes them more visible in cases where the statistical
       errors are very small.
-    
+
     Notes
     ----------
     :References:
@@ -1026,9 +997,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
     res = {}
     dat = IMG - results["background"]
     if not "fit R" in results and not "fit photutils isolist" in results:
-        logging.info(
-            "%s: photutils fitting and extracting image data" % options["ap_name"]
-        )
+        logging.info("%s: photutils fitting and extracting image data" % options["ap_name"])
         geo = EllipseGeometry(
             x0=results["center"]["x"],
             y0=results["center"]["y"],
@@ -1042,8 +1011,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
         res.update(
             {
                 "fit photutils isolist": isolist,
-                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix"
-                % isolist.sma[-1],
+                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
             }
         )
     elif not "fit photutils isolist" in results:
@@ -1069,8 +1037,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
         res.update(
             {
                 "fit photutils isolist": isolist,
-                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix"
-                % isolist.sma[-1],
+                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
             }
         )
     else:
@@ -1093,9 +1060,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
                     zeropoint,
                 )
             )
-            SBprof_data["SB_e"].append(
-                2.5 * isolist.int_err[i] / (isolist.intens[i] * np.log(10))
-            )
+            SBprof_data["SB_e"].append(2.5 * isolist.int_err[i] / (isolist.intens[i] * np.log(10)))
             SBprof_data["totmag"].append(flux_to_mag(isolist.tflux_e[i], zeropoint))
             SBprof_data["totmag_e"].append(
                 2.5
@@ -1117,9 +1082,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
         for k in SBprof_data.keys():
             if not np.isfinite(SBprof_data[k][-1]):
                 SBprof_data[k][-1] = 99.999
-    res.update(
-        {"prof header": params, "prof units": SBprof_units, "prof data": SBprof_data}
-    )
+    res.update({"prof header": params, "prof units": SBprof_units, "prof data": SBprof_data})
 
     if "ap_doplot" in options and options["ap_doplot"]:
         if fluxunits == "intensity":
