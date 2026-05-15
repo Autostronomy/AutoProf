@@ -564,14 +564,17 @@ def _interpolation_footprint_valid(dat, X, Y, mask=None, interp_method="lanczos"
     valid = np.ones(len(X), dtype=bool)
     for i in range(len(X)):
         if interp_method == "lanczos":
-            x0 = max(0, int(round(np.floor(X[i]) - interp_window + 1)))
-            x1 = min(dat.shape[1], int(round(np.floor(X[i]) + interp_window + 1)))
-            y0 = max(0, int(round(np.floor(Y[i]) - interp_window + 1)))
-            y1 = min(dat.shape[0], int(round(np.floor(Y[i]) + interp_window + 1)))
+            x0 = int(round(np.floor(X[i]) - interp_window + 1))
+            x1 = int(round(np.floor(X[i]) + interp_window + 1))
+            y0 = int(round(np.floor(Y[i]) - interp_window + 1))
+            y1 = int(round(np.floor(Y[i]) + interp_window + 1))
         else:
             raise ValueError(
                 "Unknown interpolate method %s. Should be lanczos" % interp_method
             )
+        if x0 < 0 or y0 < 0 or x1 > dat.shape[1] or y1 > dat.shape[0]:
+            valid[i] = False
+            continue
         chunk = dat[y0:y1, x0:x1]
         if chunk.size == 0 or not np.all(np.isfinite(chunk)):
             valid[i] = False
