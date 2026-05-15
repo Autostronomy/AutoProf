@@ -704,7 +704,24 @@ def Center_Peak(IMG, results, options):
     }
 
 
-def _hillclimb_loss(x, IMG, PSF, noise):
+def _central_surface_brightness(dat, center, results, options):
+    isovals = _iso_extract(
+        dat,
+        0.0,
+        {"ellip": 0.0, "pa": 0.0},
+        center,
+        mask=results.get("mask", None),
+    )
+    if len(isovals) == 0:
+        return np.nan
+    return flux_to_sb(
+        isovals[0],
+        options["ap_pixscale"],
+        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
+    )
+
+
+def _hillclimb_loss(x, IMG, PSF, noise, mask=None):
     center_loss = 0
     for rr in range(3):
         RR = (rr + 1.0) * PSF / 2
@@ -724,11 +741,17 @@ def _hillclimb_loss(x, IMG, PSF, noise):
             rad_interp=10 * PSF,
             interp_method="lanczos",
             interp_window=3,
+            mask=mask,
         )
+        if len(isovals) < 2:
+            return np.inf
         coefs = fft(isovals)
-        center_loss += np.abs(coefs[1]) / (
-            len(isovals) * (max(0, np.median(isovals)) + noise)
-        )
+        denominator = len(isovals) * (max(0, np.median(isovals)) + noise)
+        if (not np.isfinite(denominator)) or denominator <= 0:
+            return np.inf
+        center_loss += np.abs(coefs[1]) / denominator
+        if not np.isfinite(center_loss):
+            return np.inf
     return center_loss
 
 
@@ -807,13 +830,7 @@ def Center_HillClimb(IMG, results, options):
             "%s: Center set by user: %s"
             % (options["ap_name"], str(options["ap_set_center"]))
         )
-        sb0 = flux_to_sb(
-            _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, options["ap_set_center"], mask = results.get("mask", None))[
-                0
-            ],
-            options["ap_pixscale"],
-            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-        )
+        sb0 = _central_surface_brightness(dat, options["ap_set_center"], results, options)
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
             "auxfile central sb": "central surface brightness: %.4f mag arcsec^-2"
@@ -833,13 +850,19 @@ def Center_HillClimb(IMG, results, options):
         phases = []
         isovals = []
         coefs = []
+        sampled_radii = []
         for r in sampleradii:
-            isovals.append(
-                _iso_extract(
-                    dat, r, {"ellip": 0.0, "pa": 0.0}, current_center, more=True,
-                    mask = results.get("mask", None)
-                )
+            isovals_r = _iso_extract(
+                dat,
+                r,
+                {"ellip": 0.0, "pa": 0.0},
+                current_center,
+                more=True,
+                mask=results.get("mask", None),
             )
+            if len(isovals_r[0]) < 2:
+                continue
+            isovals.append(isovals_r)
             coefs.append(
                 fft(
                     np.clip(
@@ -850,10 +873,23 @@ def Center_HillClimb(IMG, results, options):
                 )
             )
             phases.append((-np.angle(coefs[-1][1])) % (2 * np.pi))
+            sampled_radii.append(r)
+        if len(phases) == 0:
+            logging.warning(
+                "%s: Center finding stopped because all sampled isophotes were masked"
+                % options["ap_name"]
+            )
+            break
         direction = Angle_Median(phases) % (2 * np.pi)
+        if not np.isfinite(direction):
+            logging.warning(
+                "%s: Center finding stopped because the update direction is invalid"
+                % options["ap_name"]
+            )
+            break
         levels = []
         level_locs = []
-        for i, r in enumerate(sampleradii):
+        for i, r in enumerate(sampled_radii):
             floc = np.argmin(np.abs((isovals[i][1] % (2 * np.pi)) - direction))
             rloc = np.argmin(
                 np.abs(
@@ -894,6 +930,11 @@ def Center_HillClimb(IMG, results, options):
             min(dat.shape[0], int(current_center["y"] + results["psf fwhm"] * 5)),
         ],
     ]
+    refine_mask = None
+    if "mask" in results:
+        refine_mask = results["mask"][
+            ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]
+        ]
 
     res = minimize(
         _hillclimb_loss,
@@ -902,19 +943,16 @@ def Center_HillClimb(IMG, results, options):
             dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
             results["psf fwhm"],
             results["background noise"],
+            refine_mask,
         ),
         method="Nelder-Mead",
     )
-    if res.success:
+    if res.success and np.all(np.isfinite(res.x)) and np.isfinite(res.fun):
         current_center["x"] = res.x[0] + ranges[0][0]
         current_center["y"] = res.x[1] + ranges[1][0]
     track_centers.append([current_center["x"], current_center["y"]])
 
-    sb0 = flux_to_sb(
-        _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center, mask = results.get("mask", None))[0],
-        options["ap_pixscale"],
-        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-    )
+    sb0 = _central_surface_brightness(dat, current_center, results, options)
     return IMG, {
         "center": current_center,
         "auxfile center": "center x: %.2f pix, y: %.2f pix"
