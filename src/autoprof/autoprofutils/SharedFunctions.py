@@ -473,6 +473,49 @@ def interpolate_bicubic(dat, X, Y):
     return f_interp(Y, X, grid=False)
 
 
+def _cubic_lagrange_weights(t):
+    return np.array(
+        [
+            -t * (t - 1) * (t - 2) / 6,
+            (t + 1) * (t - 1) * (t - 2) / 2,
+            -(t + 1) * t * (t - 2) / 2,
+            (t + 1) * t * (t - 1) / 6,
+        ]
+    )
+
+
+def _interpolate_bicubic_local(dat, X, Y, mask=None):
+    flux = np.full(len(X), np.nan)
+    valid = np.ones(len(X), dtype=bool)
+
+    for i in range(len(X)):
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        xbase = int(np.floor(X[i]))
+        ybase = int(np.floor(Y[i]))
+        x0, x1 = xbase - 1, xbase + 3
+        y0, y1 = ybase - 1, ybase + 3
+        if x0 < 0 or y0 < 0 or x1 > dat.shape[1] or y1 > dat.shape[0]:
+            valid[i] = False
+            continue
+
+        chunk = dat[y0:y1, x0:x1]
+        if not np.all(np.isfinite(chunk)):
+            valid[i] = False
+            continue
+        if mask is not None and np.any(mask[y0:y1, x0:x1]):
+            valid[i] = False
+            continue
+
+        wx = _cubic_lagrange_weights(X[i] - xbase)
+        wy = _cubic_lagrange_weights(Y[i] - ybase)
+        flux[i] = np.sum(chunk * wy.reshape((-1, 1)) * wx)
+
+    return flux, valid
+
+
 def interpolate_Lanczos(dat, X, Y, scale):
     """
     Perform Lanczos interpolation on an image.
@@ -515,6 +558,27 @@ def interpolate_Lanczos(dat, X, Y, scale):
         w = np.sum(L)
         flux.append(np.sum(chunk * L) / w)
     return np.array(flux)
+
+
+def _interpolation_footprint_valid(dat, X, Y, mask=None, interp_method="lanczos", interp_window=5):
+    valid = np.ones(len(X), dtype=bool)
+    for i in range(len(X)):
+        if interp_method == "lanczos":
+            x0 = max(0, int(round(np.floor(X[i]) - interp_window + 1)))
+            x1 = min(dat.shape[1], int(round(np.floor(X[i]) + interp_window + 1)))
+            y0 = max(0, int(round(np.floor(Y[i]) - interp_window + 1)))
+            y1 = min(dat.shape[0], int(round(np.floor(Y[i]) + interp_window + 1)))
+        else:
+            raise ValueError(
+                "Unknown interpolate method %s. Should be lanczos" % interp_method
+            )
+        chunk = dat[y0:y1, x0:x1]
+        if chunk.size == 0 or not np.all(np.isfinite(chunk)):
+            valid[i] = False
+            continue
+        if mask is not None and np.any(mask[y0:y1, x0:x1]):
+            valid[i] = False
+    return valid
 
 
 def _iso_between(
@@ -651,19 +715,20 @@ def _iso_extract(
         theta = theta[BORDER]
 
     Rlim = np.max(R)
+    footprint_choose = None
     if Rlim < rad_interp:
-        box = [
-            [max(0, int(c["x"] - Rlim - 5)), min(IMG.shape[1], int(c["x"] + Rlim + 5))],
-            [max(0, int(c["y"] - Rlim - 5)), min(IMG.shape[0], int(c["y"] + Rlim + 5))],
-        ]
         if interp_method == "bicubic":
-            flux = interpolate_bicubic(
-                IMG[box[1][0] : box[1][1], box[0][0] : box[0][1]],
-                X - box[0][0],
-                Y - box[1][0],
-            )
+            flux, footprint_choose = _interpolate_bicubic_local(IMG, X, Y, mask=mask)
         elif interp_method == "lanczos":
             flux = interpolate_Lanczos(IMG, X, Y, interp_window)
+            footprint_choose = _interpolation_footprint_valid(
+                IMG,
+                X,
+                Y,
+                mask=mask,
+                interp_method=interp_method,
+                interp_window=interp_window,
+            )
         else:
             raise ValueError(
                 "Unknown interpolate method %s. Should be one of lanczos or bicubic" % interp_method
@@ -671,35 +736,43 @@ def _iso_extract(
     else:
         # round to integers and sample pixels values
         flux = IMG[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]
-    # CHOOSE holds bolean array for which flux values to keep, initialized as None for no clipping
-    CHOOSE = None
+    # CHOOSE holds bolean array for which flux values to keep.
+    # Interpolated samples are rejected when their interpolation footprint
+    # contains masked or non-finite pixels.
+    finite_flux = np.isfinite(flux)
+    CHOOSE = finite_flux.copy()
     # Mask pixels if a mask is given
     if not mask is None:
-        CHOOSE = np.logical_not(mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)])
+        CHOOSE = np.logical_and(
+            CHOOSE, np.logical_not(mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)])
+        )
+    if footprint_choose is not None:
+        CHOOSE = np.logical_and(CHOOSE, footprint_choose)
     # Perform sigma clipping if requested
     if sigmaclip:
-        sclim = Sigma_Clip_Upper(flux, sclip_iterations, sclip_nsigma)
-        if CHOOSE is None:
-            CHOOSE = flux < sclim
-        else:
-            CHOOSE = np.logical_or(CHOOSE, flux < sclim)
+        if np.any(CHOOSE):
+            sclim = Sigma_Clip_Upper(flux[CHOOSE], sclip_iterations, sclip_nsigma)
+            clipped_choose = np.logical_and(CHOOSE, flux < sclim)
+            if np.any(clipped_choose):
+                CHOOSE = clipped_choose
     # Dont clip pixels if that removes all of the pixels
-    countmasked = 0
-    if not CHOOSE is None and np.sum(CHOOSE) <= 0:
+    countmasked = np.sum(np.logical_not(CHOOSE))
+    if np.sum(CHOOSE) <= 0:
         logging.warning(
             "Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f"
             % (sma, PARAMS["pa"] * 180 / np.pi, PARAMS["ellip"])
         )
+        flux = flux[CHOOSE]
+        theta = theta[CHOOSE]
         # Interpolate clipped flux values if requested
-    elif not CHOOSE is None and interp_mask:
+    elif interp_mask:
         flux[np.logical_not(CHOOSE)] = np.interp(
             theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period=2 * np.pi
         )
         # simply remove all clipped pixels if user doesn't reqest another option
-    elif not CHOOSE is None:
+    elif not np.all(CHOOSE):
         flux = flux[CHOOSE]
         theta = theta[CHOOSE]
-        countmasked = np.sum(np.logical_not(CHOOSE))
 
     # Return just the flux values, or flux and angle values
     if more:
