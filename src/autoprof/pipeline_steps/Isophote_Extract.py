@@ -146,6 +146,25 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 ),
                 sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
+        if len(isovals[0]) == 0:
+            pixels.append(0)
+            maskedpixels.append(isovals[2])
+            if fluxunits == "intensity":
+                sb.append(np.nan)
+                sbE.append(np.nan)
+                cogdirect.append(np.nan)
+            else:
+                sb.append(99.999)
+                sbE.append(99.999)
+                cogdirect.append(99.999)
+            if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
+                measFmodes.append(
+                    {
+                        "a": [np.nan] * (len(options["ap_iso_measurecoefs"]) + 1),
+                        "b": [np.nan] * (len(options["ap_iso_measurecoefs"]) + 1),
+                    }
+                )
+            continue
         isotot = np.sum(_iso_between(dat, 0, R[i], parameters[i], results["center"], mask=mask))
         medflux = _average(
             isovals[0],
