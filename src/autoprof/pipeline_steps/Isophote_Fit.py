@@ -484,44 +484,69 @@ def _FFT_Robust_Errors(
     E_err = np.zeros(len(R))
     for ri in range(len(R)):
         temp_fits = []
+        x0 = np.array([PARAMS[ri]["ellip"], PARAMS[ri]["pa"]], dtype=float)
+        if not np.all(np.isfinite(x0)):
+            continue
         for i in range(10):
             low_ri = max(0, ri - 1)
             high_ri = min(len(R) - 1, ri + 1)
-            temp_fits.append(
-                minimize(
-                    lambda x: _FFT_Robust_loss(
-                        dat,
-                        [R[low_ri], R[ri] * (1 - 0.05 + i * 0.1 / 9), R[high_ri]],
-                        [
-                            PARAMS[low_ri],
-                            {
-                                "ellip": np.clip(x[0], 0, 0.999),
-                                "pa": x[1] % np.pi,
-                                "m": PARAMS[ri]["m"],
-                                "Am": PARAMS[ri]["Am"],
-                                "Phim": PARAMS[ri]["Phim"],
-                            },
-                            PARAMS[high_ri],
-                        ],
-                        1,
-                        C,
-                        noise,
-                        mask=mask,
-                        reg_scale=reg_scale,
-                        robust_clip=robust_clip,
-                        fit_coefs=fit_coefs,
-                        name=name,
-                    ),
-                    x0=[PARAMS[ri]["ellip"], PARAMS[ri]["pa"]],
+            trial_R = [R[low_ri], R[ri] * (1 - 0.05 + i * 0.1 / 9), R[high_ri]]
+
+            def raw_loss(x):
+                if not np.all(np.isfinite(x)):
+                    return np.inf
+                trial_params = deepcopy(PARAMS[ri])
+                trial_params["ellip"] = float(x[0])
+                trial_params["pa"] = float(x[1])
+                return _FFT_Robust_loss(
+                    dat,
+                    trial_R,
+                    [
+                        PARAMS[low_ri],
+                        trial_params,
+                        PARAMS[high_ri],
+                    ],
+                    1,
+                    C,
+                    noise,
+                    mask=mask,
+                    reg_scale=reg_scale,
+                    robust_clip=robust_clip,
+                    fit_coefs=fit_coefs,
+                    name=name,
+                )
+
+            if not np.isfinite(raw_loss(x0)):
+                continue
+
+            # SLSQP expects a finite scalar objective even when a shifted isophote is unusable.
+            def finite_loss(x):
+                loss = raw_loss(x)
+                return float(loss) if np.isfinite(loss) else 1e30
+
+            try:
+                fit = minimize(
+                    finite_loss,
+                    x0=x0,
                     method="SLSQP",
+                    bounds=[(0, 0.999), (0, np.pi)],
                     options={"ftol": 0.001},
-                ).x
+                )
+            except Exception:
+                continue
+            if np.all(np.isfinite(fit.x)) and np.isfinite(raw_loss(fit.x)):
+                temp_fits.append(fit.x)
+        if len(temp_fits) >= 2:
+            temp_fits = np.array(temp_fits)
+            E_err[ri] = iqr(temp_fits[:, 0], rng=[16, 84]) / 2
+            PA_err[ri] = (
+                Angle_Scatter(2 * (temp_fits[:, 1] % np.pi)) / 4.0
+            )  # multiply by 2 to get [0, 2pi] range
+        elif len(temp_fits) == 1:
+            E_err[ri] = abs(float(temp_fits[0][0]) - PARAMS[ri]["ellip"])
+            PA_err[ri] = (
+                abs(Angle_TwoAngles_sin(2 * temp_fits[0][1], 2 * PARAMS[ri]["pa"])) / 2
             )
-        temp_fits = np.array(temp_fits)
-        E_err[ri] = iqr(np.clip(temp_fits[:, 0], 0, 1), rng=[16, 84]) / 2
-        PA_err[ri] = (
-            Angle_Scatter(2 * (temp_fits[:, 1] % np.pi)) / 4.0
-        )  # multiply by 2 to get [0, 2pi] range
     return E_err, PA_err
 
 
