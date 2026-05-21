@@ -627,38 +627,32 @@ def _iso_between(
     RR /= SuperEllipse_Rscale * Fmode_Rscale
     rselect = np.logical_and(RR < sma_high, RR > sma_low)
     fluxes = IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][rselect]
-    CHOOSE = None
-    if not mask is None and sma_high > 5:
-        CHOOSE = np.logical_not(
-            mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][rselect]
+    theta_values = theta[rselect]
+    CHOOSE = np.isfinite(fluxes)
+    if not mask is None:
+        CHOOSE = np.logical_and(
+            CHOOSE,
+            np.logical_not(
+                mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][rselect]
+            ),
         )
     # Perform sigma clipping if requested
     if sigmaclip:
-        sclim = Sigma_Clip_Upper(fluxes, sclip_iterations, sclip_nsigma)
-        if CHOOSE is None:
-            CHOOSE = fluxes < sclim
-        else:
-            CHOOSE = np.logical_or(CHOOSE, fluxes < sclim)
-    if CHOOSE is not None and np.sum(CHOOSE) < 5:
+        if np.any(CHOOSE):
+            sclim = Sigma_Clip_Upper(fluxes[CHOOSE], sclip_iterations, sclip_nsigma)
+            clipped_choose = np.logical_and(CHOOSE, fluxes < sclim)
+            if np.any(clipped_choose):
+                CHOOSE = clipped_choose
+    countmasked = np.sum(np.logical_not(CHOOSE))
+    if np.sum(CHOOSE) < 5:
         logging.warning(
-            "Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f"
+            "Too few usable pixels in isophote band! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f"
             % (sma_low, sma_high, PARAMS["pa"] * 180 / np.pi, PARAMS["ellip"])
         )
-        CHOOSE = np.ones(CHOOSE.shape).astype(bool)
-    if CHOOSE is not None:
-        countmasked = np.sum(np.logical_not(CHOOSE))
-    else:
-        countmasked = 0
     if more:
-        if CHOOSE is not None and sma_high > 5:
-            return fluxes[CHOOSE], theta[rselect][CHOOSE], countmasked
-        else:
-            return fluxes, theta[rselect], countmasked
+        return fluxes[CHOOSE], theta_values[CHOOSE], countmasked
     else:
-        if CHOOSE is not None and sma_high > 5:
-            return fluxes[CHOOSE]
-        else:
-            return fluxes
+        return fluxes[CHOOSE]
 
 
 def _iso_extract(
