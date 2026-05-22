@@ -198,7 +198,12 @@ def Radial_Profiles(IMG, results, options):
                 )
             )
         isovals[1] -= pa[i]
-        avgmedflux = []
+        radius_medflux = []
+        if len(isovals[0]) == 0:
+            for sa_i in range(len(wedgeangles)):
+                sb[sa_i].append(99.999)
+                sbE[sa_i].append(99.999)
+            continue
 
         for sa_i in range(len(wedgeangles)):
             aselect = np.abs(Angle_TwoAngles_cos(wedgeangles[sa_i], isovals[1])) < (
@@ -214,7 +219,7 @@ def Radial_Profiles(IMG, results, options):
                 if "ap_isoaverage_method" in options
                 else "median",
             )
-            avgmedflux.append(medflux)
+            radius_medflux.append(medflux)
             scatflux = _scatter(
                 isovals[0][aselect],
                 options["ap_isoaverage_method"]
@@ -231,7 +236,9 @@ def Radial_Profiles(IMG, results, options):
                 if medflux > 0
                 else 99.999
             )
-        avgmedflux = np.mean(avgmedflux)
+        # Only update the rolling flux state from radii with valid wedge samples.
+        if len(radius_medflux) > 0:
+            avgmedflux = np.mean(radius_medflux)
 
     if "prof header" in results:
         newprofheader = results["prof header"]
