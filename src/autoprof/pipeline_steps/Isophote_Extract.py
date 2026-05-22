@@ -24,6 +24,7 @@ from ..autoprofutils.SharedFunctions import (
     SBprof_to_COG_errorprop,
     _iso_extract,
     _iso_between,
+    _photutils_masked_data,
     LSBImage,
     AddLogo,
     _average,
@@ -43,6 +44,24 @@ from ..autoprofutils.Diagnostic_Plots import (
 )
 
 __all__ = ("Isophote_Extract_Forced", "Isophote_Extract", "Isophote_Extract_Photutils")
+
+
+def _finite_median(values):
+    values = np.ma.asarray(values).compressed()
+    values = values[np.isfinite(values)]
+    if len(values) == 0:
+        return np.nan
+    return np.median(values)
+
+
+def _finite_divide(numerator, denominator):
+    if (
+        not np.isfinite(numerator)
+        or not np.isfinite(denominator)
+        or denominator == 0
+    ):
+        return np.nan
+    return numerator / denominator
 
 
 def _Generate_Profile(IMG, results, R, parameters, options):
@@ -1015,6 +1034,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
     SBprof_data = dict((h, []) for h in params)
     res = {}
     dat = IMG - results["background"]
+    photutils_dat = _photutils_masked_data(dat, results)
     if not "fit R" in results and not "fit photutils isolist" in results:
         logging.info("%s: photutils fitting and extracting image data" % options["ap_name"])
         geo = EllipseGeometry(
@@ -1024,13 +1044,17 @@ def Isophote_Extract_Photutils(IMG, results, options):
             eps=results["init ellip"],
             pa=results["init pa"],
         )
-        ellipse = Photutils_Ellipse(dat, geometry=geo)
+        ellipse = Photutils_Ellipse(photutils_dat, geometry=geo)
 
         isolist = ellipse.fit_image(fix_center=True, linear=False)
         res.update(
             {
                 "fit photutils isolist": isolist,
-                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
+                "auxfile fitlimit": (
+                    "fit limit semi-major axis: %.2f pix" % isolist.sma[-1]
+                    if len(isolist.sma) > 0
+                    else "fit limit semi-major axis: no valid isophotes"
+                ),
             }
         )
     elif not "fit photutils isolist" in results:
@@ -1048,7 +1072,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
                 pa=results["fit pa"][i],
             )
             # Extract the isophote information
-            ES = EllipseSample(dat, sma=results["fit R"][i], geometry=geo)
+            ES = EllipseSample(photutils_dat, sma=results["fit R"][i], geometry=geo)
             ES.update(fixed_parameters=None)
             list_iso.append(Isophote(ES, niter=30, valid=True, stop_code=0))
 
@@ -1056,7 +1080,11 @@ def Isophote_Extract_Photutils(IMG, results, options):
         res.update(
             {
                 "fit photutils isolist": isolist,
-                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
+                "auxfile fitlimit": (
+                    "fit limit semi-major axis: %.2f pix" % isolist.sma[-1]
+                    if len(isolist.sma) > 0
+                    else "fit limit semi-major axis: no valid isophotes"
+                ),
             }
         )
     else:
@@ -1064,27 +1092,35 @@ def Isophote_Extract_Photutils(IMG, results, options):
 
     for i in range(len(isolist.sma)):
         SBprof_data["R"].append(isolist.sma[i] * options["ap_pixscale"])
+        medflux = _finite_median(isolist.sample[i].values[2])
         if fluxunits == "intensity":
             SBprof_data["I"].append(
-                np.median(isolist.sample[i].values[2]) / options["ap_pixscale"] ** 2
+                medflux / options["ap_pixscale"] ** 2
             )
             SBprof_data["I_e"].append(isolist.int_err[i])
             SBprof_data["totflux"].append(isolist.tflux_e[i])
-            SBprof_data["totflux_e"].append(isolist.rms[i] / np.sqrt(isolist.npix_e[i]))
+            SBprof_data["totflux_e"].append(
+                _finite_divide(isolist.rms[i], np.sqrt(isolist.npix_e[i]))
+            )
         else:
             SBprof_data["SB"].append(
-                flux_to_sb(
-                    np.median(isolist.sample[i].values[2]),
-                    options["ap_pixscale"],
-                    zeropoint,
-                )
+                flux_to_sb(medflux, options["ap_pixscale"], zeropoint)
+                if medflux > 0
+                else np.nan
             )
-            SBprof_data["SB_e"].append(2.5 * isolist.int_err[i] / (isolist.intens[i] * np.log(10)))
-            SBprof_data["totmag"].append(flux_to_mag(isolist.tflux_e[i], zeropoint))
+            SBprof_data["SB_e"].append(
+                _finite_divide(2.5 * isolist.int_err[i], isolist.intens[i] * np.log(10))
+            )
+            SBprof_data["totmag"].append(
+                flux_to_mag(isolist.tflux_e[i], zeropoint)
+                if np.isfinite(isolist.tflux_e[i]) and isolist.tflux_e[i] > 0
+                else np.nan
+            )
             SBprof_data["totmag_e"].append(
-                2.5
-                * isolist.rms[i]
-                / (np.sqrt(isolist.npix_e[i]) * isolist.tflux_e[i] * np.log(10))
+                _finite_divide(
+                    2.5 * isolist.rms[i],
+                    np.sqrt(isolist.npix_e[i]) * isolist.tflux_e[i] * np.log(10),
+                )
             )
         SBprof_data["ellip"].append(isolist.eps[i])
         SBprof_data["ellip_e"].append(isolist.ellip_err[i])
@@ -1103,7 +1139,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
                 SBprof_data[k][-1] = 99.999
     res.update({"prof header": params, "prof units": SBprof_units, "prof data": SBprof_data})
 
-    if "ap_doplot" in options and options["ap_doplot"]:
+    if "ap_doplot" in options and options["ap_doplot"] and len(SBprof_data["R"]) > 0:
         if fluxunits == "intensity":
             Plot_I_Profile(
                 dat,

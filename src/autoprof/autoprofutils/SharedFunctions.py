@@ -1050,6 +1050,15 @@ def StarFind(
     }
 
 
+def _photutils_masked_data(dat, results):
+    mask = np.logical_not(np.isfinite(dat))
+    if results.get("mask", None) is not None:
+        mask = np.logical_or(mask, results["mask"])
+    if np.any(mask):
+        return np.ma.array(dat, mask=mask)
+    return dat
+
+
 def _x_to_pa(x):
     """
     Internal, basic function to ensure position angles remain

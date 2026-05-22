@@ -14,6 +14,7 @@ import logging
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _photutils_masked_data,
     _x_to_pa,
     _x_to_eps,
     _inv_x_to_eps,
@@ -276,7 +277,8 @@ def Photutils_Fit(IMG, results, options):
         eps=results["init ellip"],
         pa=results["init pa"],
     )
-    ellipse = Photutils_Ellipse(dat, geometry=geo)
+    photutils_dat = _photutils_masked_data(dat, results)
+    ellipse = Photutils_Ellipse(photutils_dat, geometry=geo)
 
     isolist = ellipse.fit_image(fix_center=True, linear=False)
     res = {
@@ -286,10 +288,14 @@ def Photutils_Fit(IMG, results, options):
         "fit pa": isolist.pa[1:],
         "fit pa_err": isolist.pa_err[1:],
         "fit photutils isolist": isolist,
-        "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
+        "auxfile fitlimit": (
+            "fit limit semi-major axis: %.2f pix" % isolist.sma[-1]
+            if len(isolist.sma) > 0
+            else "fit limit semi-major axis: no valid isophotes"
+        ),
     }
 
-    if "ap_doplot" in options and options["ap_doplot"]:
+    if "ap_doplot" in options and options["ap_doplot"] and len(res["fit R"]) > 0:
         Plot_Isophote_Fit(
             dat,
             res["fit R"],
