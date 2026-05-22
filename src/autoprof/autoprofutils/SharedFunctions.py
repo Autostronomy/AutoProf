@@ -778,7 +778,7 @@ def _iso_extract(
         return flux
 
 
-def _iso_line(IMG, length, width, pa, c, more=False):
+def _iso_line(IMG, length, width, pa, c, more=False, mask=None):
 
     start = np.array([c["x"], c["y"]])
     end = start + length * np.array([np.cos(pa), np.sin(pa)])
@@ -803,11 +803,21 @@ def _iso_line(IMG, length, width, pa, c, more=False):
 
     lselect = np.logical_and.reduce((XX >= -0.5, XX <= length, np.abs(YY) <= (width / 2)))
     flux = IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][lselect]
+    Xline = XX[lselect]
+    Yline = YY[lselect]
+    CHOOSE = np.isfinite(flux)
+    if mask is not None:
+        CHOOSE = np.logical_and(
+            CHOOSE,
+            np.logical_not(
+                mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][lselect]
+            ),
+        )
 
     if more:
-        return flux, XX[lselect], YY[lselect]
+        return flux[CHOOSE], Xline[CHOOSE], Yline[CHOOSE]
     else:
-        return flux, XX[lselect]
+        return flux[CHOOSE], Xline[CHOOSE]
 
 
 def StarFind(

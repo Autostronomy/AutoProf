@@ -145,6 +145,7 @@ def Axial_Profiles(IMG, results, options):
                         "y": results["center"]["y"]
                         + ang * rd * pR * np.sin(pa + (0 if ang > 0 else np.pi)),
                     },
+                    mask=mask,
                 )
                 for oi, oR in enumerate(R):
                     length = (R[oi] - R[oi - 1]) if oi > 0 else 1.0
