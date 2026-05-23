@@ -1,8 +1,12 @@
-from photutils.segmentation import SegmentationImage
+from photutils.segmentation import make_source_mask
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from scipy.stats import iqr
 from scipy.fftpack import fft2, ifft2
+from scipy.interpolate import SmoothBivariateSpline
+from scipy.ndimage import distance_transform_edt, label
 import logging
 import numpy as np
+import warnings
 
 from ..autoprofutils.SharedFunctions import Smooth_Mode
 from ..autoprofutils.Diagnostic_Plots import Plot_Background
@@ -14,6 +18,101 @@ __all__ = (
     "Background_Basic",
     "Background_Unsharp",
 )
+
+
+def _background_border_mask(shape):
+    mask = np.ones(shape, dtype=bool)
+    mask[
+        int(shape[0] / 5.0) : int(4.0 * shape[0] / 5.0),
+        int(shape[1] / 5.0) : int(4.0 * shape[1] / 5.0),
+    ] = False
+    return mask
+
+
+def _finite_sample_values(IMG, sample_mask):
+    values = IMG[sample_mask].flatten()
+    return values[np.isfinite(values)]
+
+
+def _require_background_values(values):
+    if len(values) == 0:
+        raise ValueError("No finite pixels available for background estimation")
+    return values
+
+
+def _apply_background_speedup(values, options):
+    if "ap_background_speedup" in options and int(options["ap_background_speedup"]) > 1:
+        values = values[:: int(options["ap_background_speedup"])]
+    return values
+
+
+def _nearest_finite_fill(IMG, bad):
+    filled = np.array(IMG, dtype=float, copy=True)
+    if np.all(bad):
+        raise ValueError("No finite pixels available for background estimation")
+    dumy, indices = distance_transform_edt(
+        bad,
+        return_distances=True,
+        return_indices=True,
+    )
+    filled[bad] = filled[tuple(indices[:, bad])]
+    return filled
+
+
+def _spline_fill_nonfinite(IMG, options):
+    bad = np.logical_not(np.isfinite(IMG))
+    if not np.any(bad):
+        return IMG
+
+    labels, nlabels = label(bad)
+    if nlabels > 0:
+        largest_bad = np.max(np.bincount(labels.ravel())[1:])
+    else:
+        largest_bad = 0
+    bad_fraction = np.sum(bad) / bad.size
+    if bad_fraction > 0.01 or largest_bad > 0.005 * bad.size:
+        logging.warning(
+            "%s: unsharp background has large non-finite regions; spline-filled FFT background may be unreliable"
+            % options["ap_name"]
+        )
+
+    filled = np.array(IMG, dtype=float, copy=True)
+    good = np.logical_not(bad)
+    y, x = np.nonzero(good)
+    z = filled[good]
+    y_bad, x_bad = np.nonzero(bad)
+
+    kx = min(3, len(np.unique(x)) - 1)
+    ky = min(3, len(np.unique(y)) - 1)
+    if kx < 1 or ky < 1:
+        return _nearest_finite_fill(IMG, bad)
+
+    max_spline_points = 50000
+    if len(z) > max_spline_points:
+        step = int(np.ceil(len(z) / max_spline_points))
+        x_fit = x[::step]
+        y_fit = y[::step]
+        z_fit = z[::step]
+    else:
+        x_fit = x
+        y_fit = y
+        z_fit = z
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            spline = SmoothBivariateSpline(x_fit, y_fit, z_fit, kx=kx, ky=ky)
+        fill_values = spline.ev(x_bad, y_bad)
+        if not np.all(np.isfinite(fill_values)):
+            raise ValueError("Spline produced non-finite fill values")
+        filled[bad] = fill_values
+        return filled
+    except Exception as e:
+        logging.warning(
+            "%s: spline fill failed for unsharp background (%s); using nearest finite fill"
+            % (options["ap_name"], str(e))
+        )
+        return _nearest_finite_fill(IMG, bad)
 
 
 def Background_Mode(IMG, results, options):
@@ -64,24 +163,19 @@ def Background_Mode(IMG, results, options):
     """
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
-    if "mask" in results and not results["mask"] is None and np.any(results["mask"]):
+    use_existing_mask = "mask" in results and not results["mask"] is None and np.any(results["mask"])
+    if use_existing_mask:
         mask = np.logical_not(results["mask"])
         logging.info(
             "%s: Background using mask. Masking %i pixels"
             % (options["ap_name"], np.sum(results["mask"]))
         )
     else:
-        mask = np.ones(IMG.shape, dtype=bool)
-        mask[
-            int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
-            int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
-        ] = False
-    values = IMG[mask].flatten()
-    if len(values) < 1e5:
-        values = IMG.flatten()
-    if "ap_background_speedup" in options and int(options["ap_background_speedup"]) > 1:
-        values = values[:: int(options["ap_background_speedup"])]
-    values = values[np.isfinite(values)]
+        mask = _background_border_mask(IMG.shape)
+    values = _finite_sample_values(IMG, mask)
+    if len(values) < 1e5 and not use_existing_mask:
+        values = IMG[np.isfinite(IMG)].flatten()
+    values = _require_background_values(_apply_background_speedup(values, options))
 
     if "ap_set_background" in options:
         bkgrnd = options["ap_set_background"]
@@ -95,7 +189,12 @@ def Background_Mode(IMG, results, options):
         noise = options["ap_set_background_noise"]
         logging.info("%s: Background Noise set by user: %.4e" % (options["ap_name"], noise))
     else:
-        noise = iqr(values[(values - bkgrnd) < 0], rng=[100 - 68.2689492137, 100])
+        noise_values = values[(values - bkgrnd) < 0]
+        noise = (
+            iqr(noise_values, rng=[100 - 68.2689492137, 100])
+            if len(noise_values) > 0
+            else np.nan
+        )
         if not np.isfinite(noise):
             noise = iqr(values, rng=[16, 84]) / 2.0
     uncertainty = noise / np.sqrt(np.sum((values - bkgrnd) < 0))
@@ -150,44 +249,55 @@ def Background_DilatedSources(IMG, results, options):
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
     if "mask" in results and not results["mask"] is None:
-        mask = results["mask"]
+        mask = results["mask"].astype(bool)
     else:
-        mask = np.zeros(IMG.shape)
+        mask = np.zeros(IMG.shape, dtype=bool)
         mask[
             int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
             int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
-        ] = 1
+        ] = True
+    mask = np.logical_or(mask, np.logical_not(np.isfinite(IMG)))
+    base_values = _require_background_values(_finite_sample_values(IMG, np.logical_not(mask)))
 
     # Run photutils source mask to remove pixels with sources
     # such as stars and galaxies, including a boarder
     # around each source.
     if not ("ap_set_background" in options and "ap_set_background_noise" in options):
-        segm = SegmentationImage(IMG)
-        source_mask = segm.make_source_mask(
-            nsigma=3,
-            npixels=int(1.0 / options["ap_pixscale"]),
-            dilate_size=40,
-            filter_fwhm=1.0 / options["ap_pixscale"],
-            filter_size=int(3.0 / options["ap_pixscale"]),
-            sigclip_iters=5,
-        )
+        finite_values = _require_background_values(IMG[np.isfinite(IMG)].flatten())
+        finite_img = np.array(IMG, copy=True)
+        finite_img[np.logical_not(np.isfinite(finite_img))] = np.median(finite_values)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", AstropyDeprecationWarning)
+            source_mask = make_source_mask(
+                finite_img,
+                nsigma=3,
+                npixels=int(1.0 / options["ap_pixscale"]),
+                mask=mask,
+                dilate_size=40,
+                filter_fwhm=1.0 / options["ap_pixscale"],
+                filter_size=int(3.0 / options["ap_pixscale"]),
+                sigclip_iters=5,
+            )
         mask = np.logical_or(mask, source_mask)
+    values = _finite_sample_values(IMG, np.logical_not(mask))
+    if len(values) == 0:
+        values = base_values
 
     # Return statistics from background sky
     bkgrnd = (
         options["ap_set_background"]
         if "ap_set_background" in options
-        else np.median(IMG[np.logical_not(mask)])
+        else np.median(values)
     )
     noise = (
         options["ap_set_background_noise"]
         if "ap_set_background_noise" in options
-        else iqr(IMG[np.logical_not(mask)], rng=[16, 84]) / 2
+        else iqr(values, rng=[16, 84]) / 2
     )
-    uncertainty = noise / np.sqrt(np.sum(np.logical_not(mask)))
+    uncertainty = noise / np.sqrt(len(values))
 
     if "ap_doplot" in options and options["ap_doplot"]:
-        Plot_Background(IMG[np.logical_not(mask)].ravel(), bkgrnd, noise, results, options)
+        Plot_Background(values, bkgrnd, noise, results, options)
     return IMG, {
         "background": bkgrnd,
         "background noise": noise,
@@ -241,12 +351,10 @@ def Background_Basic(IMG, results, options):
         int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
         int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
     ] = False
-    values = IMG[mask].flatten()
+    values = _finite_sample_values(IMG, mask)
     if len(values) < 1e3:
-        values = IMG.flatten()
-    if "ap_background_speedup" in options and int(options["ap_background_speedup"]) > 1:
-        values = values[:: int(options["ap_background_speedup"])]
-    values = values[np.isfinite(values)]
+        values = IMG[np.isfinite(IMG)].flatten()
+    values = _require_background_values(_apply_background_speedup(values, options))
 
     bkgrnd = options["ap_set_background"] if "ap_set_background" in options else np.mean(values)
     noise = (
@@ -297,7 +405,9 @@ def Background_Unsharp(IMG, results, options):
 
     """
 
-    coefs = fft2(IMG)
+    dumy, stats = Background_Mode(IMG, results, options)
+    finite_img = _spline_fill_nonfinite(IMG, options)
+    coefs = fft2(finite_img)
 
     unsharp = (
         int(options["ap_background_unsharp_lowpass"])
@@ -307,6 +417,5 @@ def Background_Unsharp(IMG, results, options):
     coefs[unsharp:-unsharp] = 0
     coefs[:, unsharp:-unsharp] = 0
 
-    dumy, stats = Background_Mode(IMG, results, options)
     stats.update({"background": ifft2(coefs).real})
     return IMG, stats
