@@ -23,6 +23,8 @@ from ..autoprofutils.SharedFunctions import (
     interpolate_Lanczos,
     interpolate_bicubic,
     Read_Image,
+    _nearest_finite_fill,
+    _spline_fill_nonfinite,
 )
 from ..autoprofutils.Diagnostic_Plots import Plot_PSF_Stars
 from copy import deepcopy
@@ -75,34 +77,44 @@ def PSF_IRAF(IMG, results, options):
     else:
         fwhm_guess = max(1.0, 1.0 / options["ap_pixscale"])
 
-    edge_mask = np.zeros(IMG.shape, dtype=bool)
+    dat = np.array(IMG - results["background"], dtype=float, copy=True)
+    bad_mask = np.logical_not(np.isfinite(dat))
+    if np.all(bad_mask):
+        dat[bad_mask] = 0.0
+    elif np.any(bad_mask):
+        dat = _nearest_finite_fill(dat, bad_mask, context="PSF image")
+    edge_mask = np.array(bad_mask, copy=True)
     edge_mask[
         int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
         int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
     ] = True
-
-    dat = IMG - results["background"]
     # photutils wrapper for IRAF star finder
     count = 0
     sources = 0
-    psf_iter = deepcopy(psf_guess)
+    psf_iter = deepcopy(fwhm_guess)
     try:
         while count < 5 and sources < 20:
             iraffind = IRAFStarFinder(
                 fwhm=psf_iter, threshold=6.0 * results["background noise"], brightest=50
             )
             irafsources = iraffind.find_stars(dat, edge_mask)
+            if irafsources is None or len(irafsources) == 0:
+                break
             psf_iter = np.median(irafsources["fwhm"])
+            if not np.isfinite(psf_iter):
+                break
             if np.median(irafsources["sharpness"]) >= 0.95:
                 break
             count += 1
             sources = len(irafsources["fwhm"])
     except:
         return IMG, {"psf fwhm": fwhm_guess}
-    if len(irafsources) < 5:
+    if irafsources is None or len(irafsources) < 5:
         return IMG, {"psf fwhm": fwhm_guess}
 
     psf = np.median(irafsources["fwhm"])
+    if not np.isfinite(psf):
+        return IMG, {"psf fwhm": fwhm_guess}
 
     if "ap_doplot" in options and options["ap_doplot"]:
         Plot_PSF_Stars(
@@ -193,22 +205,24 @@ def PSF_StarFind(IMG, results, options):
     else:
         fwhm_guess = max(1.0, 1.0 / options["ap_pixscale"])
 
-    if "mask" in results:
-        use_mask = results["mask"]
-    else:
-        use_mask = np.zeros(IMG.shape, dtype=bool)
-        use_mask[
-            int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
-            int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
-        ] = True
+    dat = np.array(IMG - results["background"], dtype=float, copy=True)
+    use_mask = np.zeros(IMG.shape, dtype=bool)
+    use_mask[
+        int(IMG.shape[0] / 5.0) : int(4.0 * IMG.shape[0] / 5.0),
+        int(IMG.shape[1] / 5.0) : int(4.0 * IMG.shape[1] / 5.0),
+    ] = True
 
     stars = StarFind(
-        IMG - results["background"],
+        dat,
         fwhm_guess,
         results["background noise"],
         use_mask,
         maxstars=50,
     )
+    choose = np.logical_and.reduce(
+        [np.isfinite(stars[k]) for k in ("x", "y", "fwhm", "peak", "deformity")]
+    )
+    stars = {k: stars[k][choose] for k in stars}
     if len(stars["fwhm"]) <= 10:
         logging.error(
             "%s: unable to detect enough stars! PSF results not valid, using 1 arcsec estimate psf of %f"
@@ -219,7 +233,10 @@ def PSF_StarFind(IMG, results, options):
     def_clip = 0.1
     while np.sum(stars["deformity"] < def_clip) < max(10, len(stars["fwhm"]) / 2):
         def_clip += 0.1
-    psf = np.median(stars["fwhm"][stars["deformity"] < def_clip])
+    psf_choose = stars["deformity"] < def_clip
+    psf = np.median(stars["fwhm"][psf_choose])
+    if not np.isfinite(psf):
+        return IMG, {"psf fwhm": fwhm_guess}
     if "ap_doplot" in options and options["ap_doplot"]:
         Plot_PSF_Stars(
             IMG,
@@ -291,12 +308,19 @@ def PSF_Image(IMG, results, options):
     else:
         fwhm_guess = max(1.0, 1.0 / options["ap_pixscale"])
 
+    dat = np.array(IMG - results["background"], dtype=float, copy=True)
+    bad_mask = np.logical_not(np.isfinite(dat))
+    if np.all(bad_mask):
+        filled_dat = np.zeros(dat.shape)
+    elif np.any(bad_mask):
+        filled_dat = _spline_fill_nonfinite(dat, options)
+    else:
+        filled_dat = dat
     edge_mask = np.zeros(IMG.shape, dtype=bool)
     edge_mask[
         int(IMG.shape[0] / 4.0) : int(3.0 * IMG.shape[0] / 4.0),
         int(IMG.shape[1] / 4.0) : int(3.0 * IMG.shape[1] / 4.0),
     ] = True
-    dat = IMG - results["background"]
     stars = StarFind(
         dat,
         fwhm_guess,
@@ -305,18 +329,28 @@ def PSF_Image(IMG, results, options):
         detect_threshold=5.0,
         maxstars=100,
     )
+    choose = np.logical_and.reduce(
+        [np.isfinite(stars[k]) for k in ("x", "y", "fwhm", "peak", "deformity")]
+    )
+    stars = {k: stars[k][choose] for k in stars}
     if len(stars["fwhm"]) <= 10:
         logging.error(
             "%s: unable to detect enough stars! PSF results not valid, using 1 arcsec estimate psf of %f"
             % (options["ap_name"], fwhm_guess)
         )
+        return IMG, {"psf fwhm": fwhm_guess}
 
     def_clip = 0.1
     while np.sum(stars["deformity"] < def_clip) < max(10, len(stars["fwhm"]) * 2 / 3):
         def_clip += 0.1
-    psf = np.median(stars["fwhm"][stars["deformity"] < def_clip])
-    psf_iqr = np.quantile(stars["fwhm"][stars["deformity"] < def_clip], [0.1, 0.9])
-    psf_size = int(psf * 10)
+    psf_choose = np.logical_and(stars["deformity"] < def_clip, np.isfinite(stars["fwhm"]))
+    if np.sum(psf_choose) == 0:
+        return IMG, {"psf fwhm": fwhm_guess}
+    psf = np.median(stars["fwhm"][psf_choose])
+    if not np.isfinite(psf) or psf <= 0:
+        return IMG, {"psf fwhm": fwhm_guess}
+    psf_iqr = np.quantile(stars["fwhm"][psf_choose], [0.1, 0.9])
+    psf_size = max(3, int(psf * 10))
     if psf_size % 2 == 0:  # make PSF odd for easier calculations
         psf_size += 1
 
@@ -333,26 +367,39 @@ def PSF_Image(IMG, results, options):
             stars["deformity"][i] > def_clip
             or stars["fwhm"][i] < psf_iqr[0]
             or stars["fwhm"][i] > psf_iqr[1]
+            or not np.isfinite(stars["x"][i])
+            or not np.isfinite(stars["y"][i])
         ):
             continue
         # ignore objects that are too close to the edge
         if (
             stars["x"][i] < psf_size // 2
-            or (dat.shape[1] - stars["x"][i]) < psf_size // 2
+            or (filled_dat.shape[1] - stars["x"][i]) < psf_size // 2
             or stars["y"][i] < psf_size // 2
-            or (dat.shape[1] - stars["y"][i]) < psf_size // 2
+            or (filled_dat.shape[0] - stars["y"][i]) < psf_size // 2
         ):
             continue
-        flux = interpolate_Lanczos(dat, XX + stars["x"][i], YY + stars["y"][i], 10).reshape(
+        flux = interpolate_Lanczos(
+            filled_dat, XX + stars["x"][i], YY + stars["y"][i], 10
+        ).reshape(
             (1, psf_size, psf_size)
         )
-        flux /= np.sum(flux)
+        total_flux = np.sum(flux)
+        if not np.isfinite(total_flux) or total_flux <= 0 or not np.all(np.isfinite(flux)):
+            continue
+        flux /= total_flux
         psf_img = flux if psf_img is None else np.concatenate((psf_img, flux))
+
+    if psf_img is None:
+        return IMG, {"psf fwhm": fwhm_guess}
 
     # stack the PSF
     psf_img = np.median(psf_img, axis=0)
     # normalize the PSF
-    psf_img /= np.sum(psf_img)
+    psf_sum = np.sum(psf_img)
+    if not np.isfinite(psf_sum) or psf_sum <= 0 or not np.all(np.isfinite(psf_img)):
+        return IMG, {"psf fwhm": fwhm_guess}
+    psf_img /= psf_sum
 
     hdul = fits.HDUList([fits.PrimaryHDU(psf_img)])
     hdul.writeto(
@@ -467,12 +514,25 @@ def PSF_deconvolve(IMG, results, options):
         psf_img = np.exp(-(XX**2 + YY**2) / (2 * psf_std**2)) / np.sqrt(2 * np.pi * psf_std**2)
         psf_img /= np.sum(psf_img)
 
+    psf_img = np.array(psf_img, dtype=float, copy=True)
+    if np.any(np.logical_not(np.isfinite(psf_img))):
+        psf_img = _spline_fill_nonfinite(psf_img, options)
+    psf_sum = np.sum(psf_img)
+    if not np.isfinite(psf_sum) or psf_sum <= 0:
+        raise ValueError("PSF image has no finite positive flux")
+    psf_img /= psf_sum
     if np.abs(np.sum(psf_img) - 1) > 1e-7:
-        logging.warn("PSF image not normalized! sum(PSF) = %.3e" % np.sum(psf_img))
-    dmax = np.max(IMG)
-    dmin = np.min(IMG)
+        logging.warning("PSF image not normalized! sum(PSF) = %.3e" % np.sum(psf_img))
+    finite_img = IMG[np.isfinite(IMG)]
+    if len(finite_img) == 0:
+        raise ValueError("No finite pixels available for PSF deconvolution")
+    dmax = np.max(finite_img)
+    dmin = np.min(finite_img)
+    if not np.isfinite(dmax - dmin) or dmax == dmin:
+        return np.array(IMG, copy=True), {}
+    deconv_input = _spline_fill_nonfinite(IMG, options)
     dat_deconv = restoration.richardson_lucy(
-        (IMG - dmin) / (dmax - dmin) - 0.5,
+        (deconv_input - dmin) / (dmax - dmin) - 0.5,
         psf_img,
         num_iter=(
             options["ap_psf_deconvolution_iterations"]

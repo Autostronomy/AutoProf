@@ -6,6 +6,7 @@ from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariat
 from scipy.fftpack import fft, ifft
 from scipy.optimize import minimize
 from scipy.signal import convolve2d
+from scipy.ndimage import distance_transform_edt, label
 from astropy.visualization import SqrtStretch, LogStretch, HistEqStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 import matplotlib.pyplot as plt
@@ -62,6 +63,80 @@ autocolours = {
     "blue2": "#6F8AB7",
     "redrange": ["#720026", "#A0213F", "#ce4257", "#E76154", "#ff9b54", "#ffd1b1"],
 }  # '#D95D39'
+
+
+def _nearest_finite_fill(IMG, bad, context="image"):
+    filled = np.array(IMG, dtype=float, copy=True)
+    if np.all(bad):
+        raise ValueError("No finite pixels available for %s interpolation" % context)
+    dumy, indices = distance_transform_edt(
+        bad,
+        return_distances=True,
+        return_indices=True,
+    )
+    filled[bad] = filled[tuple(indices[:, bad])]
+    return filled
+
+
+def _spline_fill_nonfinite(IMG, options=None):
+    bad = np.logical_not(np.isfinite(IMG))
+    if not np.any(bad):
+        return IMG
+
+    ap_name = (
+        options["ap_name"]
+        if options is not None and "ap_name" in options
+        else "AutoProf"
+    )
+    labels, nlabels = label(bad)
+    if nlabels > 0:
+        largest_bad = np.max(np.bincount(labels.ravel())[1:])
+    else:
+        largest_bad = 0
+    bad_fraction = np.sum(bad) / bad.size
+    if bad_fraction > 0.01 or largest_bad > 0.005 * bad.size:
+        logging.warning(
+            "%s: image has large non-finite regions; spline-filled values may be unreliable"
+            % ap_name
+        )
+
+    filled = np.array(IMG, dtype=float, copy=True)
+    good = np.logical_not(bad)
+    y, x = np.nonzero(good)
+    z = filled[good]
+    y_bad, x_bad = np.nonzero(bad)
+
+    kx = min(3, len(np.unique(x)) - 1)
+    ky = min(3, len(np.unique(y)) - 1)
+    if kx < 1 or ky < 1:
+        return _nearest_finite_fill(IMG, bad)
+
+    max_spline_points = 50000
+    if len(z) > max_spline_points:
+        step = int(np.ceil(len(z) / max_spline_points))
+        x_fit = x[::step]
+        y_fit = y[::step]
+        z_fit = z[::step]
+    else:
+        x_fit = x
+        y_fit = y
+        z_fit = z
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            spline = SmoothBivariateSpline(x_fit, y_fit, z_fit, kx=kx, ky=ky)
+        fill_values = spline.ev(x_bad, y_bad)
+        if not np.all(np.isfinite(fill_values)):
+            raise ValueError("Spline produced non-finite fill values")
+        filled[bad] = fill_values
+        return filled
+    except Exception as e:
+        logging.warning(
+            "%s: spline fill failed (%s); using nearest finite fill"
+            % (ap_name, str(e))
+        )
+        return _nearest_finite_fill(IMG, bad)
 
 
 def LSBImage(dat, noise):
@@ -820,6 +895,16 @@ def _iso_line(IMG, length, width, pa, c, more=False, mask=None):
         return flux[CHOOSE], Xline[CHOOSE]
 
 
+def _empty_starfind_result():
+    return {
+        "x": np.array([]),
+        "y": np.array([]),
+        "fwhm": np.array([]),
+        "peak": np.array([]),
+        "deformity": np.array([]),
+    }
+
+
 def StarFind(
     IMG,
     fwhm_guess,
@@ -845,26 +930,40 @@ def StarFind(
     maxstars: stop once this number of stars have been found, this is for speed purposes
     """
 
+    invalid_mask = np.logical_not(np.isfinite(IMG))
+    if np.all(invalid_mask):
+        return _empty_starfind_result()
+    # Preserve user mask semantics while always excluding invalid image pixels.
+    if mask is None:
+        mask = invalid_mask
+    else:
+        mask = np.logical_or(np.asarray(mask, dtype=bool), invalid_mask)
+    use_img = (
+        _nearest_finite_fill(IMG, invalid_mask, context="star finder")
+        if np.any(invalid_mask)
+        else np.array(IMG, dtype=float, copy=True)
+    )
+
     # Convolve edge detector with image
     S = 3 ** np.array([1, 2, 3, 4, 5])
     S = int(S[np.argmin(np.abs(S / 3 - fwhm_guess))])
     zz = np.ones((S, S)) * -1
     zz[int(S / 3) : int(2 * S / 3), int(S / 3) : int(2 * S / 3)] = 8
 
-    new = convolve2d(IMG, zz, mode="same")
+    new = convolve2d(use_img, zz, mode="same")
 
     centers = np.array([])
     deformities = []
     fwhms = []
     peaks = []
     # Select pixels which edge detector identifies
-    if mask is None:
-        highpixels = np.argwhere(new > detect_threshold * iqr(new))
-    else:
-        use_mask = np.logical_and(np.logical_not(mask), np.isfinite(new))
-        highpixels = np.argwhere(
-            np.logical_and(new > detect_threshold * iqr(new[use_mask]), use_mask)
-        )
+    use_mask = np.logical_and(np.logical_not(mask), np.isfinite(new))
+    if np.sum(use_mask) == 0:
+        return _empty_starfind_result()
+    threshold = detect_threshold * iqr(new[use_mask])
+    if not np.isfinite(threshold):
+        return _empty_starfind_result()
+    highpixels = np.argwhere(np.logical_and(new > threshold, use_mask))
     np.random.shuffle(highpixels)
     # meshgrid for 2D polynomial fit (pre-built for efficiency)
     xx, yy = np.meshgrid(np.arange(6), np.arange(6))
@@ -886,8 +985,9 @@ def StarFind(
 
     for i in range(len(highpixels)):
         # reject if near an existing center
+        highcenter = np.array([highpixels[i][1], highpixels[i][0]])
         if len(centers) != 0 and np.any(
-            np.sqrt(np.sum((highpixels[i] - centers) ** 2, axis=1)) < minsep * fwhm_guess
+            np.sqrt(np.sum((highcenter - centers) ** 2, axis=1)) < minsep * fwhm_guess
         ):
             continue
         # reject if near edge
@@ -896,37 +996,48 @@ def StarFind(
         ):
             continue
         # set starting point at local maximum pixel
-        newcenter = np.array([highpixels[i][1], highpixels[i][0]])
+        newcenter = highcenter
         ranges = [
             [
                 max(0, int(newcenter[0] - fwhm_guess * 5)),
-                min(IMG.shape[1], int(newcenter[0] + fwhm_guess * 5)),
+                min(use_img.shape[1], int(newcenter[0] + fwhm_guess * 5)),
             ],
             [
                 max(0, int(newcenter[1] - fwhm_guess * 5)),
-                min(IMG.shape[0], int(newcenter[1] + fwhm_guess * 5)),
+                min(use_img.shape[0], int(newcenter[1] + fwhm_guess * 5)),
             ],
         ]
+        find_chunk = use_img[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T
+        if find_chunk.size == 0 or not np.all(np.isfinite(find_chunk)):
+            continue
         newcenter = np.unravel_index(
-            np.argmax(IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T),
-            IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T.shape,
+            np.argmax(find_chunk),
+            find_chunk.shape,
         )
         newcenter += np.array([ranges[0][0], ranges[1][0]])
         if np.any(newcenter < 5 * fwhm_guess) or np.any(
-            newcenter > (np.array(IMG.shape) - 5 * fwhm_guess)
+            newcenter > (np.array(list(reversed(use_img.shape))) - 5 * fwhm_guess)
         ):
             continue
         # update star center with 2D polynomial fit
         ranges = [
-            [max(0, int(newcenter[0] - 3)), min(IMG.shape[1], int(newcenter[0] + 3))],
-            [max(0, int(newcenter[1] - 3)), min(IMG.shape[0], int(newcenter[1] + 3))],
+            [max(0, int(newcenter[0] - 3)), min(use_img.shape[1], int(newcenter[0] + 3))],
+            [max(0, int(newcenter[1] - 3)), min(use_img.shape[0], int(newcenter[1] + 3))],
         ]
         chunk = np.clip(
-            IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T,
+            use_img[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T,
             a_min=background_noise / 3,
             a_max=None,
         )
+        if chunk.shape != (6, 6) or not np.all(np.isfinite(chunk)):
+            continue
         poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()), rcond=None)
+        if (
+            not np.all(np.isfinite(poly2dfit[0]))
+            or poly2dfit[0][3] == 0
+            or poly2dfit[0][4] == 0
+        ):
+            continue
         newcenter = np.array(
             [
                 -poly2dfit[0][2] / (2 * poly2dfit[0][4]),
@@ -940,12 +1051,12 @@ def StarFind(
 
         # reject centers that are outside the image
         if np.any(newcenter < 5 * fwhm_guess) or np.any(
-            newcenter > (np.array(list(reversed(IMG.shape))) - 5 * fwhm_guess)
+            newcenter > (np.array(list(reversed(use_img.shape))) - 5 * fwhm_guess)
         ):
             continue
         # reject stars with too high flux
         if (not peakmax is None) and np.any(
-            IMG[
+            use_img[
                 int(newcenter[1] - minsep * fwhm_guess) : int(newcenter[1] + minsep * fwhm_guess),
                 int(newcenter[0] - minsep * fwhm_guess) : int(newcenter[0] + minsep * fwhm_guess),
             ]
@@ -961,29 +1072,30 @@ def StarFind(
             continue
 
         # Extract flux as a function of radius
-        local_flux = np.median(
-            _iso_extract(
-                IMG,
-                reject_size * fwhm_guess,
-                {"ellip": 0.0, "pa": 0.0},
-                {"x": newcenter[0], "y": newcenter[1]},
-                mask=mask,
-                interp_method="bicubic",
-            )
+        edge_flux = _iso_extract(
+            use_img,
+            reject_size * fwhm_guess,
+            {"ellip": 0.0, "pa": 0.0},
+            {"x": newcenter[0], "y": newcenter[1]},
+            mask=mask,
+            interp_method="bicubic",
         )
-        flux = [
-            np.median(
-                _iso_extract(
-                    IMG,
-                    0.0,
-                    {"ellip": 0.0, "pa": 0.0},
-                    {"x": newcenter[0], "y": newcenter[1]},
-                    mask=mask,
-                    interp_method="bicubic",
-                )
-            )
-            - local_flux
-        ]
+        if len(edge_flux) == 0:
+            continue
+        local_flux = np.median(edge_flux)
+        center_flux = _iso_extract(
+            use_img,
+            0.0,
+            {"ellip": 0.0, "pa": 0.0},
+            {"x": newcenter[0], "y": newcenter[1]},
+            mask=mask,
+            interp_method="bicubic",
+        )
+        if len(center_flux) == 0:
+            continue
+        flux = [np.median(center_flux) - local_flux]
+        if not np.isfinite(local_flux) or not np.isfinite(flux[0]):
+            continue
         if (flux[0] - local_flux) < (detect_threshold * background_noise):
             continue
         R = [0.0]
@@ -995,7 +1107,7 @@ def StarFind(
             R.append(R[-1] + fwhm_guess / 10)
             try:
                 isovals = _iso_extract(
-                    IMG,
+                    use_img,
                     R[-1],
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
@@ -1005,14 +1117,22 @@ def StarFind(
             except:
                 R = np.zeros(101)  # cause finder to skip this star
                 break
+            if len(isovals) == 0:
+                R = np.zeros(101)  # cause finder to skip this star
+                break
             coefs = fft(isovals)
+            iso_med = np.median(isovals)
+            denom = len(isovals) * (max(iso_med, 0) + background_noise)
+            if not np.isfinite(iso_med) or not np.isfinite(denom) or denom <= 0:
+                R = np.zeros(101)  # cause finder to skip this star
+                break
             deformity.append(
                 np.sum(np.abs(coefs[1:5]))
-                / (len(isovals) * (max(np.median(isovals), 0) + background_noise))
+                / denom
             )  # np.sqrt(np.abs(coefs[0]))
             # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
             #     badcount += 1
-            flux.append(np.median(isovals) - local_flux)
+            flux.append(iso_med - local_flux)
         if len(R) >= 50:
             continue
         fwhm_fit = np.interp(flux[0] / 2, list(reversed(flux)), list(reversed(R))) * 2
@@ -1041,6 +1161,8 @@ def StarFind(
         # #plt.scatter([highpixels[i][1] - ranges[0][0]], [highpixels[i][0] - ranges[1][0]], color = 'g', marker = 'x')
         # plt.savefig('test/PSF_test_%i_center.jpg' % randid)
         # plt.close()
+    if len(centers) == 0:
+        return _empty_starfind_result()
     return {
         "x": centers[:, 0],
         "y": centers[:, 1],

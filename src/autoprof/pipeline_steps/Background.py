@@ -2,13 +2,11 @@ from photutils.segmentation import make_source_mask
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from scipy.stats import iqr
 from scipy.fftpack import fft2, ifft2
-from scipy.interpolate import SmoothBivariateSpline
-from scipy.ndimage import distance_transform_edt, label
 import logging
 import numpy as np
 import warnings
 
-from ..autoprofutils.SharedFunctions import Smooth_Mode
+from ..autoprofutils.SharedFunctions import Smooth_Mode, _spline_fill_nonfinite
 from ..autoprofutils.Diagnostic_Plots import Plot_Background
 
 __all__ = (
@@ -44,75 +42,6 @@ def _apply_background_speedup(values, options):
     if "ap_background_speedup" in options and int(options["ap_background_speedup"]) > 1:
         values = values[:: int(options["ap_background_speedup"])]
     return values
-
-
-def _nearest_finite_fill(IMG, bad):
-    filled = np.array(IMG, dtype=float, copy=True)
-    if np.all(bad):
-        raise ValueError("No finite pixels available for background estimation")
-    dumy, indices = distance_transform_edt(
-        bad,
-        return_distances=True,
-        return_indices=True,
-    )
-    filled[bad] = filled[tuple(indices[:, bad])]
-    return filled
-
-
-def _spline_fill_nonfinite(IMG, options):
-    bad = np.logical_not(np.isfinite(IMG))
-    if not np.any(bad):
-        return IMG
-
-    labels, nlabels = label(bad)
-    if nlabels > 0:
-        largest_bad = np.max(np.bincount(labels.ravel())[1:])
-    else:
-        largest_bad = 0
-    bad_fraction = np.sum(bad) / bad.size
-    if bad_fraction > 0.01 or largest_bad > 0.005 * bad.size:
-        logging.warning(
-            "%s: unsharp background has large non-finite regions; spline-filled FFT background may be unreliable"
-            % options["ap_name"]
-        )
-
-    filled = np.array(IMG, dtype=float, copy=True)
-    good = np.logical_not(bad)
-    y, x = np.nonzero(good)
-    z = filled[good]
-    y_bad, x_bad = np.nonzero(bad)
-
-    kx = min(3, len(np.unique(x)) - 1)
-    ky = min(3, len(np.unique(y)) - 1)
-    if kx < 1 or ky < 1:
-        return _nearest_finite_fill(IMG, bad)
-
-    max_spline_points = 50000
-    if len(z) > max_spline_points:
-        step = int(np.ceil(len(z) / max_spline_points))
-        x_fit = x[::step]
-        y_fit = y[::step]
-        z_fit = z[::step]
-    else:
-        x_fit = x
-        y_fit = y
-        z_fit = z
-
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", UserWarning)
-            spline = SmoothBivariateSpline(x_fit, y_fit, z_fit, kx=kx, ky=ky)
-        fill_values = spline.ev(x_bad, y_bad)
-        if not np.all(np.isfinite(fill_values)):
-            raise ValueError("Spline produced non-finite fill values")
-        filled[bad] = fill_values
-        return filled
-    except Exception as e:
-        logging.warning(
-            "%s: spline fill failed for unsharp background (%s); using nearest finite fill"
-            % (options["ap_name"], str(e))
-        )
-        return _nearest_finite_fill(IMG, bad)
 
 
 def Background_Mode(IMG, results, options):
