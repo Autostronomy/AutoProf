@@ -8,7 +8,13 @@ import logging
 import sys
 import os
 
-from ..autoprofutils.SharedFunctions import Read_Image, LSBImage, AddLogo, StarFind
+from ..autoprofutils.SharedFunctions import (
+    Read_Image,
+    LSBImage,
+    AddLogo,
+    StarFind,
+    _nearest_finite_fill,
+)
 
 __all__ = ("Bad_Pixel_Mask", "Mask_Segmentation_Map", "Star_Mask_IRAF", "Star_Mask")
 
@@ -70,9 +76,9 @@ def Bad_Pixel_Mask(IMG, results, options):
         Mask[IMG == options["ap_badpixel_exact"]] = True
     if np.any(np.logical_not(np.isfinite(IMG))):
         Mask[np.logical_not(np.isfinite(IMG))] = True
-        
-    if "mask" in results:
-        mask = np.logical_or(mask, results["mask"])
+
+    if "mask" in results and not results["mask"] is None:
+        Mask = np.logical_or(Mask, results["mask"])
 
     logging.info("%s: masking %i bad pixels" % (options["ap_name"], np.sum(Mask)))
     return IMG, {"mask": Mask}
@@ -239,11 +245,18 @@ def Star_Mask_IRAF(IMG, results, options):
     ]
 
     # Run photutils wrapper for IRAF star finder
-    dat = IMG - results["background"]
+    dat = np.array(IMG - results["background"], dtype=float, copy=True)
+    bad_mask = np.logical_not(np.isfinite(dat))
+    if np.all(bad_mask):
+        dat[bad_mask] = 0.0
+    elif np.any(bad_mask):
+        dat = _nearest_finite_fill(dat, bad_mask, context="star mask")
     iraffind = IRAFStarFinder(
         fwhm=fwhm, threshold=10.0 * results["background noise"], brightest=50
     )
-    irafsources = iraffind(dat[ybounds[0] : ybounds[1], xbounds[0] : xbounds[1]])
+    irafsources = iraffind.find_stars(
+        dat[ybounds[0] : ybounds[1], xbounds[0] : xbounds[1]]
+    )
     mask = np.zeros(IMG.shape, dtype=bool)
     # Mask star pixels and area around proportionate to their total flux
     XX, YY = np.meshgrid(range(IMG.shape[0]), range(IMG.shape[1]), indexing="ij")
@@ -251,6 +264,8 @@ def Star_Mask_IRAF(IMG, results, options):
         for x, y, f in zip(
             irafsources["xcentroid"], irafsources["ycentroid"], irafsources["flux"]
         ):
+            if not np.isfinite(x) or not np.isfinite(y) or not np.isfinite(f) or f <= 0:
+                continue
             if (
                 np.sqrt(
                     (x - (xbounds[1] - xbounds[0]) / 2) ** 2
@@ -264,13 +279,14 @@ def Star_Mask_IRAF(IMG, results, options):
             # Compute the flux of the star
             # f = np.sum(IMG[R < 10*fwhm])
             # Compute radius to reach background noise level, assuming gaussian
-            Rstar = (fwhm / 2.355) * np.sqrt(
-                2
-                * np.log(
-                    f
-                    / (np.sqrt(2 * np.pi * fwhm / 2.355) * results["background noise"])
-                )
+            flux_scale = f / (
+                np.sqrt(2 * np.pi * fwhm / 2.355) * results["background noise"]
             )
+            if not np.isfinite(flux_scale) or flux_scale <= 1:
+                continue
+            Rstar = (fwhm / 2.355) * np.sqrt(2 * np.log(flux_scale))
+            if not np.isfinite(Rstar) or Rstar <= 0:
+                continue
             mask[R < Rstar] = True
 
     if "mask" in results:
