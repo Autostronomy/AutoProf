@@ -4,6 +4,8 @@ import os
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _has_enough_isophote_coverage,
+    _interpolate_invalid_isophote_samples,
     AddLogo,
     Angle_Median,
     flux_to_sb,
@@ -758,14 +760,40 @@ def _central_surface_brightness(dat, center, results, options):
     )
 
 
+def _extract_center_fft_samples(dat, radius, center, mask=None, **kwargs):
+    kwargs.setdefault("interp_method", "bilinear")
+    flux, theta, choose, _ = _iso_extract(
+        dat,
+        radius,
+        {"ellip": 0.0, "pa": 0.0},
+        center,
+        more=True,
+        mask=mask,
+        return_choose=True,
+        **kwargs,
+    )
+    if not _has_enough_isophote_coverage(theta, choose):
+        return None
+    return _interpolate_invalid_isophote_samples(flux, theta, choose)
+
+
+def _center_sample_radii(psf_fwhm, searchring):
+    sampleradii = np.linspace(1, searchring, searchring) * psf_fwhm / 2
+    # Sub-pixel rings are dominated by interpolation rather than image structure.
+    sampleradii = sampleradii[sampleradii >= 1.0]
+    if len(sampleradii) == 0:
+        return np.array([1.0])
+    return sampleradii
+
+
 def _hillclimb_loss(x, IMG, PSF, noise, mask=None):
     center_loss = 0
+    valid_radii = 0
     for rr in range(3):
         RR = (rr + 1.0) * PSF / 2
-        isovals = _iso_extract(
+        isovals = _extract_center_fft_samples(
             IMG,
             RR,
-            {"ellip": 0.0, "pa": 0.0},
             {
                 "x": np.clip(
                     x[0], a_min=np.ceil(3 + RR), a_max=np.floor(IMG.shape[1] - 4 - RR)
@@ -774,28 +802,30 @@ def _hillclimb_loss(x, IMG, PSF, noise, mask=None):
                     x[1], a_min=np.ceil(3 + RR), a_max=np.floor(IMG.shape[0] - 4 - RR)
                 ),
             },
-            more=False,
-            rad_interp=10 * PSF,
-            interp_method="lanczos",
-            interp_window=3,
             mask=mask,
+            rad_interp=10 * PSF,
+            interp_method="bilinear",
         )
-        if len(isovals) < 2:
-            return np.inf
+        if isovals is None or len(isovals[0]) < 2:
+            continue
+        isovals = isovals[0]
         coefs = fft(isovals)
         denominator = len(isovals) * (max(0, np.median(isovals)) + noise)
         if (not np.isfinite(denominator)) or denominator <= 0:
-            return np.inf
+            continue
         center_loss += np.abs(coefs[1]) / denominator
+        valid_radii += 1
         if not np.isfinite(center_loss):
             return np.inf
+    if valid_radii == 0:
+        return np.inf
     return center_loss
 
 
 def Center_HillClimb(IMG, results, options):
     """Follow locally increasing brightness (robust to PSF size objects) to find peak.
 
-    Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
+    Using 10 circular isophotes out to 10 times the PSF HWHM, the first FFT coefficient
     phases are averaged to find the direction of increasing flux. Flux values are sampled
     along this direction and a quadratic fit gives the maximum. This is iteratively
     repeated until the step size becomes very small.
@@ -826,7 +856,7 @@ def Center_HillClimb(IMG, results, options):
 
     ap_centeringring : int, default 10
       Size of ring to use when finding galaxy center, in units of
-      PSF. Larger rings will be robust to features (i.e., foreground
+      PSF HWHM. Larger rings will be robust to features (i.e., foreground
       stars), while smaller rings may be needed for small galaxies.
 
     Notes
@@ -877,7 +907,7 @@ def Center_HillClimb(IMG, results, options):
     searchring = (
         int(options["ap_centeringring"]) if "ap_centeringring" in options else 10
     )
-    sampleradii = np.linspace(1, searchring, searchring) * results["psf fwhm"]
+    sampleradii = _center_sample_radii(results["psf fwhm"], searchring)
 
     track_centers = []
     small_update_count = 0
@@ -890,15 +920,13 @@ def Center_HillClimb(IMG, results, options):
         coefs = []
         sampled_radii = []
         for r in sampleradii:
-            isovals_r = _iso_extract(
+            isovals_r = _extract_center_fft_samples(
                 dat,
                 r,
-                {"ellip": 0.0, "pa": 0.0},
                 current_center,
-                more=True,
                 mask=results.get("mask", None),
             )
-            if len(isovals_r[0]) < 2:
+            if isovals_r is None or len(isovals_r[0]) < 2:
                 continue
             isovals.append(isovals_r)
             coefs.append(
@@ -1004,32 +1032,35 @@ def Center_HillClimb(IMG, results, options):
 
 def _hillclimb_mean_loss(x, IMG, PSF, noise, mask=None):
     center_loss = 0
+    valid_radii = 0
     for rr in range(3):
-        isovals = _iso_extract(
+        isovals = _extract_center_fft_samples(
             IMG,
             (rr + 0.5) * PSF,
-            {"ellip": 0.0, "pa": 0.0},
             {"x": x[0], "y": x[1]},
-            more=False,
             rad_interp=10 * PSF,
             mask=mask,
         )
-        if len(isovals) < 2:
-            return np.inf
+        if isovals is None or len(isovals[0]) < 2:
+            continue
+        isovals = isovals[0]
         coefs = fft(isovals)
         denominator = len(isovals) * max(noise, np.mean(isovals))
         if (not np.isfinite(denominator)) or denominator <= 0:
-            return np.inf
+            continue
         center_loss += np.abs(coefs[1]) / denominator
+        valid_radii += 1
         if not np.isfinite(center_loss):
             return np.inf
+    if valid_radii == 0:
+        return np.inf
     return center_loss
 
 
 def Center_HillClimb_mean(IMG, results, options):
     """Follow locally increasing brightness (robust to PSF size objects) to find peak.
 
-    Using 10 circular isophotes out to 10 times the PSF length, the
+    Using 10 circular isophotes out to 10 times the PSF HWHM, the
     first FFT coefficient phases are averaged to find the direction of
     increasing flux. Flux values are sampled along this direction and
     a quadratic fit gives the maximum. This is iteratively repeated
@@ -1063,7 +1094,7 @@ def Center_HillClimb_mean(IMG, results, options):
 
     ap_centeringring : int, default 10
       Size of ring to use when finding galaxy center, in units of
-      PSF. Larger rings will be robust to features (i.e., foreground
+      PSF HWHM. Larger rings will be robust to features (i.e., foreground
       stars), while smaller rings may be needed for small galaxies.
 
     Notes
@@ -1111,7 +1142,7 @@ def Center_HillClimb_mean(IMG, results, options):
     searchring = (
         int(options["ap_centeringring"]) if "ap_centeringring" in options else 10
     )
-    sampleradii = np.linspace(1, searchring, searchring) * results["psf fwhm"]
+    sampleradii = _center_sample_radii(results["psf fwhm"], searchring)
 
     track_centers = []
     small_update_count = 0
@@ -1124,15 +1155,13 @@ def Center_HillClimb_mean(IMG, results, options):
         coefs = []
         sampled_radii = []
         for r in sampleradii:
-            isovals_r = _iso_extract(
+            isovals_r = _extract_center_fft_samples(
                 dat,
                 r,
-                {"ellip": 0.0, "pa": 0.0},
                 current_center,
-                more=True,
                 mask=results.get("mask", None),
             )
-            if len(isovals_r[0]) < 2:
+            if isovals_r is None or len(isovals_r[0]) < 2:
                 continue
             isovals.append(isovals_r)
             coefs.append(fft(isovals[-1][0]))
