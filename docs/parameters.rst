@@ -225,7 +225,7 @@ ap_guess_psf (float, default None)
 Initialization value for the PSF calculation in pixels. If not
 given, AutoProf will default with a guess of 1/*ap_pixscale*
 
-ap_iso_interpolate_method (string, default 'lanczos')
+ap_isoextract_interpolate_method (string, default 'lanczos')
 ----------------------------------------------------------------------
 
 **Referencing Methods**
@@ -236,8 +236,8 @@ ap_iso_interpolate_method (string, default 'lanczos')
 **Description**
 
 Select method for flux interpolation on image, options are
-'lanczos' and 'bicubic'. Default is 'lanczos' with a window size
-of 3.
+'lanczos', 'bicubic', and 'bilinear'. Default is 'lanczos' with
+a window size of 3.
 
 ap_iso_interpolate_start (float, default 5)
 ----------------------------------------------------------------------
@@ -425,6 +425,21 @@ decomposition along fitted elliptical isophotes. This can
 improve the fit result, though it is less stable and so users
 should examine the results after fitting.
 
+ap_isofit_interpolate_method (string, default 'bicubic')
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
+
+**Description**
+
+Select method for flux interpolation while fitting isophotes.
+Options are 'lanczos', 'bicubic', and 'bilinear'. The mean
+fitting method defaults to the standard isophote extraction
+default when this option is not set.
+
 ap_isofit_iterlimitmax (int, default 300)
 ----------------------------------------------------------------------
 
@@ -560,6 +575,20 @@ ap_isoinit_ellip_set (float, default None)
 **Description**
 
 User set initial ellipticity (1 - b/a), will override the calculation.
+
+ap_isoinit_interpolate_method (string, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean`
+
+**Description**
+
+Select method for flux interpolation while initializing
+isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
+Default None uses the standard isophote extraction default.
 
 ap_isoinit_pa_set (float, default None)
 ----------------------------------------------------------------------
@@ -982,4 +1011,3 @@ ap_zeropoint (float, default 22.5)
 **Description**
 
 Photometric zero point. For converting flux to mag units.
-

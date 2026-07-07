@@ -698,6 +698,10 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
       improve the fit result, though it is less stable and so users
       should examine the results after fitting.
 
+    ap_isofit_interpolate_method : string, default 'bicubic'
+      Select method for flux interpolation while fitting isophotes.
+      Options are 'lanczos', 'bicubic', and 'bilinear'.
+
     ap_isofit_perturbscale_ellip : float, default 0.03
       Sampling scale for random adjustments to ellipticity made while
       optimizing isophotes. Smaller values will converge faster, but
@@ -802,7 +806,11 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     perturb_scale = 0.03
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
     robust_clip = options["ap_isofit_robustclip"] if "ap_isofit_robustclip" in options else 0.15
-    interp_method = "bicubic"
+    interp_method = (
+        options["ap_isofit_interpolate_method"]
+        if "ap_isofit_interpolate_method" in options
+        else "bicubic"
+    )
     N_perturb = 5
     fit_coefs = options["ap_isofit_losscoefs"] if "ap_isofit_losscoefs" in options else None
     fit_params = options["ap_isofit_fitcoefs"] if "ap_isofit_fitcoefs" in options else None
@@ -1279,6 +1287,11 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
       isophotes.  Default of 1, larger values make smoother fits,
       smaller values give more chaotic fits.
 
+    ap_isofit_interpolate_method : string, default None
+      Select method for flux interpolation while fitting isophotes.
+      Options are 'lanczos', 'bicubic', and 'bilinear'. Default None
+      uses the standard isophote extraction default.
+
     Notes
     ----------
     :References:
@@ -1340,7 +1353,11 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
-    interp_method = None
+    interp_method = (
+        options["ap_isofit_interpolate_method"]
+        if "ap_isofit_interpolate_method" in options
+        else None
+    )
     N_perturb = 5
 
     count = 0

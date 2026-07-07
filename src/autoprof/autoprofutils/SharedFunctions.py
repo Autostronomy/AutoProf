@@ -591,6 +591,40 @@ def _interpolate_bicubic_local(dat, X, Y, mask=None):
     return flux, valid
 
 
+def _interpolate_bilinear(dat, X, Y, mask=None):
+    flux = np.full(len(X), np.nan)
+    valid = np.ones(len(X), dtype=bool)
+
+    for i in range(len(X)):
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        xbase = int(np.floor(X[i]))
+        ybase = int(np.floor(Y[i]))
+        x0, x1 = xbase, xbase + 2
+        y0, y1 = ybase, ybase + 2
+        if x0 < 0 or y0 < 0 or x1 > dat.shape[1] or y1 > dat.shape[0]:
+            valid[i] = False
+            continue
+
+        chunk = dat[y0:y1, x0:x1]
+        if not np.all(np.isfinite(chunk)):
+            valid[i] = False
+            continue
+        if mask is not None and np.any(mask[y0:y1, x0:x1]):
+            valid[i] = False
+            continue
+
+        dx = X[i] - xbase
+        dy = Y[i] - ybase
+        wx = np.array([1 - dx, dx])
+        wy = np.array([1 - dy, dy])
+        flux[i] = np.sum(chunk * wy.reshape((-1, 1)) * wx)
+
+    return flux, valid
+
+
 def interpolate_Lanczos(dat, X, Y, scale):
     """
     Perform Lanczos interpolation on an image.
@@ -835,6 +869,8 @@ def _iso_extract(
     if Rlim < rad_interp:
         if interp_method == "bicubic":
             flux, footprint_choose = _interpolate_bicubic_local(IMG, X, Y, mask=mask)
+        elif interp_method == "bilinear":
+            flux, footprint_choose = _interpolate_bilinear(IMG, X, Y, mask=mask)
         elif interp_method == "lanczos":
             flux = interpolate_Lanczos(IMG, X, Y, interp_window)
             footprint_choose = _interpolation_footprint_valid(
@@ -847,7 +883,7 @@ def _iso_extract(
             )
         else:
             raise ValueError(
-                "Unknown interpolate method %s. Should be one of lanczos or bicubic" % interp_method
+                "Unknown interpolate method %s. Should be one of lanczos, bicubic, or bilinear" % interp_method
             )
     else:
         # round to integers and sample pixels values

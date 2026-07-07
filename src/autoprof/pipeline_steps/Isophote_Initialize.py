@@ -247,6 +247,11 @@ def Isophote_Initialize(IMG, results, options):
     ap_isoinit_R_set : float, default None
         User set initial semi-major axis length, will override the calculation.
 
+    ap_isoinit_interpolate_method : string, default None
+      Select method for flux interpolation while initializing
+      isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
+      Default None uses the standard isophote extraction default.
+
     Notes
     ----------
     :References:
@@ -282,7 +287,11 @@ def Isophote_Initialize(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
-    interp_method = None
+    interp_method = (
+        options["ap_isoinit_interpolate_method"]
+        if "ap_isoinit_interpolate_method" in options
+        else None
+    )
 
     if "ap_isoinit_R_set" in options:
         sample_radii = np.logspace(
@@ -538,6 +547,11 @@ def Isophote_Initialize_mean(IMG, results, options):
       background noise level. Default is 2, smaller values will end
       fitting further out in the galaxy image.
 
+    ap_isoinit_interpolate_method : string, default None
+      Select method for flux interpolation while initializing
+      isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
+      Default None uses the standard isophote extraction default.
+
     Notes
     ----------
     :References:
@@ -573,7 +587,11 @@ def Isophote_Initialize_mean(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
-    interp_method = None
+    interp_method = (
+        options["ap_isoinit_interpolate_method"]
+        if "ap_isoinit_interpolate_method" in options
+        else None
+    )
 
     r = circ_ellipse_radii[-1]
     while r < (len(IMG) / 2):

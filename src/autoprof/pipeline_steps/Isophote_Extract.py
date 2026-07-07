@@ -134,8 +134,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 )
                 * results["psf fwhm"],
                 interp_method=(
-                    options["ap_iso_interpolate_method"]
-                    if "ap_iso_interpolate_method" in options
+                    options["ap_isoextract_interpolate_method"]
+                    if "ap_isoextract_interpolate_method" in options
                     else "lanczos"
                 ),
                 interp_window=(
@@ -447,10 +447,10 @@ def Isophote_Extract_Forced(IMG, results, options):
       Use a Lanczos interpolation for isophotes with semi-major axis
       less than this number times the PSF.
 
-    ap_iso_interpolate_method : string, default 'lanczos'
+    ap_isoextract_interpolate_method : string, default 'lanczos'
       Select method for flux interpolation on image, options are
-      'lanczos' and 'bicubic'. Default is 'lanczos' with a window size
-      of 3.
+      'lanczos', 'bicubic', and 'bilinear'. Default is 'lanczos'
+      with a window size of 3.
 
     ap_iso_interpolate_window : int, default 3
       Window size for Lanczos interpolation, default is 3, meaning 3
@@ -661,10 +661,10 @@ def Isophote_Extract(IMG, results, options):
       Use a Lanczos interpolation for isophotes with semi-major axis
       less than this number times the PSF.
 
-    ap_iso_interpolate_method : string, default 'lanczos'
+    ap_isoextract_interpolate_method : string, default 'lanczos'
       Select method for flux interpolation on image, options are
-      'lanczos' and 'bicubic'. Default is 'lanczos' with a window size
-      of 3.
+      'lanczos', 'bicubic', and 'bilinear'. Default is 'lanczos'
+      with a window size of 3.
 
     ap_iso_interpolate_window : int, default 3
       Window size for Lanczos interpolation, default is 3, meaning 3
