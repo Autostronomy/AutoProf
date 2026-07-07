@@ -14,6 +14,8 @@ import logging
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _has_enough_isophote_coverage,
+    _interpolate_invalid_isophote_samples,
     _photutils_masked_data,
     _x_to_pa,
     _x_to_eps,
@@ -54,6 +56,10 @@ def _max_fit_mode(fit_coefs=None):
     return max(fit_coefs) if not fit_coefs is None and len(fit_coefs) > 0 else 2
 
 
+def _has_enough_sample_count(choose, max_mode=2):
+    return np.sum(choose) > 2 * max_mode
+
+
 def _has_enough_isophote_samples(
     dat,
     radius,
@@ -65,19 +71,58 @@ def _has_enough_isophote_samples(
 ):
     kwargs = {}
     if not interp_method is None:
-        kwargs["interp_mask"] = False if mask is None else True
         kwargs["interp_method"] = interp_method
-    isovals = _finite_isophote_samples(
-        _iso_extract(
-            dat,
-            radius,
-            params,
-            center,
-            mask=mask,
-            **kwargs,
-        )
+    _, theta, choose, _ = _iso_extract(
+        dat,
+        radius,
+        params,
+        center,
+        more=True,
+        mask=mask,
+        return_choose=True,
+        **kwargs,
     )
-    return len(isovals) > 2 * max_mode
+    return (
+        _has_enough_sample_count(choose, max_mode=max_mode)
+        and _has_enough_isophote_coverage(theta, choose)
+    )
+
+
+def _extract_fft_isophote_samples(
+    dat,
+    radius,
+    params,
+    center,
+    mask,
+    max_mode=2,
+    interp_method=None,
+):
+    kwargs = {}
+    if not interp_method is None:
+        kwargs["interp_method"] = interp_method
+    flux, theta, choose, _ = _iso_extract(
+        dat,
+        radius,
+        params,
+        center,
+        more=True,
+        mask=mask,
+        return_choose=True,
+        **kwargs,
+    )
+    has_enough_samples = (
+        _has_enough_sample_count(choose, max_mode=max_mode)
+        and _has_enough_isophote_coverage(theta, choose)
+    )
+    if mask is not None:
+        if not has_enough_samples:
+            return None
+        flux, theta = _interpolate_invalid_isophote_samples(flux, theta, choose)
+    elif not has_enough_samples:
+        return None
+    elif not np.all(choose):
+        flux = flux[choose]
+    return _finite_isophote_samples(flux)
 
 
 def _active_neighbors(i, active_mask, n):
@@ -156,7 +201,9 @@ def _activate_inactive_radii(
     return activated
 
 
-def _activate_inactive_ellipse_radii(dat, sample_radii, ellip, pa, active_mask, center, mask):
+def _activate_inactive_ellipse_radii(
+    dat, sample_radii, ellip, pa, active_mask, center, mask, interp_method=None
+):
     active_indices = np.flatnonzero(active_mask)
     inactive_indices = np.flatnonzero(np.logical_not(active_mask))
     if len(active_indices) < 2 or len(inactive_indices) == 0:
@@ -180,6 +227,7 @@ def _activate_inactive_ellipse_radii(dat, sample_radii, ellip, pa, active_mask, 
             {"ellip": ellip[i], "pa": pa[i]},
             center,
             mask,
+            interp_method=interp_method,
         ):
             active_mask[i] = True
             activated.append(i)
@@ -428,21 +476,24 @@ def _FFT_Robust_loss(
     fit_coefs=None,
     name="",
     active_mask=None,
+    interp_method="bicubic",
 ):
     if fit_coefs is not None and len(fit_coefs) == 0:
         fit_coefs = None
+    max_mode = _max_fit_mode(fit_coefs)
 
-    isovals = _iso_extract(
+    isovals = _extract_fft_isophote_samples(
         dat,
         R[i],
         PARAMS[i],
         C,
-        mask=mask,
-        interp_mask=False if mask is None else True,
-        interp_method="bicubic",
+        mask,
+        max_mode=max_mode,
+        interp_method=interp_method,
     )
-    isovals = _finite_isophote_samples(isovals)
-    max_mode = _max_fit_mode(fit_coefs)
+    if isovals is None:
+        return np.inf
+
     f2_loss = None
     if len(isovals) > 2 * max_mode:
         try:
@@ -483,7 +534,17 @@ def _FFT_Robust_loss(
 
 
 def _FFT_Robust_Errors(
-    dat, R, PARAMS, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
+    dat,
+    R,
+    PARAMS,
+    C,
+    noise,
+    mask=None,
+    reg_scale=1.0,
+    robust_clip=0.15,
+    fit_coefs=None,
+    name="",
+    interp_method="bicubic",
 ):
 
     PA_err = np.zeros(len(R))
@@ -520,6 +581,7 @@ def _FFT_Robust_Errors(
                     robust_clip=robust_clip,
                     fit_coefs=fit_coefs,
                     name=name,
+                    interp_method=interp_method,
                 )
 
             if not np.isfinite(raw_loss(x0)):
@@ -740,6 +802,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     perturb_scale = 0.03
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
     robust_clip = options["ap_isofit_robustclip"] if "ap_isofit_robustclip" in options else 0.15
+    interp_method = "bicubic"
     N_perturb = 5
     fit_coefs = options["ap_isofit_losscoefs"] if "ap_isofit_losscoefs" in options else None
     fit_params = options["ap_isofit_fitcoefs"] if "ap_isofit_fitcoefs" in options else None
@@ -778,7 +841,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 use_center,
                 mask,
                 max_mode=_max_fit_mode(fit_coefs),
-                interp_method="bicubic",
+                interp_method=interp_method,
             )
             for i in range(len(sample_radii))
         )
@@ -818,6 +881,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 fit_coefs=fit_coefs,
                 name=options["ap_name"],
                 active_mask=active_mask,
+                interp_method=interp_method,
             )
             for n in range(N_perturb):
                 perturbations.append(deepcopy(parameters))
@@ -866,6 +930,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     fit_coefs=fit_coefs,
                     name=options["ap_name"],
                     active_mask=active_mask,
+                    interp_method=interp_method,
                 )
 
             if not np.isfinite(perturbations[0][i]["loss"]):
@@ -892,7 +957,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     use_center,
                     mask,
                     max_mode=_max_fit_mode(fit_coefs),
-                    interp_method="bicubic",
+                    interp_method=interp_method,
                 )
                 if len(activated) > 0:
                     count_nochange = 0
@@ -919,7 +984,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                 use_center,
                                 mask,
                                 max_mode=_max_fit_mode(fit_coefs),
-                                interp_method="bicubic",
+                                interp_method=interp_method,
                             )
                             for ii in range(len(sample_radii))
                         )
@@ -954,7 +1019,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                 use_center,
                                 mask,
                                 max_mode=_max_fit_mode(fit_coefs),
-                                interp_method="bicubic",
+                                interp_method=interp_method,
                             )
                             for ii in range(len(sample_radii))
                         )
@@ -966,16 +1031,17 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                         for ii in np.flatnonzero(active_mask):
                             if parameters[ii]["m"] is None or len(parameters[ii]["m"]) == 0:
                                 continue
-                            isovals = _iso_extract(
+                            isovals = _extract_fft_isophote_samples(
                                 dat,
                                 sample_radii[ii],
                                 parameters[ii],
                                 use_center,
                                 mask=mask,
-                                interp_mask=False if mask is None else True,
-                                interp_method="bicubic",
+                                max_mode=max(parameters[ii]["m"]),
+                                interp_method=interp_method,
                             )
-                            isovals = _finite_isophote_samples(isovals)
+                            if isovals is None:
+                                continue
                             if len(isovals) <= 2 * max(parameters[ii]["m"]):
                                 continue
 
@@ -1031,6 +1097,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         robust_clip=robust_clip,
         fit_coefs=fit_coefs,
         name=options["ap_name"],
+        interp_method=interp_method,
     )
     for i in range(len(parameters)):
         parameters[i]["ellip err"] = ellip_err[i]
@@ -1156,17 +1223,21 @@ def _FFT_mean_loss(
     reg_scale=1.0,
     name="",
     active_mask=None,
+    interp_method=None,
 ):
 
-    isovals = _iso_extract(
+    params = {"ellip": E[i], "pa": PA[i]}
+    isovals = _extract_fft_isophote_samples(
         dat,
         R[i],
-        {"ellip": E[i], "pa": PA[i]},
+        params,
         C,
-        mask=mask,
-        interp_mask=False if mask is None else True,
+        mask,
+        max_mode=2,
+        interp_method=interp_method,
     )
-    isovals = _finite_isophote_samples(isovals)
+    if isovals is None:
+        return np.inf
 
     f2_loss = None
     if len(isovals) > 4:
@@ -1269,6 +1340,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
+    interp_method = None
     N_perturb = 5
 
     count = 0
@@ -1283,6 +1355,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                 {"ellip": ellip[i], "pa": pa[i]},
                 use_center,
                 mask,
+                interp_method=interp_method,
             )
             for i in range(len(sample_radii))
         )
@@ -1318,6 +1391,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                 reg_scale=regularize_scale if count > 4 else 0,
                 name=options["ap_name"],
                 active_mask=active_mask,
+                interp_method=interp_method,
             )
             for n in range(N_perturb):
                 perturbations.append({"ellip": copy(ellip), "pa": copy(pa)})
@@ -1342,6 +1416,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                     reg_scale=regularize_scale if count > 4 else 0,
                     name=options["ap_name"],
                     active_mask=active_mask,
+                    interp_method=interp_method,
                 )
 
             if not np.isfinite(perturbations[0]["loss"]):
@@ -1365,6 +1440,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                     active_mask,
                     use_center,
                     mask,
+                    interp_method=interp_method,
                 )
                 if len(activated) > 0:
                     count_nochange = 0

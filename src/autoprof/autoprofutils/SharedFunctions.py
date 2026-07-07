@@ -730,6 +730,49 @@ def _iso_between(
         return fluxes[CHOOSE]
 
 
+def _interpolate_invalid_isophote_samples(flux, theta, choose):
+    flux = np.array(flux, copy=True)
+    theta = np.asarray(theta)
+    choose = np.asarray(choose, dtype=bool)
+    if np.sum(choose) <= 0:
+        return flux[choose], theta[choose]
+    if not np.all(choose):
+        flux[np.logical_not(choose)] = np.interp(
+            theta[np.logical_not(choose)], theta[choose], flux[choose], period=2 * np.pi
+        )
+    return flux, theta
+
+
+_ISOPHOTE_COVERAGE_BINS = 8
+_MIN_ISOPHOTE_BIN_VALID_FRACTION = 0.15
+_MIN_ISOPHOTE_GOOD_BINS = 4
+_MAX_ISOPHOTE_GAP_BINS = 3
+
+
+def _has_enough_isophote_coverage(theta, choose):
+    theta = np.asarray(theta) % (2 * np.pi)
+    choose = np.asarray(choose, dtype=bool)
+    if choose.size == 0 or np.sum(choose) == 0:
+        return False
+
+    edges = np.linspace(0, 2 * np.pi, _ISOPHOTE_COVERAGE_BINS + 1)
+    samples_per_bin, _ = np.histogram(theta, bins=edges)
+    valid_per_bin, _ = np.histogram(theta[choose], bins=edges)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        bin_fracs = np.divide(
+            valid_per_bin,
+            samples_per_bin,
+            out=np.zeros_like(valid_per_bin, dtype=float),
+            where=samples_per_bin > 0,
+        )
+
+    good_bins = np.flatnonzero(bin_fracs >= _MIN_ISOPHOTE_BIN_VALID_FRACTION)
+    if good_bins.size < _MIN_ISOPHOTE_GOOD_BINS:
+        return False
+    circular_gaps = np.diff(np.r_[good_bins, good_bins[0] + _ISOPHOTE_COVERAGE_BINS])
+    return np.max(circular_gaps) <= _MAX_ISOPHOTE_GAP_BINS
+
+
 def _iso_extract(
     IMG,
     sma,
@@ -745,6 +788,7 @@ def _iso_extract(
     sigmaclip=False,
     sclip_iterations=10,
     sclip_nsigma=5,
+    return_choose=False,
 ):
     """
     Internal, basic function for extracting the pixel fluxes along an isophote
@@ -829,18 +873,21 @@ def _iso_extract(
                 CHOOSE = clipped_choose
     # Dont clip pixels if that removes all of the pixels
     countmasked = np.sum(np.logical_not(CHOOSE))
-    if np.sum(CHOOSE) <= 0:
+    all_masked = np.sum(CHOOSE) <= 0
+    if all_masked:
         logging.warning(
             "Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f"
             % (sma, PARAMS["pa"] * 180 / np.pi, PARAMS["ellip"])
         )
+    if return_choose:
+        return flux, theta, CHOOSE, countmasked
+
+    if all_masked:
         flux = flux[CHOOSE]
         theta = theta[CHOOSE]
         # Interpolate clipped flux values if requested
     elif interp_mask:
-        flux[np.logical_not(CHOOSE)] = np.interp(
-            theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period=2 * np.pi
-        )
+        flux, theta = _interpolate_invalid_isophote_samples(flux, theta, CHOOSE)
         # simply remove all clipped pixels if user doesn't reqest another option
     elif not np.all(CHOOSE):
         flux = flux[CHOOSE]

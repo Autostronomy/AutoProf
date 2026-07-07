@@ -7,6 +7,8 @@ import os
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _has_enough_isophote_coverage,
+    _interpolate_invalid_isophote_samples,
     _x_to_eps,
     _x_to_pa,
     _inv_x_to_pa,
@@ -39,15 +41,76 @@ def _isophote_flux(isovals):
     return isovals[0] if isinstance(isovals, tuple) else isovals
 
 
-def _has_fft_sample(isovals):
-    return len(_isophote_flux(isovals)) >= 3
-
-
 def _finite_average(values):
     finite_values = [v for v in values if np.isfinite(v)]
     if len(finite_values) == 0:
         return np.inf
     return np.mean(finite_values)
+
+
+def _init_radius_candidates(radius, max_radius):
+    seen = set()
+    for scale in (1.0, 0.8, 1.2, 0.6, 1.4, 0.5, 1.6, 0.4, 1.8, 0.3, 2.0):
+        candidate = radius * scale
+        key = round(candidate, 6)
+        if candidate < 1.0 or candidate >= max_radius or key in seen:
+            continue
+        seen.add(key)
+        yield candidate
+
+
+def _extract_init_fft_samples(
+    dat,
+    radius,
+    params,
+    center,
+    mask,
+    interp_method=None,
+    sigmaclip=False,
+    sclip_nsigma=3,
+):
+    kwargs = {}
+    if not interp_method is None:
+        kwargs["interp_method"] = interp_method
+    flux, theta, choose, _ = _iso_extract(
+        dat,
+        radius,
+        params,
+        center,
+        more=True,
+        mask=mask,
+        sigmaclip=sigmaclip,
+        sclip_nsigma=sclip_nsigma,
+        return_choose=True,
+        **kwargs,
+    )
+    if not _has_enough_isophote_coverage(theta, choose):
+        return None
+    flux, theta = _interpolate_invalid_isophote_samples(flux, theta, choose)
+    if len(flux) < 3:
+        return None
+    return flux, theta
+
+
+def _ellip_loss_grid(test_ellip, loss_func, dat, radius, phase, center, noise, mask):
+    test_f2 = []
+    for e in test_ellip:
+        test_f2.append(
+            _finite_average(
+                loss_func(e, dat, radius * m, phase, center, noise, mask)
+                for m in np.linspace(0.8, 1.2, 5)
+            )
+        )
+    return test_f2
+
+
+def _select_init_radius(test_ellip, loss_func, dat, radius, phase, center, noise, mask, max_radius):
+    test_f2 = []
+    for test_radius in _init_radius_candidates(radius, max_radius):
+        test_f2 = _ellip_loss_grid(test_ellip, loss_func, dat, test_radius, phase, center, noise, mask)
+        if np.any(np.isfinite(test_f2)):
+            return test_radius, test_f2
+    return radius, test_f2
 
 
 def Isophote_Init_Forced(IMG, results, options):
@@ -130,19 +193,20 @@ def Isophote_Init_Forced(IMG, results, options):
     }
 
 
-def _fitEllip_loss(e, dat, r, p, c, n, m):
-    isovals = _iso_extract(
+def _fitEllip_loss(e, dat, r, p, c, n, m, interp_method=None):
+    isovals = _extract_init_fft_samples(
         dat,
         r,
         {"ellip": e, "pa": p},
         c,
+        m,
+        interp_method=interp_method,
         sigmaclip=True,
         sclip_nsigma=3,
-        mask=m,
-        interp_mask=True,
     )
-    if len(isovals) < 3:
+    if isovals is None:
         return np.inf
+    isovals = isovals[0]
     coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 0.85), a_min=None))
     denominator = max(0, np.median(isovals)) + n
     if (not np.isfinite(denominator)) or denominator <= 0:
@@ -218,6 +282,7 @@ def Isophote_Initialize(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = None
 
     if "ap_isoinit_R_set" in options:
         sample_radii = np.logspace(
@@ -226,18 +291,17 @@ def Isophote_Initialize(IMG, results, options):
             10,
         )
         for r in sample_radii[1:]:
-            isovals = _iso_extract(
+            isovals = _extract_init_fft_samples(
                 dat,
                 r,
                 {"ellip": 0.0, "pa": 0.0},
                 results["center"],
-                more=True,
                 mask=mask,
+                interp_method=interp_method,
                 sigmaclip=True,
                 sclip_nsigma=3,
-                interp_mask=True,
             )
-            if not _has_fft_sample(isovals):
+            if isovals is None:
                 continue
             circ_ellipse_radii.append(r)
             coefs = fft(isovals[0])
@@ -246,18 +310,17 @@ def Isophote_Initialize(IMG, results, options):
         r = circ_ellipse_radii[-1]
         while r < (len(IMG) / 2):
             r *= 1 + 0.2
-            isovals = _iso_extract(
+            isovals = _extract_init_fft_samples(
                 dat,
                 r,
                 {"ellip": 0.0, "pa": 0.0},
                 results["center"],
-                more=True,
                 mask=mask,
+                interp_method=interp_method,
                 sigmaclip=True,
                 sclip_nsigma=3,
-                interp_mask=True,
             )
-            if not _has_fft_sample(isovals):
+            if isovals is None:
                 continue
             circ_ellipse_radii.append(r)
             coefs = fft(isovals[0])
@@ -284,55 +347,51 @@ def Isophote_Initialize(IMG, results, options):
 
     # Find global ellipticity
     test_ellip = np.linspace(0.05, 0.95, 15)
-    test_f2 = []
-    for e in test_ellip:
-        test_f2.append(
-            _finite_average(
-                _fitEllip_loss(
-                    e,
-                    dat,
-                    circ_ellipse_radii[-2] * m,
-                    phase,
-                    results["center"],
-                    results["background noise"],
-                    mask,
-                )
-                for m in np.linspace(0.8, 1.2, 5)
-            )
-        )
+    init_radius, test_f2 = _select_init_radius(
+        test_ellip,
+        lambda e, d, r, p, c, n, m: _fitEllip_loss(
+            e, d, r, p, c, n, m, interp_method=interp_method
+        ),
+        dat,
+        circ_ellipse_radii[-2],
+        phase,
+        results["center"],
+        results["background noise"],
+        mask,
+        len(IMG) / 2,
+    )
     if not np.any(np.isfinite(test_f2)):
         raise ValueError("Could not initialize isophotes: no finite ellipticity samples found.")
     # Find global ellipticity: second pass
     ellip = test_ellip[np.argmin(test_f2)]
     test_ellip = np.linspace(ellip - 0.05, ellip + 0.05, 15)
-    test_f2 = []
-    for e in test_ellip:
-        test_f2.append(
-            _finite_average(
-                _fitEllip_loss(
-                    e,
-                    dat,
-                    circ_ellipse_radii[-2] * m,
-                    phase,
-                    results["center"],
-                    results["background noise"],
-                    mask,
-                )
-                for m in np.linspace(0.8, 1.2, 5)
-            )
-        )
+    init_radius, test_f2 = _select_init_radius(
+        test_ellip,
+        lambda e, d, r, p, c, n, m: _fitEllip_loss(
+            e, d, r, p, c, n, m, interp_method=interp_method
+        ),
+        dat,
+        init_radius,
+        phase,
+        results["center"],
+        results["background noise"],
+        mask,
+        len(IMG) / 2,
+    )
     if not np.any(np.isfinite(test_f2)):
         raise ValueError("Could not initialize isophotes: no finite ellipticity samples found.")
     ellip = test_ellip[np.argmin(test_f2)]
     res = minimize(
         lambda e, d, r, p, c, n, msk: _finite_average(
-                _fitEllip_loss(_x_to_eps(e[0]), d, r * m, p, c, n, msk)
+                _fitEllip_loss(
+                    _x_to_eps(e[0]), d, r * m, p, c, n, msk, interp_method=interp_method
+                )
                 for m in np.linspace(0.8, 1.2, 5)
         ),
         x0=_inv_x_to_eps(ellip),
         args=(
             dat,
-            circ_ellipse_radii[-2],
+            init_radius,
             phase,
             results["center"],
             results["background noise"],
@@ -358,25 +417,24 @@ def Isophote_Initialize(IMG, results, options):
     # Compute the error on the parameters
     ######################################################################
     RR = np.linspace(
-        circ_ellipse_radii[-2] - results["psf fwhm"],
-        circ_ellipse_radii[-2] + results["psf fwhm"],
+        init_radius - results["psf fwhm"],
+        init_radius + results["psf fwhm"],
         10,
     )
     errallphase = []
     err_radii = []
     for rr in RR:
-        isovals = _iso_extract(
+        isovals = _extract_init_fft_samples(
             dat,
             rr,
             {"ellip": 0.0, "pa": 0.0},
             results["center"],
-            more=True,
             mask=mask,
+            interp_method=interp_method,
             sigmaclip=True,
             sclip_nsigma=3,
-            interp_mask=True,
         )
-        if not _has_fft_sample(isovals):
+        if isovals is None:
             continue
         coefs = fft(isovals[0])
         errallphase.append(coefs[2])
@@ -389,7 +447,9 @@ def Isophote_Initialize(IMG, results, options):
         pa_err = np.nan
     res_multi = [
         minimize(
-            lambda e, d, r, p, c, n, m: _fitEllip_loss(_x_to_eps(e[0]), d, r, p, c, n, m),
+            lambda e, d, r, p, c, n, m: _fitEllip_loss(
+                _x_to_eps(e[0]), d, r, p, c, n, m, interp_method=interp_method
+            ),
             x0=_inv_x_to_eps(ellip),
             args=(
                 dat,
@@ -438,22 +498,25 @@ def Isophote_Initialize(IMG, results, options):
         ellip_err,
         PA_shift_convention(phase) * 180 / np.pi,
         pa_err * 180 / np.pi,
-        circ_ellipse_radii[-2],
+        init_radius,
     )
     return IMG, {
         "init ellip": ellip,
         "init ellip_err": ellip_err,
         "init pa": phase,
         "init pa_err": pa_err,
-        "init R": circ_ellipse_radii[-2],
+        "init R": init_radius,
         "auxfile initialize": auxmessage,
     }
 
 
-def _fitEllip_mean_loss(e, dat, r, p, c, n, m):
-    isovals = _iso_extract(dat, r, {"ellip": e, "pa": p}, c, mask=m, interp_mask=True)
-    if len(isovals) < 3:
+def _fitEllip_mean_loss(e, dat, r, p, c, n, m, interp_method=None):
+    isovals = _extract_init_fft_samples(
+        dat, r, {"ellip": e, "pa": p}, c, mask=m, interp_method=interp_method
+    )
+    if isovals is None:
         return np.inf
+    isovals = isovals[0]
     coefs = fft(isovals)
     denominator = len(isovals) * (max(0, np.mean(isovals)) + n)
     if (not np.isfinite(denominator)) or denominator <= 0:
@@ -510,20 +573,20 @@ def Isophote_Initialize_mean(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = None
 
     r = circ_ellipse_radii[-1]
     while r < (len(IMG) / 2):
         r *= 1 + 0.2
-        isovals = _iso_extract(
+        isovals = _extract_init_fft_samples(
             dat,
             r,
             {"ellip": 0.0, "pa": 0.0},
             results["center"],
-            more=True,
             mask=mask,
-            interp_mask=True,
+            interp_method=interp_method,
         )
-        if not _has_fft_sample(isovals):
+        if isovals is None:
             continue
         circ_ellipse_radii.append(r)
         coefs = fft(isovals[0])
@@ -542,55 +605,51 @@ def Isophote_Initialize_mean(IMG, results, options):
 
     # Find global ellipticity
     test_ellip = np.linspace(0.05, 0.95, 15)
-    test_f2 = []
-    for e in test_ellip:
-        test_f2.append(
-            _finite_average(
-                _fitEllip_mean_loss(
-                    e,
-                    dat,
-                    circ_ellipse_radii[-2] * m,
-                    phase,
-                    results["center"],
-                    results["background noise"],
-                    mask,
-                )
-                for m in np.linspace(0.8, 1.2, 5)
-            )
-        )
+    init_radius, test_f2 = _select_init_radius(
+        test_ellip,
+        lambda e, d, r, p, c, n, m: _fitEllip_mean_loss(
+            e, d, r, p, c, n, m, interp_method=interp_method
+        ),
+        dat,
+        circ_ellipse_radii[-2],
+        phase,
+        results["center"],
+        results["background noise"],
+        mask,
+        len(IMG) / 2,
+    )
     if not np.any(np.isfinite(test_f2)):
         raise ValueError("Could not initialize isophotes: no finite ellipticity samples found.")
     # Find global ellipticity: second pass
     ellip = test_ellip[np.argmin(test_f2)]
     test_ellip = np.linspace(ellip - 0.05, ellip + 0.05, 15)
-    test_f2 = []
-    for e in test_ellip:
-        test_f2.append(
-            _finite_average(
-                _fitEllip_mean_loss(
-                    e,
-                    dat,
-                    circ_ellipse_radii[-2] * m,
-                    phase,
-                    results["center"],
-                    results["background noise"],
-                    mask,
-                )
-                for m in np.linspace(0.8, 1.2, 5)
-            )
-        )
+    init_radius, test_f2 = _select_init_radius(
+        test_ellip,
+        lambda e, d, r, p, c, n, m: _fitEllip_mean_loss(
+            e, d, r, p, c, n, m, interp_method=interp_method
+        ),
+        dat,
+        init_radius,
+        phase,
+        results["center"],
+        results["background noise"],
+        mask,
+        len(IMG) / 2,
+    )
     if not np.any(np.isfinite(test_f2)):
         raise ValueError("Could not initialize isophotes: no finite ellipticity samples found.")
     ellip = test_ellip[np.argmin(test_f2)]
     res = minimize(
         lambda e, d, r, p, c, n, msk: _finite_average(
-                _fitEllip_mean_loss(_x_to_eps(e[0]), d, r * m, p, c, n, msk)
+                _fitEllip_mean_loss(
+                    _x_to_eps(e[0]), d, r * m, p, c, n, msk, interp_method=interp_method
+                )
                 for m in np.linspace(0.8, 1.2, 5)
         ),
         x0=_inv_x_to_eps(ellip),
         args=(
             dat,
-            circ_ellipse_radii[-2],
+            init_radius,
             phase,
             results["center"],
             results["background noise"],
@@ -614,23 +673,22 @@ def Isophote_Initialize_mean(IMG, results, options):
     # Compute the error on the parameters
     ######################################################################
     RR = np.linspace(
-        circ_ellipse_radii[-2] - results["psf fwhm"],
-        circ_ellipse_radii[-2] + results["psf fwhm"],
+        init_radius - results["psf fwhm"],
+        init_radius + results["psf fwhm"],
         10,
     )
     errallphase = []
     err_radii = []
     for rr in RR:
-        isovals = _iso_extract(
+        isovals = _extract_init_fft_samples(
             dat,
             rr,
             {"ellip": 0.0, "pa": 0.0},
             results["center"],
-            more=True,
             mask=mask,
-            interp_mask=True,
+            interp_method=interp_method,
         )
-        if not _has_fft_sample(isovals):
+        if isovals is None:
             continue
         coefs = fft(isovals[0])
         errallphase.append(coefs[2])
@@ -643,7 +701,9 @@ def Isophote_Initialize_mean(IMG, results, options):
         pa_err = np.nan
     res_multi = [
         minimize(
-            lambda e, d, r, p, c, n, m: _fitEllip_mean_loss(_x_to_eps(e[0]), d, r, p, c, n, m),
+            lambda e, d, r, p, c, n, m: _fitEllip_mean_loss(
+                _x_to_eps(e[0]), d, r, p, c, n, m, interp_method=interp_method
+            ),
             x0=_inv_x_to_eps(ellip),
             args=(dat, rrp[0], rrp[1], results["center"], results["background noise"], mask),
             method="Nelder-Mead",
@@ -752,13 +812,13 @@ def Isophote_Initialize_mean(IMG, results, options):
         ellip_err,
         PA_shift_convention(phase) * 180 / np.pi,
         pa_err * 180 / np.pi,
-        circ_ellipse_radii[-2],
+        init_radius,
     )
     return IMG, {
         "init ellip": ellip,
         "init ellip_err": ellip_err,
         "init pa": phase,
         "init pa_err": pa_err,
-        "init R": circ_ellipse_radii[-2],
+        "init R": init_radius,
         "auxfile initialize": auxmessage,
     }
