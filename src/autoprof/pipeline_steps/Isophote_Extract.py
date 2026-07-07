@@ -132,16 +132,17 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                     if "ap_iso_interpolate_start" in options
                     else 5
                 )
-                * results["psf fwhm"],
+                * results["psf fwhm"]
+                / 2,
                 interp_method=(
                     options["ap_isoextract_interpolate_method"]
                     if "ap_isoextract_interpolate_method" in options
-                    else "lanczos"
+                    else "bilinear"
                 ),
                 interp_window=(
                     int(options["ap_iso_interpolate_window"])
                     if "ap_iso_interpolate_window" in options
-                    else 5
+                    else 3
                 ),
                 sigmaclip=options["ap_isoclip"] if "ap_isoclip" in options else False,
                 sclip_iterations=(
@@ -444,13 +445,12 @@ def Isophote_Extract_Forced(IMG, results, options):
       profile.
 
     ap_iso_interpolate_start : float, default 5
-      Use a Lanczos interpolation for isophotes with semi-major axis
-      less than this number times the PSF.
+      Use image interpolation for isophotes with semi-major axis
+      less than this number times the PSF HWHM.
 
-    ap_isoextract_interpolate_method : string, default 'lanczos'
+    ap_isoextract_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation on image, options are
-      'lanczos', 'bicubic', and 'bilinear'. Default is 'lanczos'
-      with a window size of 3.
+      'lanczos', 'bicubic', and 'bilinear'. Default is 'bilinear'.
 
     ap_iso_interpolate_window : int, default 3
       Window size for Lanczos interpolation, default is 3, meaning 3
@@ -658,13 +658,12 @@ def Isophote_Extract(IMG, results, options):
       the image. Will be overridden by *ap_truncate_evaluation*.
 
     ap_iso_interpolate_start : float, default 5
-      Use a Lanczos interpolation for isophotes with semi-major axis
-      less than this number times the PSF.
+      Use image interpolation for isophotes with semi-major axis
+      less than this number times the PSF HWHM.
 
-    ap_isoextract_interpolate_method : string, default 'lanczos'
+    ap_isoextract_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation on image, options are
-      'lanczos', 'bicubic', and 'bilinear'. Default is 'lanczos'
-      with a window size of 3.
+      'lanczos', 'bicubic', and 'bilinear'. Default is 'bilinear'.
 
     ap_iso_interpolate_window : int, default 3
       Window size for Lanczos interpolation, default is 3, meaning 3

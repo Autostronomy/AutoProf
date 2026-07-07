@@ -225,7 +225,7 @@ ap_guess_psf (float, default None)
 Initialization value for the PSF calculation in pixels. If not
 given, AutoProf will default with a guess of 1/*ap_pixscale*
 
-ap_isoextract_interpolate_method (string, default 'lanczos')
+ap_isoextract_interpolate_method (string, default 'bilinear')
 ----------------------------------------------------------------------
 
 **Referencing Methods**
@@ -236,8 +236,7 @@ ap_isoextract_interpolate_method (string, default 'lanczos')
 **Description**
 
 Select method for flux interpolation on image, options are
-'lanczos', 'bicubic', and 'bilinear'. Default is 'lanczos' with
-a window size of 3.
+'lanczos', 'bicubic', and 'bilinear'. Default is 'bilinear'.
 
 ap_iso_interpolate_start (float, default 5)
 ----------------------------------------------------------------------
@@ -249,8 +248,8 @@ ap_iso_interpolate_start (float, default 5)
 
 **Description**
 
-Use a Lanczos interpolation for isophotes with semi-major axis
-less than this number times the PSF.
+Use image interpolation for isophotes with semi-major axis
+less than this number times the PSF HWHM.
 
 ap_iso_interpolate_window (int, default 3)
 ----------------------------------------------------------------------
