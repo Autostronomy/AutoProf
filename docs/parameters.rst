@@ -278,10 +278,29 @@ ap_iso_measurecoefs (tuple, default None)
 tuple indicating which fourier modes to extract along fitted
 isophotes. Most common is (4,), which identifies boxy/disky
 isophotes. Also common is (1,3), which identifies lopsided
-galaxies. The outputted values are computed as a_i =
-imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
-fourier coefficient. Not activated by default as it adds to
+galaxies. Harmonic terms are fit directly to the valid azimuthal
+samples. For a fitted term
+I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf reports
+a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0). The fit includes
+every harmonic order up to the highest requested order, but only
+requested orders are reported. Not activated by default as it adds to
 computation time.
+
+ap_isocoefs_interpolate_method (string, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+
+**Description**
+
+Select image sampling method used for *ap_iso_measurecoefs*. Options
+are 'lanczos', 'bicubic', and 'bilinear'. By default, this follows
+*ap_isoextract_interpolate_method*. Coefficient measurement samples the
+fitted isophote line, even where the SB profile uses isophote-band
+sampling.
 
 ap_isoaverage_method (string, default 'median')
 ----------------------------------------------------------------------

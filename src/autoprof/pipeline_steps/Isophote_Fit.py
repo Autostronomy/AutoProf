@@ -16,6 +16,7 @@ from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
+    _validate_interpolate_method,
     _photutils_masked_data,
     _x_to_pa,
     _x_to_eps,
@@ -807,7 +808,10 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
     robust_clip = options["ap_isofit_robustclip"] if "ap_isofit_robustclip" in options else 0.15
     interp_method = (
-        options["ap_isofit_interpolate_method"]
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
         if "ap_isofit_interpolate_method" in options
         else "bicubic"
     )
@@ -1354,7 +1358,10 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     perturb_scale = np.array([0.03, 0.06])
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
     interp_method = (
-        options["ap_isofit_interpolate_method"]
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
         if "ap_isofit_interpolate_method" in options
         else None
     )

@@ -9,6 +9,7 @@ from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
+    _validate_interpolate_method,
     _x_to_eps,
     _x_to_pa,
     _inv_x_to_pa,
@@ -288,7 +289,10 @@ def Isophote_Initialize(IMG, results, options):
     if not np.any(mask):
         mask = None
     interp_method = (
-        options["ap_isoinit_interpolate_method"]
+        _validate_interpolate_method(
+            options["ap_isoinit_interpolate_method"],
+            "ap_isoinit_interpolate_method",
+        )
         if "ap_isoinit_interpolate_method" in options
         else None
     )
@@ -588,7 +592,10 @@ def Isophote_Initialize_mean(IMG, results, options):
     if not np.any(mask):
         mask = None
     interp_method = (
-        options["ap_isoinit_interpolate_method"]
+        _validate_interpolate_method(
+            options["ap_isoinit_interpolate_method"],
+            "ap_isoinit_interpolate_method",
+        )
         if "ap_isoinit_interpolate_method" in options
         else None
     )

@@ -3,7 +3,6 @@ from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, Isophot
 from photutils.isophote import Ellipse as Photutils_Ellipse
 from scipy.optimize import minimize
 from scipy.stats import iqr
-from scipy.fftpack import fft, ifft
 from scipy.interpolate import UnivariateSpline
 from time import time
 from astropy.visualization import SqrtStretch, LogStretch
@@ -24,6 +23,7 @@ from ..autoprofutils.SharedFunctions import (
     SBprof_to_COG_errorprop,
     _iso_extract,
     _iso_between,
+    _validate_interpolate_method,
     _photutils_masked_data,
     LSBImage,
     AddLogo,
@@ -62,6 +62,85 @@ def _finite_divide(numerator, denominator):
     ):
         return np.nan
     return numerator / denominator
+
+
+def _empty_fmode_measurements(modes):
+    return {
+        "a": [np.nan] * (len(modes) + 1),
+        "b": [np.nan] * (len(modes) + 1),
+    }
+
+
+def _fit_harmonic_measurements(flux, theta, modes):
+    modes = tuple(modes)
+    fit_modes = tuple(range(1, max(modes) + 1)) if len(modes) > 0 else ()
+    flux = np.asarray(flux, dtype=float)
+    theta = np.asarray(theta, dtype=float) % (2 * np.pi)
+    keep = np.isfinite(flux) & np.isfinite(theta)
+    flux = flux[keep]
+    theta = theta[keep]
+    if len(flux) == 0:
+        return _empty_fmode_measurements(modes)
+
+    design = [np.ones(len(theta))]
+    # Include intervening orders in the fit to reduce leakage from gappy sampling.
+    for mode in fit_modes:
+        design.append(np.sin(mode * theta))
+        design.append(np.cos(mode * theta))
+    design = np.column_stack(design)
+    if len(flux) < design.shape[1] or np.linalg.matrix_rank(design) < design.shape[1]:
+        return _empty_fmode_measurements(modes)
+
+    coeffs, _, _, _ = np.linalg.lstsq(design, flux, rcond=None)
+    if not np.all(np.isfinite(coeffs)):
+        return _empty_fmode_measurements(modes)
+    mean_flux = coeffs[0]
+    norm = np.abs(mean_flux)
+    fit_coeffs = {}
+    for i, mode in enumerate(fit_modes):
+        fit_coeffs[mode] = (coeffs[1 + 2 * i], coeffs[2 + 2 * i])
+    measurements = {"a": [0.0], "b": [mean_flux]}
+    for mode in modes:
+        sin_coeff, cos_coeff = fit_coeffs[mode]
+        # AutoProf stores harmonic amplitudes with the same 2*abs(I0) scaling.
+        measurements["a"].append(_finite_divide(-0.5 * sin_coeff, norm))
+        measurements["b"].append(_finite_divide(0.5 * cos_coeff, norm))
+    return measurements
+
+
+def _isocoefs_interpolate_method(options, fallback_method):
+    if "ap_isocoefs_interpolate_method" in options:
+        method = options["ap_isocoefs_interpolate_method"]
+    elif "ap_isoextract_interpolate_method" in options:
+        method = options["ap_isoextract_interpolate_method"]
+    else:
+        method = fallback_method
+    return _validate_interpolate_method(method, "ap_isocoefs_interpolate_method")
+
+
+def _extract_harmonic_measurement_samples(
+    dat, R, parameters, center, mask, options, rad_interp, interp_method
+):
+    return _iso_extract(
+        dat,
+        R,
+        parameters,
+        center,
+        mask=mask,
+        more=True,
+        rad_interp=rad_interp,
+        interp_method=interp_method,
+        interp_window=(
+            int(options["ap_iso_interpolate_window"])
+            if "ap_iso_interpolate_window" in options
+            else 3
+        ),
+        sigmaclip=options["ap_isoclip"] if "ap_isoclip" in options else False,
+        sclip_iterations=(
+            options["ap_isoclip_iterations"] if "ap_isoclip_iterations" in options else 10
+        ),
+        sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
+    )
 
 
 def _Generate_Profile(IMG, results, R, parameters, options):
@@ -104,6 +183,22 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     medflux = np.inf
     end_prof = len(R)
     compare_interp = []
+    measure_coefs = "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None
+    rad_interp = (
+        options["ap_iso_interpolate_start"]
+        if "ap_iso_interpolate_start" in options
+        else 5
+    ) * results["psf fwhm"] / 2
+    isoextract_interp_method = _validate_interpolate_method(
+        options["ap_isoextract_interpolate_method"]
+        if "ap_isoextract_interpolate_method" in options
+        else "bilinear",
+        "ap_isoextract_interpolate_method",
+    )
+    if measure_coefs:
+        isocoefs_interp_method = _isocoefs_interpolate_method(
+            options, isoextract_interp_method
+        )
     for i in range(len(R)):
         if "ap_isoband_fixed" in options and options["ap_isoband_fixed"]:
             isobandwidth = options["ap_isoband_width"] if "ap_isoband_width" in options else 0.5
@@ -111,7 +206,6 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             isobandwidth = R[i] * (
                 options["ap_isoband_width"] if "ap_isoband_width" in options else 0.025
             )
-        isisophoteband = False
         if (
             medflux
             > (
@@ -127,18 +221,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 results["center"],
                 mask=mask,
                 more=True,
-                rad_interp=(
-                    options["ap_iso_interpolate_start"]
-                    if "ap_iso_interpolate_start" in options
-                    else 5
-                )
-                * results["psf fwhm"]
-                / 2,
-                interp_method=(
-                    options["ap_isoextract_interpolate_method"]
-                    if "ap_isoextract_interpolate_method" in options
-                    else "bilinear"
-                ),
+                rad_interp=rad_interp,
+                interp_method=isoextract_interp_method,
                 interp_window=(
                     int(options["ap_iso_interpolate_window"])
                     if "ap_iso_interpolate_window" in options
@@ -151,7 +235,6 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
         else:
-            isisophoteband = True
             isovals = _iso_between(
                 dat,
                 R[i] - isobandwidth,
@@ -166,6 +249,20 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 ),
                 sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
+        if measure_coefs:
+            coef_isovals = _extract_harmonic_measurement_samples(
+                dat,
+                R[i],
+                parameters[i],
+                results["center"],
+                mask,
+                options,
+                rad_interp,
+                isocoefs_interp_method,
+            )
+            coef_measurements = _fit_harmonic_measurements(
+                coef_isovals[0], coef_isovals[1], options["ap_iso_measurecoefs"]
+            )
         if len(isovals[0]) == 0:
             pixels.append(0)
             maskedpixels.append(isovals[2])
@@ -177,13 +274,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 sb.append(99.999)
                 sbE.append(99.999)
                 cogdirect.append(99.999)
-            if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
-                measFmodes.append(
-                    {
-                        "a": [np.nan] * (len(options["ap_iso_measurecoefs"]) + 1),
-                        "b": [np.nan] * (len(options["ap_iso_measurecoefs"]) + 1),
-                    }
-                )
+            if measure_coefs:
+                measFmodes.append(coef_measurements)
             continue
         isotot = np.sum(_iso_between(dat, 0, R[i], parameters[i], results["center"], mask=mask))
         medflux = _average(
@@ -194,31 +286,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             isovals[0],
             options["ap_isoaverage_method"] if "ap_isoaverage_method" in options else "median",
         )
-        if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
-            if (
-                mask is None
-                and (not "ap_isoclip" in options or not options["ap_isoclip"])
-                and not isisophoteband
-            ):
-                coefs = fft(isovals[0])
-            else:
-                N = max(15, int(0.9 * 2 * np.pi * R[i]))
-                theta = np.linspace(0, 2 * np.pi * (1.0 - 1.0 / N), N)
-                coefs = fft(np.interp(theta, isovals[1], isovals[0], period=2 * np.pi))
-            measFmodes.append(
-                {
-                    "a": [np.imag(coefs[0]) / len(coefs)]
-                    + list(
-                        np.imag(coefs[np.array(options["ap_iso_measurecoefs"])])
-                        / (np.abs(coefs[0]))
-                    ),
-                    "b": [np.real(coefs[0]) / len(coefs)]
-                    + list(
-                        np.real(coefs[np.array(options["ap_iso_measurecoefs"])])
-                        / (np.abs(coefs[0]))
-                    ),
-                }
-            )
+        if measure_coefs:
+            measFmodes.append(coef_measurements)
 
         pixels.append(len(isovals[0]))
         maskedpixels.append(isovals[2])
@@ -490,10 +559,20 @@ def Isophote_Extract_Forced(IMG, results, options):
       tuple indicating which fourier modes to extract along fitted
       isophotes. Most common is (4,), which identifies boxy/disky
       isophotes. Also common is (1,3), which identifies lopsided
-      galaxies. The outputted values are computed as a_i =
-      imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
-      fourier coefficient. Not activated by default as it adds to
-      computation time.
+      galaxies. Harmonic terms are fit directly to the valid
+      azimuthal samples. For a fitted term
+      I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf
+      reports a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0).
+      The fit includes every harmonic order up to the highest requested
+      order, but only requested orders are reported. Not activated by
+      default as it adds to computation time.
+
+    ap_isocoefs_interpolate_method : string, default None
+      Select image sampling method used for *ap_iso_measurecoefs*.
+      Options are 'lanczos', 'bicubic', and 'bilinear'. By default,
+      this follows *ap_isoextract_interpolate_method*. Coefficient
+      measurement samples the fitted isophote line, even where the SB
+      profile uses isophote-band sampling.
 
     ap_plot_sbprof_ylim : tuple, default None
       Tuple with axes limits for the y-axis in the SB profile
@@ -703,10 +782,20 @@ def Isophote_Extract(IMG, results, options):
       tuple indicating which fourier modes to extract along fitted
       isophotes. Most common is (4,), which identifies boxy/disky
       isophotes. Also common is (1,3), which identifies lopsided
-      galaxies. The outputted values are computed as a_i =
-      imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
-      fourier coefficient. Not activated by default as it adds to
-      computation time.
+      galaxies. Harmonic terms are fit directly to the valid
+      azimuthal samples. For a fitted term
+      I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf
+      reports a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0).
+      The fit includes every harmonic order up to the highest requested
+      order, but only requested orders are reported. Not activated by
+      default as it adds to computation time.
+
+    ap_isocoefs_interpolate_method : string, default None
+      Select image sampling method used for *ap_iso_measurecoefs*.
+      Options are 'lanczos', 'bicubic', and 'bilinear'. By default,
+      this follows *ap_isoextract_interpolate_method*. Coefficient
+      measurement samples the fitted isophote line, even where the SB
+      profile uses isophote-band sampling.
 
     ap_plot_sbprof_ylim : tuple, default None
       Tuple with axes limits for the y-axis in the SB profile

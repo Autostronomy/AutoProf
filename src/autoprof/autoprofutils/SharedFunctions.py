@@ -625,6 +625,42 @@ def _interpolate_bilinear(dat, X, Y, mask=None):
     return flux, valid
 
 
+def _validate_interpolate_method(method, option_name):
+    allowed = ("lanczos", "bicubic", "bilinear")
+    if method not in allowed:
+        raise ValueError(
+            "%s=%s is not allowed. Should be one of %s"
+            % (option_name, method, ", ".join(allowed))
+        )
+    return method
+
+
+def _interpolate_nearest_neighbour(dat, X, Y, mask=None):
+    flux = np.full(len(X), np.nan)
+    valid = np.ones(len(X), dtype=bool)
+
+    for i in range(len(X)):
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        x = int(np.rint(X[i]))
+        y = int(np.rint(Y[i]))
+        if x < 0 or y < 0 or x >= dat.shape[1] or y >= dat.shape[0]:
+            valid[i] = False
+            continue
+        if not np.isfinite(dat[y, x]):
+            valid[i] = False
+            continue
+        if mask is not None and mask[y, x]:
+            valid[i] = False
+            continue
+
+        flux[i] = dat[y, x]
+
+    return flux, valid
+
+
 def interpolate_Lanczos(dat, X, Y, scale):
     """
     Perform Lanczos interpolation on an image.
@@ -867,6 +903,7 @@ def _iso_extract(
     Rlim = np.max(R)
     footprint_choose = None
     if Rlim < rad_interp:
+        interp_method = _validate_interpolate_method(interp_method, "interp_method")
         if interp_method == "bicubic":
             flux, footprint_choose = _interpolate_bicubic_local(IMG, X, Y, mask=mask)
         elif interp_method == "bilinear":
@@ -881,13 +918,8 @@ def _iso_extract(
                 interp_method=interp_method,
                 interp_window=interp_window,
             )
-        else:
-            raise ValueError(
-                "Unknown interpolate method %s. Should be one of lanczos, bicubic, or bilinear" % interp_method
-            )
     else:
-        # round to integers and sample pixels values
-        flux = IMG[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]
+        flux, footprint_choose = _interpolate_nearest_neighbour(IMG, X, Y, mask=mask)
     # CHOOSE holds bolean array for which flux values to keep.
     # Interpolated samples are rejected when their interpolation footprint
     # contains masked or non-finite pixels.
