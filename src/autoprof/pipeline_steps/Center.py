@@ -752,6 +752,7 @@ def _central_surface_brightness(dat, center, results, options):
         center,
         mask=results.get("mask", None),
         rad_interp=_iso_interpolate_radius(options, results),
+        interp_method="bilinear",
     )
     if len(isovals) == 0:
         return np.nan
