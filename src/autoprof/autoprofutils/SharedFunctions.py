@@ -78,7 +78,7 @@ def _nearest_finite_fill(IMG, bad, context="image"):
     return filled
 
 
-def _spline_fill_nonfinite(IMG, options=None):
+def _spline_fill_nonfinite(IMG, options=None, max_spline_points=50000):
     bad = np.logical_not(np.isfinite(IMG))
     if not np.any(bad):
         return IMG
@@ -111,7 +111,6 @@ def _spline_fill_nonfinite(IMG, options=None):
     if kx < 1 or ky < 1:
         return _nearest_finite_fill(IMG, bad)
 
-    max_spline_points = 50000
     if len(z) > max_spline_points:
         step = int(np.ceil(len(z) / max_spline_points))
         x_fit = x[::step]
