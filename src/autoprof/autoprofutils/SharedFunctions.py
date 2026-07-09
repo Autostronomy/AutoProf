@@ -821,19 +821,20 @@ def _interpolate_invalid_isophote_samples(flux, theta, choose):
     return flux, theta
 
 
-_ISOPHOTE_COVERAGE_BINS = 8
-_MIN_ISOPHOTE_BIN_VALID_FRACTION = 0.15
-_MIN_ISOPHOTE_GOOD_BINS = 4
-_MAX_ISOPHOTE_GAP_BINS = 3
-
-
-def _has_enough_isophote_coverage(theta, choose):
+def _has_enough_isophote_coverage(
+    theta,
+    choose,
+    coverage_bins=8,
+    min_bin_valid_fraction=0.15,
+    min_good_bins=4,
+    max_gap_bins=3,
+):
     theta = np.asarray(theta) % (2 * np.pi)
     choose = np.asarray(choose, dtype=bool)
     if choose.size == 0 or np.sum(choose) == 0:
         return False
 
-    edges = np.linspace(0, 2 * np.pi, _ISOPHOTE_COVERAGE_BINS + 1)
+    edges = np.linspace(0, 2 * np.pi, coverage_bins + 1)
     samples_per_bin, _ = np.histogram(theta, bins=edges)
     valid_per_bin, _ = np.histogram(theta[choose], bins=edges)
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -844,11 +845,11 @@ def _has_enough_isophote_coverage(theta, choose):
             where=samples_per_bin > 0,
         )
 
-    good_bins = np.flatnonzero(bin_fracs >= _MIN_ISOPHOTE_BIN_VALID_FRACTION)
-    if good_bins.size < _MIN_ISOPHOTE_GOOD_BINS:
+    good_bins = np.flatnonzero(bin_fracs >= min_bin_valid_fraction)
+    if good_bins.size < min_good_bins:
         return False
-    circular_gaps = np.diff(np.r_[good_bins, good_bins[0] + _ISOPHOTE_COVERAGE_BINS])
-    return np.max(circular_gaps) <= _MAX_ISOPHOTE_GAP_BINS
+    circular_gaps = np.diff(np.r_[good_bins, good_bins[0] + coverage_bins])
+    return np.max(circular_gaps) <= max_gap_bins
 
 
 def _iso_extract(
