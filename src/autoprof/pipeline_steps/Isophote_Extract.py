@@ -31,6 +31,7 @@ from ..autoprofutils.SharedFunctions import (
     _average,
     _scatter,
     flux_to_sb,
+    sb_to_flux,
     flux_to_mag,
     PA_shift_convention,
     autocolours,
@@ -63,6 +64,18 @@ def _finite_divide(numerator, denominator):
     ):
         return np.nan
     return numerator / denominator
+
+
+def _isoband_flux_threshold(results, options):
+    if "ap_isoband_start_sb" in options and not options["ap_isoband_start_sb"] is None:
+        return sb_to_flux(
+            options["ap_isoband_start_sb"],
+            options["ap_pixscale"],
+            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
+        )
+    return results["background noise"] * (
+        options["ap_isoband_start"] if "ap_isoband_start" in options else 2
+    )
 
 
 def _sparse_scatter_model_flux(
@@ -253,6 +266,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     compare_interp = []
     measure_coefs = "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None
     rad_interp = _iso_interpolate_radius(options, results)
+    isoband_flux_threshold = _isoband_flux_threshold(results, options)
     isoextract_interp_method = _validate_interpolate_method(
         options["ap_isoextract_interpolate_method"]
         if "ap_isoextract_interpolate_method" in options
@@ -271,11 +285,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 options["ap_isoband_width"] if "ap_isoband_width" in options else 0.025
             )
         if (
-            medflux
-            > (
-                results["background noise"]
-                * (options["ap_isoband_start"] if "ap_isoband_start" in options else 2)
-            )
+            medflux > isoband_flux_threshold
             or isobandwidth < 0.5
         ):
             # Line sampling uses interpolation only inside rad_interp.
@@ -589,6 +599,11 @@ def Isophote_Extract_Forced(IMG, results, options):
       isophote in units of pixel flux noise. Will never initiate band
       averaging if the band width is less than half a pixel
 
+    ap_isoband_start_sb : float, default None
+      Surface-brightness level in mag arcsec^-2 at which to begin
+      sampling a band of pixels instead of sampling a line of pixels
+      near the isophote. Overrides *ap_isoband_start* if set.
+
     ap_isoband_width : float, default 0.025
       The relative size of the isophote bands to sample. flux values
       will be sampled at +- *ap_isoband_width* \*R for each radius.
@@ -807,6 +822,11 @@ def Isophote_Extract(IMG, results, options):
       compute SB instead of sampling a line of pixels near the
       isophote in units of pixel flux noise. Will never initiate band
       averaging if the band width is less than half a pixel
+
+    ap_isoband_start_sb : float, default None
+      Surface-brightness level in mag arcsec^-2 at which to begin
+      sampling a band of pixels instead of sampling a line of pixels
+      near the isophote. Overrides *ap_isoband_start* if set.
 
     ap_isoband_width : float, default 0.025
       The relative size of the isophote bands to sample. flux values

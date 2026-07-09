@@ -365,6 +365,20 @@ compute SB instead of sampling a line of pixels near the
 isophote in units of pixel flux noise. Will never initiate band
 averaging if the band width is less than half a pixel
 
+ap_isoband_start_sb (float, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+
+**Description**
+
+Surface-brightness level in mag arcsec^-2 at which to begin
+sampling a band of pixels instead of sampling a line of pixels
+near the isophote. Overrides *ap_isoband_start* if set.
+
 ap_isoband_width (float, default 0.025)
 ----------------------------------------------------------------------
 
