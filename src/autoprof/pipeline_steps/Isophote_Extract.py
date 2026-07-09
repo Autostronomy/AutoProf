@@ -65,6 +65,68 @@ def _finite_divide(numerator, denominator):
     return numerator / denominator
 
 
+def _sparse_scatter_model_flux(
+    medfluxes, scatfluxes, pixels, labels=None, target_label=None, min_anchor_samples=2
+):
+    # One-sample rows have no empirical scatter, so estimate scatflux^2 from
+    # nearby rows with enough samples using a simple flux-dependent model.
+    medfluxes = np.asarray(medfluxes, dtype=float)
+    scatfluxes = np.asarray(scatfluxes, dtype=float)
+    pixels = np.asarray(pixels, dtype=int)
+    use = (
+        (pixels >= min_anchor_samples)
+        & np.isfinite(medfluxes)
+        & (medfluxes > 0)
+        & np.isfinite(scatfluxes)
+        & (scatfluxes > 0)
+    )
+    if not target_label is None:
+        use &= np.asarray(labels) == target_label
+    flux = medfluxes[use]
+    scatter2 = scatfluxes[use] ** 2
+    if len(scatter2) == 0:
+        return None
+    if len(scatter2) < 2 or np.ptp(flux) == 0:
+        return 0.0, np.median(scatter2)
+
+    slope, intercept = np.linalg.lstsq(
+        np.column_stack([flux, np.ones_like(flux)]), scatter2, rcond=None
+    )[0]
+    if not np.isfinite(slope) or not np.isfinite(intercept):
+        return None
+    return max(0.0, slope), max(0.0, intercept)
+
+
+def _estimate_sparse_scatflux(medfluxes, scatfluxes, pixels, sample_labels):
+    medfluxes = np.asarray(medfluxes, dtype=float)
+    scatfluxes = np.asarray(scatfluxes, dtype=float).copy()
+    pixels = np.asarray(pixels, dtype=int)
+    sample_labels = np.asarray(sample_labels)
+    sparse = pixels == 1
+    if not np.any(sparse):
+        return scatfluxes
+
+    # Prefer anchors from the same sampling regime, since interpolated line,
+    # nearest-neighbor line, and band samples can have different scatter.
+    fallback_model = _sparse_scatter_model_flux(medfluxes, scatfluxes, pixels)
+    for sample_label in np.unique(sample_labels[sparse]):
+        sparse_indices = np.flatnonzero(sparse & (sample_labels == sample_label))
+        model = _sparse_scatter_model_flux(
+            medfluxes, scatfluxes, pixels, sample_labels, sample_label
+        )
+        if model is None:
+            model = fallback_model
+        if model is None:
+            continue
+
+        slope, intercept = model
+        model_flux = np.maximum(medfluxes[sparse_indices], 0.0)
+        model_scatter = np.sqrt(np.maximum(slope * model_flux + intercept, 0.0))
+        replace = np.isfinite(model_scatter) & (model_scatter > 0)
+        scatfluxes[sparse_indices[replace]] = model_scatter[replace]
+    return scatfluxes
+
+
 def _empty_fmode_measurements(modes):
     return {
         "a": [np.nan] * (len(modes) + 1),
@@ -176,6 +238,11 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     pixels = []
     maskedpixels = []
     cogdirect = []
+    # Internal bookkeeping for one-sample uncertainty repair; these labels are
+    # not written to the profile table.
+    medfluxes = []
+    scatfluxes = []
+    sample_labels = []
     sbfix = []
     sbfixE = []
     measFmodes = []
@@ -211,6 +278,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             )
             or isobandwidth < 0.5
         ):
+            # Line sampling uses interpolation only inside rad_interp.
+            sample_label = "interp_line" if np.max(R[i]) < rad_interp else "nearest_line"
             isovals = _iso_extract(
                 dat,
                 R[i],
@@ -232,6 +301,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
         else:
+            # Band sampling has a different effective noise behavior.
+            sample_label = "band"
             isovals = _iso_between(
                 dat,
                 R[i] - isobandwidth,
@@ -263,6 +334,9 @@ def _Generate_Profile(IMG, results, R, parameters, options):
         if len(isovals[0]) == 0:
             pixels.append(0)
             maskedpixels.append(isovals[2])
+            medfluxes.append(np.nan)
+            scatfluxes.append(np.nan)
+            sample_labels.append(sample_label)
             if fluxunits == "intensity":
                 sb.append(np.nan)
                 sbE.append(np.nan)
@@ -288,6 +362,9 @@ def _Generate_Profile(IMG, results, R, parameters, options):
 
         pixels.append(len(isovals[0]))
         maskedpixels.append(isovals[2])
+        medfluxes.append(medflux)
+        scatfluxes.append(scatflux)
+        sample_labels.append(sample_label)
         if fluxunits == "intensity":
             sb.append(medflux / options["ap_pixscale"] ** 2)
             sbE.append(scatflux / np.sqrt(len(isovals[0])))
@@ -311,6 +388,22 @@ def _Generate_Profile(IMG, results, R, parameters, options):
         ):
             end_prof = i + 1
             break
+
+    # Replace only one-sample scatflux values; normal rows keep their measured
+    # scatter and empty rows keep the existing sentinel values.
+    scatfluxes[:end_prof] = list(
+        _estimate_sparse_scatflux(
+            medfluxes[:end_prof],
+            scatfluxes[:end_prof],
+            pixels[:end_prof],
+            sample_labels[:end_prof],
+        )
+    )
+    for i in np.flatnonzero(np.asarray(pixels[:end_prof]) == 1):
+        if fluxunits == "intensity":
+            sbE[i] = scatfluxes[i]
+        elif medfluxes[i] > 0:
+            sbE[i] = 2.5 * scatfluxes[i] / (medfluxes[i] * np.log(10))
 
     # Compute Curve of Growth from SB profile
     if fluxunits == "intensity":
