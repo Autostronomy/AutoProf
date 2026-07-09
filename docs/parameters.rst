@@ -171,6 +171,19 @@ ap_fluxunits (str, default "mag")
 units for outputted photometry. Can either be "mag" for log
 units, or "intensity" for linear units.
 
+ap_forced_use_sampling_method (bool, default True)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+
+**Description**
+
+If the forcing profile has a *sampling_method* column, use it to
+choose lanczos, bicubic, bilinear, nearest-neighbor, or band sampling
+for each forced isophote.
+
 ap_forcing_profile (string, default None)
 ----------------------------------------------------------------------
 
@@ -314,6 +327,19 @@ are 'lanczos', 'bicubic', and 'bilinear'. By default, this follows
 *ap_isoextract_interpolate_method*. Coefficient measurement samples the
 fitted isophote line, even where the SB profile uses isophote-band
 sampling.
+
+ap_iso_output_sampling_method (bool, default False)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+
+**Description**
+
+Add a *sampling_method* column to the output profile. Values are
+'lanczos', 'bicubic', 'bilinear', 'nearest', and 'band'.
 
 ap_isoaverage_method (string, default 'median')
 ----------------------------------------------------------------------

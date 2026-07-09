@@ -78,6 +78,18 @@ def _isoband_flux_threshold(results, options, zeropoint):
     )
 
 
+def _normalize_sampling_method(method):
+    method = str(method).strip()
+    if method in ("band", "nearest"):
+        return method
+    if method in ("lanczos", "bicubic", "bilinear"):
+        return _validate_interpolate_method(method, "sampling_method")
+    raise ValueError(
+        "Unrecognized sampling_method '%s'. Expected lanczos, bicubic, bilinear, nearest, or band."
+        % method
+    )
+
+
 def _sparse_scatter_model_flux(
     medfluxes, scatfluxes, pixels, labels=None, target_label=None, min_anchor_samples=2
 ):
@@ -219,7 +231,7 @@ def _extract_harmonic_measurement_samples(
     )
 
 
-def _Generate_Profile(IMG, results, R, parameters, options):
+def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_methods=None):
 
     # Create image array with background and mask applied
     try:
@@ -251,14 +263,22 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     pixels = []
     maskedpixels = []
     cogdirect = []
-    # Internal bookkeeping for one-sample uncertainty repair; these labels are
-    # not written to the profile table.
+    # Internal bookkeeping for one-sample uncertainty repair; labels are also
+    # written to the profile table when requested.
     medfluxes = []
     scatfluxes = []
     sample_labels = []
     sbfix = []
     sbfixE = []
     measFmodes = []
+    output_sampling_method = (
+        "ap_iso_output_sampling_method" in options
+        and options["ap_iso_output_sampling_method"]
+    )
+    if forced_sampling_methods is not None:
+        forced_sampling_methods = list(
+            _normalize_sampling_method(m) for m in forced_sampling_methods
+        )
 
     count_neg = 0
     medflux = np.inf
@@ -284,12 +304,29 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             isobandwidth = R[i] * (
                 options["ap_isoband_width"] if "ap_isoband_width" in options else 0.025
             )
-        if (
-            medflux > isoband_flux_threshold
-            or isobandwidth < 0.5
-        ):
-            # Line sampling uses interpolation only inside rad_interp.
-            sample_label = "interp_line" if np.max(R[i]) < rad_interp else "nearest_line"
+        forced_sampling_method = (
+            forced_sampling_methods[i]
+            if forced_sampling_methods is not None and i < len(forced_sampling_methods)
+            else None
+        )
+        use_band = (
+            forced_sampling_method == "band"
+            if forced_sampling_method is not None
+            else medflux <= isoband_flux_threshold and isobandwidth >= 0.5
+        )
+        if not use_band:
+            if forced_sampling_method is None:
+                # Automatic line sampling uses interpolation only inside rad_interp.
+                sample_label = isoextract_interp_method if np.max(R[i]) < rad_interp else "nearest"
+                line_rad_interp = rad_interp
+                line_interp_method = isoextract_interp_method
+            else:
+                sample_label = forced_sampling_method
+                # Existing _iso_extract reaches nearest-neighbor through rad_interp.
+                line_rad_interp = 0 if sample_label == "nearest" else np.inf
+                line_interp_method = (
+                    isoextract_interp_method if sample_label == "nearest" else sample_label
+                )
             isovals = _iso_extract(
                 dat,
                 R[i],
@@ -297,8 +334,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 results["center"],
                 mask=mask,
                 more=True,
-                rad_interp=rad_interp,
-                interp_method=isoextract_interp_method,
+                rad_interp=line_rad_interp,
+                interp_method=line_interp_method,
                 interp_window=(
                     int(options["ap_iso_interpolate_window"])
                     if "ap_iso_interpolate_window" in options
@@ -523,6 +560,10 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     SBprof_data["pixels"] = list(pixels)
     SBprof_data["maskedpixels"] = list(maskedpixels)
     SBprof_data["totflux_direct" if fluxunits == "intensity" else "totmag_direct"] = list(cogdirect)
+    if output_sampling_method:
+        params.append("sampling_method")
+        SBprof_units["sampling_method"] = "none"
+        SBprof_data["sampling_method"] = list(sample_labels[:end_prof])
 
     if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
         whichcoefs = [0] + list(options["ap_iso_measurecoefs"])
@@ -592,6 +633,11 @@ def Isophote_Extract_Forced(IMG, results, options):
     ap_fluxunits : str, default "mag"
       units for outputted photometry. Can either be "mag" for log
       units, or "intensity" for linear units.
+
+    ap_forced_use_sampling_method : bool, default True
+      If the forcing profile has a *sampling_method* column, use it to
+      choose lanczos, bicubic, bilinear, nearest-neighbor, or band sampling
+      for each forced isophote.
 
     ap_isoband_start : float, default 2
       The noise level at which to begin sampling a band of pixels to
@@ -679,6 +725,10 @@ def Isophote_Extract_Forced(IMG, results, options):
       measurement samples the fitted isophote line, even where the SB
       profile uses isophote-band sampling.
 
+    ap_iso_output_sampling_method : bool, default False
+      Add a *sampling_method* column to the output profile. Values are
+      'lanczos', 'bicubic', 'bilinear', 'nearest', and 'band'.
+
     ap_plot_sbprof_ylim : tuple, default None
       Tuple with axes limits for the y-axis in the SB profile
       diagnostic plot. Be careful when using intensity units
@@ -739,7 +789,10 @@ def Isophote_Extract_Forced(IMG, results, options):
             except ValueError:
                 continue  # Skip non-numeric rows
             for d, h in zip(D, header):
-                force[h].append(float(d.strip()))
+                if h == "sampling_method":
+                    force[h].append(d.strip())
+                else:
+                    force[h].append(float(d.strip()))
 
     force["pa"] = PA_shift_convention(np.array(force["pa"]), deg=True) * np.pi / 180
 
@@ -762,8 +815,25 @@ def Isophote_Extract_Forced(IMG, results, options):
             parameters[i]["pa_err"] = 0.0
             parameters[i]["ellip_err"] = 0.0
 
+    forced_sampling_methods = (
+        force["sampling_method"]
+        if (
+            "sampling_method" in force
+            and (
+                "ap_forced_use_sampling_method" not in options
+                or options["ap_forced_use_sampling_method"]
+            )
+        )
+        else None
+    )
+
     return IMG, _Generate_Profile(
-        IMG, results, np.array(force["R"]) / options["ap_pixscale"], parameters, options
+        IMG,
+        results,
+        np.array(force["R"]) / options["ap_pixscale"],
+        parameters,
+        options,
+        forced_sampling_methods=forced_sampling_methods,
     )
 
 
@@ -906,6 +976,10 @@ def Isophote_Extract(IMG, results, options):
       this follows *ap_isoextract_interpolate_method*. Coefficient
       measurement samples the fitted isophote line, even where the SB
       profile uses isophote-band sampling.
+
+    ap_iso_output_sampling_method : bool, default False
+      Add a *sampling_method* column to the output profile. Values are
+      'lanczos', 'bicubic', 'bilinear', 'nearest', and 'band'.
 
     ap_plot_sbprof_ylim : tuple, default None
       Tuple with axes limits for the y-axis in the SB profile
