@@ -66,12 +66,12 @@ def _finite_divide(numerator, denominator):
     return numerator / denominator
 
 
-def _isoband_flux_threshold(results, options):
+def _isoband_flux_threshold(results, options, zeropoint):
     if "ap_isoband_start_sb" in options and not options["ap_isoband_start_sb"] is None:
         return sb_to_flux(
             options["ap_isoband_start_sb"],
             options["ap_pixscale"],
-            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
+            zeropoint,
         )
     return results["background noise"] * (
         options["ap_isoband_start"] if "ap_isoband_start" in options else 2
@@ -266,7 +266,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     compare_interp = []
     measure_coefs = "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None
     rad_interp = _iso_interpolate_radius(options, results)
-    isoband_flux_threshold = _isoband_flux_threshold(results, options)
+    isoband_flux_threshold = _isoband_flux_threshold(results, options, zeropoint)
     isoextract_interp_method = _validate_interpolate_method(
         options["ap_isoextract_interpolate_method"]
         if "ap_isoextract_interpolate_method" in options
