@@ -5,6 +5,7 @@ import os
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
     _iso_between,
+    _iso_interpolate_radius,
     Angle_TwoAngles_cos,
     LSBImage,
     AddLogo,
@@ -90,6 +91,7 @@ def Radial_Profiles(IMG, results, options):
     """
 
     mask = results["mask"] if "mask" in results else None
+    rad_interp = _iso_interpolate_radius(options, results)
     nwedges = (
         options["ap_radialprofiles_nwedges"]
         if "ap_radialprofiles_nwedges" in options
@@ -183,6 +185,7 @@ def Radial_Profiles(IMG, results, options):
                     more=True,
                     minN=int(5 * 2 * np.pi / wedgewidth[i]),
                     mask=mask,
+                    rad_interp=rad_interp,
                 )
             )
         else:

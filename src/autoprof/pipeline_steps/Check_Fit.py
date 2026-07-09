@@ -7,6 +7,7 @@ import os
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _iso_interpolate_radius,
     _x_to_pa,
     _x_to_eps,
     _inv_x_to_eps,
@@ -86,6 +87,7 @@ def Check_Fit(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if mask is not None and not np.any(mask):
         mask = None
+    rad_interp = _iso_interpolate_radius(options, results)
 
     # Compare variability of flux values along isophotes
     ######################################################################
@@ -120,6 +122,7 @@ def Check_Fit(IMG, results, options):
             },
             use_center,
             mask=mask,
+            rad_interp=rad_interp,
         )
         init_isovals = init_isovals[np.isfinite(init_isovals)]
         isovals = _iso_extract(
@@ -128,6 +131,7 @@ def Check_Fit(IMG, results, options):
             {"ellip": checkson["ellip"][i], "pa": checkson["pa"][i]},
             use_center,
             mask=mask,
+            rad_interp=rad_interp,
         )
         isovals = isovals[np.isfinite(isovals)]
         if len(isovals) <= 2:

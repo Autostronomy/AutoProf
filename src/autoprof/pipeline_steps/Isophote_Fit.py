@@ -14,6 +14,7 @@ import logging
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _iso_interpolate_radius,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
     _validate_interpolate_method,
@@ -69,10 +70,13 @@ def _has_enough_isophote_samples(
     mask,
     max_mode=2,
     interp_method=None,
+    rad_interp=None,
 ):
     kwargs = {}
     if not interp_method is None:
         kwargs["interp_method"] = interp_method
+    if not rad_interp is None:
+        kwargs["rad_interp"] = rad_interp
     _, theta, choose, _ = _iso_extract(
         dat,
         radius,
@@ -97,10 +101,13 @@ def _extract_fft_isophote_samples(
     mask,
     max_mode=2,
     interp_method=None,
+    rad_interp=None,
 ):
     kwargs = {}
     if not interp_method is None:
         kwargs["interp_method"] = interp_method
+    if not rad_interp is None:
+        kwargs["rad_interp"] = rad_interp
     flux, theta, choose, _ = _iso_extract(
         dat,
         radius,
@@ -184,6 +191,7 @@ def _activate_inactive_radii(
     mask,
     max_mode=2,
     interp_method=None,
+    rad_interp=None,
 ):
     _interpolate_inactive_parameters(sample_radii, parameters, active_mask)
     activated = []
@@ -196,6 +204,7 @@ def _activate_inactive_radii(
             mask,
             max_mode=max_mode,
             interp_method=interp_method,
+            rad_interp=rad_interp,
         ):
             active_mask[i] = True
             activated.append(i)
@@ -203,7 +212,7 @@ def _activate_inactive_radii(
 
 
 def _activate_inactive_ellipse_radii(
-    dat, sample_radii, ellip, pa, active_mask, center, mask, interp_method=None
+    dat, sample_radii, ellip, pa, active_mask, center, mask, interp_method=None, rad_interp=None
 ):
     active_indices = np.flatnonzero(active_mask)
     inactive_indices = np.flatnonzero(np.logical_not(active_mask))
@@ -229,6 +238,7 @@ def _activate_inactive_ellipse_radii(
             center,
             mask,
             interp_method=interp_method,
+            rad_interp=rad_interp,
         ):
             active_mask[i] = True
             activated.append(i)
@@ -246,11 +256,15 @@ def _determine_sample_radii(
     fit_limit_default,
     average_func,
     minR=0.0,
+    rad_interp=None,
 ):
     shrink = 0
     while shrink < 5:
         sample_radii = []
         radius = startR
+        kwargs = {}
+        if not rad_interp is None:
+            kwargs["rad_interp"] = rad_interp
         while radius < (max(IMG.shape) / 2):
             sample_radii.append(radius)
             isovals = _finite_isophote_samples(
@@ -261,6 +275,7 @@ def _determine_sample_radii(
                     results["center"],
                     more=False,
                     mask=mask,
+                    **kwargs,
                 )
             )
             if (
@@ -412,6 +427,7 @@ def Isophote_Fit_FixedPhase(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    rad_interp = _iso_interpolate_radius(options, results)
 
     # Determine sampling radii
     ######################################################################
@@ -425,6 +441,7 @@ def Isophote_Fit_FixedPhase(IMG, results, options):
         max(1.0, results["psf fwhm"] / 2),
         2,
         np.median,
+        rad_interp=rad_interp,
     )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
     pa = np.ones(len(sample_radii)) * results["init pa"]
@@ -478,6 +495,7 @@ def _FFT_Robust_loss(
     name="",
     active_mask=None,
     interp_method="bicubic",
+    rad_interp=None,
 ):
     if fit_coefs is not None and len(fit_coefs) == 0:
         fit_coefs = None
@@ -491,6 +509,7 @@ def _FFT_Robust_loss(
         mask,
         max_mode=max_mode,
         interp_method=interp_method,
+        rad_interp=rad_interp,
     )
     if isovals is None:
         return np.inf
@@ -546,6 +565,7 @@ def _FFT_Robust_Errors(
     fit_coefs=None,
     name="",
     interp_method="bicubic",
+    rad_interp=None,
 ):
 
     PA_err = np.zeros(len(R))
@@ -583,6 +603,7 @@ def _FFT_Robust_Errors(
                     fit_coefs=fit_coefs,
                     name=name,
                     interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
 
             if not np.isfinite(raw_loss(x0)):
@@ -778,6 +799,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    rad_interp = _iso_interpolate_radius(options, results)
 
     if "ap_isoinit_R_set" in options:
         minR = options["ap_isoinit_R_set"]
@@ -798,6 +820,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         2,
         np.median,
         minR=minR,
+        rad_interp=rad_interp,
     )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
     pa = np.ones(len(sample_radii)) * results["init pa"]
@@ -854,6 +877,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 mask,
                 max_mode=_max_fit_mode(fit_coefs),
                 interp_method=interp_method,
+                rad_interp=rad_interp,
             )
             for i in range(len(sample_radii))
         )
@@ -894,6 +918,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 name=options["ap_name"],
                 active_mask=active_mask,
                 interp_method=interp_method,
+                rad_interp=rad_interp,
             )
             for n in range(N_perturb):
                 perturbations.append(deepcopy(parameters))
@@ -943,6 +968,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     name=options["ap_name"],
                     active_mask=active_mask,
                     interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
 
             if not np.isfinite(perturbations[0][i]["loss"]):
@@ -970,6 +996,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     mask,
                     max_mode=_max_fit_mode(fit_coefs),
                     interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
                 if len(activated) > 0:
                     count_nochange = 0
@@ -997,6 +1024,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                 mask,
                                 max_mode=_max_fit_mode(fit_coefs),
                                 interp_method=interp_method,
+                                rad_interp=rad_interp,
                             )
                             for ii in range(len(sample_radii))
                         )
@@ -1032,6 +1060,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                 mask,
                                 max_mode=_max_fit_mode(fit_coefs),
                                 interp_method=interp_method,
+                                rad_interp=rad_interp,
                             )
                             for ii in range(len(sample_radii))
                         )
@@ -1051,6 +1080,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                 mask=mask,
                                 max_mode=max(parameters[ii]["m"]),
                                 interp_method=interp_method,
+                                rad_interp=rad_interp,
                             )
                             if isovals is None:
                                 continue
@@ -1110,6 +1140,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         fit_coefs=fit_coefs,
         name=options["ap_name"],
         interp_method=interp_method,
+        rad_interp=rad_interp,
     )
     for i in range(len(parameters)):
         parameters[i]["ellip err"] = ellip_err[i]
@@ -1236,6 +1267,7 @@ def _FFT_mean_loss(
     name="",
     active_mask=None,
     interp_method=None,
+    rad_interp=None,
 ):
 
     params = {"ellip": E[i], "pa": PA[i]}
@@ -1247,6 +1279,7 @@ def _FFT_mean_loss(
         mask,
         max_mode=2,
         interp_method=interp_method,
+        rad_interp=rad_interp,
     )
     if isovals is None:
         return np.inf
@@ -1335,6 +1368,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    rad_interp = _iso_interpolate_radius(options, results)
 
     # Determine sampling radii
     ######################################################################
@@ -1348,6 +1382,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         3 * results["psf fwhm"] / 2,
         1,
         np.mean,
+        rad_interp=rad_interp,
     )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
     pa = np.ones(len(sample_radii)) * results["init pa"]
@@ -1380,6 +1415,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                 use_center,
                 mask,
                 interp_method=interp_method,
+                rad_interp=rad_interp,
             )
             for i in range(len(sample_radii))
         )
@@ -1416,6 +1452,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                 name=options["ap_name"],
                 active_mask=active_mask,
                 interp_method=interp_method,
+                rad_interp=rad_interp,
             )
             for n in range(N_perturb):
                 perturbations.append({"ellip": copy(ellip), "pa": copy(pa)})
@@ -1441,6 +1478,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                     name=options["ap_name"],
                     active_mask=active_mask,
                     interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
 
             if not np.isfinite(perturbations[0]["loss"]):
@@ -1465,6 +1503,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                     use_center,
                     mask,
                     interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
                 if len(activated) > 0:
                     count_nochange = 0

@@ -635,6 +635,14 @@ def _validate_interpolate_method(method, option_name):
     return method
 
 
+def _iso_interpolate_radius(options, results):
+    return (
+        options["ap_iso_interpolate_start"]
+        if "ap_iso_interpolate_start" in options
+        else 5
+    ) * results["psf fwhm"] / 2
+
+
 def _interpolate_nearest_neighbour(dat, X, Y, mask=None):
     flux = np.full(len(X), np.nan)
     valid = np.ones(len(X), dtype=bool)

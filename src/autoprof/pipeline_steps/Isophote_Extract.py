@@ -23,6 +23,7 @@ from ..autoprofutils.SharedFunctions import (
     SBprof_to_COG_errorprop,
     _iso_extract,
     _iso_between,
+    _iso_interpolate_radius,
     _validate_interpolate_method,
     _photutils_masked_data,
     LSBImage,
@@ -184,11 +185,7 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     end_prof = len(R)
     compare_interp = []
     measure_coefs = "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None
-    rad_interp = (
-        options["ap_iso_interpolate_start"]
-        if "ap_iso_interpolate_start" in options
-        else 5
-    ) * results["psf fwhm"] / 2
+    rad_interp = _iso_interpolate_radius(options, results)
     isoextract_interp_method = _validate_interpolate_method(
         options["ap_isoextract_interpolate_method"]
         if "ap_isoextract_interpolate_method" in options

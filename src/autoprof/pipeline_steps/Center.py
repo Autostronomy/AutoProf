@@ -4,6 +4,7 @@ import os
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _iso_interpolate_radius,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
     AddLogo,
@@ -750,6 +751,7 @@ def _central_surface_brightness(dat, center, results, options):
         {"ellip": 0.0, "pa": 0.0},
         center,
         mask=results.get("mask", None),
+        rad_interp=_iso_interpolate_radius(options, results),
     )
     if len(isovals) == 0:
         return np.nan
@@ -786,7 +788,7 @@ def _center_sample_radii(psf_fwhm, searchring):
     return sampleradii
 
 
-def _hillclimb_loss(x, IMG, PSF, noise, mask=None):
+def _hillclimb_loss(x, IMG, PSF, noise, rad_interp, mask=None):
     center_loss = 0
     valid_radii = 0
     for rr in range(3):
@@ -803,7 +805,7 @@ def _hillclimb_loss(x, IMG, PSF, noise, mask=None):
                 ),
             },
             mask=mask,
-            rad_interp=10 * PSF,
+            rad_interp=rad_interp,
             interp_method="bilinear",
         )
         if isovals is None or len(isovals[0]) < 2:
@@ -908,6 +910,9 @@ def Center_HillClimb(IMG, results, options):
         int(options["ap_centeringring"]) if "ap_centeringring" in options else 10
     )
     sampleradii = _center_sample_radii(results["psf fwhm"], searchring)
+    rad_interp = _iso_interpolate_radius(options, results)
+    # Search rings can be far from the true center, so avoid nearest-neighbor sampling.
+    search_rad_interp = np.inf
 
     track_centers = []
     small_update_count = 0
@@ -925,6 +930,7 @@ def Center_HillClimb(IMG, results, options):
                 r,
                 current_center,
                 mask=results.get("mask", None),
+                rad_interp=search_rad_interp,
             )
             if isovals_r is None or len(isovals_r[0]) < 2:
                 continue
@@ -1012,6 +1018,7 @@ def Center_HillClimb(IMG, results, options):
                 dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
                 results["psf fwhm"],
                 results["background noise"],
+                rad_interp,
                 refine_mask,
             ),
             method="Nelder-Mead",
@@ -1030,7 +1037,7 @@ def Center_HillClimb(IMG, results, options):
     }
 
 
-def _hillclimb_mean_loss(x, IMG, PSF, noise, mask=None):
+def _hillclimb_mean_loss(x, IMG, PSF, noise, rad_interp, mask=None):
     center_loss = 0
     valid_radii = 0
     for rr in range(3):
@@ -1038,7 +1045,7 @@ def _hillclimb_mean_loss(x, IMG, PSF, noise, mask=None):
             IMG,
             (rr + 0.5) * PSF,
             {"x": x[0], "y": x[1]},
-            rad_interp=10 * PSF,
+            rad_interp=rad_interp,
             mask=mask,
         )
         if isovals is None or len(isovals[0]) < 2:
@@ -1143,6 +1150,9 @@ def Center_HillClimb_mean(IMG, results, options):
         int(options["ap_centeringring"]) if "ap_centeringring" in options else 10
     )
     sampleradii = _center_sample_radii(results["psf fwhm"], searchring)
+    rad_interp = _iso_interpolate_radius(options, results)
+    # Search rings can be far from the true center, so avoid nearest-neighbor sampling.
+    search_rad_interp = np.inf
 
     track_centers = []
     small_update_count = 0
@@ -1160,6 +1170,7 @@ def Center_HillClimb_mean(IMG, results, options):
                 r,
                 current_center,
                 mask=results.get("mask", None),
+                rad_interp=search_rad_interp,
             )
             if isovals_r is None or len(isovals_r[0]) < 2:
                 continue
@@ -1221,6 +1232,7 @@ def Center_HillClimb_mean(IMG, results, options):
                 dat,
                 results["psf fwhm"],
                 results["background noise"],
+                rad_interp,
                 results.get("mask", None),
             ),
             method="Nelder-Mead",

@@ -243,13 +243,26 @@ ap_iso_interpolate_start (float, default 5)
 
 **Referencing Methods**
 
+- :func:`~autoprof.pipeline_steps.Center.Center_HillClimb`
+- :func:`~autoprof.pipeline_steps.Center.Center_HillClimb_mean`
+- :func:`~autoprof.pipeline_steps.Check_Fit.Check_Fit`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+- :func:`~autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles`
 
 **Description**
 
-Use image interpolation for isophotes with semi-major axis
-less than this number times the PSF HWHM.
+Use image interpolation for isophote samples with semi-major axis less
+than this number times the PSF HWHM. This cutoff is shared by
+initialization, isophote fitting, profile extraction, radial profiles,
+and check-fit diagnostics. Center-finding search rings always use
+interpolation; this cutoff applies only to the center-refinement and
+central-surface-brightness samples.
 
 ap_iso_interpolate_window (int, default 3)
 ----------------------------------------------------------------------

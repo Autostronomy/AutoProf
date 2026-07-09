@@ -7,6 +7,7 @@ import os
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _iso_interpolate_radius,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
     _validate_interpolate_method,
@@ -67,12 +68,15 @@ def _extract_init_fft_samples(
     center,
     mask,
     interp_method=None,
+    rad_interp=None,
     sigmaclip=False,
     sclip_nsigma=3,
 ):
     kwargs = {}
     if not interp_method is None:
         kwargs["interp_method"] = interp_method
+    if not rad_interp is None:
+        kwargs["rad_interp"] = rad_interp
     flux, theta, choose, _ = _iso_extract(
         dat,
         radius,
@@ -194,7 +198,7 @@ def Isophote_Init_Forced(IMG, results, options):
     }
 
 
-def _fitEllip_loss(e, dat, r, p, c, n, m, interp_method=None):
+def _fitEllip_loss(e, dat, r, p, c, n, m, interp_method=None, rad_interp=None):
     isovals = _extract_init_fft_samples(
         dat,
         r,
@@ -202,6 +206,7 @@ def _fitEllip_loss(e, dat, r, p, c, n, m, interp_method=None):
         c,
         m,
         interp_method=interp_method,
+        rad_interp=rad_interp,
         sigmaclip=True,
         sclip_nsigma=3,
     )
@@ -296,6 +301,7 @@ def Isophote_Initialize(IMG, results, options):
         if "ap_isoinit_interpolate_method" in options
         else None
     )
+    rad_interp = _iso_interpolate_radius(options, results)
 
     if "ap_isoinit_R_set" in options:
         sample_radii = np.logspace(
@@ -311,6 +317,7 @@ def Isophote_Initialize(IMG, results, options):
                 results["center"],
                 mask=mask,
                 interp_method=interp_method,
+                rad_interp=rad_interp,
                 sigmaclip=True,
                 sclip_nsigma=3,
             )
@@ -330,6 +337,7 @@ def Isophote_Initialize(IMG, results, options):
                 results["center"],
                 mask=mask,
                 interp_method=interp_method,
+                rad_interp=rad_interp,
                 sigmaclip=True,
                 sclip_nsigma=3,
             )
@@ -363,7 +371,7 @@ def Isophote_Initialize(IMG, results, options):
     init_radius, test_f2 = _select_init_radius(
         test_ellip,
         lambda e, d, r, p, c, n, m: _fitEllip_loss(
-            e, d, r, p, c, n, m, interp_method=interp_method
+            e, d, r, p, c, n, m, interp_method=interp_method, rad_interp=rad_interp
         ),
         dat,
         circ_ellipse_radii[-2],
@@ -381,7 +389,7 @@ def Isophote_Initialize(IMG, results, options):
     init_radius, test_f2 = _select_init_radius(
         test_ellip,
         lambda e, d, r, p, c, n, m: _fitEllip_loss(
-            e, d, r, p, c, n, m, interp_method=interp_method
+            e, d, r, p, c, n, m, interp_method=interp_method, rad_interp=rad_interp
         ),
         dat,
         init_radius,
@@ -397,7 +405,15 @@ def Isophote_Initialize(IMG, results, options):
     res = minimize(
         lambda e, d, r, p, c, n, msk: _finite_average(
                 _fitEllip_loss(
-                    _x_to_eps(e[0]), d, r * m, p, c, n, msk, interp_method=interp_method
+                    _x_to_eps(e[0]),
+                    d,
+                    r * m,
+                    p,
+                    c,
+                    n,
+                    msk,
+                    interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
                 for m in np.linspace(0.8, 1.2, 5)
         ),
@@ -444,6 +460,7 @@ def Isophote_Initialize(IMG, results, options):
             results["center"],
             mask=mask,
             interp_method=interp_method,
+            rad_interp=rad_interp,
             sigmaclip=True,
             sclip_nsigma=3,
         )
@@ -461,7 +478,15 @@ def Isophote_Initialize(IMG, results, options):
     res_multi = [
         minimize(
             lambda e, d, r, p, c, n, m: _fitEllip_loss(
-                _x_to_eps(e[0]), d, r, p, c, n, m, interp_method=interp_method
+                _x_to_eps(e[0]),
+                d,
+                r,
+                p,
+                c,
+                n,
+                m,
+                interp_method=interp_method,
+                rad_interp=rad_interp,
             ),
             x0=_inv_x_to_eps(ellip),
             args=(
@@ -523,9 +548,15 @@ def Isophote_Initialize(IMG, results, options):
     }
 
 
-def _fitEllip_mean_loss(e, dat, r, p, c, n, m, interp_method=None):
+def _fitEllip_mean_loss(e, dat, r, p, c, n, m, interp_method=None, rad_interp=None):
     isovals = _extract_init_fft_samples(
-        dat, r, {"ellip": e, "pa": p}, c, mask=m, interp_method=interp_method
+        dat,
+        r,
+        {"ellip": e, "pa": p},
+        c,
+        mask=m,
+        interp_method=interp_method,
+        rad_interp=rad_interp,
     )
     if isovals is None:
         return np.inf
@@ -599,6 +630,7 @@ def Isophote_Initialize_mean(IMG, results, options):
         if "ap_isoinit_interpolate_method" in options
         else None
     )
+    rad_interp = _iso_interpolate_radius(options, results)
 
     r = circ_ellipse_radii[-1]
     while r < (len(IMG) / 2):
@@ -610,6 +642,7 @@ def Isophote_Initialize_mean(IMG, results, options):
             results["center"],
             mask=mask,
             interp_method=interp_method,
+            rad_interp=rad_interp,
         )
         if isovals is None:
             continue
@@ -633,7 +666,7 @@ def Isophote_Initialize_mean(IMG, results, options):
     init_radius, test_f2 = _select_init_radius(
         test_ellip,
         lambda e, d, r, p, c, n, m: _fitEllip_mean_loss(
-            e, d, r, p, c, n, m, interp_method=interp_method
+            e, d, r, p, c, n, m, interp_method=interp_method, rad_interp=rad_interp
         ),
         dat,
         circ_ellipse_radii[-2],
@@ -651,7 +684,7 @@ def Isophote_Initialize_mean(IMG, results, options):
     init_radius, test_f2 = _select_init_radius(
         test_ellip,
         lambda e, d, r, p, c, n, m: _fitEllip_mean_loss(
-            e, d, r, p, c, n, m, interp_method=interp_method
+            e, d, r, p, c, n, m, interp_method=interp_method, rad_interp=rad_interp
         ),
         dat,
         init_radius,
@@ -667,7 +700,15 @@ def Isophote_Initialize_mean(IMG, results, options):
     res = minimize(
         lambda e, d, r, p, c, n, msk: _finite_average(
                 _fitEllip_mean_loss(
-                    _x_to_eps(e[0]), d, r * m, p, c, n, msk, interp_method=interp_method
+                    _x_to_eps(e[0]),
+                    d,
+                    r * m,
+                    p,
+                    c,
+                    n,
+                    msk,
+                    interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
                 for m in np.linspace(0.8, 1.2, 5)
         ),
@@ -712,6 +753,7 @@ def Isophote_Initialize_mean(IMG, results, options):
             results["center"],
             mask=mask,
             interp_method=interp_method,
+            rad_interp=rad_interp,
         )
         if isovals is None:
             continue
@@ -727,7 +769,15 @@ def Isophote_Initialize_mean(IMG, results, options):
     res_multi = [
         minimize(
             lambda e, d, r, p, c, n, m: _fitEllip_mean_loss(
-                _x_to_eps(e[0]), d, r, p, c, n, m, interp_method=interp_method
+                _x_to_eps(e[0]),
+                d,
+                r,
+                p,
+                c,
+                n,
+                m,
+                interp_method=interp_method,
+                rad_interp=rad_interp,
             ),
             x0=_inv_x_to_eps(ellip),
             args=(dat, rrp[0], rrp[1], results["center"], results["background noise"], mask),
