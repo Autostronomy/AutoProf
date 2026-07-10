@@ -67,7 +67,7 @@ def _extract_init_fft_samples(
     params,
     center,
     mask,
-    interp_method=None,
+    interp_method="bilinear",
     rad_interp=None,
     sigmaclip=False,
     sclip_nsigma=3,
@@ -198,7 +198,9 @@ def Isophote_Init_Forced(IMG, results, options):
     }
 
 
-def _fitEllip_loss(e, dat, r, p, c, n, m, interp_method=None, rad_interp=None):
+def _fitEllip_loss(
+    e, dat, r, p, c, n, m, interp_method="bilinear", rad_interp=None
+):
     isovals = _extract_init_fft_samples(
         dat,
         r,
@@ -253,10 +255,9 @@ def Isophote_Initialize(IMG, results, options):
     ap_isoinit_R_set : float, default None
         User set initial semi-major axis length, will override the calculation.
 
-    ap_isoinit_interpolate_method : string, default None
+    ap_isoinit_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation while initializing
       isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
-      Default None uses the standard isophote extraction default.
 
     Notes
     ----------
@@ -299,7 +300,7 @@ def Isophote_Initialize(IMG, results, options):
             "ap_isoinit_interpolate_method",
         )
         if "ap_isoinit_interpolate_method" in options
-        else None
+        else "bilinear"
     )
     rad_interp = _iso_interpolate_radius(options, results)
 
@@ -548,7 +549,9 @@ def Isophote_Initialize(IMG, results, options):
     }
 
 
-def _fitEllip_mean_loss(e, dat, r, p, c, n, m, interp_method=None, rad_interp=None):
+def _fitEllip_mean_loss(
+    e, dat, r, p, c, n, m, interp_method="bilinear", rad_interp=None
+):
     isovals = _extract_init_fft_samples(
         dat,
         r,
@@ -582,10 +585,9 @@ def Isophote_Initialize_mean(IMG, results, options):
       background noise level. Default is 2, smaller values will end
       fitting further out in the galaxy image.
 
-    ap_isoinit_interpolate_method : string, default None
+    ap_isoinit_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation while initializing
       isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
-      Default None uses the standard isophote extraction default.
 
     Notes
     ----------
@@ -628,7 +630,7 @@ def Isophote_Initialize_mean(IMG, results, options):
             "ap_isoinit_interpolate_method",
         )
         if "ap_isoinit_interpolate_method" in options
-        else None
+        else "bilinear"
     )
     rad_interp = _iso_interpolate_radius(options, results)
 

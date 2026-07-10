@@ -69,7 +69,7 @@ def _has_enough_isophote_samples(
     center,
     mask,
     max_mode=2,
-    interp_method=None,
+    interp_method="bilinear",
     rad_interp=None,
 ):
     kwargs = {}
@@ -100,7 +100,7 @@ def _extract_fft_isophote_samples(
     center,
     mask,
     max_mode=2,
-    interp_method=None,
+    interp_method="bilinear",
     rad_interp=None,
 ):
     kwargs = {}
@@ -190,7 +190,7 @@ def _activate_inactive_radii(
     center,
     mask,
     max_mode=2,
-    interp_method=None,
+    interp_method="bilinear",
     rad_interp=None,
 ):
     _interpolate_inactive_parameters(sample_radii, parameters, active_mask)
@@ -212,7 +212,15 @@ def _activate_inactive_radii(
 
 
 def _activate_inactive_ellipse_radii(
-    dat, sample_radii, ellip, pa, active_mask, center, mask, interp_method=None, rad_interp=None
+    dat,
+    sample_radii,
+    ellip,
+    pa,
+    active_mask,
+    center,
+    mask,
+    interp_method="bilinear",
+    rad_interp=None,
 ):
     active_indices = np.flatnonzero(active_mask)
     inactive_indices = np.flatnonzero(np.logical_not(active_mask))
@@ -256,13 +264,14 @@ def _determine_sample_radii(
     fit_limit_default,
     average_func,
     minR=0.0,
+    interp_method="bilinear",
     rad_interp=None,
 ):
     shrink = 0
     while shrink < 5:
         sample_radii = []
         radius = startR
-        kwargs = {}
+        kwargs = {"interp_method": interp_method}
         if not rad_interp is None:
             kwargs["rad_interp"] = rad_interp
         while radius < (max(IMG.shape) / 2):
@@ -388,6 +397,11 @@ def Isophote_Fit_FixedPhase(IMG, results, options):
       background noise level. Default is 2, smaller values will end
       fitting further out in the galaxy image.
 
+    ap_isofit_interpolate_method : string, default 'bilinear'
+      Select method for flux interpolation while determining the
+      fitted isophote radii. Options are 'lanczos', 'bicubic', and
+      'bilinear'.
+
     Notes
     ----------
     :References:
@@ -427,6 +441,14 @@ def Isophote_Fit_FixedPhase(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
     rad_interp = _iso_interpolate_radius(options, results)
 
     # Determine sampling radii
@@ -441,6 +463,7 @@ def Isophote_Fit_FixedPhase(IMG, results, options):
         max(1.0, results["psf fwhm"] / 2),
         2,
         np.median,
+        interp_method=interp_method,
         rad_interp=rad_interp,
     )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
@@ -494,7 +517,7 @@ def _FFT_Robust_loss(
     fit_coefs=None,
     name="",
     active_mask=None,
-    interp_method="bicubic",
+    interp_method="bilinear",
     rad_interp=None,
 ):
     if fit_coefs is not None and len(fit_coefs) == 0:
@@ -564,7 +587,7 @@ def _FFT_Robust_Errors(
     robust_clip=0.15,
     fit_coefs=None,
     name="",
-    interp_method="bicubic",
+    interp_method="bilinear",
     rad_interp=None,
 ):
 
@@ -720,7 +743,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
       improve the fit result, though it is less stable and so users
       should examine the results after fitting.
 
-    ap_isofit_interpolate_method : string, default 'bicubic'
+    ap_isofit_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation while fitting isophotes.
       Options are 'lanczos', 'bicubic', and 'bilinear'.
 
@@ -799,6 +822,14 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
     rad_interp = _iso_interpolate_radius(options, results)
 
     if "ap_isoinit_R_set" in options:
@@ -820,6 +851,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         2,
         np.median,
         minR=minR,
+        interp_method=interp_method,
         rad_interp=rad_interp,
     )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
@@ -830,14 +862,6 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     perturb_scale = 0.03
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
     robust_clip = options["ap_isofit_robustclip"] if "ap_isofit_robustclip" in options else 0.15
-    interp_method = (
-        _validate_interpolate_method(
-            options["ap_isofit_interpolate_method"],
-            "ap_isofit_interpolate_method",
-        )
-        if "ap_isofit_interpolate_method" in options
-        else "bicubic"
-    )
     N_perturb = 5
     fit_coefs = options["ap_isofit_losscoefs"] if "ap_isofit_losscoefs" in options else None
     fit_params = options["ap_isofit_fitcoefs"] if "ap_isofit_fitcoefs" in options else None
@@ -1266,7 +1290,7 @@ def _FFT_mean_loss(
     reg_scale=1.0,
     name="",
     active_mask=None,
-    interp_method=None,
+    interp_method="bilinear",
     rad_interp=None,
 ):
 
@@ -1324,10 +1348,9 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
       isophotes.  Default of 1, larger values make smoother fits,
       smaller values give more chaotic fits.
 
-    ap_isofit_interpolate_method : string, default None
+    ap_isofit_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation while fitting isophotes.
-      Options are 'lanczos', 'bicubic', and 'bilinear'. Default None
-      uses the standard isophote extraction default.
+      Options are 'lanczos', 'bicubic', and 'bilinear'.
 
     Notes
     ----------
@@ -1368,6 +1391,14 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
     rad_interp = _iso_interpolate_radius(options, results)
 
     # Determine sampling radii
@@ -1382,6 +1413,7 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         3 * results["psf fwhm"] / 2,
         1,
         np.mean,
+        interp_method=interp_method,
         rad_interp=rad_interp,
     )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
@@ -1392,14 +1424,6 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     ######################################################################
     perturb_scale = np.array([0.03, 0.06])
     regularize_scale = options["ap_regularize_scale"] if "ap_regularize_scale" in options else 1.0
-    interp_method = (
-        _validate_interpolate_method(
-            options["ap_isofit_interpolate_method"],
-            "ap_isofit_interpolate_method",
-        )
-        if "ap_isofit_interpolate_method" in options
-        else None
-    )
     N_perturb = 5
 
     count = 0

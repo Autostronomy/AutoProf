@@ -8,6 +8,7 @@ import os
 from ..autoprofutils.SharedFunctions import (
     _iso_extract_with_interp_cutoff,
     _iso_interpolate_radius,
+    _validate_interpolate_method,
     _x_to_pa,
     _x_to_eps,
     _inv_x_to_eps,
@@ -46,6 +47,12 @@ def Check_Fit(IMG, results, options):
     light is biased to one side of the galaxy. Typically this
     indicated either a failed center, or the galaxy has been disturbed
     and is not lopsided.
+
+    Parameters
+    -----------------
+    ap_isofit_interpolate_method : string, default 'bilinear'
+      Select method for flux interpolation while checking fitted
+      isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
 
     Notes
     ----------
@@ -87,6 +94,14 @@ def Check_Fit(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if mask is not None and not np.any(mask):
         mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
     rad_interp = _iso_interpolate_radius(options, results)
 
     # Compare variability of flux values along isophotes
@@ -122,6 +137,7 @@ def Check_Fit(IMG, results, options):
             },
             use_center,
             mask=mask,
+            interp_method=interp_method,
             rad_interp=rad_interp,
         )
         init_isovals = init_isovals[np.isfinite(init_isovals)]
@@ -131,6 +147,7 @@ def Check_Fit(IMG, results, options):
             {"ellip": checkson["ellip"][i], "pa": checkson["pa"][i]},
             use_center,
             mask=mask,
+            interp_method=interp_method,
             rad_interp=rad_interp,
         )
         isovals = isovals[np.isfinite(isovals)]

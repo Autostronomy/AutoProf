@@ -262,6 +262,7 @@ ap_iso_interpolate_start (float, default 5)
 - :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
 - :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
 - :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+- :func:`~autoprof.pipeline_steps.Check_Fit.Check_Fit`
 - :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize`
 - :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
@@ -496,20 +497,20 @@ decomposition along fitted elliptical isophotes. This can
 improve the fit result, though it is less stable and so users
 should examine the results after fitting.
 
-ap_isofit_interpolate_method (string, default 'bicubic')
+ap_isofit_interpolate_method (string, default 'bilinear')
 ----------------------------------------------------------------------
 
 **Referencing Methods**
 
 - :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
 - :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+- :func:`~autoprof.pipeline_steps.Check_Fit.Check_Fit`
 
 **Description**
 
-Select method for flux interpolation while fitting isophotes.
-Options are 'lanczos', 'bicubic', and 'bilinear'. The mean
-fitting method defaults to the standard isophote extraction
-default when this option is not set.
+Select method for flux interpolation while fitting or checking isophotes.
+Options are 'lanczos', 'bicubic', and 'bilinear'.
 
 ap_isofit_iterlimitmax (int, default 300)
 ----------------------------------------------------------------------
@@ -647,7 +648,7 @@ ap_isoinit_ellip_set (float, default None)
 
 User set initial ellipticity (1 - b/a), will override the calculation.
 
-ap_isoinit_interpolate_method (string, default None)
+ap_isoinit_interpolate_method (string, default 'bilinear')
 ----------------------------------------------------------------------
 
 **Referencing Methods**
@@ -659,7 +660,6 @@ ap_isoinit_interpolate_method (string, default None)
 
 Select method for flux interpolation while initializing
 isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
-Default None uses the standard isophote extraction default.
 
 ap_isoinit_pa_set (float, default None)
 ----------------------------------------------------------------------
