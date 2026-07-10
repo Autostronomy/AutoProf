@@ -1814,9 +1814,23 @@ def SBprof_to_COG_errorprop(R, SB, SBE, parameters, N=100, symmetric_error=True)
     res = Fmode_fluxdens_to_fluxsum_errorprop(
         R, I, Ie, parameters, N=N, symmetric_error=symmetric_error
     )
+    if res[0] is None:
+        return (None, None) if symmetric_error else (None, None, None)
+
+    flux = np.asarray(res[0])
+    valid = np.logical_and(np.isfinite(flux), flux > 0)
+    mag = np.full(flux.shape, np.nan)
     if symmetric_error:
-        return flux_to_mag(res[0], 20.0, res[1])
+        mage = np.full(flux.shape, np.nan)
+        mag[valid], mage[valid] = flux_to_mag(
+            flux[valid], 20.0, np.asarray(res[1])[valid]
+        )
+        return mag, mage
     else:
-        lower = flux_to_mag(res[0], 20.0, res[1])
-        upper = flux_to_mag(res[0], 20.0, res[2])
-        return lower[0], lower[1], upper[1]
+        lower_e = np.full(flux.shape, np.nan)
+        upper_e = np.full(flux.shape, np.nan)
+        mag[valid], lower_e[valid] = flux_to_mag(
+            flux[valid], 20.0, np.asarray(res[1])[valid]
+        )
+        _, upper_e[valid] = flux_to_mag(flux[valid], 20.0, np.asarray(res[2])[valid])
+        return mag, lower_e, upper_e

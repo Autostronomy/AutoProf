@@ -381,9 +381,9 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
                 sbE.append(np.nan)
                 cogdirect.append(np.nan)
             else:
-                sb.append(99.999)
-                sbE.append(99.999)
-                cogdirect.append(99.999)
+                sb.append(np.nan)
+                sbE.append(np.nan)
+                cogdirect.append(np.nan)
             if measure_coefs:
                 measFmodes.append(coef_measurements)
             continue
@@ -410,14 +410,16 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             cogdirect.append(isotot)
         else:
             sb.append(
-                flux_to_sb(medflux, options["ap_pixscale"], zeropoint) if medflux > 0 else 99.999
+                flux_to_sb(medflux, options["ap_pixscale"], zeropoint)
+                if medflux > 0
+                else np.nan
             )
             sbE.append(
                 (2.5 * scatflux / (np.sqrt(len(isovals[0])) * medflux * np.log(10)))
                 if medflux > 0
-                else 99.999
+                else np.nan
             )
-            cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else 99.999)
+            cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else np.nan)
         if medflux <= 0:
             count_neg += 1
         if (
@@ -429,7 +431,7 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             break
 
     # Replace only one-sample scatflux values; normal rows keep their measured
-    # scatter and empty rows keep the existing sentinel values.
+    # scatter and empty rows remain invalid.
     scatfluxes[:end_prof] = list(
         _estimate_sparse_scatflux(
             medfluxes[:end_prof],
@@ -456,11 +458,8 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
         )
 
         if cog is None:
-            cog = -99.999 * np.ones(len(R))
-            cogE = -99.999 * np.ones(len(R))
-        else:
-            cog[np.logical_not(np.isfinite(cog))] = -99.999
-            cogE[cog < 0] = -99.999
+            cog = np.full(end_prof, np.nan)
+            cogE = np.full(end_prof, np.nan)
     else:
         cog, cogE = SBprof_to_COG_errorprop(
             R[:end_prof] * options["ap_pixscale"],
@@ -471,11 +470,8 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             symmetric_error=True,
         )
         if cog is None:
-            cog = 99.999 * np.ones(len(R))
-            cogE = 99.999 * np.ones(len(R))
-        else:
-            cog[np.logical_not(np.isfinite(cog))] = 99.999
-            cogE[cog > 99] = 99.999
+            cog = np.full(end_prof, np.nan)
+            cogE = np.full(end_prof, np.nan)
 
     # For each radius evaluation, write the profile parameters
     if fluxunits == "intensity":
@@ -538,6 +534,27 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             "maskedpixels": "count",
             "totmag_direct": "mag",
         }
+
+    # Sentinels are an output convention and must not enter profile calculations.
+    if fluxunits == "intensity":
+        cog = np.asarray(cog)
+        cogE = np.asarray(cogE)
+        invalid_cog = np.logical_or(np.logical_not(np.isfinite(cog)), cog < 0)
+        cog[invalid_cog] = -99.999
+        cogE[np.logical_or(invalid_cog, np.logical_not(np.isfinite(cogE)))] = -99.999
+    else:
+        sb = np.asarray(sb)
+        sbE = np.asarray(sbE)
+        cog = np.asarray(cog)
+        cogE = np.asarray(cogE)
+        cogdirect = np.asarray(cogdirect)
+        invalid_sb = np.logical_not(np.isfinite(sb))
+        sb[invalid_sb] = 99.999
+        sbE[np.logical_or(invalid_sb, np.logical_not(np.isfinite(sbE)))] = 99.999
+        invalid_cog = np.logical_or(np.logical_not(np.isfinite(cog)), cog > 99)
+        cog[invalid_cog] = 99.999
+        cogE[np.logical_or(invalid_cog, np.logical_not(np.isfinite(cogE)))] = 99.999
+        cogdirect[np.logical_not(np.isfinite(cogdirect))] = 99.999
 
     SBprof_data = dict((h, None) for h in params)
     SBprof_data["R"] = list(R[:end_prof] * options["ap_pixscale"])
