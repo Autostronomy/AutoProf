@@ -22,8 +22,10 @@ from ..autoprofutils.SharedFunctions import (
     _inv_x_to_pa,
     SBprof_to_COG_errorprop,
     _iso_extract,
+    _iso_extract_with_interp_cutoff,
     _iso_between,
     _iso_interpolate_radius,
+    _resolve_isoextract_interp_method,
     _validate_interpolate_method,
     _photutils_masked_data,
     LSBImage,
@@ -209,7 +211,7 @@ def _isocoefs_interpolate_method(options, fallback_method):
 def _extract_harmonic_measurement_samples(
     dat, R, parameters, center, mask, options, rad_interp, interp_method
 ):
-    return _iso_extract(
+    return _iso_extract_with_interp_cutoff(
         dat,
         R,
         parameters,
@@ -309,24 +311,16 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             if forced_sampling_methods is not None and i < len(forced_sampling_methods)
             else None
         )
-        use_band = (
-            forced_sampling_method == "band"
-            if forced_sampling_method is not None
-            else medflux <= isoband_flux_threshold and isobandwidth >= 0.5
-        )
-        if not use_band:
-            if forced_sampling_method is None:
-                # Automatic line sampling uses interpolation only inside rad_interp.
-                sample_label = isoextract_interp_method if np.max(R[i]) < rad_interp else "nearest"
-                line_rad_interp = rad_interp
-                line_interp_method = isoextract_interp_method
-            else:
-                sample_label = forced_sampling_method
-                # Existing _iso_extract reaches nearest-neighbor through rad_interp.
-                line_rad_interp = 0 if sample_label == "nearest" else np.inf
-                line_interp_method = (
-                    isoextract_interp_method if sample_label == "nearest" else sample_label
-                )
+        if forced_sampling_method is not None:
+            sampling_method = forced_sampling_method
+        elif medflux <= isoband_flux_threshold and isobandwidth >= 0.5:
+            sampling_method = "band"
+        else:
+            sampling_method = _resolve_isoextract_interp_method(
+                R[i], parameters[i], rad_interp, isoextract_interp_method
+            )
+
+        if sampling_method != "band":
             isovals = _iso_extract(
                 dat,
                 R[i],
@@ -334,8 +328,7 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
                 results["center"],
                 mask=mask,
                 more=True,
-                rad_interp=line_rad_interp,
-                interp_method=line_interp_method,
+                interp_method=sampling_method,
                 interp_window=(
                     int(options["ap_iso_interpolate_window"])
                     if "ap_iso_interpolate_window" in options
@@ -349,7 +342,6 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             )
         else:
             # Band sampling has a different effective noise behavior.
-            sample_label = "band"
             isovals = _iso_between(
                 dat,
                 R[i] - isobandwidth,
@@ -383,7 +375,7 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             maskedpixels.append(isovals[2])
             medfluxes.append(np.nan)
             scatfluxes.append(np.nan)
-            sample_labels.append(sample_label)
+            sample_labels.append(sampling_method)
             if fluxunits == "intensity":
                 sb.append(np.nan)
                 sbE.append(np.nan)
@@ -411,7 +403,7 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
         maskedpixels.append(isovals[2])
         medfluxes.append(medflux)
         scatfluxes.append(scatflux)
-        sample_labels.append(sample_label)
+        sample_labels.append(sampling_method)
         if fluxunits == "intensity":
             sb.append(medflux / options["ap_pixscale"] ** 2)
             sbE.append(scatflux / np.sqrt(len(isovals[0])))

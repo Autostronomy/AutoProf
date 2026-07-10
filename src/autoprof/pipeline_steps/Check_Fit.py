@@ -6,7 +6,7 @@ import sys
 import os
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
     _iso_interpolate_radius,
     _x_to_pa,
     _x_to_eps,
@@ -113,7 +113,7 @@ def Check_Fit(IMG, results, options):
         }
 
     for i in range(len(checkson["R"])):
-        init_isovals = _iso_extract(
+        init_isovals = _iso_extract_with_interp_cutoff(
             dat,
             checkson["R"][i],
             {
@@ -125,7 +125,7 @@ def Check_Fit(IMG, results, options):
             rad_interp=rad_interp,
         )
         init_isovals = init_isovals[np.isfinite(init_isovals)]
-        isovals = _iso_extract(
+        isovals = _iso_extract_with_interp_cutoff(
             dat,
             checkson["R"][i],
             {"ellip": checkson["ellip"][i], "pa": checkson["pa"][i]},

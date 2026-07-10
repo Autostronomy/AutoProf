@@ -3,7 +3,7 @@ import sys
 import os
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
     _iso_between,
     _iso_interpolate_radius,
     Angle_TwoAngles_cos,
@@ -177,7 +177,7 @@ def Radial_Profiles(IMG, results, options):
             or isobandwidth < 0.5
         ):
             isovals = list(
-                _iso_extract(
+                _iso_extract_with_interp_cutoff(
                     dat,
                     R[i],
                     {"ellip": 0, "pa": 0},

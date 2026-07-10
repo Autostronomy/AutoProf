@@ -3,7 +3,7 @@ import sys
 import os
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
     _iso_interpolate_radius,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
@@ -745,7 +745,7 @@ def Center_Peak(IMG, results, options):
 
 
 def _central_surface_brightness(dat, center, results, options):
-    isovals = _iso_extract(
+    isovals = _iso_extract_with_interp_cutoff(
         dat,
         0.0,
         {"ellip": 0.0, "pa": 0.0},
@@ -765,7 +765,7 @@ def _central_surface_brightness(dat, center, results, options):
 
 def _extract_center_fft_samples(dat, radius, center, mask=None, **kwargs):
     kwargs.setdefault("interp_method", "bilinear")
-    flux, theta, choose, _ = _iso_extract(
+    flux, theta, choose, _ = _iso_extract_with_interp_cutoff(
         dat,
         radius,
         {"ellip": 0.0, "pa": 0.0},

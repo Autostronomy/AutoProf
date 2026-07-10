@@ -624,8 +624,10 @@ def _interpolate_bilinear(dat, X, Y, mask=None):
     return flux, valid
 
 
-def _validate_interpolate_method(method, option_name):
-    allowed = ("lanczos", "bicubic", "bilinear")
+def _validate_interpolate_method(method, option_name, allow_nearest=False):
+    allowed = ("lanczos", "bicubic", "bilinear", "nearest")
+    if not allow_nearest:
+        allowed = allowed[:-1]
     if method not in allowed:
         raise ValueError(
             "%s=%s is not allowed. Should be one of %s"
@@ -640,6 +642,35 @@ def _iso_interpolate_radius(options, results):
         if "ap_iso_interpolate_start" in options
         else 5
     ) * results["psf fwhm"] / 2
+
+
+def _max_sampled_isophote_radius(sma, PARAMS, minN=None):
+    """Return the largest radius sampled by this possibly distorted isophote."""
+    if PARAMS.get("m", None) is None:
+        return sma
+
+    N = max(15, int(0.9 * 2 * np.pi * sma))
+    if minN is not None:
+        N = max(minN, N)
+    theta = np.linspace(0, 2 * np.pi * (1.0 - 1.0 / N), N)
+    theta = np.arctan((1.0 - PARAMS["ellip"]) * np.tan(theta)) + np.pi * (np.cos(theta) < 0)
+    return np.max(
+        sma * Rscale_Fmodes(theta, PARAMS["m"], PARAMS["Am"], PARAMS["Phim"])
+    )
+
+
+def _resolve_isoextract_interp_method(sma, PARAMS, rad_interp, interp_method, minN=None):
+    """Resolve the explicit line-sampling method for the interpolation cutoff."""
+    interp_method = _validate_interpolate_method(
+        interp_method, "interp_method", allow_nearest=True
+    )
+    if interp_method == "nearest" or rad_interp is None:
+        return interp_method
+    return (
+        interp_method
+        if _max_sampled_isophote_radius(sma, PARAMS, minN=minN) < rad_interp
+        else "nearest"
+    )
 
 
 def _interpolate_nearest_neighbour(dat, X, Y, mask=None):
@@ -860,7 +891,6 @@ def _iso_extract(
     minN=None,
     mask=None,
     interp_mask=False,
-    rad_interp=30,
     interp_method="lanczos",
     interp_window=5,
     sigmaclip=False,
@@ -908,26 +938,26 @@ def _iso_extract(
         Y = Y[BORDER]
         theta = theta[BORDER]
 
-    Rlim = np.max(R)
     footprint_choose = None
-    if Rlim < rad_interp:
-        interp_method = _validate_interpolate_method(interp_method, "interp_method")
-        if interp_method == "bicubic":
-            flux, footprint_choose = _interpolate_bicubic_local(IMG, X, Y, mask=mask)
-        elif interp_method == "bilinear":
-            flux, footprint_choose = _interpolate_bilinear(IMG, X, Y, mask=mask)
-        elif interp_method == "lanczos":
-            flux = interpolate_Lanczos(IMG, X, Y, interp_window)
-            footprint_choose = _interpolation_footprint_valid(
-                IMG,
-                X,
-                Y,
-                mask=mask,
-                interp_method=interp_method,
-                interp_window=interp_window,
-            )
-    else:
+    interp_method = _validate_interpolate_method(
+        interp_method, "interp_method", allow_nearest=True
+    )
+    if interp_method == "nearest":
         flux, footprint_choose = _interpolate_nearest_neighbour(IMG, X, Y, mask=mask)
+    elif interp_method == "bicubic":
+        flux, footprint_choose = _interpolate_bicubic_local(IMG, X, Y, mask=mask)
+    elif interp_method == "bilinear":
+        flux, footprint_choose = _interpolate_bilinear(IMG, X, Y, mask=mask)
+    elif interp_method == "lanczos":
+        flux = interpolate_Lanczos(IMG, X, Y, interp_window)
+        footprint_choose = _interpolation_footprint_valid(
+            IMG,
+            X,
+            Y,
+            mask=mask,
+            interp_method=interp_method,
+            interp_window=interp_window,
+        )
     # CHOOSE holds bolean array for which flux values to keep.
     # Interpolated samples are rejected when their interpolation footprint
     # contains masked or non-finite pixels.
@@ -974,6 +1004,44 @@ def _iso_extract(
         return flux, theta, countmasked
     else:
         return flux
+
+
+def _iso_extract_with_interp_cutoff(
+    IMG,
+    sma,
+    PARAMS,
+    c,
+    more=False,
+    minN=None,
+    mask=None,
+    interp_mask=False,
+    rad_interp=30,
+    interp_method="lanczos",
+    interp_window=5,
+    sigmaclip=False,
+    sclip_iterations=10,
+    sclip_nsigma=5,
+    return_choose=False,
+):
+    """Extract one isophote using the legacy interpolation-to-nearest cutoff."""
+    return _iso_extract(
+        IMG,
+        sma,
+        PARAMS,
+        c,
+        more=more,
+        minN=minN,
+        mask=mask,
+        interp_mask=interp_mask,
+        interp_method=_resolve_isoextract_interp_method(
+            sma, PARAMS, rad_interp, interp_method, minN=minN
+        ),
+        interp_window=interp_window,
+        sigmaclip=sigmaclip,
+        sclip_iterations=sclip_iterations,
+        sclip_nsigma=sclip_nsigma,
+        return_choose=return_choose,
+    )
 
 
 def _iso_line(IMG, length, width, pa, c, more=False, mask=None):
@@ -1195,7 +1263,7 @@ def StarFind(
             continue
 
         # Extract flux as a function of radius
-        edge_flux = _iso_extract(
+        edge_flux = _iso_extract_with_interp_cutoff(
             use_img,
             reject_size * fwhm_guess,
             {"ellip": 0.0, "pa": 0.0},
@@ -1206,7 +1274,7 @@ def StarFind(
         if len(edge_flux) == 0:
             continue
         local_flux = np.median(edge_flux)
-        center_flux = _iso_extract(
+        center_flux = _iso_extract_with_interp_cutoff(
             use_img,
             0.0,
             {"ellip": 0.0, "pa": 0.0},
@@ -1229,7 +1297,7 @@ def StarFind(
         ) < 50:  # len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
             R.append(R[-1] + fwhm_guess / 10)
             try:
-                isovals = _iso_extract(
+                isovals = _iso_extract_with_interp_cutoff(
                     use_img,
                     R[-1],
                     {"ellip": 0.0, "pa": 0.0},

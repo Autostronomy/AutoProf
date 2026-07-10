@@ -13,7 +13,7 @@ from copy import copy, deepcopy
 import logging
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
     _iso_interpolate_radius,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
@@ -77,7 +77,7 @@ def _has_enough_isophote_samples(
         kwargs["interp_method"] = interp_method
     if not rad_interp is None:
         kwargs["rad_interp"] = rad_interp
-    _, theta, choose, _ = _iso_extract(
+    _, theta, choose, _ = _iso_extract_with_interp_cutoff(
         dat,
         radius,
         params,
@@ -108,7 +108,7 @@ def _extract_fft_isophote_samples(
         kwargs["interp_method"] = interp_method
     if not rad_interp is None:
         kwargs["rad_interp"] = rad_interp
-    flux, theta, choose, _ = _iso_extract(
+    flux, theta, choose, _ = _iso_extract_with_interp_cutoff(
         dat,
         radius,
         params,
@@ -268,7 +268,7 @@ def _determine_sample_radii(
         while radius < (max(IMG.shape) / 2):
             sample_radii.append(radius)
             isovals = _finite_isophote_samples(
-                _iso_extract(
+                _iso_extract_with_interp_cutoff(
                     dat,
                     radius,
                     {"ellip": results["init ellip"], "pa": results["init pa"]},

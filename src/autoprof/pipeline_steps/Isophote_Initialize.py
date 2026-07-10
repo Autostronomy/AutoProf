@@ -6,7 +6,7 @@ import sys
 import os
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
     _iso_interpolate_radius,
     _has_enough_isophote_coverage,
     _interpolate_invalid_isophote_samples,
@@ -77,7 +77,7 @@ def _extract_init_fft_samples(
         kwargs["interp_method"] = interp_method
     if not rad_interp is None:
         kwargs["rad_interp"] = rad_interp
-    flux, theta, choose, _ = _iso_extract(
+    flux, theta, choose, _ = _iso_extract_with_interp_cutoff(
         dat,
         radius,
         params,
