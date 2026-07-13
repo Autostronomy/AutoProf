@@ -22,7 +22,6 @@ from ..autoprofutils.SharedFunctions import (
     _inv_x_to_pa,
     SBprof_to_COG_errorprop,
     _iso_extract,
-    _iso_extract_with_interp_cutoff,
     _iso_between,
     _iso_interpolate_radius,
     _resolve_isoextract_interp_method,
@@ -198,27 +197,16 @@ def _fit_harmonic_measurements(flux, theta, modes):
     return measurements
 
 
-def _isocoefs_interpolate_method(options, fallback_method):
-    if "ap_isocoefs_interpolate_method" in options:
-        method = options["ap_isocoefs_interpolate_method"]
-    elif "ap_isoextract_interpolate_method" in options:
-        method = options["ap_isoextract_interpolate_method"]
-    else:
-        method = fallback_method
-    return _validate_interpolate_method(method, "ap_isocoefs_interpolate_method")
-
-
-def _extract_harmonic_measurement_samples(
-    dat, R, parameters, center, mask, options, rad_interp, interp_method
+def _extract_isophote_line_samples(
+    dat, R, parameters, center, mask, options, interp_method
 ):
-    return _iso_extract_with_interp_cutoff(
+    return _iso_extract(
         dat,
         R,
         parameters,
         center,
         mask=mask,
         more=True,
-        rad_interp=rad_interp,
         interp_method=interp_method,
         interp_window=(
             int(options["ap_iso_interpolate_window"])
@@ -284,6 +272,8 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
 
     count_neg = 0
     medflux = np.inf
+    banding_started = False
+    last_line_sampling_method = None
     end_prof = len(R)
     compare_interp = []
     measure_coefs = "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None
@@ -295,10 +285,6 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
         else "bilinear",
         "ap_isoextract_interpolate_method",
     )
-    if measure_coefs:
-        isocoefs_interp_method = _isocoefs_interpolate_method(
-            options, isoextract_interp_method
-        )
     for i in range(len(R)):
         if "ap_isoband_fixed" in options and options["ap_isoband_fixed"]:
             isobandwidth = options["ap_isoband_width"] if "ap_isoband_width" in options else 0.5
@@ -311,35 +297,30 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
             if forced_sampling_methods is not None and i < len(forced_sampling_methods)
             else None
         )
+        line_sampling_method = _resolve_isoextract_interp_method(
+            R[i], parameters[i], rad_interp, isoextract_interp_method
+        )
         if forced_sampling_method is not None:
             sampling_method = forced_sampling_method
-        elif medflux <= isoband_flux_threshold and isobandwidth >= 0.5:
+        elif banding_started or (
+            medflux <= isoband_flux_threshold and isobandwidth >= 0.5
+        ):
             sampling_method = "band"
+            banding_started = True
         else:
-            sampling_method = _resolve_isoextract_interp_method(
-                R[i], parameters[i], rad_interp, isoextract_interp_method
-            )
+            sampling_method = line_sampling_method
 
         if sampling_method != "band":
-            isovals = _iso_extract(
+            isovals = _extract_isophote_line_samples(
                 dat,
                 R[i],
                 parameters[i],
                 results["center"],
-                mask=mask,
-                more=True,
-                interp_method=sampling_method,
-                interp_window=(
-                    int(options["ap_iso_interpolate_window"])
-                    if "ap_iso_interpolate_window" in options
-                    else 3
-                ),
-                sigmaclip=options["ap_isoclip"] if "ap_isoclip" in options else False,
-                sclip_iterations=(
-                    options["ap_isoclip_iterations"] if "ap_isoclip_iterations" in options else 10
-                ),
-                sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
+                mask,
+                options,
+                sampling_method,
             )
+            last_line_sampling_method = sampling_method
         else:
             # Band sampling has a different effective noise behavior.
             isovals = _iso_between(
@@ -357,15 +338,18 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
                 sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
         if measure_coefs:
-            coef_isovals = _extract_harmonic_measurement_samples(
-                dat,
-                R[i],
-                parameters[i],
-                results["center"],
-                mask,
-                options,
-                rad_interp,
-                isocoefs_interp_method,
+            coef_isovals = (
+                isovals
+                if sampling_method != "band"
+                else _extract_isophote_line_samples(
+                    dat,
+                    R[i],
+                    parameters[i],
+                    results["center"],
+                    mask,
+                    options,
+                    last_line_sampling_method or line_sampling_method,
+                )
             )
             coef_measurements = _fit_harmonic_measurements(
                 coef_isovals[0], coef_isovals[1], options["ap_iso_measurecoefs"]
@@ -652,12 +636,14 @@ def Isophote_Extract_Forced(IMG, results, options):
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
       isophote in units of pixel flux noise. Will never initiate band
-      averaging if the band width is less than half a pixel
+      averaging if the band width is less than half a pixel. Once
+      initiated, band sampling is used at all larger radii.
 
     ap_isoband_start_sb : float, default None
       Surface-brightness level in mag arcsec^-2 at which to begin
       sampling a band of pixels instead of sampling a line of pixels
-      near the isophote. Overrides *ap_isoband_start* if set.
+      near the isophote. Once initiated, band sampling is used at all
+      larger radii. Overrides *ap_isoband_start* if set.
 
     ap_isoband_width : float, default 0.025
       The relative size of the isophote bands to sample. flux values
@@ -724,15 +710,11 @@ def Isophote_Extract_Forced(IMG, results, options):
       I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf
       reports a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0).
       The fit includes every harmonic order up to the highest requested
-      order, but only requested orders are reported. Not activated by
-      default as it adds to computation time.
-
-    ap_isocoefs_interpolate_method : string, default None
-      Select image sampling method used for *ap_iso_measurecoefs*.
-      Options are 'lanczos', 'bicubic', and 'bilinear'. By default,
-      this follows *ap_isoextract_interpolate_method*. Coefficient
-      measurement samples the fitted isophote line, even where the SB
-      profile uses isophote-band sampling.
+      order, but only requested orders are reported. Harmonic fitting
+      reuses line samples from the SB profile. After band sampling
+      starts, it continues extracting line samples with the last line
+      sampling method. Not activated by default as it adds to
+      computation time.
 
     ap_iso_output_sampling_method : bool, default False
       Add a *sampling_method* column to the output profile. Values are
@@ -900,12 +882,14 @@ def Isophote_Extract(IMG, results, options):
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
       isophote in units of pixel flux noise. Will never initiate band
-      averaging if the band width is less than half a pixel
+      averaging if the band width is less than half a pixel. Once
+      initiated, band sampling is used at all larger radii.
 
     ap_isoband_start_sb : float, default None
       Surface-brightness level in mag arcsec^-2 at which to begin
       sampling a band of pixels instead of sampling a line of pixels
-      near the isophote. Overrides *ap_isoband_start* if set.
+      near the isophote. Once initiated, band sampling is used at all
+      larger radii. Overrides *ap_isoband_start* if set.
 
     ap_isoband_width : float, default 0.025
       The relative size of the isophote bands to sample. flux values
@@ -976,15 +960,11 @@ def Isophote_Extract(IMG, results, options):
       I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf
       reports a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0).
       The fit includes every harmonic order up to the highest requested
-      order, but only requested orders are reported. Not activated by
-      default as it adds to computation time.
-
-    ap_isocoefs_interpolate_method : string, default None
-      Select image sampling method used for *ap_iso_measurecoefs*.
-      Options are 'lanczos', 'bicubic', and 'bilinear'. By default,
-      this follows *ap_isoextract_interpolate_method*. Coefficient
-      measurement samples the fitted isophote line, even where the SB
-      profile uses isophote-band sampling.
+      order, but only requested orders are reported. Harmonic fitting
+      reuses line samples from the SB profile. After band sampling
+      starts, it continues extracting line samples with the last line
+      sampling method. Not activated by default as it adds to
+      computation time.
 
     ap_iso_output_sampling_method : bool, default False
       Add a *sampling_method* column to the output profile. Values are

@@ -306,24 +306,10 @@ samples. For a fitted term
 I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf reports
 a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0). The fit includes
 every harmonic order up to the highest requested order, but only
-requested orders are reported. Not activated by default as it adds to
-computation time.
-
-ap_isocoefs_interpolate_method (string, default None)
-----------------------------------------------------------------------
-
-**Referencing Methods**
-
-- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
-- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
-
-**Description**
-
-Select image sampling method used for *ap_iso_measurecoefs*. Options
-are 'lanczos', 'bicubic', and 'bilinear'. By default, this follows
-*ap_isoextract_interpolate_method*. Coefficient measurement samples the
-fitted isophote line, even where the SB profile uses isophote-band
-sampling.
+requested orders are reported. Harmonic fitting reuses line samples
+from the SB profile. After band sampling starts, it continues extracting
+line samples with the last line sampling method. Not activated by default
+as it adds to computation time.
 
 ap_iso_output_sampling_method (bool, default False)
 ----------------------------------------------------------------------
@@ -386,7 +372,8 @@ ap_isoband_start (float, default 2)
 The noise level at which to begin sampling a band of pixels to
 compute SB instead of sampling a line of pixels near the
 isophote in units of pixel flux noise. Will never initiate band
-averaging if the band width is less than half a pixel
+averaging if the band width is less than half a pixel. Once initiated,
+band sampling is used at all larger radii.
 
 ap_isoband_start_sb (float, default None)
 ----------------------------------------------------------------------
@@ -400,7 +387,8 @@ ap_isoband_start_sb (float, default None)
 
 Surface-brightness level in mag arcsec^-2 at which to begin
 sampling a band of pixels instead of sampling a line of pixels
-near the isophote. Overrides *ap_isoband_start* if set.
+near the isophote. Once initiated, band sampling is used at all larger
+radii. Overrides *ap_isoband_start* if set.
 
 ap_isoband_width (float, default 0.025)
 ----------------------------------------------------------------------
