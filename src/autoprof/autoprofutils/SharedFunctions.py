@@ -812,7 +812,7 @@ def _iso_between(
     fluxes = IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][rselect]
     theta_values = theta[rselect]
     CHOOSE = np.isfinite(fluxes)
-    if not mask is None:
+    if mask is not None:
         CHOOSE = np.logical_and(
             CHOOSE,
             np.logical_not(

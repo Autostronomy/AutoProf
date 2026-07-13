@@ -55,7 +55,7 @@ def _best_finite_index(losses):
 
 
 def _max_fit_mode(fit_coefs=None):
-    return max(fit_coefs) if not fit_coefs is None and len(fit_coefs) > 0 else 2
+    return max(fit_coefs) if fit_coefs is not None and len(fit_coefs) > 0 else 2
 
 
 def _has_enough_sample_count(choose, max_mode=2):
@@ -73,9 +73,9 @@ def _has_enough_isophote_samples(
     rad_interp=None,
 ):
     kwargs = {}
-    if not interp_method is None:
+    if interp_method is not None:
         kwargs["interp_method"] = interp_method
-    if not rad_interp is None:
+    if rad_interp is not None:
         kwargs["rad_interp"] = rad_interp
     _, theta, choose, _ = _iso_extract_with_interp_cutoff(
         dat,
@@ -104,9 +104,9 @@ def _extract_fft_isophote_samples(
     rad_interp=None,
 ):
     kwargs = {}
-    if not interp_method is None:
+    if interp_method is not None:
         kwargs["interp_method"] = interp_method
-    if not rad_interp is None:
+    if rad_interp is not None:
         kwargs["rad_interp"] = rad_interp
     flux, theta, choose, _ = _iso_extract_with_interp_cutoff(
         dat,
@@ -168,10 +168,10 @@ def _interpolate_inactive_parameters(sample_radii, parameters, active_mask):
             ((np.arctan2(np.interp(radius, active_radii, pa_s), np.interp(radius, active_radii, pa_c))) % (2 * np.pi))
             / 2
         )
-        if not parameters[i]["C"] is None:
+        if parameters[i]["C"] is not None:
             active_C = np.array(list(parameters[j]["C"] for j in active_indices))
             parameters[i]["C"] = np.interp(radius, active_radii, active_C)
-        if not parameters[i]["m"] is None:
+        if parameters[i]["m"] is not None:
             for m in range(len(parameters[i]["m"])):
                 active_Am = np.array(list(parameters[j]["Am"][m] for j in active_indices))
                 active_Phim = np.array(list(parameters[j]["Phim"][m] for j in active_indices))
@@ -272,7 +272,7 @@ def _determine_sample_radii(
         sample_radii = []
         radius = startR
         kwargs = {"interp_method": interp_method}
-        if not rad_interp is None:
+        if rad_interp is not None:
             kwargs["rad_interp"] = rad_interp
         while radius < (max(IMG.shape) / 2):
             sample_radii.append(radius)
@@ -550,7 +550,7 @@ def _FFT_Robust_loss(
             f2_loss = None
 
     reg_loss = 0
-    has_fmodes = not PARAMS[i]["m"] is None and len(PARAMS[i]["m"]) > 0
+    has_fmodes = PARAMS[i]["m"] is not None and len(PARAMS[i]["m"]) > 0
     if has_fmodes:
         fmode_scale = 1.0 / len(PARAMS[i]["m"])
     for j in _active_neighbors(i, active_mask, len(R)):
@@ -560,7 +560,7 @@ def _FFT_Robust_loss(
         neighbor_reg_loss += abs(
             Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[j]["pa"]) / (0.2)
         )
-        if has_fmodes and not PARAMS[j]["m"] is None:
+        if has_fmodes and PARAMS[j]["m"] is not None:
             for m in range(len(PARAMS[i]["m"])):
                 neighbor_reg_loss += fmode_scale * abs(
                     (PARAMS[i]["Am"][m] - PARAMS[j]["Am"][m]) / 0.2
@@ -572,7 +572,7 @@ def _FFT_Robust_loss(
                     )
                     / (PARAMS[i]["m"][m] * 0.1)
                 )
-        if not PARAMS[i]["C"] is None and not PARAMS[j]["C"] is None:
+        if PARAMS[i]["C"] is not None and PARAMS[j]["C"] is not None:
             neighbor_reg_loss += abs(np.log10(PARAMS[i]["C"] / PARAMS[j]["C"])) / 0.1
         # The geometric radius grid makes index separation proportional to log-radius distance.
         reg_loss += neighbor_reg_loss / abs(i - j)

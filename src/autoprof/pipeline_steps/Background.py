@@ -92,7 +92,7 @@ def Background_Mode(IMG, results, options):
     """
     # Mask main body of image so only outer 1/5th is used
     # for background calculation.
-    use_existing_mask = "mask" in results and not results["mask"] is None and np.any(results["mask"])
+    use_existing_mask = "mask" in results and results["mask"] is not None and np.any(results["mask"])
     if use_existing_mask:
         mask = np.logical_not(results["mask"])
         logging.info(

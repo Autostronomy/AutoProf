@@ -77,7 +77,7 @@ def Bad_Pixel_Mask(IMG, results, options):
     if np.any(np.logical_not(np.isfinite(IMG))):
         Mask[np.logical_not(np.isfinite(IMG))] = True
 
-    if "mask" in results and not results["mask"] is None:
+    if "mask" in results and results["mask"] is not None:
         Mask = np.logical_or(Mask, results["mask"])
 
     logging.info("%s: masking %i bad pixels" % (options["ap_name"], np.sum(Mask)))
@@ -165,7 +165,7 @@ def Mask_Segmentation_Map(IMG, results, options):
     elif mask[int(IMG.shape[0] / 2), int(IMG.shape[1] / 2)] > 1.1:
         mask[mask == mask[int(IMG.shape[0] / 2), int(IMG.shape[1] / 2)]] = 0
 
-    if "mask" in results and not results["mask"] is None:
+    if "mask" in results and results["mask"] is not None:
         mask = np.logical_or(mask, results["mask"])
 
     # Plot star mask for diagnostic purposes
@@ -289,7 +289,7 @@ def Star_Mask_IRAF(IMG, results, options):
                 continue
             mask[R < Rstar] = True
 
-    if "mask" in results and not results["mask"] is None:
+    if "mask" in results and results["mask"] is not None:
         mask = np.logical_or(mask, results["mask"])
 
     # Plot star mask for diagnostic purposes
@@ -402,7 +402,7 @@ def Star_Mask(IMG, results, options):
         R = np.sqrt((YY - (x + xbounds[0])) ** 2 + (XX - (y + ybounds[0])) ** 2)
         mask[R < (max(np.log10(p / results["background noise"]), 2) * f)] = True
 
-    if "mask" in results and not results["mask"] is None:
+    if "mask" in results and results["mask"] is not None:
         mask = np.logical_or(mask, results["mask"])
 
     # Plot star mask for diagnostic purposes

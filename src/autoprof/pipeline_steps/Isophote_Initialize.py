@@ -73,9 +73,9 @@ def _extract_init_fft_samples(
     sclip_nsigma=3,
 ):
     kwargs = {}
-    if not interp_method is None:
+    if interp_method is not None:
         kwargs["interp_method"] = interp_method
-    if not rad_interp is None:
+    if rad_interp is not None:
         kwargs["rad_interp"] = rad_interp
     flux, theta, choose, _ = _iso_extract_with_interp_cutoff(
         dat,

@@ -68,7 +68,7 @@ def _finite_divide(numerator, denominator):
 
 
 def _isoband_flux_threshold(results, options, zeropoint):
-    if "ap_isoband_start_sb" in options and not options["ap_isoband_start_sb"] is None:
+    if "ap_isoband_start_sb" in options and options["ap_isoband_start_sb"] is not None:
         return sb_to_flux(
             options["ap_isoband_start_sb"],
             options["ap_pixscale"],
@@ -106,7 +106,7 @@ def _sparse_scatter_model_flux(
         & np.isfinite(scatfluxes)
         & (scatfluxes > 0)
     )
-    if not target_label is None:
+    if target_label is not None:
         use &= np.asarray(labels) == target_label
     flux = medfluxes[use]
     scatter2 = scatfluxes[use] ** 2
@@ -276,7 +276,7 @@ def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_meth
     last_line_sampling_method = None
     end_prof = len(R)
     compare_interp = []
-    measure_coefs = "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None
+    measure_coefs = "ap_iso_measurecoefs" in options and options["ap_iso_measurecoefs"] is not None
     rad_interp = _iso_interpolate_radius(options, results)
     isoband_flux_threshold = _isoband_flux_threshold(results, options, zeropoint)
     isoextract_interp_method = _validate_interpolate_method(
