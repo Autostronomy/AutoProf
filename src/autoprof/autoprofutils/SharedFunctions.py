@@ -538,7 +538,7 @@ def Rotate_Cartesian(theta, X, Y):
     return X * np.cos(theta) - Y * np.sin(theta), Y * np.cos(theta) + X * np.sin(theta)
 
 
-def interpolate_bicubic(dat, X, Y):
+def _image_resample_bicubic(dat, X, Y):
     f_interp = RectBivariateSpline(
         np.arange(dat.shape[0], dtype=np.float32),
         np.arange(dat.shape[1], dtype=np.float32),
@@ -558,7 +558,7 @@ def _cubic_lagrange_weights(t):
     )
 
 
-def _interpolate_bicubic_local(dat, X, Y, mask=None):
+def _interpolate_bicubic(dat, X, Y, mask=None):
     flux = np.full(len(X), np.nan)
     valid = np.ones(len(X), dtype=bool)
 
@@ -699,72 +699,49 @@ def _interpolate_nearest_neighbour(dat, X, Y, mask=None):
     return flux, valid
 
 
-def interpolate_Lanczos(dat, X, Y, scale):
+def _interpolate_Lanczos(dat, X, Y, scale, mask=None):
     """
     Perform Lanczos interpolation on an image.
     https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html
     """
-    flux = []
-
-    for i in range(len(X)):
-        box = [
-            [
-                max(0, int(round(np.floor(X[i]) - scale + 1))),
-                min(dat.shape[1], int(round(np.floor(X[i]) + scale + 1))),
-            ],
-            [
-                max(0, int(round(np.floor(Y[i]) - scale + 1))),
-                min(dat.shape[0], int(round(np.floor(Y[i]) + scale + 1))),
-            ],
-        ]
-        chunk = dat[box[1][0] : box[1][1], box[0][0] : box[0][1]]
-        XX = np.ones(chunk.shape)
-        Lx = (
-            np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i]))
-            * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) / scale)
-        )[
-            box[0][0]
-            - int(round(np.floor(X[i]) - scale + 1)) : 2 * scale
-            + box[0][1]
-            - int(round(np.floor(X[i]) + scale + 1))
-        ]
-        Ly = (
-            np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i]))
-            * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) / scale)
-        )[
-            box[1][0]
-            - int(round(np.floor(Y[i]) - scale + 1)) : 2 * scale
-            + box[1][1]
-            - int(round(np.floor(Y[i]) + scale + 1))
-        ]
-        L = XX * Lx * Ly.reshape((Ly.size, -1))
-        w = np.sum(L)
-        flux.append(np.sum(chunk * L) / w)
-    return np.array(flux)
-
-
-def _interpolation_footprint_valid(dat, X, Y, mask=None, interp_method="lanczos", interp_window=5):
+    flux = np.full(len(X), np.nan)
     valid = np.ones(len(X), dtype=bool)
+
     for i in range(len(X)):
-        if interp_method == "lanczos":
-            x0 = int(round(np.floor(X[i]) - interp_window + 1))
-            x1 = int(round(np.floor(X[i]) + interp_window + 1))
-            y0 = int(round(np.floor(Y[i]) - interp_window + 1))
-            y1 = int(round(np.floor(Y[i]) + interp_window + 1))
-        else:
-            raise ValueError(
-                "Unknown interpolate method %s. Should be lanczos" % interp_method
-            )
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        xbase = int(np.floor(X[i]))
+        ybase = int(np.floor(Y[i]))
+        x0, x1 = xbase - scale + 1, xbase + scale + 1
+        y0, y1 = ybase - scale + 1, ybase + scale + 1
         if x0 < 0 or y0 < 0 or x1 > dat.shape[1] or y1 > dat.shape[0]:
             valid[i] = False
             continue
+
         chunk = dat[y0:y1, x0:x1]
-        if chunk.size == 0 or not np.all(np.isfinite(chunk)):
+        if not np.all(np.isfinite(chunk)):
             valid[i] = False
             continue
         if mask is not None and np.any(mask[y0:y1, x0:x1]):
             valid[i] = False
-    return valid
+            continue
+
+        XX = np.ones(chunk.shape)
+        Lx = (
+            np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + xbase)
+            * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + xbase) / scale)
+        )
+        Ly = (
+            np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + ybase)
+            * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + ybase) / scale)
+        )
+        L = XX * Lx * Ly.reshape((Ly.size, -1))
+        w = np.sum(L)
+        flux[i] = np.sum(chunk * L) / w
+
+    return flux, valid
 
 
 def _iso_between(
@@ -945,18 +922,12 @@ def _iso_extract(
     if interp_method == "nearest":
         flux, footprint_choose = _interpolate_nearest_neighbour(IMG, X, Y, mask=mask)
     elif interp_method == "bicubic":
-        flux, footprint_choose = _interpolate_bicubic_local(IMG, X, Y, mask=mask)
+        flux, footprint_choose = _interpolate_bicubic(IMG, X, Y, mask=mask)
     elif interp_method == "bilinear":
         flux, footprint_choose = _interpolate_bilinear(IMG, X, Y, mask=mask)
     elif interp_method == "lanczos":
-        flux = interpolate_Lanczos(IMG, X, Y, interp_window)
-        footprint_choose = _interpolation_footprint_valid(
-            IMG,
-            X,
-            Y,
-            mask=mask,
-            interp_method=interp_method,
-            interp_window=interp_window,
+        flux, footprint_choose = _interpolate_Lanczos(
+            IMG, X, Y, interp_window, mask=mask
         )
     # CHOOSE holds bolean array for which flux values to keep.
     # Interpolated samples are rejected when their interpolation footprint

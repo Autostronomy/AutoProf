@@ -20,8 +20,7 @@ from ..autoprofutils.SharedFunctions import (
     AddLogo,
     LSBImage,
     autocolours,
-    interpolate_Lanczos,
-    interpolate_bicubic,
+    _interpolate_Lanczos,
     Read_Image,
     _nearest_finite_fill,
     _spline_fill_nonfinite,
@@ -379,11 +378,12 @@ def PSF_Image(IMG, results, options):
             or (filled_dat.shape[0] - stars["y"][i]) < psf_size // 2
         ):
             continue
-        flux = interpolate_Lanczos(
+        flux, valid = _interpolate_Lanczos(
             filled_dat, XX + stars["x"][i], YY + stars["y"][i], 10
-        ).reshape(
-            (1, psf_size, psf_size)
         )
+        if not np.all(valid):
+            continue
+        flux = flux.reshape((1, psf_size, psf_size))
         total_flux = np.sum(flux)
         if not np.isfinite(total_flux) or total_flux <= 0 or not np.all(np.isfinite(flux)):
             continue
