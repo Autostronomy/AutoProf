@@ -641,7 +641,7 @@ def _iso_interpolate_radius(options, results):
         options["ap_iso_interpolate_start"]
         if "ap_iso_interpolate_start" in options
         else 5
-    ) * results["psf fwhm"] / 2
+    ) * results["psf fwhm"]
 
 
 def _max_sampled_isophote_radius(sma, PARAMS, minN=None):

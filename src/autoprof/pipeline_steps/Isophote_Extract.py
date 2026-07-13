@@ -675,7 +675,7 @@ def Isophote_Extract_Forced(IMG, results, options):
 
     ap_iso_interpolate_start : float, default 5
       Use image interpolation for isophotes with semi-major axis
-      less than this number times the PSF HWHM.
+      less than this number times the PSF FWHM.
 
     ap_isoextract_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation on image, options are
@@ -927,7 +927,7 @@ def Isophote_Extract(IMG, results, options):
 
     ap_iso_interpolate_start : float, default 5
       Use image interpolation for isophotes with semi-major axis
-      less than this number times the PSF HWHM.
+      less than this number times the PSF FWHM.
 
     ap_isoextract_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation on image, options are
