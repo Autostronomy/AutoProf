@@ -6,7 +6,9 @@ import sys
 import os
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
+    _iso_interpolate_radius,
+    _validate_interpolate_method,
     _x_to_pa,
     _x_to_eps,
     _inv_x_to_eps,
@@ -46,6 +48,12 @@ def Check_Fit(IMG, results, options):
     indicated either a failed center, or the galaxy has been disturbed
     and is not lopsided.
 
+    Parameters
+    -----------------
+    ap_isofit_interpolate_method : string, default 'bilinear'
+      Select method for flux interpolation while checking fitted
+      isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
+
     Notes
     ----------
     :References:
@@ -83,12 +91,27 @@ def Check_Fit(IMG, results, options):
     tests = {}
     # subtract background from image during processing
     dat = IMG - results["background"]
+    mask = results["mask"] if "mask" in results else None
+    if mask is not None and not np.any(mask):
+        mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
+    rad_interp = _iso_interpolate_radius(options, results)
 
     # Compare variability of flux values along isophotes
     ######################################################################
     use_center = results["center"]
     count_variable = 0
     count_initrelative = 0
+    count_checked = 0
+    count_initrelative_checked = 0
+    count_skipped = 0
     f2_compare = []
     f1_compare = []
     if "fit R" in results:
@@ -105,50 +128,87 @@ def Check_Fit(IMG, results, options):
         }
 
     for i in range(len(checkson["R"])):
-        init_isovals = _iso_extract(
+        init_isovals = _iso_extract_with_interp_cutoff(
             dat,
             checkson["R"][i],
             {
-                "ellip": results["init ellip"],  # fixme, use mask
+                "ellip": results["init ellip"],
                 "pa": results["init pa"],
             },
             use_center,
+            mask=mask,
+            interp_method=interp_method,
+            rad_interp=rad_interp,
         )
-        isovals = _iso_extract(
+        init_isovals = init_isovals[np.isfinite(init_isovals)]
+        isovals = _iso_extract_with_interp_cutoff(
             dat,
             checkson["R"][i],
             {"ellip": checkson["ellip"][i], "pa": checkson["pa"][i]},
             use_center,
+            mask=mask,
+            interp_method=interp_method,
+            rad_interp=rad_interp,
         )
+        isovals = isovals[np.isfinite(isovals)]
+        if len(isovals) <= 2:
+            count_skipped += 1
+            continue
+        med_isovals = np.median(isovals)
+        iqr_isovals = iqr(isovals)
+        if not (np.isfinite(med_isovals) and np.isfinite(iqr_isovals)):
+            count_skipped += 1
+            continue
         coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 0.85), a_min=None))
+        count_checked += 1
 
-        if np.median(isovals) < (iqr(isovals) - results["background noise"]):
+        if med_isovals < (iqr_isovals - results["background noise"]):
             count_variable += 1
-        if (
-            (iqr(isovals) - results["background noise"])
-            / (np.median(isovals) + results["background noise"])
-        ) > (
-            iqr(init_isovals) / (np.median(init_isovals) + results["background noise"])
-        ):
-            count_initrelative += 1
+        if len(init_isovals) > 0:
+            med_init = np.median(init_isovals)
+            iqr_init = iqr(init_isovals)
+            denom_isovals = med_isovals + results["background noise"]
+            denom_init = med_init + results["background noise"]
+            if (
+                np.isfinite(denom_isovals)
+                and np.isfinite(denom_init)
+                and denom_isovals != 0
+                and denom_init != 0
+            ):
+                count_initrelative_checked += 1
+                if ((iqr_isovals - results["background noise"]) / denom_isovals) > (
+                    iqr_init / denom_init
+                ):
+                    count_initrelative += 1
+        fft_denom = len(isovals) * (max(0, med_isovals) + results["background noise"])
+        if not np.isfinite(fft_denom) or fft_denom <= 0:
+            continue
         f2_compare.append(
             np.sum(np.abs(coefs[2]))
-            / (
-                len(isovals)
-                * (max(0, np.median(isovals)) + results["background noise"])
-            )
+            / fft_denom
         )
         f1_compare.append(
             np.abs(coefs[1])
-            / (
-                len(isovals)
-                * (max(0, np.median(isovals)) + results["background noise"])
-            )
+            / fft_denom
         )
 
     f1_compare = np.array(f1_compare)
     f2_compare = np.array(f2_compare)
-    if count_variable > (0.2 * len(checkson["R"])):
+    if count_skipped > 0:
+        logging.info(
+            "%s: checkfit skipped %i isophotes with too few usable samples"
+            % (options["ap_name"], count_skipped)
+        )
+    if count_checked == 0:
+        logging.warning(
+            "%s: Possible failed fit! no isophotes had enough usable samples for checkfit"
+            % options["ap_name"]
+        )
+        tests["isophote variability"] = False
+        tests["initial fit compare"] = False
+        tests["FFT coefficients"] = False
+        tests["Light symmetry"] = False
+    elif count_variable > (0.2 * count_checked):
         logging.warning(
             "%s: Possible failed fit! flux values highly variable along isophotes"
             % options["ap_name"]
@@ -156,7 +216,12 @@ def Check_Fit(IMG, results, options):
         tests["isophote variability"] = False
     else:
         tests["isophote variability"] = True
-    if count_initrelative > (0.5 * len(checkson["R"])):
+    if count_checked == 0:
+        pass
+    elif (
+        count_initrelative_checked > 0
+        and count_initrelative > (0.5 * count_initrelative_checked)
+    ):
         logging.warning(
             "%s: Possible failed fit! flux values highly variable relative to initialization"
             % options["ap_name"]
@@ -164,10 +229,13 @@ def Check_Fit(IMG, results, options):
         tests["initial fit compare"] = False
     else:
         tests["initial fit compare"] = True
-    if (
-        np.sum(f2_compare > 0.2) > (0.1 * len(checkson["R"]))
-        or np.sum(f2_compare > 0.1) > (0.3 * len(checkson["R"]))
-        or np.sum(f2_compare > 0.05) > (0.8 * len(checkson["R"]))
+    if count_checked == 0:
+        pass
+    elif (
+        len(f2_compare) == 0
+        or np.sum(f2_compare > 0.2) > (0.1 * len(f2_compare))
+        or np.sum(f2_compare > 0.1) > (0.3 * len(f2_compare))
+        or np.sum(f2_compare > 0.05) > (0.8 * len(f2_compare))
     ):
         logging.warning(
             "%s: Possible failed fit! poor convergence of FFT coefficients"
@@ -176,10 +244,13 @@ def Check_Fit(IMG, results, options):
         tests["FFT coefficients"] = False
     else:
         tests["FFT coefficients"] = True
-    if (
-        np.sum(f1_compare > 0.2) > (0.1 * len(checkson["R"]))
-        or np.sum(f1_compare > 0.1) > (0.3 * len(checkson["R"]))
-        or np.sum(f1_compare > 0.05) > (0.8 * len(checkson["R"]))
+    if count_checked == 0:
+        pass
+    elif (
+        len(f1_compare) == 0
+        or np.sum(f1_compare > 0.2) > (0.1 * len(f1_compare))
+        or np.sum(f1_compare > 0.1) > (0.3 * len(f1_compare))
+        or np.sum(f1_compare > 0.05) > (0.8 * len(f1_compare))
     ):
         logging.warning(
             "%s: Possible failed fit! possible failed center or lopsided galaxy"
@@ -190,6 +261,8 @@ def Check_Fit(IMG, results, options):
         tests["Light symmetry"] = True
 
     res = {"checkfit": tests}
+    if count_skipped > 0:
+        res["auxfile checkfit skipped"] = "checkfit skipped isophotes: %i" % count_skipped
     for t in tests:
         res["auxfile checkfit %s" % t] = "checkfit %s: %s" % (
             t,

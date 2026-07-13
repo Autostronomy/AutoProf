@@ -4,6 +4,8 @@ import os
 
 from ..autoprofutils.SharedFunctions import (
     _iso_extract,
+    _has_enough_isophote_coverage,
+    _interpolate_invalid_isophote_samples,
     AddLogo,
     Angle_Median,
     flux_to_sb,
@@ -19,6 +21,16 @@ import logging
 from copy import copy, deepcopy
 
 __all__ = ("Center_Forced", "Center_2DGaussian", "Center_1DGaussian", "Center_OfMass", "Center_Peak", "Center_HillClimb", "Center_HillClimb_mean")
+
+
+def _center_mask(dat, results, extra_mask=None):
+    center_mask = np.logical_not(np.isfinite(dat))
+    if results.get("mask", None) is not None:
+        center_mask = np.logical_or(center_mask, results["mask"])
+    if extra_mask is not None:
+        center_mask = np.logical_or(center_mask, extra_mask)
+    return center_mask
+
 
 def Center_Forced(IMG, results, options):
     """Extracts previously fit center coordinates.
@@ -81,6 +93,7 @@ def Center_Forced(IMG, results, options):
 
     """
     current_center = {"x": IMG.shape[1] / 2, "y": IMG.shape[0] / 2}
+    dat = IMG - results["background"]
     if "ap_guess_center" in options:
         current_center = deepcopy(options["ap_guess_center"])
         logging.info(
@@ -92,16 +105,7 @@ def Center_Forced(IMG, results, options):
             "%s: Center set by user: %s"
             % (options["ap_name"], str(options["ap_set_center"]))
         )
-        sb0 = flux_to_sb(
-            _iso_extract(
-                IMG - results["background"],
-                0.0,
-                {"ellip": 0.0, "pa": 0.0},
-                options["ap_set_center"],
-            )[0],
-            options["ap_pixscale"],
-            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-        )
+        sb0 = _central_surface_brightness(dat, options["ap_set_center"], results, options)
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
             "auxfile central sb": "central surface brightness: %.4f mag arcsec^-2"
@@ -129,13 +133,7 @@ def Center_Forced(IMG, results, options):
             "%s: Forced center failed! Using image center (or guess)."
             % options["ap_name"]
         )
-    sb0 = flux_to_sb(
-        _iso_extract(
-            IMG - results["background"], 0.0, {"ellip": 0.0, "pa": 0.0}, current_center
-        )[0],
-        options["ap_pixscale"],
-        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-    )
+    sb0 = _central_surface_brightness(dat, current_center, results, options)
     return IMG, {
         "center": current_center,
         "auxfile center": "center x: %.2f pix, y: %.2f pix"
@@ -219,6 +217,8 @@ def Center_2DGaussian(IMG, results, options):
         )
         return IMG, {"center": deepcopy(options["ap_set_center"])}
 
+    dat = IMG - results["background"]
+
     # Create mask to focus centering algorithm on the center of the image
     ranges = [
         [
@@ -276,11 +276,16 @@ def Center_2DGaussian(IMG, results, options):
     ]
     centralize_mask = np.ones(IMG.shape, dtype=bool)
     centralize_mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]] = False
+    center_mask = _center_mask(dat, results, centralize_mask)
 
     try:
-        x, y = centroid_2dg(IMG - results["background"], mask=centralize_mask)
+        if not np.any(np.logical_not(center_mask)):
+            raise ValueError("all center pixels are masked")
+        x, y = centroid_2dg(np.where(center_mask, 0.0, dat), mask=center_mask)
+        if not np.all(np.isfinite([x, y])):
+            raise ValueError("center is non-finite")
         current_center = {"x": x, "y": y}
-    except:
+    except Exception:
         logging.warning(
             "%s: 2D Gaussian center finding failed! using image center (or guess)."
             % options["ap_name"]
@@ -289,7 +294,7 @@ def Center_2DGaussian(IMG, results, options):
     # Plot center value for diagnostic purposes
     if "ap_doplot" in options and options["ap_doplot"]:
         plt.imshow(
-            np.clip(IMG - results["background"], a_min=0, a_max=None),
+            np.clip(dat, a_min=0, a_max=None),
             origin="lower",
             cmap="Greys_r",
             norm=ImageNormalize(stretch=LogStretch()),
@@ -306,7 +311,10 @@ def Center_2DGaussian(IMG, results, options):
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,            
         )
         plt.close()
-    logging.info("%s Center found: x %.1f, y %.1f" % (options["ap_name"], x, y))
+    logging.info(
+        "%s Center found: x %.1f, y %.1f"
+        % (options["ap_name"], current_center["x"], current_center["y"])
+    )
     return IMG, {
         "center": current_center,
         "auxfile center": "center x: %.2f pix, y: %.2f pix"
@@ -391,6 +399,8 @@ def Center_1DGaussian(IMG, results, options):
         )
         return IMG, {"center": deepcopy(options["ap_set_center"])}
 
+    dat = IMG - results["background"]
+
     # Create mask to focus centering algorithm on the center of the image
     ranges = [
         [
@@ -448,31 +458,45 @@ def Center_1DGaussian(IMG, results, options):
     ]
     centralize_mask = np.ones(IMG.shape, dtype=bool)
     centralize_mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]] = False
+    center_mask = _center_mask(dat, results, centralize_mask)
 
     try:
-        x, y = centroid_1dg(IMG - results["background"], mask=centralize_mask)
+        if not np.any(np.logical_not(center_mask)):
+            raise ValueError("all center pixels are masked")
+        x, y = centroid_1dg(np.where(center_mask, 0.0, dat), mask=center_mask)
+        if not np.all(np.isfinite([x, y])):
+            raise ValueError("center is non-finite")
         current_center = {"x": x, "y": y}
-    except:
+    except Exception:
         logging.warning(
-            "%s: 2D Gaussian center finding failed! using image center (or guess)."
+            "%s: 1D Gaussian center finding failed! using image center (or guess)."
             % options["ap_name"]
         )
 
     # Plot center value for diagnostic purposes
     if "ap_doplot" in options and options["ap_doplot"]:
         plt.imshow(
-            np.clip(IMG - results["background"], a_min=0, a_max=None),
+            np.clip(dat, a_min=0, a_max=None),
             origin="lower",
             cmap="Greys_r",
             norm=ImageNormalize(stretch=LogStretch()),
         )
-        plt.plot([y], [x], marker="x", markersize=10, color="y")
+        plt.plot(
+            [current_center["x"]],
+            [current_center["y"]],
+            marker="x",
+            markersize=10,
+            color="y",
+        )
         plt.savefig(
             f"{options.get('ap_plotpath','')}center_vis_{options['ap_name']}.{options.get('ap_plot_extension', 'jpg')}",
             dpi=options["ap_plotdpi"] if "ap_plotdpi" in options else 300,            
         )
         plt.close()
-    logging.info("%s Center found: x %.1f, y %.1f" % (options["ap_name"], x, y))
+    logging.info(
+        "%s Center found: x %.1f, y %.1f"
+        % (options["ap_name"], current_center["x"], current_center["y"])
+    )
     return IMG, {
         "center": current_center,
         "auxfile center": "center x: %.2f pix, y: %.2f pix"
@@ -558,13 +582,7 @@ def Center_OfMass(IMG, results, options):
             "%s: Center set by user: %s"
             % (options["ap_name"], str(options["ap_set_center"]))
         )
-        sb0 = flux_to_sb(
-            _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, options["ap_set_center"])[
-                0
-            ],
-            options["ap_pixscale"],
-            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-        )
+        sb0 = _central_surface_brightness(dat, options["ap_set_center"], results, options)
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
             "auxfile central sb": "central surface brightness: %.4f mag arcsec^-2"
@@ -575,7 +593,7 @@ def Center_OfMass(IMG, results, options):
         (options["ap_centeringring"] if "ap_centeringring" in options else 10)
         * results["psf fwhm"]
     )
-    xx, yy = np.meshgrid(np.arange(searchring), np.arange(searchring))
+    center_mask = _center_mask(dat, results)
     N_updates = 0
     while N_updates < 100:
         N_updates += 1
@@ -590,29 +608,46 @@ def Center_OfMass(IMG, results, options):
                 min(IMG.shape[0], int(current_center["y"] + searchring / 2)),
             ],
         ]
-        current_center = {
-            "x": ranges[0][0]
-            + np.sum(
-                (dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]] * xx)
+        chunk = dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]]
+        chunk_mask = center_mask[
+            ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]
+        ]
+        choose = np.logical_not(chunk_mask)
+        if not np.any(choose):
+            logging.warning(
+                "%s: Center of mass failed because all center pixels are masked."
+                % options["ap_name"]
             )
-            / np.sum(dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]]),
-            "y": ranges[1][0]
-            + np.sum(
-                (dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]] * yy)
+            break
+        yy, xx = np.indices(chunk.shape)
+        weights = np.where(choose, chunk, 0.0)
+        denominator = np.sum(weights)
+        if (not np.isfinite(denominator)) or denominator == 0:
+            logging.warning(
+                "%s: Center of mass failed because the center flux sum is invalid."
+                % options["ap_name"]
             )
-            / np.sum(dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]]),
+            current_center = old_center
+            break
+        new_center = {
+            "x": ranges[0][0] + np.sum(weights * xx) / denominator,
+            "y": ranges[1][0] + np.sum(weights * yy) / denominator,
         }
+        if not np.all(np.isfinite([new_center["x"], new_center["y"]])):
+            logging.warning(
+                "%s: Center of mass failed because the center is non-finite."
+                % options["ap_name"]
+            )
+            current_center = old_center
+            break
+        current_center = new_center
         if (
             abs(current_center["x"] - old_center["x"]) < 0.1 * results["psf fwhm"]
             and abs(current_center["y"] - old_center["y"]) < 0.1 * results["psf fwhm"]
         ):
             break
 
-    sb0 = flux_to_sb(
-        _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center)[0],
-        options["ap_pixscale"],
-        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-    )
+    sb0 = _central_surface_brightness(dat, current_center, results, options)
     return IMG, {
         "center": current_center,
         "auxfile center": "center x: %.2f pix, y: %.2f pix"
@@ -636,13 +671,7 @@ def Center_Peak(IMG, results, options):
             "%s: Center set by user: %s"
             % (options["ap_name"], str(options["ap_set_center"]))
         )
-        sb0 = flux_to_sb(
-            _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, options["ap_set_center"])[
-                0
-            ],
-            options["ap_pixscale"],
-            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-        )
+        sb0 = _central_surface_brightness(dat, options["ap_set_center"], results, options)
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
             "auxfile central sb": "central surface brightness: %.4f mag arcsec^-2"
@@ -653,22 +682,6 @@ def Center_Peak(IMG, results, options):
         (options["ap_centeringring"] if "ap_centeringring" in options else 10)
         * results["psf fwhm"]
     )
-    xx, yy = np.meshgrid(np.arange(searchring), np.arange(searchring))
-    xx = xx.flatten()
-    yy = yy.flatten()
-    A = np.array(
-        [
-            np.ones(xx.shape),
-            xx,
-            yy,
-            xx ** 2,
-            yy ** 2,
-            xx * yy,
-            xx * yy ** 2,
-            yy * xx ** 2,
-            xx ** 2 * yy ** 2,
-        ]
-    ).T
     ranges = [
         [
             max(0, int(current_center["x"] - searchring / 2)),
@@ -679,23 +692,49 @@ def Center_Peak(IMG, results, options):
             min(IMG.shape[0], int(current_center["y"] + searchring / 2)),
         ],
     ]
-    chunk = np.clip(
-        dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T,
-        a_min=results["background noise"] / 5,
-        a_max=None,
-    )
+    center_mask = _center_mask(dat, results)
+    chunk = dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]]
+    chunk_mask = center_mask[
+        ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]
+    ]
+    yy, xx = np.indices(chunk.shape)
+    xx = xx.flatten()
+    yy = yy.flatten()
+    choose = np.logical_not(chunk_mask.flatten())
+    floor = max(results["background noise"] / 5, np.finfo(float).tiny)
+    flux = np.clip(chunk.flatten()[choose], a_min=floor, a_max=None)
 
-    poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()), rcond=None)
-    current_center = {
-        "x": -poly2dfit[0][2] / (2 * poly2dfit[0][4]) + ranges[0][0],
-        "y": -poly2dfit[0][1] / (2 * poly2dfit[0][3]) + ranges[1][0],
-    }
+    try:
+        if len(flux) < 9:
+            raise ValueError("not enough unmasked pixels")
+        A = np.array(
+            [
+                np.ones(xx[choose].shape),
+                xx[choose],
+                yy[choose],
+                xx[choose] ** 2,
+                yy[choose] ** 2,
+                xx[choose] * yy[choose],
+                xx[choose] * yy[choose] ** 2,
+                yy[choose] * xx[choose] ** 2,
+                xx[choose] ** 2 * yy[choose] ** 2,
+            ]
+        ).T
+        poly2dfit = np.linalg.lstsq(A, np.log10(flux), rcond=None)
+        new_center = {
+            "x": -poly2dfit[0][1] / (2 * poly2dfit[0][3]) + ranges[0][0],
+            "y": -poly2dfit[0][2] / (2 * poly2dfit[0][4]) + ranges[1][0],
+        }
+        if not np.all(np.isfinite([new_center["x"], new_center["y"]])):
+            raise ValueError("center is non-finite")
+        current_center = new_center
+    except Exception:
+        logging.warning(
+            "%s: Peak center finding failed! using image center (or guess)."
+            % options["ap_name"]
+        )
 
-    sb0 = flux_to_sb(
-        _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center)[0],
-        options["ap_pixscale"],
-        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-    )
+    sb0 = _central_surface_brightness(dat, current_center, results, options)
     return IMG, {
         "center": current_center,
         "auxfile center": "center x: %.2f pix, y: %.2f pix"
@@ -704,14 +743,57 @@ def Center_Peak(IMG, results, options):
     }
 
 
-def _hillclimb_loss(x, IMG, PSF, noise):
+def _central_surface_brightness(dat, center, results, options):
+    isovals = _iso_extract(
+        dat,
+        0.0,
+        {"ellip": 0.0, "pa": 0.0},
+        center,
+        mask=results.get("mask", None),
+        interp_method="bilinear",
+    )
+    if len(isovals) == 0:
+        return np.nan
+    return flux_to_sb(
+        isovals[0],
+        options["ap_pixscale"],
+        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
+    )
+
+
+def _extract_center_fft_samples(dat, radius, center, mask=None):
+    flux, theta, choose, _ = _iso_extract(
+        dat,
+        radius,
+        {"ellip": 0.0, "pa": 0.0},
+        center,
+        more=True,
+        mask=mask,
+        interp_method="bilinear",
+        return_choose=True,
+    )
+    if not _has_enough_isophote_coverage(theta, choose):
+        return None
+    return _interpolate_invalid_isophote_samples(flux, theta, choose)
+
+
+def _center_sample_radii(psf_fwhm, searchring):
+    sampleradii = np.linspace(1, searchring, searchring) * psf_fwhm
+    # Sub-pixel rings are dominated by interpolation rather than image structure.
+    sampleradii = sampleradii[sampleradii >= 1.0]
+    if len(sampleradii) == 0:
+        return np.array([1.0])
+    return sampleradii
+
+
+def _hillclimb_loss(x, IMG, PSF, noise, mask=None):
     center_loss = 0
+    valid_radii = 0
     for rr in range(3):
         RR = (rr + 1.0) * PSF / 2
-        isovals = _iso_extract(
+        isovals = _extract_center_fft_samples(
             IMG,
             RR,
-            {"ellip": 0.0, "pa": 0.0},
             {
                 "x": np.clip(
                     x[0], a_min=np.ceil(3 + RR), a_max=np.floor(IMG.shape[1] - 4 - RR)
@@ -720,22 +802,28 @@ def _hillclimb_loss(x, IMG, PSF, noise):
                     x[1], a_min=np.ceil(3 + RR), a_max=np.floor(IMG.shape[0] - 4 - RR)
                 ),
             },
-            more=False,
-            rad_interp=10 * PSF,
-            interp_method="lanczos",
-            interp_window=3,
+            mask=mask,
         )
+        if isovals is None or len(isovals[0]) < 2:
+            continue
+        isovals = isovals[0]
         coefs = fft(isovals)
-        center_loss += np.abs(coefs[1]) / (
-            len(isovals) * (max(0, np.median(isovals)) + noise)
-        )
+        denominator = len(isovals) * (max(0, np.median(isovals)) + noise)
+        if (not np.isfinite(denominator)) or denominator <= 0:
+            continue
+        center_loss += np.abs(coefs[1]) / denominator
+        valid_radii += 1
+        if not np.isfinite(center_loss):
+            return np.inf
+    if valid_radii == 0:
+        return np.inf
     return center_loss
 
 
 def Center_HillClimb(IMG, results, options):
     """Follow locally increasing brightness (robust to PSF size objects) to find peak.
 
-    Using 10 circular isophotes out to 10 times the PSF length, the first FFT coefficient
+    Using 10 circular isophotes out to 10 times the PSF FWHM, the first FFT coefficient
     phases are averaged to find the direction of increasing flux. Flux values are sampled
     along this direction and a quadratic fit gives the maximum. This is iteratively
     repeated until the step size becomes very small.
@@ -766,7 +854,7 @@ def Center_HillClimb(IMG, results, options):
 
     ap_centeringring : int, default 10
       Size of ring to use when finding galaxy center, in units of
-      PSF. Larger rings will be robust to features (i.e., foreground
+      PSF FWHM. Larger rings will be robust to features (i.e., foreground
       stars), while smaller rings may be needed for small galaxies.
 
     Notes
@@ -807,13 +895,7 @@ def Center_HillClimb(IMG, results, options):
             "%s: Center set by user: %s"
             % (options["ap_name"], str(options["ap_set_center"]))
         )
-        sb0 = flux_to_sb(
-            _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, options["ap_set_center"], mask = results.get("mask", None))[
-                0
-            ],
-            options["ap_pixscale"],
-            options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-        )
+        sb0 = _central_surface_brightness(dat, options["ap_set_center"], results, options)
         return IMG, {
             "center": deepcopy(options["ap_set_center"]),
             "auxfile central sb": "central surface brightness: %.4f mag arcsec^-2"
@@ -823,23 +905,28 @@ def Center_HillClimb(IMG, results, options):
     searchring = (
         int(options["ap_centeringring"]) if "ap_centeringring" in options else 10
     )
-    sampleradii = np.linspace(1, searchring, searchring) * results["psf fwhm"]
+    sampleradii = _center_sample_radii(results["psf fwhm"], searchring)
 
     track_centers = []
     small_update_count = 0
     total_count = 0
+    refine_center = True
     while small_update_count <= 5 and total_count <= 100:
         total_count += 1
         phases = []
         isovals = []
         coefs = []
+        sampled_radii = []
         for r in sampleradii:
-            isovals.append(
-                _iso_extract(
-                    dat, r, {"ellip": 0.0, "pa": 0.0}, current_center, more=True,
-                    mask = results.get("mask", None)
-                )
+            isovals_r = _extract_center_fft_samples(
+                dat,
+                r,
+                current_center,
+                mask=results.get("mask", None),
             )
+            if isovals_r is None or len(isovals_r[0]) < 2:
+                continue
+            isovals.append(isovals_r)
             coefs.append(
                 fft(
                     np.clip(
@@ -850,10 +937,25 @@ def Center_HillClimb(IMG, results, options):
                 )
             )
             phases.append((-np.angle(coefs[-1][1])) % (2 * np.pi))
+            sampled_radii.append(r)
+        if len(phases) == 0:
+            logging.warning(
+                "%s: Center finding stopped because all sampled isophotes were masked"
+                % options["ap_name"]
+            )
+            refine_center = False
+            break
         direction = Angle_Median(phases) % (2 * np.pi)
+        if not np.isfinite(direction):
+            logging.warning(
+                "%s: Center finding stopped because the update direction is invalid"
+                % options["ap_name"]
+            )
+            refine_center = False
+            break
         levels = []
         level_locs = []
-        for i, r in enumerate(sampleradii):
+        for i, r in enumerate(sampled_radii):
             floc = np.argmin(np.abs((isovals[i][1] % (2 * np.pi)) - direction))
             rloc = np.argmin(
                 np.abs(
@@ -883,38 +985,41 @@ def Center_HillClimb(IMG, results, options):
             small_update_count = 0
         track_centers.append([current_center["x"], current_center["y"]])
 
-    # refine center
-    ranges = [
-        [
-            max(0, int(current_center["x"] - results["psf fwhm"] * 5)),
-            min(dat.shape[1], int(current_center["x"] + results["psf fwhm"] * 5)),
-        ],
-        [
-            max(0, int(current_center["y"] - results["psf fwhm"] * 5)),
-            min(dat.shape[0], int(current_center["y"] + results["psf fwhm"] * 5)),
-        ],
-    ]
+    if refine_center:
+        # refine center
+        ranges = [
+            [
+                max(0, int(current_center["x"] - results["psf fwhm"] * 5)),
+                min(dat.shape[1], int(current_center["x"] + results["psf fwhm"] * 5)),
+            ],
+            [
+                max(0, int(current_center["y"] - results["psf fwhm"] * 5)),
+                min(dat.shape[0], int(current_center["y"] + results["psf fwhm"] * 5)),
+            ],
+        ]
+        refine_mask = None
+        if "mask" in results:
+            refine_mask = results["mask"][
+                ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]
+            ]
 
-    res = minimize(
-        _hillclimb_loss,
-        x0=[current_center["x"] - ranges[0][0], current_center["y"] - ranges[1][0]],
-        args=(
-            dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
-            results["psf fwhm"],
-            results["background noise"],
-        ),
-        method="Nelder-Mead",
-    )
-    if res.success:
-        current_center["x"] = res.x[0] + ranges[0][0]
-        current_center["y"] = res.x[1] + ranges[1][0]
+        res = minimize(
+            _hillclimb_loss,
+            x0=[current_center["x"] - ranges[0][0], current_center["y"] - ranges[1][0]],
+            args=(
+                dat[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]],
+                results["psf fwhm"],
+                results["background noise"],
+                refine_mask,
+            ),
+            method="Nelder-Mead",
+        )
+        if res.success and np.all(np.isfinite(res.x)) and np.isfinite(res.fun):
+            current_center["x"] = res.x[0] + ranges[0][0]
+            current_center["y"] = res.x[1] + ranges[1][0]
     track_centers.append([current_center["x"], current_center["y"]])
 
-    sb0 = flux_to_sb(
-        _iso_extract(dat, 0.0, {"ellip": 0.0, "pa": 0.0}, current_center, mask = results.get("mask", None))[0],
-        options["ap_pixscale"],
-        options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5,
-    )
+    sb0 = _central_surface_brightness(dat, current_center, results, options)
     return IMG, {
         "center": current_center,
         "auxfile center": "center x: %.2f pix, y: %.2f pix"
@@ -923,28 +1028,36 @@ def Center_HillClimb(IMG, results, options):
     }
 
 
-def _hillclimb_mean_loss(x, IMG, PSF, noise):
+def _hillclimb_mean_loss(x, IMG, PSF, noise, mask=None):
     center_loss = 0
+    valid_radii = 0
     for rr in range(3):
-        isovals = _iso_extract(
+        isovals = _extract_center_fft_samples(
             IMG,
             (rr + 0.5) * PSF,
-            {"ellip": 0.0, "pa": 0.0},
             {"x": x[0], "y": x[1]},
-            more=False,
-            rad_interp=10 * PSF,
+            mask=mask,
         )
+        if isovals is None or len(isovals[0]) < 2:
+            continue
+        isovals = isovals[0]
         coefs = fft(isovals)
-        center_loss += np.abs(coefs[1]) / (
-            len(isovals) * (max(noise, np.mean(isovals)))
-        )
+        denominator = len(isovals) * max(noise, np.mean(isovals))
+        if (not np.isfinite(denominator)) or denominator <= 0:
+            continue
+        center_loss += np.abs(coefs[1]) / denominator
+        valid_radii += 1
+        if not np.isfinite(center_loss):
+            return np.inf
+    if valid_radii == 0:
+        return np.inf
     return center_loss
 
 
 def Center_HillClimb_mean(IMG, results, options):
     """Follow locally increasing brightness (robust to PSF size objects) to find peak.
 
-    Using 10 circular isophotes out to 10 times the PSF length, the
+    Using 10 circular isophotes out to 10 times the PSF FWHM, the
     first FFT coefficient phases are averaged to find the direction of
     increasing flux. Flux values are sampled along this direction and
     a quadratic fit gives the maximum. This is iteratively repeated
@@ -978,7 +1091,7 @@ def Center_HillClimb_mean(IMG, results, options):
 
     ap_centeringring : int, default 10
       Size of ring to use when finding galaxy center, in units of
-      PSF. Larger rings will be robust to features (i.e., foreground
+      PSF FWHM. Larger rings will be robust to features (i.e., foreground
       stars), while smaller rings may be needed for small galaxies.
 
     Notes
@@ -1026,28 +1139,49 @@ def Center_HillClimb_mean(IMG, results, options):
     searchring = (
         int(options["ap_centeringring"]) if "ap_centeringring" in options else 10
     )
-    sampleradii = np.linspace(1, searchring, searchring) * results["psf fwhm"]
+    sampleradii = _center_sample_radii(results["psf fwhm"], searchring)
 
     track_centers = []
     small_update_count = 0
     total_count = 0
+    refine_center = True
     while small_update_count <= 5 and total_count <= 100:
         total_count += 1
         phases = []
         isovals = []
         coefs = []
+        sampled_radii = []
         for r in sampleradii:
-            isovals.append(
-                _iso_extract(
-                    dat, r, {"ellip": 0.0, "pa": 0.0}, current_center, more=True
-                )
+            isovals_r = _extract_center_fft_samples(
+                dat,
+                r,
+                current_center,
+                mask=results.get("mask", None),
             )
+            if isovals_r is None or len(isovals_r[0]) < 2:
+                continue
+            isovals.append(isovals_r)
             coefs.append(fft(isovals[-1][0]))
             phases.append((-np.angle(coefs[-1][1])) % (2 * np.pi))
+            sampled_radii.append(r)
+        if len(phases) == 0:
+            logging.warning(
+                "%s: Mean center finding stopped because all sampled isophotes were masked"
+                % options["ap_name"]
+            )
+            refine_center = False
+            break
         direction = Angle_Median(phases) % (2 * np.pi)
+        if not np.isfinite(direction):
+            logging.warning(
+                "%s: Mean center finding stopped because the update direction is invalid"
+                % options["ap_name"]
+            )
+            refine_center = False
+            break
         levels = []
         level_locs = []
-        for i, r in enumerate(sampleradii):
+        for i, r in enumerate(sampled_radii):
             floc = np.argmin(np.abs(isovals[i][1] - direction))
             rloc = np.argmin(
                 np.abs(isovals[i][1] - ((direction + np.pi) % (2 * np.pi)))
@@ -1075,16 +1209,22 @@ def Center_HillClimb_mean(IMG, results, options):
             small_update_count = 0
         track_centers.append([current_center["x"], current_center["y"]])
 
-    # refine center
-    res = minimize(
-        _hillclimb_mean_loss,
-        x0=[current_center["x"], current_center["y"]],
-        args=(dat, results["psf fwhm"], results["background noise"]),
-        method="Nelder-Mead",
-    )
-    if res.success:
-        current_center["x"] = res.x[0]
-        current_center["y"] = res.x[1]
+    if refine_center:
+        # refine center
+        res = minimize(
+            _hillclimb_mean_loss,
+            x0=[current_center["x"], current_center["y"]],
+            args=(
+                dat,
+                results["psf fwhm"],
+                results["background noise"],
+                results.get("mask", None),
+            ),
+            method="Nelder-Mead",
+        )
+        if res.success and np.all(np.isfinite(res.x)) and np.isfinite(res.fun):
+            current_center["x"] = res.x[0]
+            current_center["y"] = res.x[1]
 
     return IMG, {
         "center": current_center,

@@ -3,8 +3,9 @@ import sys
 import os
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
     _iso_between,
+    _iso_interpolate_radius,
     Angle_TwoAngles_cos,
     LSBImage,
     AddLogo,
@@ -90,6 +91,7 @@ def Radial_Profiles(IMG, results, options):
     """
 
     mask = results["mask"] if "mask" in results else None
+    rad_interp = _iso_interpolate_radius(options, results)
     nwedges = (
         options["ap_radialprofiles_nwedges"]
         if "ap_radialprofiles_nwedges" in options
@@ -175,7 +177,7 @@ def Radial_Profiles(IMG, results, options):
             or isobandwidth < 0.5
         ):
             isovals = list(
-                _iso_extract(
+                _iso_extract_with_interp_cutoff(
                     dat,
                     R[i],
                     {"ellip": 0, "pa": 0},
@@ -183,6 +185,7 @@ def Radial_Profiles(IMG, results, options):
                     more=True,
                     minN=int(5 * 2 * np.pi / wedgewidth[i]),
                     mask=mask,
+                    rad_interp=rad_interp,
                 )
             )
         else:
@@ -198,7 +201,12 @@ def Radial_Profiles(IMG, results, options):
                 )
             )
         isovals[1] -= pa[i]
-        avgmedflux = []
+        radius_medflux = []
+        if len(isovals[0]) == 0:
+            for sa_i in range(len(wedgeangles)):
+                sb[sa_i].append(99.999)
+                sbE[sa_i].append(99.999)
+            continue
 
         for sa_i in range(len(wedgeangles)):
             aselect = np.abs(Angle_TwoAngles_cos(wedgeangles[sa_i], isovals[1])) < (
@@ -214,7 +222,7 @@ def Radial_Profiles(IMG, results, options):
                 if "ap_isoaverage_method" in options
                 else "median",
             )
-            avgmedflux.append(medflux)
+            radius_medflux.append(medflux)
             scatflux = _scatter(
                 isovals[0][aselect],
                 options["ap_isoaverage_method"]
@@ -231,7 +239,9 @@ def Radial_Profiles(IMG, results, options):
                 if medflux > 0
                 else 99.999
             )
-        avgmedflux = np.mean(avgmedflux)
+        # Only update the rolling flux state from radii with valid wedge samples.
+        if len(radius_medflux) > 0:
+            avgmedflux = np.mean(radius_medflux)
 
     if "prof header" in results:
         newprofheader = results["prof header"]

@@ -3,7 +3,6 @@ from photutils.isophote import EllipseSample, EllipseGeometry, Isophote, Isophot
 from photutils.isophote import Ellipse as Photutils_Ellipse
 from scipy.optimize import minimize
 from scipy.stats import iqr
-from scipy.fftpack import fft, ifft
 from scipy.interpolate import UnivariateSpline
 from time import time
 from astropy.visualization import SqrtStretch, LogStretch
@@ -24,11 +23,16 @@ from ..autoprofutils.SharedFunctions import (
     SBprof_to_COG_errorprop,
     _iso_extract,
     _iso_between,
+    _iso_interpolate_radius,
+    _resolve_isoextract_interp_method,
+    _validate_interpolate_method,
+    _photutils_masked_data,
     LSBImage,
     AddLogo,
     _average,
     _scatter,
     flux_to_sb,
+    sb_to_flux,
     flux_to_mag,
     PA_shift_convention,
     autocolours,
@@ -45,7 +49,179 @@ from ..autoprofutils.Diagnostic_Plots import (
 __all__ = ("Isophote_Extract_Forced", "Isophote_Extract", "Isophote_Extract_Photutils")
 
 
-def _Generate_Profile(IMG, results, R, parameters, options):
+def _finite_median(values):
+    values = np.ma.asarray(values).compressed()
+    values = values[np.isfinite(values)]
+    if len(values) == 0:
+        return np.nan
+    return np.median(values)
+
+
+def _finite_divide(numerator, denominator):
+    if (
+        not np.isfinite(numerator)
+        or not np.isfinite(denominator)
+        or denominator == 0
+    ):
+        return np.nan
+    return numerator / denominator
+
+
+def _isoband_flux_threshold(results, options, zeropoint):
+    if "ap_isoband_start_sb" in options and options["ap_isoband_start_sb"] is not None:
+        return sb_to_flux(
+            options["ap_isoband_start_sb"],
+            options["ap_pixscale"],
+            zeropoint,
+        )
+    return results["background noise"] * (
+        options["ap_isoband_start"] if "ap_isoband_start" in options else 2
+    )
+
+
+def _normalize_sampling_method(method):
+    method = str(method).strip()
+    if method in ("band", "nearest"):
+        return method
+    if method in ("lanczos", "bicubic", "bilinear"):
+        return _validate_interpolate_method(method, "sampling_method")
+    raise ValueError(
+        "Unrecognized sampling_method '%s'. Expected lanczos, bicubic, bilinear, nearest, or band."
+        % method
+    )
+
+
+def _sparse_scatter_model_flux(
+    medfluxes, scatfluxes, pixels, labels=None, target_label=None, min_anchor_samples=2
+):
+    # One-sample rows have no empirical scatter, so estimate scatflux^2 from
+    # nearby rows with enough samples using a simple flux-dependent model.
+    medfluxes = np.asarray(medfluxes, dtype=float)
+    scatfluxes = np.asarray(scatfluxes, dtype=float)
+    pixels = np.asarray(pixels, dtype=int)
+    use = (
+        (pixels >= min_anchor_samples)
+        & np.isfinite(medfluxes)
+        & (medfluxes > 0)
+        & np.isfinite(scatfluxes)
+        & (scatfluxes > 0)
+    )
+    if target_label is not None:
+        use &= np.asarray(labels) == target_label
+    flux = medfluxes[use]
+    scatter2 = scatfluxes[use] ** 2
+    if len(scatter2) == 0:
+        return None
+    if len(scatter2) < 2 or np.ptp(flux) == 0:
+        return 0.0, np.median(scatter2)
+
+    slope, intercept = np.linalg.lstsq(
+        np.column_stack([flux, np.ones_like(flux)]), scatter2, rcond=None
+    )[0]
+    if not np.isfinite(slope) or not np.isfinite(intercept):
+        return None
+    return max(0.0, slope), max(0.0, intercept)
+
+
+def _estimate_sparse_scatflux(medfluxes, scatfluxes, pixels, sample_labels):
+    medfluxes = np.asarray(medfluxes, dtype=float)
+    scatfluxes = np.asarray(scatfluxes, dtype=float).copy()
+    pixels = np.asarray(pixels, dtype=int)
+    sample_labels = np.asarray(sample_labels)
+    sparse = pixels == 1
+    if not np.any(sparse):
+        return scatfluxes
+
+    # Prefer anchors from the same sampling regime, since interpolated line,
+    # nearest-neighbor line, and band samples can have different scatter.
+    fallback_model = _sparse_scatter_model_flux(medfluxes, scatfluxes, pixels)
+    for sample_label in np.unique(sample_labels[sparse]):
+        sparse_indices = np.flatnonzero(sparse & (sample_labels == sample_label))
+        model = _sparse_scatter_model_flux(
+            medfluxes, scatfluxes, pixels, sample_labels, sample_label
+        )
+        if model is None:
+            model = fallback_model
+        if model is None:
+            continue
+
+        slope, intercept = model
+        model_flux = np.maximum(medfluxes[sparse_indices], 0.0)
+        model_scatter = np.sqrt(np.maximum(slope * model_flux + intercept, 0.0))
+        replace = np.isfinite(model_scatter) & (model_scatter > 0)
+        scatfluxes[sparse_indices[replace]] = model_scatter[replace]
+    return scatfluxes
+
+
+def _empty_fmode_measurements(modes):
+    return {
+        "a": [np.nan] * (len(modes) + 1),
+        "b": [np.nan] * (len(modes) + 1),
+    }
+
+
+def _fit_harmonic_measurements(flux, theta, modes):
+    modes = tuple(modes)
+    fit_modes = tuple(range(1, max(modes) + 1)) if len(modes) > 0 else ()
+    flux = np.asarray(flux, dtype=float)
+    theta = np.asarray(theta, dtype=float) % (2 * np.pi)
+    keep = np.isfinite(flux) & np.isfinite(theta)
+    flux = flux[keep]
+    theta = theta[keep]
+    if len(flux) == 0:
+        return _empty_fmode_measurements(modes)
+
+    design = [np.ones(len(theta))]
+    # Include intervening orders in the fit to reduce leakage from gappy sampling.
+    for mode in fit_modes:
+        design.append(np.sin(mode * theta))
+        design.append(np.cos(mode * theta))
+    design = np.column_stack(design)
+    if len(flux) < design.shape[1] or np.linalg.matrix_rank(design) < design.shape[1]:
+        return _empty_fmode_measurements(modes)
+
+    coeffs, _, _, _ = np.linalg.lstsq(design, flux, rcond=None)
+    if not np.all(np.isfinite(coeffs)):
+        return _empty_fmode_measurements(modes)
+    mean_flux = coeffs[0]
+    norm = np.abs(mean_flux)
+    fit_coeffs = {}
+    for i, mode in enumerate(fit_modes):
+        fit_coeffs[mode] = (coeffs[1 + 2 * i], coeffs[2 + 2 * i])
+    measurements = {"a": [0.0], "b": [mean_flux]}
+    for mode in modes:
+        sin_coeff, cos_coeff = fit_coeffs[mode]
+        # AutoProf stores harmonic amplitudes with the same 2*abs(I0) scaling.
+        measurements["a"].append(_finite_divide(-0.5 * sin_coeff, norm))
+        measurements["b"].append(_finite_divide(0.5 * cos_coeff, norm))
+    return measurements
+
+
+def _extract_isophote_line_samples(
+    dat, R, parameters, center, mask, options, interp_method
+):
+    return _iso_extract(
+        dat,
+        R,
+        parameters,
+        center,
+        mask=mask,
+        more=True,
+        interp_method=interp_method,
+        interp_window=(
+            int(options["ap_iso_interpolate_window"])
+            if "ap_iso_interpolate_window" in options
+            else 3
+        ),
+        sigmaclip=options["ap_isoclip"] if "ap_isoclip" in options else False,
+        sclip_iterations=(
+            options["ap_isoclip_iterations"] if "ap_isoclip_iterations" in options else 10
+        ),
+        sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
+    )
+
+
+def _Generate_Profile(IMG, results, R, parameters, options, forced_sampling_methods=None):
 
     # Create image array with background and mask applied
     try:
@@ -77,14 +253,38 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     pixels = []
     maskedpixels = []
     cogdirect = []
+    # Internal bookkeeping for one-sample uncertainty repair; labels are also
+    # written to the profile table when requested.
+    medfluxes = []
+    scatfluxes = []
+    sample_labels = []
     sbfix = []
     sbfixE = []
     measFmodes = []
+    output_sampling_method = (
+        "ap_iso_output_sampling_method" in options
+        and options["ap_iso_output_sampling_method"]
+    )
+    if forced_sampling_methods is not None:
+        forced_sampling_methods = list(
+            _normalize_sampling_method(m) for m in forced_sampling_methods
+        )
 
     count_neg = 0
     medflux = np.inf
+    banding_started = False
+    last_line_sampling_method = None
     end_prof = len(R)
     compare_interp = []
+    measure_coefs = "ap_iso_measurecoefs" in options and options["ap_iso_measurecoefs"] is not None
+    rad_interp = _iso_interpolate_radius(options, results)
+    isoband_flux_threshold = _isoband_flux_threshold(results, options, zeropoint)
+    isoextract_interp_method = _validate_interpolate_method(
+        options["ap_isoextract_interpolate_method"]
+        if "ap_isoextract_interpolate_method" in options
+        else "bilinear",
+        "ap_isoextract_interpolate_method",
+    )
     for i in range(len(R)):
         if "ap_isoband_fixed" in options and options["ap_isoband_fixed"]:
             isobandwidth = options["ap_isoband_width"] if "ap_isoband_width" in options else 0.5
@@ -92,46 +292,37 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             isobandwidth = R[i] * (
                 options["ap_isoband_width"] if "ap_isoband_width" in options else 0.025
             )
-        isisophoteband = False
-        if (
-            medflux
-            > (
-                results["background noise"]
-                * (options["ap_isoband_start"] if "ap_isoband_start" in options else 2)
-            )
-            or isobandwidth < 0.5
+        forced_sampling_method = (
+            forced_sampling_methods[i]
+            if forced_sampling_methods is not None and i < len(forced_sampling_methods)
+            else None
+        )
+        line_sampling_method = _resolve_isoextract_interp_method(
+            R[i], parameters[i], rad_interp, isoextract_interp_method
+        )
+        if forced_sampling_method is not None:
+            sampling_method = forced_sampling_method
+        elif banding_started or (
+            medflux <= isoband_flux_threshold and isobandwidth >= 0.5
         ):
-            isovals = _iso_extract(
+            sampling_method = "band"
+            banding_started = True
+        else:
+            sampling_method = line_sampling_method
+
+        if sampling_method != "band":
+            isovals = _extract_isophote_line_samples(
                 dat,
                 R[i],
                 parameters[i],
                 results["center"],
-                mask=mask,
-                more=True,
-                rad_interp=(
-                    options["ap_iso_interpolate_start"]
-                    if "ap_iso_interpolate_start" in options
-                    else 5
-                )
-                * results["psf fwhm"],
-                interp_method=(
-                    options["ap_iso_interpolate_method"]
-                    if "ap_iso_interpolate_method" in options
-                    else "lanczos"
-                ),
-                interp_window=(
-                    int(options["ap_iso_interpolate_window"])
-                    if "ap_iso_interpolate_window" in options
-                    else 5
-                ),
-                sigmaclip=options["ap_isoclip"] if "ap_isoclip" in options else False,
-                sclip_iterations=(
-                    options["ap_isoclip_iterations"] if "ap_isoclip_iterations" in options else 10
-                ),
-                sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
+                mask,
+                options,
+                sampling_method,
             )
+            last_line_sampling_method = sampling_method
         else:
-            isisophoteband = True
+            # Band sampling has a different effective noise behavior.
             isovals = _iso_between(
                 dat,
                 R[i] - isobandwidth,
@@ -146,6 +337,40 @@ def _Generate_Profile(IMG, results, R, parameters, options):
                 ),
                 sclip_nsigma=options["ap_isoclip_nsigma"] if "ap_isoclip_nsigma" in options else 5,
             )
+        if measure_coefs:
+            coef_isovals = (
+                isovals
+                if sampling_method != "band"
+                else _extract_isophote_line_samples(
+                    dat,
+                    R[i],
+                    parameters[i],
+                    results["center"],
+                    mask,
+                    options,
+                    last_line_sampling_method or line_sampling_method,
+                )
+            )
+            coef_measurements = _fit_harmonic_measurements(
+                coef_isovals[0], coef_isovals[1], options["ap_iso_measurecoefs"]
+            )
+        if len(isovals[0]) == 0:
+            pixels.append(0)
+            maskedpixels.append(isovals[2])
+            medfluxes.append(np.nan)
+            scatfluxes.append(np.nan)
+            sample_labels.append(sampling_method)
+            if fluxunits == "intensity":
+                sb.append(np.nan)
+                sbE.append(np.nan)
+                cogdirect.append(np.nan)
+            else:
+                sb.append(np.nan)
+                sbE.append(np.nan)
+                cogdirect.append(np.nan)
+            if measure_coefs:
+                measFmodes.append(coef_measurements)
+            continue
         isotot = np.sum(_iso_between(dat, 0, R[i], parameters[i], results["center"], mask=mask))
         medflux = _average(
             isovals[0],
@@ -155,48 +380,30 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             isovals[0],
             options["ap_isoaverage_method"] if "ap_isoaverage_method" in options else "median",
         )
-        if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
-            if (
-                mask is None
-                and (not "ap_isoclip" in options or not options["ap_isoclip"])
-                and not isisophoteband
-            ):
-                coefs = fft(isovals[0])
-            else:
-                N = max(15, int(0.9 * 2 * np.pi * R[i]))
-                theta = np.linspace(0, 2 * np.pi * (1.0 - 1.0 / N), N)
-                coefs = fft(np.interp(theta, isovals[1], isovals[0], period=2 * np.pi))
-            measFmodes.append(
-                {
-                    "a": [np.imag(coefs[0]) / len(coefs)]
-                    + list(
-                        np.imag(coefs[np.array(options["ap_iso_measurecoefs"])])
-                        / (np.abs(coefs[0]))
-                    ),
-                    "b": [np.real(coefs[0]) / len(coefs)]
-                    + list(
-                        np.real(coefs[np.array(options["ap_iso_measurecoefs"])])
-                        / (np.abs(coefs[0]))
-                    ),
-                }
-            )
+        if measure_coefs:
+            measFmodes.append(coef_measurements)
 
         pixels.append(len(isovals[0]))
         maskedpixels.append(isovals[2])
+        medfluxes.append(medflux)
+        scatfluxes.append(scatflux)
+        sample_labels.append(sampling_method)
         if fluxunits == "intensity":
             sb.append(medflux / options["ap_pixscale"] ** 2)
             sbE.append(scatflux / np.sqrt(len(isovals[0])))
             cogdirect.append(isotot)
         else:
             sb.append(
-                flux_to_sb(medflux, options["ap_pixscale"], zeropoint) if medflux > 0 else 99.999
+                flux_to_sb(medflux, options["ap_pixscale"], zeropoint)
+                if medflux > 0
+                else np.nan
             )
             sbE.append(
                 (2.5 * scatflux / (np.sqrt(len(isovals[0])) * medflux * np.log(10)))
                 if medflux > 0
-                else 99.999
+                else np.nan
             )
-            cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else 99.999)
+            cogdirect.append(flux_to_mag(isotot, zeropoint) if isotot > 0 else np.nan)
         if medflux <= 0:
             count_neg += 1
         if (
@@ -206,6 +413,22 @@ def _Generate_Profile(IMG, results, R, parameters, options):
         ):
             end_prof = i + 1
             break
+
+    # Replace only one-sample scatflux values; normal rows keep their measured
+    # scatter and empty rows remain invalid.
+    scatfluxes[:end_prof] = list(
+        _estimate_sparse_scatflux(
+            medfluxes[:end_prof],
+            scatfluxes[:end_prof],
+            pixels[:end_prof],
+            sample_labels[:end_prof],
+        )
+    )
+    for i in np.flatnonzero(np.asarray(pixels[:end_prof]) == 1):
+        if fluxunits == "intensity":
+            sbE[i] = scatfluxes[i]
+        elif medfluxes[i] > 0:
+            sbE[i] = 2.5 * scatfluxes[i] / (medfluxes[i] * np.log(10))
 
     # Compute Curve of Growth from SB profile
     if fluxunits == "intensity":
@@ -219,11 +442,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
         )
 
         if cog is None:
-            cog = -99.999 * np.ones(len(R))
-            cogE = -99.999 * np.ones(len(R))
-        else:
-            cog[np.logical_not(np.isfinite(cog))] = -99.999
-            cogE[cog < 0] = -99.999
+            cog = np.full(end_prof, np.nan)
+            cogE = np.full(end_prof, np.nan)
     else:
         cog, cogE = SBprof_to_COG_errorprop(
             R[:end_prof] * options["ap_pixscale"],
@@ -234,11 +454,8 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             symmetric_error=True,
         )
         if cog is None:
-            cog = 99.999 * np.ones(len(R))
-            cogE = 99.999 * np.ones(len(R))
-        else:
-            cog[np.logical_not(np.isfinite(cog))] = 99.999
-            cogE[cog > 99] = 99.999
+            cog = np.full(end_prof, np.nan)
+            cogE = np.full(end_prof, np.nan)
 
     # For each radius evaluation, write the profile parameters
     if fluxunits == "intensity":
@@ -302,6 +519,27 @@ def _Generate_Profile(IMG, results, R, parameters, options):
             "totmag_direct": "mag",
         }
 
+    # Sentinels are an output convention and must not enter profile calculations.
+    if fluxunits == "intensity":
+        cog = np.asarray(cog)
+        cogE = np.asarray(cogE)
+        invalid_cog = np.logical_or(np.logical_not(np.isfinite(cog)), cog < 0)
+        cog[invalid_cog] = -99.999
+        cogE[np.logical_or(invalid_cog, np.logical_not(np.isfinite(cogE)))] = -99.999
+    else:
+        sb = np.asarray(sb)
+        sbE = np.asarray(sbE)
+        cog = np.asarray(cog)
+        cogE = np.asarray(cogE)
+        cogdirect = np.asarray(cogdirect)
+        invalid_sb = np.logical_not(np.isfinite(sb))
+        sb[invalid_sb] = 99.999
+        sbE[np.logical_or(invalid_sb, np.logical_not(np.isfinite(sbE)))] = 99.999
+        invalid_cog = np.logical_or(np.logical_not(np.isfinite(cog)), cog > 99)
+        cog[invalid_cog] = 99.999
+        cogE[np.logical_or(invalid_cog, np.logical_not(np.isfinite(cogE)))] = 99.999
+        cogdirect[np.logical_not(np.isfinite(cogdirect))] = 99.999
+
     SBprof_data = dict((h, None) for h in params)
     SBprof_data["R"] = list(R[:end_prof] * options["ap_pixscale"])
     SBprof_data["I" if fluxunits == "intensity" else "SB"] = list(sb)
@@ -315,6 +553,10 @@ def _Generate_Profile(IMG, results, R, parameters, options):
     SBprof_data["pixels"] = list(pixels)
     SBprof_data["maskedpixels"] = list(maskedpixels)
     SBprof_data["totflux_direct" if fluxunits == "intensity" else "totmag_direct"] = list(cogdirect)
+    if output_sampling_method:
+        params.append("sampling_method")
+        SBprof_units["sampling_method"] = "none"
+        SBprof_data["sampling_method"] = list(sample_labels[:end_prof])
 
     if "ap_iso_measurecoefs" in options and not options["ap_iso_measurecoefs"] is None:
         whichcoefs = [0] + list(options["ap_iso_measurecoefs"])
@@ -385,11 +627,23 @@ def Isophote_Extract_Forced(IMG, results, options):
       units for outputted photometry. Can either be "mag" for log
       units, or "intensity" for linear units.
 
+    ap_forced_use_sampling_method : bool, default True
+      If the forcing profile has a *sampling_method* column, use it to
+      choose lanczos, bicubic, bilinear, nearest-neighbor, or band sampling
+      for each forced isophote.
+
     ap_isoband_start : float, default 2
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
       isophote in units of pixel flux noise. Will never initiate band
-      averaging if the band width is less than half a pixel
+      averaging if the band width is less than half a pixel. Once
+      initiated, band sampling is used at all larger radii.
+
+    ap_isoband_start_sb : float, default None
+      Surface-brightness level in mag arcsec^-2 at which to begin
+      sampling a band of pixels instead of sampling a line of pixels
+      near the isophote. Once initiated, band sampling is used at all
+      larger radii. Overrides *ap_isoband_start* if set.
 
     ap_isoband_width : float, default 0.025
       The relative size of the isophote bands to sample. flux values
@@ -406,13 +660,12 @@ def Isophote_Extract_Forced(IMG, results, options):
       profile.
 
     ap_iso_interpolate_start : float, default 5
-      Use a Lanczos interpolation for isophotes with semi-major axis
-      less than this number times the PSF.
+      Use image interpolation for isophotes with semi-major axis
+      less than this number times the PSF FWHM.
 
-    ap_iso_interpolate_method : string, default 'lanczos'
+    ap_isoextract_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation on image, options are
-      'lanczos' and 'bicubic'. Default is 'lanczos' with a window size
-      of 3.
+      'lanczos', 'bicubic', and 'bilinear'. Default is 'bilinear'.
 
     ap_iso_interpolate_window : int, default 3
       Window size for Lanczos interpolation, default is 3, meaning 3
@@ -452,10 +705,20 @@ def Isophote_Extract_Forced(IMG, results, options):
       tuple indicating which fourier modes to extract along fitted
       isophotes. Most common is (4,), which identifies boxy/disky
       isophotes. Also common is (1,3), which identifies lopsided
-      galaxies. The outputted values are computed as a_i =
-      imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
-      fourier coefficient. Not activated by default as it adds to
+      galaxies. Harmonic terms are fit directly to the valid
+      azimuthal samples. For a fitted term
+      I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf
+      reports a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0).
+      The fit includes every harmonic order up to the highest requested
+      order, but only requested orders are reported. Harmonic fitting
+      reuses line samples from the SB profile. After band sampling
+      starts, it continues extracting line samples with the last line
+      sampling method. Not activated by default as it adds to
       computation time.
+
+    ap_iso_output_sampling_method : bool, default False
+      Add a *sampling_method* column to the output profile. Values are
+      'lanczos', 'bicubic', 'bilinear', 'nearest', and 'band'.
 
     ap_plot_sbprof_ylim : tuple, default None
       Tuple with axes limits for the y-axis in the SB profile
@@ -517,7 +780,10 @@ def Isophote_Extract_Forced(IMG, results, options):
             except ValueError:
                 continue  # Skip non-numeric rows
             for d, h in zip(D, header):
-                force[h].append(float(d.strip()))
+                if h == "sampling_method":
+                    force[h].append(d.strip())
+                else:
+                    force[h].append(float(d.strip()))
 
     force["pa"] = PA_shift_convention(np.array(force["pa"]), deg=True) * np.pi / 180
 
@@ -540,8 +806,25 @@ def Isophote_Extract_Forced(IMG, results, options):
             parameters[i]["pa_err"] = 0.0
             parameters[i]["ellip_err"] = 0.0
 
+    forced_sampling_methods = (
+        force["sampling_method"]
+        if (
+            "sampling_method" in force
+            and (
+                "ap_forced_use_sampling_method" not in options
+                or options["ap_forced_use_sampling_method"]
+            )
+        )
+        else None
+    )
+
     return IMG, _Generate_Profile(
-        IMG, results, np.array(force["R"]) / options["ap_pixscale"], parameters, options
+        IMG,
+        results,
+        np.array(force["R"]) / options["ap_pixscale"],
+        parameters,
+        options,
+        forced_sampling_methods=forced_sampling_methods,
     )
 
 
@@ -599,7 +882,14 @@ def Isophote_Extract(IMG, results, options):
       The noise level at which to begin sampling a band of pixels to
       compute SB instead of sampling a line of pixels near the
       isophote in units of pixel flux noise. Will never initiate band
-      averaging if the band width is less than half a pixel
+      averaging if the band width is less than half a pixel. Once
+      initiated, band sampling is used at all larger radii.
+
+    ap_isoband_start_sb : float, default None
+      Surface-brightness level in mag arcsec^-2 at which to begin
+      sampling a band of pixels instead of sampling a line of pixels
+      near the isophote. Once initiated, band sampling is used at all
+      larger radii. Overrides *ap_isoband_start* if set.
 
     ap_isoband_width : float, default 0.025
       The relative size of the isophote bands to sample. flux values
@@ -620,13 +910,12 @@ def Isophote_Extract(IMG, results, options):
       the image. Will be overridden by *ap_truncate_evaluation*.
 
     ap_iso_interpolate_start : float, default 5
-      Use a Lanczos interpolation for isophotes with semi-major axis
-      less than this number times the PSF.
+      Use image interpolation for isophotes with semi-major axis
+      less than this number times the PSF FWHM.
 
-    ap_iso_interpolate_method : string, default 'lanczos'
+    ap_isoextract_interpolate_method : string, default 'bilinear'
       Select method for flux interpolation on image, options are
-      'lanczos' and 'bicubic'. Default is 'lanczos' with a window size
-      of 3.
+      'lanczos', 'bicubic', and 'bilinear'. Default is 'bilinear'.
 
     ap_iso_interpolate_window : int, default 3
       Window size for Lanczos interpolation, default is 3, meaning 3
@@ -666,10 +955,20 @@ def Isophote_Extract(IMG, results, options):
       tuple indicating which fourier modes to extract along fitted
       isophotes. Most common is (4,), which identifies boxy/disky
       isophotes. Also common is (1,3), which identifies lopsided
-      galaxies. The outputted values are computed as a_i =
-      imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
-      fourier coefficient. Not activated by default as it adds to
+      galaxies. Harmonic terms are fit directly to the valid
+      azimuthal samples. For a fitted term
+      I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf
+      reports a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0).
+      The fit includes every harmonic order up to the highest requested
+      order, but only requested orders are reported. Harmonic fitting
+      reuses line samples from the SB profile. After band sampling
+      starts, it continues extracting line samples with the last line
+      sampling method. Not activated by default as it adds to
       computation time.
+
+    ap_iso_output_sampling_method : bool, default False
+      Add a *sampling_method* column to the output profile. Values are
+      'lanczos', 'bicubic', 'bilinear', 'nearest', and 'band'.
 
     ap_plot_sbprof_ylim : tuple, default None
       Tuple with axes limits for the y-axis in the SB profile
@@ -996,6 +1295,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
     SBprof_data = dict((h, []) for h in params)
     res = {}
     dat = IMG - results["background"]
+    photutils_dat = _photutils_masked_data(dat, results)
     if not "fit R" in results and not "fit photutils isolist" in results:
         logging.info("%s: photutils fitting and extracting image data" % options["ap_name"])
         geo = EllipseGeometry(
@@ -1005,13 +1305,17 @@ def Isophote_Extract_Photutils(IMG, results, options):
             eps=results["init ellip"],
             pa=results["init pa"],
         )
-        ellipse = Photutils_Ellipse(dat, geometry=geo)
+        ellipse = Photutils_Ellipse(photutils_dat, geometry=geo)
 
         isolist = ellipse.fit_image(fix_center=True, linear=False)
         res.update(
             {
                 "fit photutils isolist": isolist,
-                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
+                "auxfile fitlimit": (
+                    "fit limit semi-major axis: %.2f pix" % isolist.sma[-1]
+                    if len(isolist.sma) > 0
+                    else "fit limit semi-major axis: no valid isophotes"
+                ),
             }
         )
     elif not "fit photutils isolist" in results:
@@ -1029,7 +1333,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
                 pa=results["fit pa"][i],
             )
             # Extract the isophote information
-            ES = EllipseSample(dat, sma=results["fit R"][i], geometry=geo)
+            ES = EllipseSample(photutils_dat, sma=results["fit R"][i], geometry=geo)
             ES.update(fixed_parameters=None)
             list_iso.append(Isophote(ES, niter=30, valid=True, stop_code=0))
 
@@ -1037,7 +1341,11 @@ def Isophote_Extract_Photutils(IMG, results, options):
         res.update(
             {
                 "fit photutils isolist": isolist,
-                "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
+                "auxfile fitlimit": (
+                    "fit limit semi-major axis: %.2f pix" % isolist.sma[-1]
+                    if len(isolist.sma) > 0
+                    else "fit limit semi-major axis: no valid isophotes"
+                ),
             }
         )
     else:
@@ -1045,27 +1353,35 @@ def Isophote_Extract_Photutils(IMG, results, options):
 
     for i in range(len(isolist.sma)):
         SBprof_data["R"].append(isolist.sma[i] * options["ap_pixscale"])
+        medflux = _finite_median(isolist.sample[i].values[2])
         if fluxunits == "intensity":
             SBprof_data["I"].append(
-                np.median(isolist.sample[i].values[2]) / options["ap_pixscale"] ** 2
+                medflux / options["ap_pixscale"] ** 2
             )
             SBprof_data["I_e"].append(isolist.int_err[i])
             SBprof_data["totflux"].append(isolist.tflux_e[i])
-            SBprof_data["totflux_e"].append(isolist.rms[i] / np.sqrt(isolist.npix_e[i]))
+            SBprof_data["totflux_e"].append(
+                _finite_divide(isolist.rms[i], np.sqrt(isolist.npix_e[i]))
+            )
         else:
             SBprof_data["SB"].append(
-                flux_to_sb(
-                    np.median(isolist.sample[i].values[2]),
-                    options["ap_pixscale"],
-                    zeropoint,
-                )
+                flux_to_sb(medflux, options["ap_pixscale"], zeropoint)
+                if medflux > 0
+                else np.nan
             )
-            SBprof_data["SB_e"].append(2.5 * isolist.int_err[i] / (isolist.intens[i] * np.log(10)))
-            SBprof_data["totmag"].append(flux_to_mag(isolist.tflux_e[i], zeropoint))
+            SBprof_data["SB_e"].append(
+                _finite_divide(2.5 * isolist.int_err[i], isolist.intens[i] * np.log(10))
+            )
+            SBprof_data["totmag"].append(
+                flux_to_mag(isolist.tflux_e[i], zeropoint)
+                if np.isfinite(isolist.tflux_e[i]) and isolist.tflux_e[i] > 0
+                else np.nan
+            )
             SBprof_data["totmag_e"].append(
-                2.5
-                * isolist.rms[i]
-                / (np.sqrt(isolist.npix_e[i]) * isolist.tflux_e[i] * np.log(10))
+                _finite_divide(
+                    2.5 * isolist.rms[i],
+                    np.sqrt(isolist.npix_e[i]) * isolist.tflux_e[i] * np.log(10),
+                )
             )
         SBprof_data["ellip"].append(isolist.eps[i])
         SBprof_data["ellip_e"].append(isolist.ellip_err[i])
@@ -1084,7 +1400,7 @@ def Isophote_Extract_Photutils(IMG, results, options):
                 SBprof_data[k][-1] = 99.999
     res.update({"prof header": params, "prof units": SBprof_units, "prof data": SBprof_data})
 
-    if "ap_doplot" in options and options["ap_doplot"]:
+    if "ap_doplot" in options and options["ap_doplot"] and len(SBprof_data["R"]) > 0:
         if fluxunits == "intensity":
             Plot_I_Profile(
                 dat,

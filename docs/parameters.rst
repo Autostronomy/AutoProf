@@ -171,6 +171,19 @@ ap_fluxunits (str, default "mag")
 units for outputted photometry. Can either be "mag" for log
 units, or "intensity" for linear units.
 
+ap_forced_use_sampling_method (bool, default True)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+
+**Description**
+
+If the forcing profile has a *sampling_method* column, use it to
+choose lanczos, bicubic, bilinear, nearest-neighbor, or band sampling
+for each forced isophote.
+
 ap_forcing_profile (string, default None)
 ----------------------------------------------------------------------
 
@@ -225,7 +238,7 @@ ap_guess_psf (float, default None)
 Initialization value for the PSF calculation in pixels. If not
 given, AutoProf will default with a guess of 1/*ap_pixscale*
 
-ap_iso_interpolate_method (string, default 'lanczos')
+ap_isoextract_interpolate_method (string, default 'bilinear')
 ----------------------------------------------------------------------
 
 **Referencing Methods**
@@ -236,21 +249,30 @@ ap_iso_interpolate_method (string, default 'lanczos')
 **Description**
 
 Select method for flux interpolation on image, options are
-'lanczos' and 'bicubic'. Default is 'lanczos' with a window size
-of 3.
+'lanczos', 'bicubic', and 'bilinear'. Default is 'bilinear'.
 
 ap_iso_interpolate_start (float, default 5)
 ----------------------------------------------------------------------
 
 **Referencing Methods**
 
+- :func:`~autoprof.pipeline_steps.Check_Fit.Check_Fit`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
 - :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+- :func:`~autoprof.pipeline_steps.Radial_Profiles.Radial_Profiles`
 
 **Description**
 
-Use a Lanczos interpolation for isophotes with semi-major axis
-less than this number times the PSF.
+Use image interpolation for isophote samples with semi-major axis less
+than this number times the PSF FWHM. This cutoff is shared by
+initialization, isophote fitting, profile extraction, radial profiles,
+and check-fit diagnostics. Isophote samples used by center finding always
+use interpolation.
 
 ap_iso_interpolate_window (int, default 3)
 ----------------------------------------------------------------------
@@ -279,10 +301,28 @@ ap_iso_measurecoefs (tuple, default None)
 tuple indicating which fourier modes to extract along fitted
 isophotes. Most common is (4,), which identifies boxy/disky
 isophotes. Also common is (1,3), which identifies lopsided
-galaxies. The outputted values are computed as a_i =
-imag(F_i)/abs(F_0) and b_i = real(F_i)/abs(F_0) where F_i is a
-fourier coefficient. Not activated by default as it adds to
-computation time.
+galaxies. Harmonic terms are fit directly to the valid azimuthal
+samples. For a fitted term
+I(theta) = I_0 + A_i sin(i theta) + B_i cos(i theta), AutoProf reports
+a_i = -0.5 A_i/abs(I_0) and b_i = 0.5 B_i/abs(I_0). The fit includes
+every harmonic order up to the highest requested order, but only
+requested orders are reported. Harmonic fitting reuses line samples
+from the SB profile. After band sampling starts, it continues extracting
+line samples with the last line sampling method. Not activated by default
+as it adds to computation time.
+
+ap_iso_output_sampling_method (bool, default False)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+
+**Description**
+
+Add a *sampling_method* column to the output profile. Values are
+'lanczos', 'bicubic', 'bilinear', 'nearest', and 'band'.
 
 ap_isoaverage_method (string, default 'median')
 ----------------------------------------------------------------------
@@ -332,7 +372,23 @@ ap_isoband_start (float, default 2)
 The noise level at which to begin sampling a band of pixels to
 compute SB instead of sampling a line of pixels near the
 isophote in units of pixel flux noise. Will never initiate band
-averaging if the band width is less than half a pixel
+averaging if the band width is less than half a pixel. Once initiated,
+band sampling is used at all larger radii.
+
+ap_isoband_start_sb (float, default None)
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract_Forced`
+- :func:`~autoprof.pipeline_steps.Isophote_Extract.Isophote_Extract`
+
+**Description**
+
+Surface-brightness level in mag arcsec^-2 at which to begin
+sampling a band of pixels instead of sampling a line of pixels
+near the isophote. Once initiated, band sampling is used at all larger
+radii. Overrides *ap_isoband_start* if set.
 
 ap_isoband_width (float, default 0.025)
 ----------------------------------------------------------------------
@@ -424,6 +480,21 @@ ap_isofit_fitcoefs will be initialized using an FFT
 decomposition along fitted elliptical isophotes. This can
 improve the fit result, though it is less stable and so users
 should examine the results after fitting.
+
+ap_isofit_interpolate_method (string, default 'bilinear')
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_Robust`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FFT_mean`
+- :func:`~autoprof.pipeline_steps.Isophote_Fit.Isophote_Fit_FixedPhase`
+- :func:`~autoprof.pipeline_steps.Check_Fit.Check_Fit`
+
+**Description**
+
+Select method for flux interpolation while fitting or checking isophotes.
+Options are 'lanczos', 'bicubic', and 'bilinear'.
 
 ap_isofit_iterlimitmax (int, default 300)
 ----------------------------------------------------------------------
@@ -560,6 +631,19 @@ ap_isoinit_ellip_set (float, default None)
 **Description**
 
 User set initial ellipticity (1 - b/a), will override the calculation.
+
+ap_isoinit_interpolate_method (string, default 'bilinear')
+----------------------------------------------------------------------
+
+**Referencing Methods**
+
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize`
+- :func:`~autoprof.pipeline_steps.Isophote_Initialize.Isophote_Initialize_mean`
+
+**Description**
+
+Select method for flux interpolation while initializing
+isophotes. Options are 'lanczos', 'bicubic', and 'bilinear'.
 
 ap_isoinit_pa_set (float, default None)
 ----------------------------------------------------------------------
@@ -982,4 +1066,3 @@ ap_zeropoint (float, default 22.5)
 **Description**
 
 Photometric zero point. For converting flux to mag units.
-

@@ -13,7 +13,12 @@ from copy import copy, deepcopy
 import logging
 
 from ..autoprofutils.SharedFunctions import (
-    _iso_extract,
+    _iso_extract_with_interp_cutoff,
+    _iso_interpolate_radius,
+    _has_enough_isophote_coverage,
+    _interpolate_invalid_isophote_samples,
+    _validate_interpolate_method,
+    _photutils_masked_data,
     _x_to_pa,
     _x_to_eps,
     _inv_x_to_eps,
@@ -35,6 +40,271 @@ __all__ = (
     "Isophote_Fit_Forced",
     "Isophote_Fit_FFT_mean",
 )
+
+
+def _finite_isophote_samples(isovals):
+    isovals = np.asarray(isovals)
+    return isovals[np.isfinite(isovals)]
+
+
+def _best_finite_index(losses):
+    losses = np.asarray(losses, dtype=float)
+    if not np.any(np.isfinite(losses)):
+        return 0
+    return int(np.argmin(np.where(np.isfinite(losses), losses, np.inf)))
+
+
+def _max_fit_mode(fit_coefs=None):
+    return max(fit_coefs) if fit_coefs is not None and len(fit_coefs) > 0 else 2
+
+
+def _has_enough_sample_count(choose, max_mode=2):
+    return np.sum(choose) > 2 * max_mode
+
+
+def _has_enough_isophote_samples(
+    dat,
+    radius,
+    params,
+    center,
+    mask,
+    max_mode=2,
+    interp_method="bilinear",
+    rad_interp=None,
+):
+    kwargs = {}
+    if interp_method is not None:
+        kwargs["interp_method"] = interp_method
+    if rad_interp is not None:
+        kwargs["rad_interp"] = rad_interp
+    _, theta, choose, _ = _iso_extract_with_interp_cutoff(
+        dat,
+        radius,
+        params,
+        center,
+        more=True,
+        mask=mask,
+        return_choose=True,
+        **kwargs,
+    )
+    return (
+        _has_enough_sample_count(choose, max_mode=max_mode)
+        and _has_enough_isophote_coverage(theta, choose)
+    )
+
+
+def _extract_fft_isophote_samples(
+    dat,
+    radius,
+    params,
+    center,
+    mask,
+    max_mode=2,
+    interp_method="bilinear",
+    rad_interp=None,
+):
+    kwargs = {}
+    if interp_method is not None:
+        kwargs["interp_method"] = interp_method
+    if rad_interp is not None:
+        kwargs["rad_interp"] = rad_interp
+    flux, theta, choose, _ = _iso_extract_with_interp_cutoff(
+        dat,
+        radius,
+        params,
+        center,
+        more=True,
+        mask=mask,
+        return_choose=True,
+        **kwargs,
+    )
+    has_enough_samples = (
+        _has_enough_sample_count(choose, max_mode=max_mode)
+        and _has_enough_isophote_coverage(theta, choose)
+    )
+    if mask is not None:
+        if not has_enough_samples:
+            return None
+        flux, theta = _interpolate_invalid_isophote_samples(flux, theta, choose)
+    elif not has_enough_samples:
+        return None
+    elif not np.all(choose):
+        flux = flux[choose]
+    return _finite_isophote_samples(flux)
+
+
+def _active_neighbors(i, active_mask, n):
+    if active_mask is None:
+        return [j for j in (i + 1, i - 1) if 0 <= j < n]
+
+    active_indices = np.flatnonzero(active_mask)
+    neighbors = []
+    inner = active_indices[active_indices < i]
+    outer = active_indices[active_indices > i]
+    if len(outer) > 0:
+        neighbors.append(outer[0])
+    if len(inner) > 0:
+        neighbors.append(inner[-1])
+    return neighbors
+
+
+def _interpolate_inactive_parameters(sample_radii, parameters, active_mask):
+    active_indices = np.flatnonzero(active_mask)
+    inactive_indices = np.flatnonzero(np.logical_not(active_mask))
+    if len(active_indices) < 2 or len(inactive_indices) == 0:
+        return
+
+    active_radii = sample_radii[active_indices]
+    active_pa = np.array(list(parameters[i]["pa"] for i in active_indices))
+    active_ellip = np.array(list(parameters[i]["ellip"] for i in active_indices))
+    pa_s = np.sin(2 * active_pa)
+    pa_c = np.cos(2 * active_pa)
+    inv_ellip = _inv_x_to_eps(active_ellip)
+
+    for i in inactive_indices:
+        radius = sample_radii[i]
+        parameters[i]["ellip"] = _x_to_eps(np.interp(radius, active_radii, inv_ellip))
+        parameters[i]["pa"] = _x_to_pa(
+            ((np.arctan2(np.interp(radius, active_radii, pa_s), np.interp(radius, active_radii, pa_c))) % (2 * np.pi))
+            / 2
+        )
+        if parameters[i]["C"] is not None:
+            active_C = np.array(list(parameters[j]["C"] for j in active_indices))
+            parameters[i]["C"] = np.interp(radius, active_radii, active_C)
+        if parameters[i]["m"] is not None:
+            for m in range(len(parameters[i]["m"])):
+                active_Am = np.array(list(parameters[j]["Am"][m] for j in active_indices))
+                active_Phim = np.array(list(parameters[j]["Phim"][m] for j in active_indices))
+                mode = parameters[i]["m"][m]
+                parameters[i]["Am"][m] = np.interp(radius, active_radii, active_Am)
+                phase_s = np.interp(radius, active_radii, np.sin(mode * active_Phim))
+                phase_c = np.interp(radius, active_radii, np.cos(mode * active_Phim))
+                parameters[i]["Phim"][m] = ((np.arctan2(phase_s, phase_c)) % (2 * np.pi)) / mode
+
+
+def _activate_inactive_radii(
+    dat,
+    sample_radii,
+    parameters,
+    active_mask,
+    center,
+    mask,
+    max_mode=2,
+    interp_method="bilinear",
+    rad_interp=None,
+):
+    _interpolate_inactive_parameters(sample_radii, parameters, active_mask)
+    activated = []
+    for i in np.flatnonzero(np.logical_not(active_mask)):
+        if _has_enough_isophote_samples(
+            dat,
+            sample_radii[i],
+            parameters[i],
+            center,
+            mask,
+            max_mode=max_mode,
+            interp_method=interp_method,
+            rad_interp=rad_interp,
+        ):
+            active_mask[i] = True
+            activated.append(i)
+    return activated
+
+
+def _activate_inactive_ellipse_radii(
+    dat,
+    sample_radii,
+    ellip,
+    pa,
+    active_mask,
+    center,
+    mask,
+    interp_method="bilinear",
+    rad_interp=None,
+):
+    active_indices = np.flatnonzero(active_mask)
+    inactive_indices = np.flatnonzero(np.logical_not(active_mask))
+    if len(active_indices) < 2 or len(inactive_indices) == 0:
+        return []
+
+    active_radii = sample_radii[active_indices]
+    pa_s = np.sin(2 * pa[active_indices])
+    pa_c = np.cos(2 * pa[active_indices])
+    inv_ellip = _inv_x_to_eps(ellip[active_indices])
+    activated = []
+    for i in inactive_indices:
+        radius = sample_radii[i]
+        ellip[i] = _x_to_eps(np.interp(radius, active_radii, inv_ellip))
+        pa[i] = _x_to_pa(
+            ((np.arctan2(np.interp(radius, active_radii, pa_s), np.interp(radius, active_radii, pa_c))) % (2 * np.pi))
+            / 2
+        )
+        if _has_enough_isophote_samples(
+            dat,
+            radius,
+            {"ellip": ellip[i], "pa": pa[i]},
+            center,
+            mask,
+            interp_method=interp_method,
+            rad_interp=rad_interp,
+        ):
+            active_mask[i] = True
+            activated.append(i)
+    return activated
+
+
+def _determine_sample_radii(
+    dat,
+    IMG,
+    results,
+    options,
+    scale,
+    mask,
+    startR,
+    fit_limit_default,
+    average_func,
+    minR=0.0,
+    interp_method="bilinear",
+    rad_interp=None,
+):
+    shrink = 0
+    while shrink < 5:
+        sample_radii = []
+        radius = startR
+        kwargs = {"interp_method": interp_method}
+        if rad_interp is not None:
+            kwargs["rad_interp"] = rad_interp
+        while radius < (max(IMG.shape) / 2):
+            sample_radii.append(radius)
+            isovals = _finite_isophote_samples(
+                _iso_extract_with_interp_cutoff(
+                    dat,
+                    radius,
+                    {"ellip": results["init ellip"], "pa": results["init pa"]},
+                    results["center"],
+                    more=False,
+                    mask=mask,
+                    **kwargs,
+                )
+            )
+            if (
+                len(isovals) > 0
+                and radius > minR
+                and average_func(isovals)
+                < (options["ap_fit_limit"] if "ap_fit_limit" in options else fit_limit_default)
+                * results["background noise"]
+            ):
+                break
+            radius *= 1.0 + scale / (1.0 + shrink)
+        if len(sample_radii) < 15:
+            shrink += 1
+        else:
+            break
+    if shrink >= 5:
+        raise Exception(
+            "Unable to initialize ellipse fit, check diagnostic plots. Possible missed center."
+        )
+    return np.array(sample_radii)
 
 
 def Photutils_Fit(IMG, results, options):
@@ -80,7 +350,8 @@ def Photutils_Fit(IMG, results, options):
         eps=results["init ellip"],
         pa=results["init pa"],
     )
-    ellipse = Photutils_Ellipse(dat, geometry=geo)
+    photutils_dat = _photutils_masked_data(dat, results)
+    ellipse = Photutils_Ellipse(photutils_dat, geometry=geo)
 
     isolist = ellipse.fit_image(fix_center=True, linear=False)
     res = {
@@ -90,10 +361,14 @@ def Photutils_Fit(IMG, results, options):
         "fit pa": isolist.pa[1:],
         "fit pa_err": isolist.pa_err[1:],
         "fit photutils isolist": isolist,
-        "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % isolist.sma[-1],
+        "auxfile fitlimit": (
+            "fit limit semi-major axis: %.2f pix" % isolist.sma[-1]
+            if len(isolist.sma) > 0
+            else "fit limit semi-major axis: no valid isophotes"
+        ),
     }
 
-    if "ap_doplot" in options and options["ap_doplot"]:
+    if "ap_doplot" in options and options["ap_doplot"] and len(res["fit R"]) > 0:
         Plot_Isophote_Fit(
             dat,
             res["fit R"],
@@ -121,6 +396,11 @@ def Isophote_Fit_FixedPhase(IMG, results, options):
       noise level out to which to extend the fit in units of pixel
       background noise level. Default is 2, smaller values will end
       fitting further out in the galaxy image.
+
+    ap_isofit_interpolate_method : string, default 'bilinear'
+      Select method for flux interpolation while determining the
+      fitted isophote radii. Options are 'lanczos', 'bicubic', and
+      'bilinear'.
 
     Notes
     ----------
@@ -161,36 +441,31 @@ def Isophote_Fit_FixedPhase(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
+    rad_interp = _iso_interpolate_radius(options, results)
 
     # Determine sampling radii
     ######################################################################
-    shrink = 0
-    while shrink < 5:
-        sample_radii = [max(1.0, results["psf fwhm"] / 2)]
-        while sample_radii[-1] < (max(IMG.shape) / 2):
-            isovals = _iso_extract(
-                dat,
-                sample_radii[-1],
-                {"ellip": results["init ellip"], "pa": results["init pa"]},
-                results["center"],
-                more=False,
-                mask=mask,
-            )
-            if (
-                np.median(isovals)
-                < (options["ap_fit_limit"] if "ap_fit_limit" in options else 2)
-                * results["background noise"]
-            ):
-                break
-            sample_radii.append(sample_radii[-1] * (1.0 + scale / (1.0 + shrink)))
-        if len(sample_radii) < 15:
-            shrink += 1
-        else:
-            break
-    if shrink >= 5:
-        raise Exception(
-            "Unable to initialize ellipse fit, check diagnostic plots. Possible missed center."
-        )
+    sample_radii = _determine_sample_radii(
+        dat,
+        IMG,
+        results,
+        options,
+        scale,
+        mask,
+        max(1.0, results["psf fwhm"] / 2),
+        2,
+        np.median,
+        interp_method=interp_method,
+        rad_interp=rad_interp,
+    )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
     pa = np.ones(len(sample_radii)) * results["init pa"]
     logging.debug("%s: sample radii: %s" % (options["ap_name"], str(sample_radii)))
@@ -230,123 +505,167 @@ def _pa_smooth(R, PA, deg):
 
 
 def _FFT_Robust_loss(
-    dat, R, PARAMS, i, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
+    dat,
+    R,
+    PARAMS,
+    i,
+    C,
+    noise,
+    mask=None,
+    reg_scale=1.0,
+    robust_clip=0.15,
+    fit_coefs=None,
+    name="",
+    active_mask=None,
+    interp_method="bilinear",
+    rad_interp=None,
 ):
+    if fit_coefs is not None and len(fit_coefs) == 0:
+        fit_coefs = None
+    max_mode = _max_fit_mode(fit_coefs)
 
-    isovals = _iso_extract(
+    isovals = _extract_fft_isophote_samples(
         dat,
         R[i],
         PARAMS[i],
         C,
-        mask=mask,
-        interp_mask=False if mask is None else True,
-        interp_method="bicubic",
+        mask,
+        max_mode=max_mode,
+        interp_method=interp_method,
+        rad_interp=rad_interp,
     )
+    if isovals is None:
+        return np.inf
 
-    try:
-        coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 1.0 - robust_clip), a_min=None))
-    except:
-        coefs = np.zeros(100)
-        isovals = np.zeros(100)
-
-    if fit_coefs is None:
-        f2_loss = np.abs(coefs[2]) / (
-            len(isovals) * (max(0, np.median(isovals)) + noise / np.sqrt(len(isovals)))
-        )
-    else:
-        f2_loss = np.sum(np.abs(coefs[np.array(fit_coefs)])) / (
-            len(fit_coefs)
-            * len(isovals)
-            * (max(0, np.median(isovals)) + noise / np.sqrt(len(isovals)))
-        )
+    f2_loss = None
+    if len(isovals) > 2 * max_mode:
+        try:
+            coefs = fft(np.clip(isovals, a_max=np.quantile(isovals, 1.0 - robust_clip), a_min=None))
+            norm = len(isovals) * (max(0, np.median(isovals)) + noise / np.sqrt(len(isovals)))
+            if fit_coefs is None:
+                f2_loss = np.abs(coefs[2]) / norm
+            else:
+                f2_loss = np.sum(np.abs(coefs[np.array(fit_coefs)])) / (len(fit_coefs) * norm)
+        except Exception:
+            f2_loss = None
 
     reg_loss = 0
-    if not PARAMS[i]["m"] is None:
+    has_fmodes = PARAMS[i]["m"] is not None and len(PARAMS[i]["m"]) > 0
+    if has_fmodes:
         fmode_scale = 1.0 / len(PARAMS[i]["m"])
-    if i < (len(R) - 1):
-        reg_loss += abs(
-            (PARAMS[i]["ellip"] - PARAMS[i + 1]["ellip"]) / (1 - PARAMS[i + 1]["ellip"])
+    for j in _active_neighbors(i, active_mask, len(R)):
+        neighbor_reg_loss = abs(
+            (PARAMS[i]["ellip"] - PARAMS[j]["ellip"]) / (1 - PARAMS[j]["ellip"])
         )
-        reg_loss += abs(Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[i + 1]["pa"]) / (0.2))
-        if not PARAMS[i]["m"] is None:
+        neighbor_reg_loss += abs(
+            Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[j]["pa"]) / (0.2)
+        )
+        if has_fmodes and PARAMS[j]["m"] is not None:
             for m in range(len(PARAMS[i]["m"])):
-                reg_loss += fmode_scale * abs((PARAMS[i]["Am"][m] - PARAMS[i + 1]["Am"][m]) / 0.2)
-                reg_loss += fmode_scale * abs(
+                neighbor_reg_loss += fmode_scale * abs(
+                    (PARAMS[i]["Am"][m] - PARAMS[j]["Am"][m]) / 0.2
+                )
+                neighbor_reg_loss += fmode_scale * abs(
                     Angle_TwoAngles_cos(
                         PARAMS[i]["m"][m] * PARAMS[i]["Phim"][m],
-                        PARAMS[i + 1]["m"][m] * PARAMS[i + 1]["Phim"][m],
+                        PARAMS[j]["m"][m] * PARAMS[j]["Phim"][m],
                     )
                     / (PARAMS[i]["m"][m] * 0.1)
                 )
-        if not PARAMS[i]["C"] is None:
-            reg_loss += abs(np.log10(PARAMS[i]["C"] / PARAMS[i + 1]["C"])) / 0.1
-    if i > 0:
-        reg_loss += abs(
-            (PARAMS[i]["ellip"] - PARAMS[i - 1]["ellip"]) / (1 - PARAMS[i - 1]["ellip"])
-        )
-        reg_loss += abs(Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[i - 1]["pa"]) / (0.2))
-        if not PARAMS[i]["m"] is None:
-            for m in range(len(PARAMS[i]["m"])):
-                reg_loss += fmode_scale * abs((PARAMS[i]["Am"][m] - PARAMS[i - 1]["Am"][m]) / 0.2)
-                reg_loss += fmode_scale * abs(
-                    Angle_TwoAngles_cos(
-                        PARAMS[i]["m"][m] * PARAMS[i]["Phim"][m],
-                        PARAMS[i - 1]["m"][m] * PARAMS[i - 1]["Phim"][m],
-                    )
-                    / (PARAMS[i]["m"][m] * 0.1)
-                )
-        if not PARAMS[i]["C"] is None:
-            reg_loss += abs(np.log10(PARAMS[i]["C"] / PARAMS[i - 1]["C"])) / 0.1
+        if PARAMS[i]["C"] is not None and PARAMS[j]["C"] is not None:
+            neighbor_reg_loss += abs(np.log10(PARAMS[i]["C"] / PARAMS[j]["C"])) / 0.1
+        # The geometric radius grid makes index separation proportional to log-radius distance.
+        reg_loss += neighbor_reg_loss / abs(i - j)
 
+    if f2_loss is None or not np.isfinite(f2_loss):
+        return np.inf
     return f2_loss * (1 + reg_loss * reg_scale)
 
 
 def _FFT_Robust_Errors(
-    dat, R, PARAMS, C, noise, mask=None, reg_scale=1.0, robust_clip=0.15, fit_coefs=None, name=""
+    dat,
+    R,
+    PARAMS,
+    C,
+    noise,
+    mask=None,
+    reg_scale=1.0,
+    robust_clip=0.15,
+    fit_coefs=None,
+    name="",
+    interp_method="bilinear",
+    rad_interp=None,
 ):
 
     PA_err = np.zeros(len(R))
     E_err = np.zeros(len(R))
     for ri in range(len(R)):
         temp_fits = []
+        x0 = np.array([PARAMS[ri]["ellip"], PARAMS[ri]["pa"]], dtype=float)
+        if not np.all(np.isfinite(x0)):
+            continue
         for i in range(10):
             low_ri = max(0, ri - 1)
             high_ri = min(len(R) - 1, ri + 1)
-            temp_fits.append(
-                minimize(
-                    lambda x: _FFT_Robust_loss(
-                        dat,
-                        [R[low_ri], R[ri] * (1 - 0.05 + i * 0.1 / 9), R[high_ri]],
-                        [
-                            PARAMS[low_ri],
-                            {
-                                "ellip": np.clip(x[0], 0, 0.999),
-                                "pa": x[1] % np.pi,
-                                "m": PARAMS[ri]["m"],
-                                "Am": PARAMS[ri]["Am"],
-                                "Phim": PARAMS[ri]["Phim"],
-                            },
-                            PARAMS[high_ri],
-                        ],
-                        1,
-                        C,
-                        noise,
-                        mask=mask,
-                        reg_scale=reg_scale,
-                        robust_clip=robust_clip,
-                        fit_coefs=fit_coefs,
-                        name=name,
-                    ),
-                    x0=[PARAMS[ri]["ellip"], PARAMS[ri]["pa"]],
+            trial_R = [R[low_ri], R[ri] * (1 - 0.05 + i * 0.1 / 9), R[high_ri]]
+
+            def raw_loss(x):
+                if not np.all(np.isfinite(x)):
+                    return np.inf
+                trial_params = deepcopy(PARAMS[ri])
+                trial_params["ellip"] = float(x[0])
+                trial_params["pa"] = float(x[1])
+                return _FFT_Robust_loss(
+                    dat,
+                    trial_R,
+                    [
+                        PARAMS[low_ri],
+                        trial_params,
+                        PARAMS[high_ri],
+                    ],
+                    1,
+                    C,
+                    noise,
+                    mask=mask,
+                    reg_scale=reg_scale,
+                    robust_clip=robust_clip,
+                    fit_coefs=fit_coefs,
+                    name=name,
+                    interp_method=interp_method,
+                    rad_interp=rad_interp,
+                )
+
+            if not np.isfinite(raw_loss(x0)):
+                continue
+
+            # SLSQP expects a finite scalar objective even when a shifted isophote is unusable.
+            def finite_loss(x):
+                loss = raw_loss(x)
+                return float(loss) if np.isfinite(loss) else 1e30
+
+            try:
+                fit = minimize(
+                    finite_loss,
+                    x0=x0,
                     method="SLSQP",
+                    bounds=[(0, 0.999), (0, np.pi)],
                     options={"ftol": 0.001},
-                ).x
+                )
+            except Exception:
+                continue
+            if np.all(np.isfinite(fit.x)) and np.isfinite(raw_loss(fit.x)):
+                temp_fits.append(fit.x)
+        if len(temp_fits) >= 2:
+            temp_fits = np.array(temp_fits)
+            E_err[ri] = iqr(temp_fits[:, 0], rng=[16, 84]) / 2
+            PA_err[ri] = (
+                Angle_Scatter(2 * (temp_fits[:, 1] % np.pi)) / 4.0
+            )  # multiply by 2 to get [0, 2pi] range
+        elif len(temp_fits) == 1:
+            E_err[ri] = abs(float(temp_fits[0][0]) - PARAMS[ri]["ellip"])
+            PA_err[ri] = (
+                abs(Angle_TwoAngles_sin(2 * temp_fits[0][1], 2 * PARAMS[ri]["pa"])) / 2
             )
-        temp_fits = np.array(temp_fits)
-        E_err[ri] = iqr(np.clip(temp_fits[:, 0], 0, 1), rng=[16, 84]) / 2
-        PA_err[ri] = (
-            Angle_Scatter(2 * (temp_fits[:, 1] % np.pi)) / 4.0
-        )  # multiply by 2 to get [0, 2pi] range
     return E_err, PA_err
 
 
@@ -430,6 +749,10 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
       improve the fit result, though it is less stable and so users
       should examine the results after fitting.
 
+    ap_isofit_interpolate_method : string, default 'bilinear'
+      Select method for flux interpolation while fitting isophotes.
+      Options are 'lanczos', 'bicubic', and 'bilinear'.
+
     ap_isofit_perturbscale_ellip : float, default 0.03
       Sampling scale for random adjustments to ellipticity made while
       optimizing isophotes. Smaller values will converge faster, but
@@ -505,6 +828,15 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
+    rad_interp = _iso_interpolate_radius(options, results)
 
     if "ap_isoinit_R_set" in options:
         minR = options["ap_isoinit_R_set"]
@@ -514,34 +846,20 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         minR = 0.0
     # Determine sampling radii
     ######################################################################
-    shrink = 0
-    while shrink < 5:
-        sample_radii = [max(1.0, results["psf fwhm"] / 2)]
-        while sample_radii[-1] < (max(IMG.shape) / 2):
-            isovals = _iso_extract(
-                dat,
-                sample_radii[-1],
-                {"ellip": results["init ellip"], "pa": results["init pa"]},
-                results["center"],
-                more=False,
-                mask=mask,
-            )
-            if (
-                sample_radii[-1] > minR
-                and np.median(isovals)
-                < (options["ap_fit_limit"] if "ap_fit_limit" in options else 2)
-                * results["background noise"]
-            ):
-                break
-            sample_radii.append(sample_radii[-1] * (1.0 + scale / (1.0 + shrink)))
-        if len(sample_radii) < 15:
-            shrink += 1
-        else:
-            break
-    if shrink >= 5:
-        raise Exception(
-            "Unable to initialize ellipse fit, check diagnostic plots. Possible missed center."
-        )
+    sample_radii = _determine_sample_radii(
+        dat,
+        IMG,
+        results,
+        options,
+        scale,
+        mask,
+        max(1.0, results["psf fwhm"] / 2),
+        2,
+        np.median,
+        minR=minR,
+        interp_method=interp_method,
+        rad_interp=rad_interp,
+    )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
     pa = np.ones(len(sample_radii)) * results["init pa"]
     logging.debug("%s: sample radii: %s" % (options["ap_name"], str(sample_radii)))
@@ -579,10 +897,31 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
     )
     count_nochange = 0
     use_center = copy(results["center"])
-    I = np.array(range(len(sample_radii)))
+    active_mask = np.array(
+        list(
+            _has_enough_isophote_samples(
+                dat,
+                sample_radii[i],
+                parameters[i],
+                use_center,
+                mask,
+                max_mode=_max_fit_mode(fit_coefs),
+                interp_method=interp_method,
+                rad_interp=rad_interp,
+            )
+            for i in range(len(sample_radii))
+        )
+    )
+    if np.sum(active_mask) < 2:
+        raise Exception(
+            "Unable to initialize ellipse fit, too few radii have enough unmasked samples."
+        )
     param_cycle = 2
     base_params = 2 + int(fit_superellipse)
     while count < iterlimitmax:
+        I = np.flatnonzero(active_mask)
+        if len(I) == 0:
+            break
         # Periodically include logging message
         if count % 10 == 0:
             logging.debug("%s: count: %i" % (options["ap_name"], count))
@@ -590,6 +929,7 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
 
         np.random.shuffle(I)
         N_perturb = int(1 + (10 / np.sqrt(count)))
+        activated_this_pass = False
 
         for i in I:
             perturbations = []
@@ -606,6 +946,9 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                 robust_clip=robust_clip,
                 fit_coefs=fit_coefs,
                 name=options["ap_name"],
+                active_mask=active_mask,
+                interp_method=interp_method,
+                rad_interp=rad_interp,
             )
             for n in range(N_perturb):
                 perturbations.append(deepcopy(parameters))
@@ -653,19 +996,42 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     robust_clip=robust_clip,
                     fit_coefs=fit_coefs,
                     name=options["ap_name"],
+                    active_mask=active_mask,
+                    interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
 
-            best = np.argmin(list(p[i]["loss"] for p in perturbations))
+            if not np.isfinite(perturbations[0][i]["loss"]):
+                active_mask[i] = False
+                continue
+            losses = list(p[i]["loss"] for p in perturbations)
+            best = _best_finite_index(losses)
             if best > 0:
                 parameters = deepcopy(perturbations[best])
                 del parameters[i]["loss"]
                 count_nochange = 0
             else:
                 count_nochange += 1
+            stop_threshold = iterstopnochange * max(1, len(I) - 1)
             if not (
-                count_nochange < (iterstopnochange * (len(sample_radii) - 1))
+                count_nochange < stop_threshold
                 or count < iterlimitmin
             ):
+                activated = _activate_inactive_radii(
+                    dat,
+                    sample_radii,
+                    parameters,
+                    active_mask,
+                    use_center,
+                    mask,
+                    max_mode=_max_fit_mode(fit_coefs),
+                    interp_method=interp_method,
+                    rad_interp=rad_interp,
+                )
+                if len(activated) > 0:
+                    count_nochange = 0
+                    activated_this_pass = True
+                    break
                 if param_cycle > 2 or (parameters[i]["m"] is None and not fit_superellipse):
                     break
                 elif parameters[i]["m"] is None and fit_superellipse:
@@ -678,6 +1044,21 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                     count = 0
                     if fit_coefs is None:
                         fit_coefs = (2, 4)
+                    active_mask = np.array(
+                        list(
+                            _has_enough_isophote_samples(
+                                dat,
+                                sample_radii[ii],
+                                parameters[ii],
+                                use_center,
+                                mask,
+                                max_mode=_max_fit_mode(fit_coefs),
+                                interp_method=interp_method,
+                                rad_interp=rad_interp,
+                            )
+                            for ii in range(len(sample_radii))
+                        )
+                    )
                 else:
                     logging.info(
                         "%s: Started Fmode fitting at iteration %i" % (options["ap_name"], count)
@@ -699,37 +1080,53 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                         or options["ap_isofit_losscoefs"] is None
                     ):
                         fit_coefs = tuple(sorted(set([4] + list(fit_coefs))))
+                    active_mask = np.array(
+                        list(
+                            _has_enough_isophote_samples(
+                                dat,
+                                sample_radii[ii],
+                                parameters[ii],
+                                use_center,
+                                mask,
+                                max_mode=_max_fit_mode(fit_coefs),
+                                interp_method=interp_method,
+                                rad_interp=rad_interp,
+                            )
+                            for ii in range(len(sample_radii))
+                        )
+                    )
                     if (
                         "ap_isofit_fitcoefs_FFTinit" in options
                         and options["ap_isofit_fitcoefs_FFTinit"]
                     ):
-                        for ii in I:
-                            isovals = _iso_extract(
+                        for ii in np.flatnonzero(active_mask):
+                            if parameters[ii]["m"] is None or len(parameters[ii]["m"]) == 0:
+                                continue
+                            isovals = _extract_fft_isophote_samples(
                                 dat,
                                 sample_radii[ii],
                                 parameters[ii],
                                 use_center,
                                 mask=mask,
-                                interp_mask=False if mask is None else True,
-                                interp_method="bicubic",
+                                max_mode=max(parameters[ii]["m"]),
+                                interp_method=interp_method,
+                                rad_interp=rad_interp,
                             )
+                            if isovals is None:
+                                continue
+                            if len(isovals) <= 2 * max(parameters[ii]["m"]):
+                                continue
 
-                            if mask is None:
-                                coefs = fft(
-                                    np.clip(
-                                        isovals,
-                                        a_max=np.quantile(isovals, 0.85),
-                                        a_min=None,
-                                    )
+                            quantile = 0.85 if mask is None else 0.9
+                            coefs = fft(
+                                np.clip(
+                                    isovals,
+                                    a_max=np.quantile(isovals, quantile),
+                                    a_min=None,
                                 )
-                            else:
-                                coefs = fft(
-                                    np.clip(
-                                        isovals,
-                                        a_max=np.quantile(isovals, 0.9),
-                                        a_min=None,
-                                    )
-                                )
+                            )
+                            if coefs[0] == 0 or not np.isfinite(coefs[0]):
+                                continue
                             for m in range(len(parameters[ii]["m"])):
                                 parameters[ii]["Am"][m] = np.abs(
                                     coefs[parameters[ii]["m"][m]] / coefs[0]
@@ -738,10 +1135,25 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
                                     coefs[parameters[ii]["m"][m]]
                                 ) % (2 * np.pi)
 
-        if not (
-            count_nochange < (iterstopnochange * (len(sample_radii) - 1)) or count < iterlimitmin
-        ):
+        if activated_this_pass:
+            continue
+        stop_threshold = iterstopnochange * max(1, len(np.flatnonzero(active_mask)) - 1)
+        if not (count_nochange < stop_threshold or count < iterlimitmin):
             break
+
+    active_indices = np.flatnonzero(active_mask)
+    if len(active_indices) < 4:
+        raise Exception(
+            "Unable to fit isophotes, too few radii have enough unmasked samples."
+        )
+    skipped_fit_radii = len(sample_radii) - len(active_indices)
+    if skipped_fit_radii > 0:
+        logging.info(
+            "%s: Excluded %i fit radii with too few unmasked samples"
+            % (options["ap_name"], skipped_fit_radii)
+        )
+    sample_radii = np.asarray(sample_radii)[active_indices]
+    parameters = list(parameters[i] for i in active_indices)
 
     logging.info("%s: Completed isohpote fit in %i itterations" % (options["ap_name"], count))
     # Compute errors
@@ -757,8 +1169,10 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         robust_clip=robust_clip,
         fit_coefs=fit_coefs,
         name=options["ap_name"],
+        interp_method=interp_method,
+        rad_interp=rad_interp,
     )
-    for i in range(len(ellip)):
+    for i in range(len(parameters)):
         parameters[i]["ellip err"] = ellip_err[i]
         parameters[i]["pa err"] = pa_err[i]
     # Plot fitting results
@@ -774,6 +1188,8 @@ def Isophote_Fit_FFT_Robust(IMG, results, options):
         "fit pa_err": pa_err,
         "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % sample_radii[-1],
     }
+    if skipped_fit_radii > 0:
+        res["auxfile fit masked radii"] = "fit radii excluded for insufficient samples: %i" % skipped_fit_radii
     if not fit_params is None:
         res.update({"fit Fmodes": fit_params})
         for m in range(len(fit_params)):
@@ -868,35 +1284,52 @@ def Isophote_Fit_Forced(IMG, results, options):
 
 
 ######################################################################
-def _FFT_mean_loss(dat, R, E, PA, i, C, noise, mask=None, reg_scale=1.0, name=""):
+def _FFT_mean_loss(
+    dat,
+    R,
+    E,
+    PA,
+    i,
+    C,
+    noise,
+    mask=None,
+    reg_scale=1.0,
+    name="",
+    active_mask=None,
+    interp_method="bilinear",
+    rad_interp=None,
+):
 
-    isovals = _iso_extract(
+    params = {"ellip": E[i], "pa": PA[i]}
+    isovals = _extract_fft_isophote_samples(
         dat,
         R[i],
-        {"ellip": E[i], "pa": PA[i]},
+        params,
         C,
-        mask=mask,
-        interp_mask=False if mask is None else True,
+        mask,
+        max_mode=2,
+        interp_method=interp_method,
+        rad_interp=rad_interp,
     )
-
-    if not np.all(np.isfinite(isovals)):
-        logging.warning(
-            "Failed to evaluate isophotal flux values, skipping this ellip/pa combination"
-        )
+    if isovals is None:
         return np.inf
 
-    coefs = fft(isovals)
-
-    f2_loss = np.abs(coefs[2]) / (len(isovals) * (max(0, np.mean(isovals)) + noise))
+    f2_loss = None
+    if len(isovals) > 4:
+        coefs = fft(isovals)
+        norm = len(isovals) * (max(0, np.mean(isovals)) + noise)
+        if norm > 0 and np.isfinite(norm):
+            f2_loss = np.abs(coefs[2]) / norm
 
     reg_loss = 0
-    if i < (len(R) - 1):
-        reg_loss += abs((E[i] - E[i + 1]) / (1 - E[i + 1]))
-        reg_loss += abs(Angle_TwoAngles_sin(PA[i], PA[i + 1]) / (0.3))
-    if i > 0:
-        reg_loss += abs((E[i] - E[i - 1]) / (1 - E[i - 1]))
-        reg_loss += abs(Angle_TwoAngles_sin(PA[i], PA[i - 1]) / (0.3))
+    for j in _active_neighbors(i, active_mask, len(R)):
+        neighbor_reg_loss = abs((E[i] - E[j]) / (1 - E[j]))
+        neighbor_reg_loss += abs(Angle_TwoAngles_sin(PA[i], PA[j]) / (0.3))
+        # The geometric radius grid makes index separation proportional to log-radius distance.
+        reg_loss += neighbor_reg_loss / abs(i - j)
 
+    if f2_loss is None or not np.isfinite(f2_loss):
+        return np.inf
     return f2_loss * (1 + reg_loss * reg_scale)
 
 
@@ -922,6 +1355,10 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
       scale factor to apply to regularization coupling factor between
       isophotes.  Default of 1, larger values make smoother fits,
       smaller values give more chaotic fits.
+
+    ap_isofit_interpolate_method : string, default 'bilinear'
+      Select method for flux interpolation while fitting isophotes.
+      Options are 'lanczos', 'bicubic', and 'bilinear'.
 
     Notes
     ----------
@@ -962,36 +1399,31 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
     mask = results["mask"] if "mask" in results else None
     if not np.any(mask):
         mask = None
+    interp_method = (
+        _validate_interpolate_method(
+            options["ap_isofit_interpolate_method"],
+            "ap_isofit_interpolate_method",
+        )
+        if "ap_isofit_interpolate_method" in options
+        else "bilinear"
+    )
+    rad_interp = _iso_interpolate_radius(options, results)
 
     # Determine sampling radii
     ######################################################################
-    shrink = 0
-    while shrink < 5:
-        sample_radii = [3 * results["psf fwhm"] / 2]
-        while sample_radii[-1] < (max(IMG.shape) / 2):
-            isovals = _iso_extract(
-                dat,
-                sample_radii[-1],
-                {"ellip": results["init ellip"], "pa": results["init pa"]},
-                results["center"],
-                more=False,
-                mask=mask,
-            )
-            if (
-                np.mean(isovals)
-                < (options["ap_fit_limit"] if "ap_fit_limit" in options else 1)
-                * results["background noise"]
-            ):
-                break
-            sample_radii.append(sample_radii[-1] * (1.0 + scale / (1.0 + shrink)))
-        if len(sample_radii) < 15:
-            shrink += 1
-        else:
-            break
-    if shrink >= 5:
-        raise Exception(
-            "Unable to initialize ellipse fit, check diagnostic plots. Possible missed center."
-        )
+    sample_radii = _determine_sample_radii(
+        dat,
+        IMG,
+        results,
+        options,
+        scale,
+        mask,
+        3 * results["psf fwhm"] / 2,
+        1,
+        np.mean,
+        interp_method=interp_method,
+        rad_interp=rad_interp,
+    )
     ellip = np.ones(len(sample_radii)) * results["init ellip"]
     pa = np.ones(len(sample_radii)) * results["init pa"]
     logging.debug("%s: sample radii: %s" % (options["ap_name"], str(sample_radii)))
@@ -1006,14 +1438,36 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
 
     count_nochange = 0
     use_center = copy(results["center"])
-    I = np.array(range(len(sample_radii)))
+    active_mask = np.array(
+        list(
+            _has_enough_isophote_samples(
+                dat,
+                sample_radii[i],
+                {"ellip": ellip[i], "pa": pa[i]},
+                use_center,
+                mask,
+                interp_method=interp_method,
+                rad_interp=rad_interp,
+            )
+            for i in range(len(sample_radii))
+        )
+    )
+    if np.sum(active_mask) < 2:
+        raise Exception(
+            "Unable to initialize ellipse fit, too few radii have enough unmasked samples."
+        )
     while count < 300 and count_nochange < (3 * len(sample_radii)):
+        I = np.flatnonzero(active_mask)
+        if len(I) == 0:
+            break
         # Periodically include logging message
         if count % 10 == 0:
             logging.debug("%s: count: %i" % (options["ap_name"], count))
         count += 1
 
         np.random.shuffle(I)
+        activated_this_pass = False
+        stop_this_pass = False
         for i in I:
             perturbations = []
             perturbations.append({"ellip": copy(ellip), "pa": copy(pa)})
@@ -1028,6 +1482,9 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                 mask=mask,
                 reg_scale=regularize_scale if count > 4 else 0,
                 name=options["ap_name"],
+                active_mask=active_mask,
+                interp_method=interp_method,
+                rad_interp=rad_interp,
             )
             for n in range(N_perturb):
                 perturbations.append({"ellip": copy(ellip), "pa": copy(pa)})
@@ -1051,17 +1508,61 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
                     mask=mask,
                     reg_scale=regularize_scale if count > 4 else 0,
                     name=options["ap_name"],
+                    active_mask=active_mask,
+                    interp_method=interp_method,
+                    rad_interp=rad_interp,
                 )
 
-            best = np.argmin(list(p["loss"] for p in perturbations))
+            if not np.isfinite(perturbations[0]["loss"]):
+                active_mask[i] = False
+                continue
+            losses = list(p["loss"] for p in perturbations)
+            best = _best_finite_index(losses)
             if best > 0:
                 ellip = copy(perturbations[best]["ellip"])
                 pa = copy(perturbations[best]["pa"])
                 count_nochange = 0
             else:
                 count_nochange += 1
+            stop_threshold = 3 * max(1, len(I) - 1)
+            if count_nochange >= stop_threshold:
+                activated = _activate_inactive_ellipse_radii(
+                    dat,
+                    sample_radii,
+                    ellip,
+                    pa,
+                    active_mask,
+                    use_center,
+                    mask,
+                    interp_method=interp_method,
+                    rad_interp=rad_interp,
+                )
+                if len(activated) > 0:
+                    count_nochange = 0
+                    activated_this_pass = True
+                    break
+                stop_this_pass = True
+                break
+        if activated_this_pass:
+            continue
+        if stop_this_pass:
+            break
 
     logging.info("%s: Completed isohpote fit in %i itterations" % (options["ap_name"], count))
+    active_indices = np.flatnonzero(active_mask)
+    if len(active_indices) < 6:
+        raise Exception(
+            "Unable to fit isophotes, too few radii have enough unmasked samples."
+        )
+    skipped_fit_radii = len(sample_radii) - len(active_indices)
+    if skipped_fit_radii > 0:
+        logging.info(
+            "%s: Excluded %i fit radii with too few unmasked samples"
+            % (options["ap_name"], skipped_fit_radii)
+        )
+    sample_radii = np.asarray(sample_radii)[active_indices]
+    ellip = ellip[active_indices]
+    pa = pa[active_indices]
     # detect collapsed center
     ######################################################################
     for i in range(5):
@@ -1166,4 +1667,6 @@ def Isophote_Fit_FFT_mean(IMG, results, options):
         "fit pa_err": pa_err,
         "auxfile fitlimit": "fit limit semi-major axis: %.2f pix" % sample_radii[-1],
     }
+    if skipped_fit_radii > 0:
+        res["auxfile fit masked radii"] = "fit radii excluded for insufficient samples: %i" % skipped_fit_radii
     return IMG, res

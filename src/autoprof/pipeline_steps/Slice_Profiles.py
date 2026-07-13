@@ -93,7 +93,7 @@ def Slice_Profile(IMG, results, options):
 
     """
 
-    dat = IMG - (results["background"] if "background" in results else np.median(IMG))
+    dat = IMG - (results["background"] if "background" in results else np.nanmedian(IMG))
     zeropoint = options["ap_zeropoint"] if "ap_zeropoint" in options else 22.5
 
     use_anchor = (
@@ -147,7 +147,8 @@ def Slice_Profile(IMG, results, options):
             % (options["ap_name"], use_step)
         )
 
-    F, X = _iso_line(dat, use_length, use_width, use_pa, use_anchor, more=False)
+    mask = results["mask"] if "mask" in results else None
+    F, X = _iso_line(dat, use_length, use_width, use_pa, use_anchor, more=False, mask=mask)
 
     windows = np.arange(0, use_length, use_step)
 
@@ -158,7 +159,16 @@ def Slice_Profile(IMG, results, options):
     sb_sclip_e = []
     for i in range(len(windows) - 1):
         isovals = F[np.logical_and(X >= windows[i], X < windows[i + 1])]
-        isovals_sclip = Sigma_Clip_Upper(isovals, iterations=10, nsigma=5)
+        if len(isovals) == 0:
+            sb.append(99.999)
+            sb_e.append(99.999)
+            sb_sclip.append(99.999)
+            sb_sclip_e.append(99.999)
+            continue
+        sclim = Sigma_Clip_Upper(isovals, iterations=10, nsigma=5)
+        isovals_sclip = isovals[isovals < sclim]
+        if len(isovals_sclip) == 0:
+            isovals_sclip = isovals
 
         medflux = _average(
             isovals,
@@ -204,7 +214,7 @@ def Slice_Profile(IMG, results, options):
             (
                 2.5
                 * scatflux_sclip
-                / (np.sqrt(len(isovals)) * medflux_sclip * np.log(10))
+                / (np.sqrt(len(isovals_sclip)) * medflux_sclip * np.log(10))
             )
             if medflux_sclip > 0
             else 99.999
@@ -221,24 +231,25 @@ def Slice_Profile(IMG, results, options):
         f.write(
             "# flux sum: %f\n" % (np.sum(F[np.logical_and(X >= 0, X <= use_length)]))
         )
+        profile_values = F[np.logical_and(X >= 0, X <= use_length)]
         f.write(
             "# flux mean: %f\n"
-            % (_average(F[np.logical_and(X >= 0, X <= use_length)], "mean"))
+            % (_average(profile_values, "mean") if len(profile_values) > 0 else np.nan)
         )
         f.write(
             "# flux median: %f\n"
-            % (_average(F[np.logical_and(X >= 0, X <= use_length)], "median"))
+            % (_average(profile_values, "median") if len(profile_values) > 0 else np.nan)
         )
         f.write(
             "# flux mode: %f\n"
-            % (_average(F[np.logical_and(X >= 0, X <= use_length)], "mode"))
+            % (_average(profile_values, "mode") if len(profile_values) > 0 else np.nan)
         )
         f.write(
-            "# flux std: %f\n" % (np.std(F[np.logical_and(X >= 0, X <= use_length)]))
+            "# flux std: %f\n" % (np.std(profile_values) if len(profile_values) > 0 else np.nan)
         )
         f.write(
             "# flux 16-84%% range: %f\n"
-            % (iqr(F[np.logical_and(X >= 0, X <= use_length)], rng=[16, 84]))
+            % (iqr(profile_values, rng=[16, 84]) if len(profile_values) > 0 else np.nan)
         )
         f.write("R,sb,sb_e,sb_sclip,sb_sclip_e\n")
         f.write("arcsec,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2,mag*arcsec^-2\n")

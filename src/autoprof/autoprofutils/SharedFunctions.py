@@ -6,6 +6,7 @@ from scipy.interpolate import interp2d, SmoothBivariateSpline, Rbf, RectBivariat
 from scipy.fftpack import fft, ifft
 from scipy.optimize import minimize
 from scipy.signal import convolve2d
+from scipy.ndimage import distance_transform_edt, label
 from astropy.visualization import SqrtStretch, LogStretch, HistEqStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 import matplotlib.pyplot as plt
@@ -62,6 +63,79 @@ autocolours = {
     "blue2": "#6F8AB7",
     "redrange": ["#720026", "#A0213F", "#ce4257", "#E76154", "#ff9b54", "#ffd1b1"],
 }  # '#D95D39'
+
+
+def _nearest_finite_fill(IMG, bad, context="image"):
+    filled = np.array(IMG, dtype=float, copy=True)
+    if np.all(bad):
+        raise ValueError("No finite pixels available for %s interpolation" % context)
+    dumy, indices = distance_transform_edt(
+        bad,
+        return_distances=True,
+        return_indices=True,
+    )
+    filled[bad] = filled[tuple(indices[:, bad])]
+    return filled
+
+
+def _spline_fill_nonfinite(IMG, options=None, max_spline_points=50000):
+    bad = np.logical_not(np.isfinite(IMG))
+    if not np.any(bad):
+        return IMG
+
+    ap_name = (
+        options["ap_name"]
+        if options is not None and "ap_name" in options
+        else "AutoProf"
+    )
+    labels, nlabels = label(bad)
+    if nlabels > 0:
+        largest_bad = np.max(np.bincount(labels.ravel())[1:])
+    else:
+        largest_bad = 0
+    bad_fraction = np.sum(bad) / bad.size
+    if bad_fraction > 0.01 or largest_bad > 0.005 * bad.size:
+        logging.warning(
+            "%s: image has large non-finite regions; spline-filled values may be unreliable"
+            % ap_name
+        )
+
+    filled = np.array(IMG, dtype=float, copy=True)
+    good = np.logical_not(bad)
+    y, x = np.nonzero(good)
+    z = filled[good]
+    y_bad, x_bad = np.nonzero(bad)
+
+    kx = min(3, len(np.unique(x)) - 1)
+    ky = min(3, len(np.unique(y)) - 1)
+    if kx < 1 or ky < 1:
+        return _nearest_finite_fill(IMG, bad)
+
+    if len(z) > max_spline_points:
+        step = int(np.ceil(len(z) / max_spline_points))
+        x_fit = x[::step]
+        y_fit = y[::step]
+        z_fit = z[::step]
+    else:
+        x_fit = x
+        y_fit = y
+        z_fit = z
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            spline = SmoothBivariateSpline(x_fit, y_fit, z_fit, kx=kx, ky=ky)
+        fill_values = spline.ev(x_bad, y_bad)
+        if not np.all(np.isfinite(fill_values)):
+            raise ValueError("Spline produced non-finite fill values")
+        filled[bad] = fill_values
+        return filled
+    except Exception as e:
+        logging.warning(
+            "%s: spline fill failed (%s); using nearest finite fill"
+            % (ap_name, str(e))
+        )
+        return _nearest_finite_fill(IMG, bad)
 
 
 def LSBImage(dat, noise):
@@ -464,7 +538,7 @@ def Rotate_Cartesian(theta, X, Y):
     return X * np.cos(theta) - Y * np.sin(theta), Y * np.cos(theta) + X * np.sin(theta)
 
 
-def interpolate_bicubic(dat, X, Y):
+def _image_resample_bicubic(dat, X, Y):
     f_interp = RectBivariateSpline(
         np.arange(dat.shape[0], dtype=np.float32),
         np.arange(dat.shape[1], dtype=np.float32),
@@ -473,48 +547,201 @@ def interpolate_bicubic(dat, X, Y):
     return f_interp(Y, X, grid=False)
 
 
-def interpolate_Lanczos(dat, X, Y, scale):
+def _cubic_lagrange_weights(t):
+    return np.array(
+        [
+            -t * (t - 1) * (t - 2) / 6,
+            (t + 1) * (t - 1) * (t - 2) / 2,
+            -(t + 1) * t * (t - 2) / 2,
+            (t + 1) * t * (t - 1) / 6,
+        ]
+    )
+
+
+def _interpolate_bicubic(dat, X, Y, mask=None):
+    flux = np.full(len(X), np.nan)
+    valid = np.ones(len(X), dtype=bool)
+
+    for i in range(len(X)):
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        xbase = int(np.floor(X[i]))
+        ybase = int(np.floor(Y[i]))
+        x0, x1 = xbase - 1, xbase + 3
+        y0, y1 = ybase - 1, ybase + 3
+        if x0 < 0 or y0 < 0 or x1 > dat.shape[1] or y1 > dat.shape[0]:
+            valid[i] = False
+            continue
+
+        chunk = dat[y0:y1, x0:x1]
+        if not np.all(np.isfinite(chunk)):
+            valid[i] = False
+            continue
+        if mask is not None and np.any(mask[y0:y1, x0:x1]):
+            valid[i] = False
+            continue
+
+        wx = _cubic_lagrange_weights(X[i] - xbase)
+        wy = _cubic_lagrange_weights(Y[i] - ybase)
+        flux[i] = np.sum(chunk * wy.reshape((-1, 1)) * wx)
+
+    return flux, valid
+
+
+def _interpolate_bilinear(dat, X, Y, mask=None):
+    flux = np.full(len(X), np.nan)
+    valid = np.ones(len(X), dtype=bool)
+
+    for i in range(len(X)):
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        xbase = int(np.floor(X[i]))
+        ybase = int(np.floor(Y[i]))
+        x0, x1 = xbase, xbase + 2
+        y0, y1 = ybase, ybase + 2
+        if x0 < 0 or y0 < 0 or x1 > dat.shape[1] or y1 > dat.shape[0]:
+            valid[i] = False
+            continue
+
+        chunk = dat[y0:y1, x0:x1]
+        if not np.all(np.isfinite(chunk)):
+            valid[i] = False
+            continue
+        if mask is not None and np.any(mask[y0:y1, x0:x1]):
+            valid[i] = False
+            continue
+
+        dx = X[i] - xbase
+        dy = Y[i] - ybase
+        wx = np.array([1 - dx, dx])
+        wy = np.array([1 - dy, dy])
+        flux[i] = np.sum(chunk * wy.reshape((-1, 1)) * wx)
+
+    return flux, valid
+
+
+def _validate_interpolate_method(method, option_name, allow_nearest=False):
+    allowed = ("lanczos", "bicubic", "bilinear", "nearest")
+    if not allow_nearest:
+        allowed = allowed[:-1]
+    if method not in allowed:
+        raise ValueError(
+            "%s=%s is not allowed. Should be one of %s"
+            % (option_name, method, ", ".join(allowed))
+        )
+    return method
+
+
+def _iso_interpolate_radius(options, results):
+    return (
+        options["ap_iso_interpolate_start"]
+        if "ap_iso_interpolate_start" in options
+        else 5
+    ) * results["psf fwhm"]
+
+
+def _max_sampled_isophote_radius(sma, PARAMS, minN=None):
+    """Return the largest radius sampled by this possibly distorted isophote."""
+    if PARAMS.get("m", None) is None:
+        return sma
+
+    N = max(15, int(0.9 * 2 * np.pi * sma))
+    if minN is not None:
+        N = max(minN, N)
+    theta = np.linspace(0, 2 * np.pi * (1.0 - 1.0 / N), N)
+    theta = np.arctan((1.0 - PARAMS["ellip"]) * np.tan(theta)) + np.pi * (np.cos(theta) < 0)
+    return np.max(
+        sma * Rscale_Fmodes(theta, PARAMS["m"], PARAMS["Am"], PARAMS["Phim"])
+    )
+
+
+def _resolve_isoextract_interp_method(sma, PARAMS, rad_interp, interp_method, minN=None):
+    """Resolve the explicit line-sampling method for the interpolation cutoff."""
+    interp_method = _validate_interpolate_method(
+        interp_method, "interp_method", allow_nearest=True
+    )
+    if interp_method == "nearest" or rad_interp is None:
+        return interp_method
+    return (
+        interp_method
+        if _max_sampled_isophote_radius(sma, PARAMS, minN=minN) < rad_interp
+        else "nearest"
+    )
+
+
+def _interpolate_nearest_neighbour(dat, X, Y, mask=None):
+    flux = np.full(len(X), np.nan)
+    valid = np.ones(len(X), dtype=bool)
+
+    for i in range(len(X)):
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        x = int(np.rint(X[i]))
+        y = int(np.rint(Y[i]))
+        if x < 0 or y < 0 or x >= dat.shape[1] or y >= dat.shape[0]:
+            valid[i] = False
+            continue
+        if not np.isfinite(dat[y, x]):
+            valid[i] = False
+            continue
+        if mask is not None and mask[y, x]:
+            valid[i] = False
+            continue
+
+        flux[i] = dat[y, x]
+
+    return flux, valid
+
+
+def _interpolate_Lanczos(dat, X, Y, scale, mask=None):
     """
     Perform Lanczos interpolation on an image.
     https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html
     """
-    flux = []
+    flux = np.full(len(X), np.nan)
+    valid = np.ones(len(X), dtype=bool)
 
     for i in range(len(X)):
-        box = [
-            [
-                max(0, int(round(np.floor(X[i]) - scale + 1))),
-                min(dat.shape[1], int(round(np.floor(X[i]) + scale + 1))),
-            ],
-            [
-                max(0, int(round(np.floor(Y[i]) - scale + 1))),
-                min(dat.shape[0], int(round(np.floor(Y[i]) + scale + 1))),
-            ],
-        ]
-        chunk = dat[box[1][0] : box[1][1], box[0][0] : box[0][1]]
+        if not np.isfinite(X[i]) or not np.isfinite(Y[i]):
+            valid[i] = False
+            continue
+
+        xbase = int(np.floor(X[i]))
+        ybase = int(np.floor(Y[i]))
+        x0, x1 = xbase - scale + 1, xbase + scale + 1
+        y0, y1 = ybase - scale + 1, ybase + scale + 1
+        if x0 < 0 or y0 < 0 or x1 > dat.shape[1] or y1 > dat.shape[0]:
+            valid[i] = False
+            continue
+
+        chunk = dat[y0:y1, x0:x1]
+        if not np.all(np.isfinite(chunk)):
+            valid[i] = False
+            continue
+        if mask is not None and np.any(mask[y0:y1, x0:x1]):
+            valid[i] = False
+            continue
+
         XX = np.ones(chunk.shape)
         Lx = (
-            np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i]))
-            * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + np.floor(X[i])) / scale)
-        )[
-            box[0][0]
-            - int(round(np.floor(X[i]) - scale + 1)) : 2 * scale
-            + box[0][1]
-            - int(round(np.floor(X[i]) + scale + 1))
-        ]
+            np.sinc(np.arange(-scale + 1, scale + 1) - X[i] + xbase)
+            * np.sinc((np.arange(-scale + 1, scale + 1) - X[i] + xbase) / scale)
+        )
         Ly = (
-            np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i]))
-            * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + np.floor(Y[i])) / scale)
-        )[
-            box[1][0]
-            - int(round(np.floor(Y[i]) - scale + 1)) : 2 * scale
-            + box[1][1]
-            - int(round(np.floor(Y[i]) + scale + 1))
-        ]
+            np.sinc(np.arange(-scale + 1, scale + 1) - Y[i] + ybase)
+            * np.sinc((np.arange(-scale + 1, scale + 1) - Y[i] + ybase) / scale)
+        )
         L = XX * Lx * Ly.reshape((Ly.size, -1))
         w = np.sum(L)
-        flux.append(np.sum(chunk * L) / w)
-    return np.array(flux)
+        flux[i] = np.sum(chunk * L) / w
+
+    return flux, valid
 
 
 def _iso_between(
@@ -560,38 +787,76 @@ def _iso_between(
     RR /= SuperEllipse_Rscale * Fmode_Rscale
     rselect = np.logical_and(RR < sma_high, RR > sma_low)
     fluxes = IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][rselect]
-    CHOOSE = None
-    if not mask is None and sma_high > 5:
-        CHOOSE = np.logical_not(
-            mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][rselect]
+    theta_values = theta[rselect]
+    CHOOSE = np.isfinite(fluxes)
+    if mask is not None:
+        CHOOSE = np.logical_and(
+            CHOOSE,
+            np.logical_not(
+                mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][rselect]
+            ),
         )
     # Perform sigma clipping if requested
     if sigmaclip:
-        sclim = Sigma_Clip_Upper(fluxes, sclip_iterations, sclip_nsigma)
-        if CHOOSE is None:
-            CHOOSE = fluxes < sclim
-        else:
-            CHOOSE = np.logical_or(CHOOSE, fluxes < sclim)
-    if CHOOSE is not None and np.sum(CHOOSE) < 5:
+        if np.any(CHOOSE):
+            sclim = Sigma_Clip_Upper(fluxes[CHOOSE], sclip_iterations, sclip_nsigma)
+            clipped_choose = np.logical_and(CHOOSE, fluxes < sclim)
+            if np.any(clipped_choose):
+                CHOOSE = clipped_choose
+    countmasked = np.sum(np.logical_not(CHOOSE))
+    if np.sum(CHOOSE) < 5:
         logging.warning(
-            "Entire Isophote is Masked! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f"
+            "Too few usable pixels in isophote band! R_l: %.3f, R_h: %.3f, PA: %.3f, ellip: %.3f"
             % (sma_low, sma_high, PARAMS["pa"] * 180 / np.pi, PARAMS["ellip"])
         )
-        CHOOSE = np.ones(CHOOSE.shape).astype(bool)
-    if CHOOSE is not None:
-        countmasked = np.sum(np.logical_not(CHOOSE))
-    else:
-        countmasked = 0
     if more:
-        if CHOOSE is not None and sma_high > 5:
-            return fluxes[CHOOSE], theta[rselect][CHOOSE], countmasked
-        else:
-            return fluxes, theta[rselect], countmasked
+        return fluxes[CHOOSE], theta_values[CHOOSE], countmasked
     else:
-        if CHOOSE is not None and sma_high > 5:
-            return fluxes[CHOOSE]
-        else:
-            return fluxes
+        return fluxes[CHOOSE]
+
+
+def _interpolate_invalid_isophote_samples(flux, theta, choose):
+    flux = np.array(flux, copy=True)
+    theta = np.asarray(theta)
+    choose = np.asarray(choose, dtype=bool)
+    if np.sum(choose) <= 0:
+        return flux[choose], theta[choose]
+    if not np.all(choose):
+        flux[np.logical_not(choose)] = np.interp(
+            theta[np.logical_not(choose)], theta[choose], flux[choose], period=2 * np.pi
+        )
+    return flux, theta
+
+
+def _has_enough_isophote_coverage(
+    theta,
+    choose,
+    coverage_bins=8,
+    min_bin_valid_fraction=0.15,
+    min_good_bins=4,
+    max_gap_bins=3,
+):
+    theta = np.asarray(theta) % (2 * np.pi)
+    choose = np.asarray(choose, dtype=bool)
+    if choose.size == 0 or np.sum(choose) == 0:
+        return False
+
+    edges = np.linspace(0, 2 * np.pi, coverage_bins + 1)
+    samples_per_bin, _ = np.histogram(theta, bins=edges)
+    valid_per_bin, _ = np.histogram(theta[choose], bins=edges)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        bin_fracs = np.divide(
+            valid_per_bin,
+            samples_per_bin,
+            out=np.zeros_like(valid_per_bin, dtype=float),
+            where=samples_per_bin > 0,
+        )
+
+    good_bins = np.flatnonzero(bin_fracs >= min_bin_valid_fraction)
+    if good_bins.size < min_good_bins:
+        return False
+    circular_gaps = np.diff(np.r_[good_bins, good_bins[0] + coverage_bins])
+    return np.max(circular_gaps) <= max_gap_bins
 
 
 def _iso_extract(
@@ -603,12 +868,12 @@ def _iso_extract(
     minN=None,
     mask=None,
     interp_mask=False,
-    rad_interp=30,
     interp_method="lanczos",
     interp_window=5,
     sigmaclip=False,
     sclip_iterations=10,
     sclip_nsigma=5,
+    return_choose=False,
 ):
     """
     Internal, basic function for extracting the pixel fluxes along an isophote
@@ -650,56 +915,60 @@ def _iso_extract(
         Y = Y[BORDER]
         theta = theta[BORDER]
 
-    Rlim = np.max(R)
-    if Rlim < rad_interp:
-        box = [
-            [max(0, int(c["x"] - Rlim - 5)), min(IMG.shape[1], int(c["x"] + Rlim + 5))],
-            [max(0, int(c["y"] - Rlim - 5)), min(IMG.shape[0], int(c["y"] + Rlim + 5))],
-        ]
-        if interp_method == "bicubic":
-            flux = interpolate_bicubic(
-                IMG[box[1][0] : box[1][1], box[0][0] : box[0][1]],
-                X - box[0][0],
-                Y - box[1][0],
-            )
-        elif interp_method == "lanczos":
-            flux = interpolate_Lanczos(IMG, X, Y, interp_window)
-        else:
-            raise ValueError(
-                "Unknown interpolate method %s. Should be one of lanczos or bicubic" % interp_method
-            )
-    else:
-        # round to integers and sample pixels values
-        flux = IMG[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)]
-    # CHOOSE holds bolean array for which flux values to keep, initialized as None for no clipping
-    CHOOSE = None
+    footprint_choose = None
+    interp_method = _validate_interpolate_method(
+        interp_method, "interp_method", allow_nearest=True
+    )
+    if interp_method == "nearest":
+        flux, footprint_choose = _interpolate_nearest_neighbour(IMG, X, Y, mask=mask)
+    elif interp_method == "bicubic":
+        flux, footprint_choose = _interpolate_bicubic(IMG, X, Y, mask=mask)
+    elif interp_method == "bilinear":
+        flux, footprint_choose = _interpolate_bilinear(IMG, X, Y, mask=mask)
+    elif interp_method == "lanczos":
+        flux, footprint_choose = _interpolate_Lanczos(
+            IMG, X, Y, interp_window, mask=mask
+        )
+    # CHOOSE holds bolean array for which flux values to keep.
+    # Interpolated samples are rejected when their interpolation footprint
+    # contains masked or non-finite pixels.
+    finite_flux = np.isfinite(flux)
+    CHOOSE = finite_flux.copy()
     # Mask pixels if a mask is given
     if not mask is None:
-        CHOOSE = np.logical_not(mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)])
+        CHOOSE = np.logical_and(
+            CHOOSE, np.logical_not(mask[np.rint(Y).astype(np.int32), np.rint(X).astype(np.int32)])
+        )
+    if footprint_choose is not None:
+        CHOOSE = np.logical_and(CHOOSE, footprint_choose)
     # Perform sigma clipping if requested
     if sigmaclip:
-        sclim = Sigma_Clip_Upper(flux, sclip_iterations, sclip_nsigma)
-        if CHOOSE is None:
-            CHOOSE = flux < sclim
-        else:
-            CHOOSE = np.logical_or(CHOOSE, flux < sclim)
+        if np.any(CHOOSE):
+            sclim = Sigma_Clip_Upper(flux[CHOOSE], sclip_iterations, sclip_nsigma)
+            clipped_choose = np.logical_and(CHOOSE, flux < sclim)
+            if np.any(clipped_choose):
+                CHOOSE = clipped_choose
     # Dont clip pixels if that removes all of the pixels
-    countmasked = 0
-    if not CHOOSE is None and np.sum(CHOOSE) <= 0:
+    countmasked = np.sum(np.logical_not(CHOOSE))
+    all_masked = np.sum(CHOOSE) <= 0
+    if all_masked:
         logging.warning(
             "Entire Isophote is Masked! R: %.3f, PA: %.3f, ellip: %.3f"
             % (sma, PARAMS["pa"] * 180 / np.pi, PARAMS["ellip"])
         )
-        # Interpolate clipped flux values if requested
-    elif not CHOOSE is None and interp_mask:
-        flux[np.logical_not(CHOOSE)] = np.interp(
-            theta[np.logical_not(CHOOSE)], theta[CHOOSE], flux[CHOOSE], period=2 * np.pi
-        )
-        # simply remove all clipped pixels if user doesn't reqest another option
-    elif not CHOOSE is None:
+    if return_choose:
+        return flux, theta, CHOOSE, countmasked
+
+    if all_masked:
         flux = flux[CHOOSE]
         theta = theta[CHOOSE]
-        countmasked = np.sum(np.logical_not(CHOOSE))
+        # Interpolate clipped flux values if requested
+    elif interp_mask:
+        flux, theta = _interpolate_invalid_isophote_samples(flux, theta, CHOOSE)
+        # simply remove all clipped pixels if user doesn't reqest another option
+    elif not np.all(CHOOSE):
+        flux = flux[CHOOSE]
+        theta = theta[CHOOSE]
 
     # Return just the flux values, or flux and angle values
     if more:
@@ -708,7 +977,45 @@ def _iso_extract(
         return flux
 
 
-def _iso_line(IMG, length, width, pa, c, more=False):
+def _iso_extract_with_interp_cutoff(
+    IMG,
+    sma,
+    PARAMS,
+    c,
+    more=False,
+    minN=None,
+    mask=None,
+    interp_mask=False,
+    rad_interp=30,
+    interp_method="lanczos",
+    interp_window=5,
+    sigmaclip=False,
+    sclip_iterations=10,
+    sclip_nsigma=5,
+    return_choose=False,
+):
+    """Extract one isophote using the legacy interpolation-to-nearest cutoff."""
+    return _iso_extract(
+        IMG,
+        sma,
+        PARAMS,
+        c,
+        more=more,
+        minN=minN,
+        mask=mask,
+        interp_mask=interp_mask,
+        interp_method=_resolve_isoextract_interp_method(
+            sma, PARAMS, rad_interp, interp_method, minN=minN
+        ),
+        interp_window=interp_window,
+        sigmaclip=sigmaclip,
+        sclip_iterations=sclip_iterations,
+        sclip_nsigma=sclip_nsigma,
+        return_choose=return_choose,
+    )
+
+
+def _iso_line(IMG, length, width, pa, c, more=False, mask=None):
 
     start = np.array([c["x"], c["y"]])
     end = start + length * np.array([np.cos(pa), np.sin(pa)])
@@ -733,11 +1040,31 @@ def _iso_line(IMG, length, width, pa, c, more=False):
 
     lselect = np.logical_and.reduce((XX >= -0.5, XX <= length, np.abs(YY) <= (width / 2)))
     flux = IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][lselect]
+    Xline = XX[lselect]
+    Yline = YY[lselect]
+    CHOOSE = np.isfinite(flux)
+    if mask is not None:
+        CHOOSE = np.logical_and(
+            CHOOSE,
+            np.logical_not(
+                mask[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]][lselect]
+            ),
+        )
 
     if more:
-        return flux, XX[lselect], YY[lselect]
+        return flux[CHOOSE], Xline[CHOOSE], Yline[CHOOSE]
     else:
-        return flux, XX[lselect]
+        return flux[CHOOSE], Xline[CHOOSE]
+
+
+def _empty_starfind_result():
+    return {
+        "x": np.array([]),
+        "y": np.array([]),
+        "fwhm": np.array([]),
+        "peak": np.array([]),
+        "deformity": np.array([]),
+    }
 
 
 def StarFind(
@@ -765,26 +1092,40 @@ def StarFind(
     maxstars: stop once this number of stars have been found, this is for speed purposes
     """
 
+    invalid_mask = np.logical_not(np.isfinite(IMG))
+    if np.all(invalid_mask):
+        return _empty_starfind_result()
+    # Preserve user mask semantics while always excluding invalid image pixels.
+    if mask is None:
+        mask = invalid_mask
+    else:
+        mask = np.logical_or(np.asarray(mask, dtype=bool), invalid_mask)
+    use_img = (
+        _nearest_finite_fill(IMG, invalid_mask, context="star finder")
+        if np.any(invalid_mask)
+        else np.array(IMG, dtype=float, copy=True)
+    )
+
     # Convolve edge detector with image
     S = 3 ** np.array([1, 2, 3, 4, 5])
     S = int(S[np.argmin(np.abs(S / 3 - fwhm_guess))])
     zz = np.ones((S, S)) * -1
     zz[int(S / 3) : int(2 * S / 3), int(S / 3) : int(2 * S / 3)] = 8
 
-    new = convolve2d(IMG, zz, mode="same")
+    new = convolve2d(use_img, zz, mode="same")
 
     centers = np.array([])
     deformities = []
     fwhms = []
     peaks = []
     # Select pixels which edge detector identifies
-    if mask is None:
-        highpixels = np.argwhere(new > detect_threshold * iqr(new))
-    else:
-        use_mask = np.logical_and(np.logical_not(mask), np.isfinite(new))
-        highpixels = np.argwhere(
-            np.logical_and(new > detect_threshold * iqr(new[use_mask]), use_mask)
-        )
+    use_mask = np.logical_and(np.logical_not(mask), np.isfinite(new))
+    if np.sum(use_mask) == 0:
+        return _empty_starfind_result()
+    threshold = detect_threshold * iqr(new[use_mask])
+    if not np.isfinite(threshold):
+        return _empty_starfind_result()
+    highpixels = np.argwhere(np.logical_and(new > threshold, use_mask))
     np.random.shuffle(highpixels)
     # meshgrid for 2D polynomial fit (pre-built for efficiency)
     xx, yy = np.meshgrid(np.arange(6), np.arange(6))
@@ -806,8 +1147,9 @@ def StarFind(
 
     for i in range(len(highpixels)):
         # reject if near an existing center
+        highcenter = np.array([highpixels[i][1], highpixels[i][0]])
         if len(centers) != 0 and np.any(
-            np.sqrt(np.sum((highpixels[i] - centers) ** 2, axis=1)) < minsep * fwhm_guess
+            np.sqrt(np.sum((highcenter - centers) ** 2, axis=1)) < minsep * fwhm_guess
         ):
             continue
         # reject if near edge
@@ -816,37 +1158,48 @@ def StarFind(
         ):
             continue
         # set starting point at local maximum pixel
-        newcenter = np.array([highpixels[i][1], highpixels[i][0]])
+        newcenter = highcenter
         ranges = [
             [
                 max(0, int(newcenter[0] - fwhm_guess * 5)),
-                min(IMG.shape[1], int(newcenter[0] + fwhm_guess * 5)),
+                min(use_img.shape[1], int(newcenter[0] + fwhm_guess * 5)),
             ],
             [
                 max(0, int(newcenter[1] - fwhm_guess * 5)),
-                min(IMG.shape[0], int(newcenter[1] + fwhm_guess * 5)),
+                min(use_img.shape[0], int(newcenter[1] + fwhm_guess * 5)),
             ],
         ]
+        find_chunk = use_img[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T
+        if find_chunk.size == 0 or not np.all(np.isfinite(find_chunk)):
+            continue
         newcenter = np.unravel_index(
-            np.argmax(IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T),
-            IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T.shape,
+            np.argmax(find_chunk),
+            find_chunk.shape,
         )
         newcenter += np.array([ranges[0][0], ranges[1][0]])
         if np.any(newcenter < 5 * fwhm_guess) or np.any(
-            newcenter > (np.array(IMG.shape) - 5 * fwhm_guess)
+            newcenter > (np.array(list(reversed(use_img.shape))) - 5 * fwhm_guess)
         ):
             continue
         # update star center with 2D polynomial fit
         ranges = [
-            [max(0, int(newcenter[0] - 3)), min(IMG.shape[1], int(newcenter[0] + 3))],
-            [max(0, int(newcenter[1] - 3)), min(IMG.shape[0], int(newcenter[1] + 3))],
+            [max(0, int(newcenter[0] - 3)), min(use_img.shape[1], int(newcenter[0] + 3))],
+            [max(0, int(newcenter[1] - 3)), min(use_img.shape[0], int(newcenter[1] + 3))],
         ]
         chunk = np.clip(
-            IMG[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T,
+            use_img[ranges[1][0] : ranges[1][1], ranges[0][0] : ranges[0][1]].T,
             a_min=background_noise / 3,
             a_max=None,
         )
+        if chunk.shape != (6, 6) or not np.all(np.isfinite(chunk)):
+            continue
         poly2dfit = np.linalg.lstsq(A, np.log10(chunk.flatten()), rcond=None)
+        if (
+            not np.all(np.isfinite(poly2dfit[0]))
+            or poly2dfit[0][3] == 0
+            or poly2dfit[0][4] == 0
+        ):
+            continue
         newcenter = np.array(
             [
                 -poly2dfit[0][2] / (2 * poly2dfit[0][4]),
@@ -860,12 +1213,12 @@ def StarFind(
 
         # reject centers that are outside the image
         if np.any(newcenter < 5 * fwhm_guess) or np.any(
-            newcenter > (np.array(list(reversed(IMG.shape))) - 5 * fwhm_guess)
+            newcenter > (np.array(list(reversed(use_img.shape))) - 5 * fwhm_guess)
         ):
             continue
         # reject stars with too high flux
         if (not peakmax is None) and np.any(
-            IMG[
+            use_img[
                 int(newcenter[1] - minsep * fwhm_guess) : int(newcenter[1] + minsep * fwhm_guess),
                 int(newcenter[0] - minsep * fwhm_guess) : int(newcenter[0] + minsep * fwhm_guess),
             ]
@@ -881,29 +1234,30 @@ def StarFind(
             continue
 
         # Extract flux as a function of radius
-        local_flux = np.median(
-            _iso_extract(
-                IMG,
-                reject_size * fwhm_guess,
-                {"ellip": 0.0, "pa": 0.0},
-                {"x": newcenter[0], "y": newcenter[1]},
-                mask=mask,
-                interp_method="bicubic",
-            )
+        edge_flux = _iso_extract_with_interp_cutoff(
+            use_img,
+            reject_size * fwhm_guess,
+            {"ellip": 0.0, "pa": 0.0},
+            {"x": newcenter[0], "y": newcenter[1]},
+            mask=mask,
+            interp_method="bicubic",
         )
-        flux = [
-            np.median(
-                _iso_extract(
-                    IMG,
-                    0.0,
-                    {"ellip": 0.0, "pa": 0.0},
-                    {"x": newcenter[0], "y": newcenter[1]},
-                    mask=mask,
-                    interp_method="bicubic",
-                )
-            )
-            - local_flux
-        ]
+        if len(edge_flux) == 0:
+            continue
+        local_flux = np.median(edge_flux)
+        center_flux = _iso_extract_with_interp_cutoff(
+            use_img,
+            0.0,
+            {"ellip": 0.0, "pa": 0.0},
+            {"x": newcenter[0], "y": newcenter[1]},
+            mask=mask,
+            interp_method="bicubic",
+        )
+        if len(center_flux) == 0:
+            continue
+        flux = [np.median(center_flux) - local_flux]
+        if not np.isfinite(local_flux) or not np.isfinite(flux[0]):
+            continue
         if (flux[0] - local_flux) < (detect_threshold * background_noise):
             continue
         R = [0.0]
@@ -914,8 +1268,8 @@ def StarFind(
         ) < 50:  # len(R) < 50 and (flux[-1] > background_noise or len(R) <= 5):
             R.append(R[-1] + fwhm_guess / 10)
             try:
-                isovals = _iso_extract(
-                    IMG,
+                isovals = _iso_extract_with_interp_cutoff(
+                    use_img,
                     R[-1],
                     {"ellip": 0.0, "pa": 0.0},
                     {"x": newcenter[0], "y": newcenter[1]},
@@ -925,14 +1279,22 @@ def StarFind(
             except:
                 R = np.zeros(101)  # cause finder to skip this star
                 break
+            if len(isovals) == 0:
+                R = np.zeros(101)  # cause finder to skip this star
+                break
             coefs = fft(isovals)
+            iso_med = np.median(isovals)
+            denom = len(isovals) * (max(iso_med, 0) + background_noise)
+            if not np.isfinite(iso_med) or not np.isfinite(denom) or denom <= 0:
+                R = np.zeros(101)  # cause finder to skip this star
+                break
             deformity.append(
                 np.sum(np.abs(coefs[1:5]))
-                / (len(isovals) * (max(np.median(isovals), 0) + background_noise))
+                / denom
             )  # np.sqrt(np.abs(coefs[0]))
             # if np.sum(np.abs(coefs[1:5])) > np.sqrt(np.abs(coefs[0])):
             #     badcount += 1
-            flux.append(np.median(isovals) - local_flux)
+            flux.append(iso_med - local_flux)
         if len(R) >= 50:
             continue
         fwhm_fit = np.interp(flux[0] / 2, list(reversed(flux)), list(reversed(R))) * 2
@@ -961,6 +1323,8 @@ def StarFind(
         # #plt.scatter([highpixels[i][1] - ranges[0][0]], [highpixels[i][0] - ranges[1][0]], color = 'g', marker = 'x')
         # plt.savefig('test/PSF_test_%i_center.jpg' % randid)
         # plt.close()
+    if len(centers) == 0:
+        return _empty_starfind_result()
     return {
         "x": centers[:, 0],
         "y": centers[:, 1],
@@ -968,6 +1332,15 @@ def StarFind(
         "peak": np.array(peaks),
         "deformity": np.array(deformities),
     }
+
+
+def _photutils_masked_data(dat, results):
+    mask = np.logical_not(np.isfinite(dat))
+    if results.get("mask", None) is not None:
+        mask = np.logical_or(mask, results["mask"])
+    if np.any(mask):
+        return np.ma.array(dat, mask=mask)
+    return dat
 
 
 def _x_to_pa(x):
@@ -1412,9 +1785,23 @@ def SBprof_to_COG_errorprop(R, SB, SBE, parameters, N=100, symmetric_error=True)
     res = Fmode_fluxdens_to_fluxsum_errorprop(
         R, I, Ie, parameters, N=N, symmetric_error=symmetric_error
     )
+    if res[0] is None:
+        return (None, None) if symmetric_error else (None, None, None)
+
+    flux = np.asarray(res[0])
+    valid = np.logical_and(np.isfinite(flux), flux > 0)
+    mag = np.full(flux.shape, np.nan)
     if symmetric_error:
-        return flux_to_mag(res[0], 20.0, res[1])
+        mage = np.full(flux.shape, np.nan)
+        mag[valid], mage[valid] = flux_to_mag(
+            flux[valid], 20.0, np.asarray(res[1])[valid]
+        )
+        return mag, mage
     else:
-        lower = flux_to_mag(res[0], 20.0, res[1])
-        upper = flux_to_mag(res[0], 20.0, res[2])
-        return lower[0], lower[1], upper[1]
+        lower_e = np.full(flux.shape, np.nan)
+        upper_e = np.full(flux.shape, np.nan)
+        mag[valid], lower_e[valid] = flux_to_mag(
+            flux[valid], 20.0, np.asarray(res[1])[valid]
+        )
+        _, upper_e[valid] = flux_to_mag(flux[valid], 20.0, np.asarray(res[2])[valid])
+        return mag, lower_e, upper_e

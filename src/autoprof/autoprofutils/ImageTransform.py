@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 
-from .SharedFunctions import interpolate_Lanczos
+from .SharedFunctions import _image_resample_bicubic, _interpolate_Lanczos
 
 __all__ = ("Crop", "Resolution")
 
@@ -137,7 +137,7 @@ def Resolution(IMG, results, options):
             np.linspace(-0.5, IMG.shape[0] - 0.5, options["ap_resolution_shape"][0]),
             np.linspace(-0.5, IMG.shape[1] - 0.5, options["ap_resolution_shape"][1]),
         )
-        newIMG = interpolate_bicubic(IMG, XX.ravel(), YY.ravel()).reshape(newIMG.shape)
+        newIMG = _image_resample_bicubic(IMG, XX.ravel(), YY.ravel()).reshape(newIMG.shape)
     else:
         newIMG = np.zeros(
             options["ap_resolution_shape"],
@@ -150,7 +150,7 @@ def Resolution(IMG, results, options):
             np.linspace(-0.5, IMG.shape[1] - 0.5, options["ap_resolution_shape"][1]),
         )
         for i in range(len(newIMG.shape[0])):
-            newIMG[i] = interpolate_Lanczos(
+            newIMG[i], _ = _interpolate_Lanczos(
                 IMG,
                 XX[i],
                 YY[i],
