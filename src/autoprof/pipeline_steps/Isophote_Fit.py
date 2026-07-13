@@ -554,14 +554,18 @@ def _FFT_Robust_loss(
     if has_fmodes:
         fmode_scale = 1.0 / len(PARAMS[i]["m"])
     for j in _active_neighbors(i, active_mask, len(R)):
-        reg_loss += abs(
+        neighbor_reg_loss = abs(
             (PARAMS[i]["ellip"] - PARAMS[j]["ellip"]) / (1 - PARAMS[j]["ellip"])
         )
-        reg_loss += abs(Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[j]["pa"]) / (0.2))
+        neighbor_reg_loss += abs(
+            Angle_TwoAngles_sin(PARAMS[i]["pa"], PARAMS[j]["pa"]) / (0.2)
+        )
         if has_fmodes and not PARAMS[j]["m"] is None:
             for m in range(len(PARAMS[i]["m"])):
-                reg_loss += fmode_scale * abs((PARAMS[i]["Am"][m] - PARAMS[j]["Am"][m]) / 0.2)
-                reg_loss += fmode_scale * abs(
+                neighbor_reg_loss += fmode_scale * abs(
+                    (PARAMS[i]["Am"][m] - PARAMS[j]["Am"][m]) / 0.2
+                )
+                neighbor_reg_loss += fmode_scale * abs(
                     Angle_TwoAngles_cos(
                         PARAMS[i]["m"][m] * PARAMS[i]["Phim"][m],
                         PARAMS[j]["m"][m] * PARAMS[j]["Phim"][m],
@@ -569,7 +573,9 @@ def _FFT_Robust_loss(
                     / (PARAMS[i]["m"][m] * 0.1)
                 )
         if not PARAMS[i]["C"] is None and not PARAMS[j]["C"] is None:
-            reg_loss += abs(np.log10(PARAMS[i]["C"] / PARAMS[j]["C"])) / 0.1
+            neighbor_reg_loss += abs(np.log10(PARAMS[i]["C"] / PARAMS[j]["C"])) / 0.1
+        # The geometric radius grid makes index separation proportional to log-radius distance.
+        reg_loss += neighbor_reg_loss / abs(i - j)
 
     if f2_loss is None or not np.isfinite(f2_loss):
         return np.inf
@@ -1317,8 +1323,10 @@ def _FFT_mean_loss(
 
     reg_loss = 0
     for j in _active_neighbors(i, active_mask, len(R)):
-        reg_loss += abs((E[i] - E[j]) / (1 - E[j]))
-        reg_loss += abs(Angle_TwoAngles_sin(PA[i], PA[j]) / (0.3))
+        neighbor_reg_loss = abs((E[i] - E[j]) / (1 - E[j]))
+        neighbor_reg_loss += abs(Angle_TwoAngles_sin(PA[i], PA[j]) / (0.3))
+        # The geometric radius grid makes index separation proportional to log-radius distance.
+        reg_loss += neighbor_reg_loss / abs(i - j)
 
     if f2_loss is None or not np.isfinite(f2_loss):
         return np.inf
