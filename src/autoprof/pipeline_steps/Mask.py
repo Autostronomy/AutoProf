@@ -1,4 +1,4 @@
-from photutils import DAOStarFinder, IRAFStarFinder
+from photutils.detection import IRAFStarFinder
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.visualization import SqrtStretch, LogStretch

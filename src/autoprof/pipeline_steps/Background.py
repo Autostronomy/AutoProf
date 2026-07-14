@@ -1,4 +1,10 @@
-from photutils.segmentation import SegmentationImage
+from astropy.convolution import convolve
+from astropy.stats import SigmaClip
+from photutils.segmentation import (
+    detect_sources,
+    detect_threshold,
+    make_2dgaussian_kernel,
+)
 from scipy.stats import iqr
 from scipy.fftpack import fft2, ifft2
 import logging
@@ -162,14 +168,30 @@ def Background_DilatedSources(IMG, results, options):
     # such as stars and galaxies, including a boarder
     # around each source.
     if not ("ap_set_background" in options and "ap_set_background_noise" in options):
-        segm = SegmentationImage(IMG)
-        source_mask = segm.make_source_mask(
-            nsigma=3,
-            npixels=int(1.0 / options["ap_pixscale"]),
-            dilate_size=40,
-            filter_fwhm=1.0 / options["ap_pixscale"],
-            filter_size=int(3.0 / options["ap_pixscale"]),
-            sigclip_iters=5,
+        threshold = detect_threshold(
+            IMG,
+            3,
+            sigma_clip=SigmaClip(sigma=3, maxiters=5),
+        )
+        filter_size = int(3.0 / options["ap_pixscale"])
+        # Photutils requires an odd kernel size around the central pixel.
+        if filter_size % 2 == 0:
+            filter_size += 1
+        kernel = make_2dgaussian_kernel(
+            1.0 / options["ap_pixscale"],
+            filter_size,
+        )
+        convolved_IMG = convolve(IMG, kernel)
+        segm = detect_sources(
+            convolved_IMG,
+            threshold,
+            int(1.0 / options["ap_pixscale"]),
+        )
+        # Source detection can legitimately return no segmentation map.
+        source_mask = (
+            np.zeros(IMG.shape, dtype=bool)
+            if segm is None
+            else segm.make_source_mask(size=40)
         )
         mask = np.logical_or(mask, source_mask)
 
