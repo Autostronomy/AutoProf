@@ -1,4 +1,4 @@
-from photutils import DAOStarFinder, IRAFStarFinder
+from photutils.detection import IRAFStarFinder
 import numpy as np
 from scipy.stats import iqr
 import matplotlib.pyplot as plt
